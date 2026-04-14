@@ -1,0 +1,2014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>JioBharatIQ Home</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+
+    :root {
+      --text-high: #0c0d10;
+      --text-medium: #191b1e;
+      --text-low: #191b1e;
+      --text-high-tinted: #3f007f;
+      --text-medium-tinted: #6d17ce;
+      --surface-bold: #6d17ce;
+      --surface-bold-green: #00ad8b;
+      --surface-subtle: #ede7ff;
+      --surface-moderate: #e3e3e4;
+      --stroke-subtle: #eeeeef;
+      --navi-600: #0d2da0;
+      --pink-1200: #e11894;
+      --shape-pill: 999px;
+      --shape-4xl: 23px;
+      --font-family: 'Inter', sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px 0;
+    }
+
+    .phone-frame {
+      width: 360px;
+      height: 780px;
+      background: white;
+      border-radius: 30px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 10px 24px;
+      height: 52px;
+      background: white;
+    }
+
+    .status-time {
+      font-size: 14px;
+      line-height: 1.3;
+      color: var(--text-low);
+      opacity: 0.65;
+    }
+
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-icons img {
+      width: 17px;
+      height: 17px;
+    }
+
+    .status-icons img:last-child {
+      width: 8px;
+      height: 15px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px 10px 12px;
+      height: 56px;
+      background: white;
+    }
+
+    .header-start {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .back-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--shape-pill);
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
+    .back-btn img {
+      width: 20px;
+      height: 20px;
+    }
+
+    .logo-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--shape-pill);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .logo-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar-container {
+      position: relative;
+      width: 42px;
+      height: 42px;
+      cursor: pointer;
+    }
+
+    .avatar-img {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--shape-pill);
+      object-fit: cover;
+    }
+
+    .avatar-badge {
+      position: absolute;
+      top: -4px;
+      right: 0;
+      min-width: 16px;
+      height: 16px;
+      background: var(--surface-bold-green);
+      border-radius: var(--shape-pill);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+    }
+
+    .avatar-badge span {
+      font-size: 8px;
+      font-weight: 500;
+      color: white;
+      line-height: 1;
+    }
+
+    /* Container / Content */
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 8px 0 80px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    /* Section Title */
+    .section-title {
+      padding: 12px 18px;
+    }
+
+    .section-title h2 {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--text-high);
+      line-height: 1;
+    }
+
+    /* Assistants */
+    .assistants-scroll {
+      display: flex;
+      gap: 16px;
+      padding: 0 18px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .assistants-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .assistant-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 4px;
+      flex-shrink: 0;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .assistant-icon {
+      width: 74px;
+      height: 74px;
+      border-radius: 98.667px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .assistant-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .assistant-ring {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 82px;
+      height: 82px;
+      pointer-events: none;
+    }
+
+    .assistant-ring img {
+      width: 100%;
+      height: 100%;
+    }
+
+    .assistant-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-medium);
+      opacity: 0.8;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    /* Avatar-based assistant (smaller) */
+    .assistant-avatar {
+      width: 74px;
+      height: 46px;
+      border-radius: var(--shape-pill);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .assistant-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Tools */
+    .tools-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tools-row {
+      display: flex;
+      gap: 8px;
+      padding: 0 18px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .tools-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0 12px 0 8px;
+      border: 1.5px solid var(--stroke-subtle);
+      border-radius: var(--shape-pill);
+      flex-shrink: 0;
+      cursor: pointer;
+      background: white;
+      transition: background 0.15s;
+    }
+
+    .chip:hover {
+      background: #f8f8f8;
+    }
+
+    .chip-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .chip-icon img {
+      width: 100%;
+      height: 100%;
+    }
+
+    .chip-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-high);
+      line-height: 1;
+      white-space: nowrap;
+      padding: 8px 0;
+    }
+
+    /* Updates */
+    .updates-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 12px 18px;
+    }
+
+    .updates-header h2 {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--text-high);
+      line-height: 1;
+    }
+
+    .view-all-btn {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-medium-tinted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: var(--font-family);
+    }
+
+    .update-card {
+      margin: 0 16px;
+      background: white;
+      border: 1px solid var(--surface-moderate);
+      border-radius: var(--shape-4xl);
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+
+    .update-card-content {
+      display: flex;
+      gap: 8px;
+    }
+
+    .update-icon {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+    }
+
+    .update-icon img {
+      width: 100%;
+      height: 100%;
+    }
+
+    .update-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .update-text-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-high);
+      line-height: 1.2;
+    }
+
+    .update-text-body {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-medium);
+      opacity: 0.8;
+      line-height: 1.3;
+    }
+
+    .update-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: var(--shape-pill);
+      border: none;
+      font-family: var(--font-family);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.15s;
+    }
+
+    .btn:hover {
+      opacity: 0.85;
+    }
+
+    .btn-subtle {
+      background: var(--surface-subtle);
+      color: var(--text-high-tinted);
+    }
+
+    .btn-bold {
+      background: var(--surface-bold);
+      color: white;
+    }
+
+    .update-more-btn {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--shape-pill);
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
+    .update-more-btn img {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Homepage chat input bar — fixed at bottom */
+    .home-input-bar {
+      position: absolute;
+      bottom: 24px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+      z-index: 9;
+    }
+    .home-add-btn {
+      width: 42px; height: 42px; background: #ede7ff; border-radius: var(--shape-pill);
+      display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0;
+    }
+    .home-add-btn svg { width: 26px; height: 26px; }
+    .home-input-pill {
+      flex: 1; min-width: 0; background: #eeeeef; border-radius: 24px; height: 42px;
+      display: flex; align-items: center; padding: 6px 16px; cursor: text;
+    }
+    .home-input-pill span {
+      font-size: 16px; color: var(--text-low); opacity: 0.65; line-height: 1.3;
+      font-family: var(--font-family);
+    }
+    .home-voice-btn {
+      width: 42px; height: 42px; background: #6d17ce; border-radius: var(--shape-pill);
+      display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0;
+    }
+    .home-voice-btn svg { width: 26px; height: 26px; }
+
+    /* ============ VOICE MODE OVERLAY ============ */
+    .voice-overlay {
+      position: absolute;
+      inset: 0;
+      background: white;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      visibility: hidden;
+      pointer-events: none;
+      border-radius: 30px;
+      overflow: clip;
+    }
+
+    .voice-overlay.active {
+      visibility: visible;
+      pointer-events: auto;
+      overflow: visible;
+    }
+
+    /* Gradient border via pseudo-element with smooth fade */
+    .voice-overlay::before {
+      content: '';
+      position: absolute;
+      inset: -5px;
+      border-radius: 35px;
+      padding: 5px;
+      background: linear-gradient(to bottom, rgba(127, 57, 227, 0) 0%, rgba(127, 57, 227, 0.35) 70%, rgba(127, 57, 227, 0.5) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      pointer-events: none;
+      z-index: 999;
+    }
+    .voice-overlay.glow::before,
+    .voice-overlay.kb-mode::before {
+      opacity: 1;
+    }
+    .voice-overlay.listening-mode::before {
+      background: linear-gradient(to bottom, rgba(0, 173, 139, 0) 0%, rgba(0, 173, 139, 0.35) 70%, rgba(0, 173, 139, 0.5) 100%);
+      opacity: 1;
+    }
+
+    /* Status bar + Header — always fixed, no transitions */
+    .voice-overlay .status-bar {
+      transition: none;
+      flex-shrink: 0;
+    }
+
+    /* Voice Header */
+    .voice-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px 10px 12px;
+      height: 56px;
+      background: white;
+      transition: none;
+      flex-shrink: 0;
+    }
+
+    .voice-header-start {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .voice-back-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--shape-pill);
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
+    .voice-back-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .voice-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-high);
+      line-height: 1.2;
+      flex: 1;
+    }
+
+    .voice-speaker-btn {
+      display: none;
+    }
+
+    /* Voice Container (center area) */
+    .voice-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 0 16px;
+      min-height: 0;
+      overflow: hidden;
+      transition: padding 0.4s cubic-bezier(0.32, 0.72, 0, 1), gap 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .voice-overlay.chat-active .voice-container {
+      overflow-y: auto;
+      overflow-x: hidden;
+      justify-content: flex-start;
+      padding-top: 8px;
+      padding-bottom: 130px;
+    }
+
+    /* Connecting spinner (video) */
+    .voice-spinner {
+      width: 124px;
+      height: 124px;
+      display: none;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .voice-spinner.visible {
+      display: block;
+    }
+
+    /* Bot dots (connected/welcome) */
+    .voice-bot-dots {
+      width: 124px;
+      height: 124px;
+      display: none;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: width 0.4s cubic-bezier(0.32, 0.72, 0, 1),
+                  height 0.4s cubic-bezier(0.32, 0.72, 0, 1),
+                  gap 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .voice-bot-dots.visible {
+      display: flex;
+    }
+
+    .voice-bot-dot {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--surface-bold);
+      transition: width 0.4s cubic-bezier(0.32, 0.72, 0, 1),
+                  height 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .voice-bot-dots.listening .voice-bot-dot {
+      animation: listenPulse 1.8s ease-in-out infinite;
+    }
+
+    .voice-bot-dots.listening .voice-bot-dot:nth-child(2) { animation-delay: 0.2s; }
+    .voice-bot-dots.listening .voice-bot-dot:nth-child(3) { animation-delay: 0.4s; }
+    .voice-bot-dots.listening .voice-bot-dot:nth-child(4) { animation-delay: 0.6s; }
+
+    @keyframes listenPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    /* Avatar area — floats above voice action buttons */
+    .voice-avatar-area {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      padding: 0 0 2px;
+    }
+    .voice-avatar-area.visible { display: flex; }
+    .voice-avatar-label {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text-high);
+      line-height: 1.3;
+      text-align: center;
+    }
+    .avatar-idle {
+      width: 58px;
+      height: 58px;
+      border-radius: 0;
+      object-fit: cover;
+      display: none;
+      flex-shrink: 0;
+    }
+    .avatar-idle.visible { display: block; }
+
+    /* Centered avatar in voice-container (welcome/listening) */
+    .avatar-center {
+      width: 124px;
+      height: 124px;
+      object-fit: cover;
+      display: none;
+      flex-shrink: 0;
+      transition: width 0.4s cubic-bezier(0.32, 0.72, 0, 1),
+                  height 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .avatar-center.visible { display: block; }
+    .voice-overlay.chat-active .avatar-center { display: none !important; }
+
+    /* Voice status text */
+    .voice-status {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text-high);
+      line-height: 1.3;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.4s ease,
+                  font-size 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .voice-status.visible {
+      opacity: 1;
+    }
+
+    /* Voice bottom actions */
+    .voice-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .voice-action-btn {
+      width: 42px;
+      height: 42px;
+      background: #e7e9ff;
+      border-radius: var(--shape-pill);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .voice-action-btn:hover {
+      background: #dcd5f5;
+    }
+
+    .voice-action-btn svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    /* ============ KEYBOARD / CHAT MODE ============ */
+    /* Keep centered in visible area above keyboard + input */
+    .voice-overlay.kb-mode .voice-container { justify-content: center; gap: 8px; padding-bottom: 340px; }
+    .voice-overlay.kb-mode .voice-bot-dots { display: none; }
+    .voice-overlay.kb-mode .avatar-center { width: 66px; height: 66px; }
+    .voice-overlay.kb-mode .voice-status { font-size: 16px; }
+    .voice-overlay.kb-mode .voice-spinner { display: none; }
+    .voice-overlay.kb-mode .greeting-msg { display: none; }
+    /* Hide bot dots when avatar center is visible */
+    .avatar-center.visible ~ .voice-bot-dots,
+    .voice-bot-dots:has(~ .avatar-center.visible) { display: none !important; }
+    .voice-overlay.kb-mode .voice-actions { opacity: 0; pointer-events: none; }
+    .voice-overlay.kb-mode .voice-avatar-area { display: none !important; }
+    .voice-overlay.kb-mode .voice-spinner { display: none; }
+
+    /* Chat messages area (inside voice-container) */
+    .chat-messages {
+      width: 100%;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+      flex: 1;
+      padding: 8px 0;
+    }
+    .voice-overlay.chat-active .voice-bot-dots,
+    .voice-overlay.chat-active .voice-status { display: none; }
+    .voice-overlay.chat-active .chat-messages { display: flex; }
+
+    .user-bubble {
+      background: #f5f5f5;
+      padding: 12px 16px;
+      border-radius: 24px 24px 0 24px;
+      font-size: 14px;
+      color: var(--text-high);
+      line-height: 1.3;
+      max-width: 80%;
+      align-self: flex-end;
+      animation: bubbleIn 0.3s ease;
+    }
+    @keyframes bubbleIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* AI response bubble */
+    .ai-response {
+      width: 100%;
+      align-self: flex-start;
+      font-size: 16px;
+      color: var(--text-high);
+      line-height: 1.3;
+      padding: 8px 0;
+      animation: bubbleIn 0.3s ease;
+    }
+    .ai-feedback {
+      display: flex; gap: 12px; padding: 4px 0; align-items: center;
+    }
+    .ai-feedback button {
+      width: 16px; height: 16px; background: none; border: none; cursor: pointer; opacity: 0.6; padding: 0;
+    }
+    .ai-feedback button:hover { opacity: 1; }
+    .ai-feedback svg { width: 16px; height: 16px; }
+
+    .thinking-row {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      width: 100%;
+      padding: 6px 2px;
+    }
+    .thinking-row.visible { display: flex; animation: bubbleIn 0.3s ease; }
+    .thinking-icon {
+      width: 20px; height: 20px; opacity: 0.5;
+      animation: thinkSpin 1.5s linear infinite;
+    }
+    @keyframes thinkSpin { to { transform: rotate(360deg); } }
+    .thinking-text {
+      font-size: 14px; color: var(--text-low); opacity: 0.65; line-height: 1.3;
+    }
+
+    /* Rich answer card */
+    .rich-answer { width: 100%; align-self: stretch; display: none; animation: bubbleIn 0.5s ease; }
+    .rich-answer.visible { display: flex; flex-direction: column; }
+    .person-card {
+      background: #f3f4ff;
+      border-radius: 20px;
+      padding: 12px;
+      display: flex;
+      gap: 12px;
+      margin: 8px 0;
+    }
+    .person-card img {
+      width: 118px; height: 118px; border-radius: 16px; object-fit: cover; flex-shrink: 0;
+    }
+    .person-info { display: flex; flex-direction: column; gap: 4px; padding: 4px 0; }
+    .person-name { font-size: 20px; font-weight: 900; color: var(--text-high); line-height: 1; }
+    .person-role { font-size: 14px; color: var(--text-medium); opacity: 0.8; line-height: 1.3; }
+    .answer-text {
+      font-size: 16px; color: var(--text-high); line-height: 1.3; padding: 8px 0;
+    }
+    .feedback-icons {
+      display: flex; gap: 12px; padding: 4px 0; align-items: center;
+    }
+    .feedback-icons button {
+      width: 16px; height: 16px; background: none; border: none; cursor: pointer; opacity: 0.6; padding: 0;
+    }
+    .feedback-icons button:hover { opacity: 1; }
+    .feedback-icons svg { width: 16px; height: 16px; }
+
+    /* Bottom bar area: input + keyboard — always in DOM, slides up/down */
+    .kb-bottom {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 12px;
+      flex-shrink: 0;
+      padding-bottom: 0;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+    }
+    .voice-overlay.kb-mode .kb-bottom { transform: translateY(0); }
+    /* After send: keep input bar visible at bottom:24px, hide only the keyboard */
+    .voice-overlay.kb-mode.kb-hidden .kb-bottom {
+      transform: translateY(0);
+      padding-bottom: 24px;
+    }
+    .voice-overlay.kb-mode.kb-hidden .fake-keyboard { display: none; }
+
+    /* Text-mode: unified bottom bar [+] [Ask anything / typed text] [voice btn] */
+    .text-bottom-bar {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 11;
+      padding-bottom: 0;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .voice-overlay.text-mode .text-bottom-bar { display: flex; transform: translateY(0); }
+    .voice-overlay.text-mode .voice-actions { opacity: 0; pointer-events: none; }
+    .voice-overlay.text-mode .kb-bottom { display: none !important; }
+    .voice-overlay.text-mode .kb-bot-mini { display: none !important; }
+
+    /* Text input row inside text-bottom-bar */
+    .text-input-row {
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+      padding: 0 12px;
+      width: 100%;
+      box-sizing: border-box;
+      position: relative;
+    }
+    .text-input-row .home-input-pill { cursor: text; flex: 1; min-width: 0; }
+
+    /* Text mode: when keyboard hidden, add bottom padding */
+    .voice-overlay.text-mode.kb-hidden .text-bottom-bar { padding-bottom: 24px; }
+    .voice-overlay.text-mode.kb-hidden .text-bottom-bar .text-kb { display: none; }
+
+    /* Text mode: collapsed pill + voice btn (default) */
+    .text-input-row .home-input-pill,
+    .text-input-row .home-voice-btn {
+      transition: opacity 0.2s ease;
+    }
+
+    /* Text mode expanded input (typing state) — hidden by default, out of flow */
+    .text-input-expanded {
+      display: flex;
+      background: #eeeeef; border-radius: 20px;
+      padding: 5px 5px 5px 8px; gap: 8px; height: 42px;
+      align-items: center;
+      opacity: 0; pointer-events: none;
+      position: absolute; left: 54px; right: 12px; bottom: 0;
+      transition: opacity 0.2s ease;
+    }
+    .text-input-expanded input {
+      flex: 1; min-width: 0; border: none; background: none; outline: none;
+      font-family: var(--font-family); font-size: 16px; color: var(--text-high);
+      line-height: 1.3; padding: 4px 8px;
+    }
+    .text-input-expanded input::placeholder { color: var(--text-low); opacity: 0.65; }
+    .text-send-btn {
+      width: 32px; height: 32px; background: var(--surface-bold); border-radius: var(--shape-pill);
+      display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0;
+    }
+    .text-send-btn svg { width: 20px; height: 20px; }
+
+    /* When typing: crossfade collapsed → expanded */
+    .voice-overlay.text-mode.text-typing .text-input-row .home-input-pill {
+      opacity: 0; pointer-events: none; position: absolute;
+    }
+    .voice-overlay.text-mode.text-typing .text-input-row .home-voice-btn {
+      opacity: 0; pointer-events: none; position: absolute;
+    }
+    .voice-overlay.text-mode.text-typing .text-input-expanded {
+      opacity: 1; pointer-events: auto;
+      position: relative; left: auto; right: auto; bottom: auto;
+      flex: 1; min-width: 0;
+    }
+
+    /* Greeting message */
+    .greeting-msg {
+      font-size: 16px; color: var(--text-high); line-height: 1.3; padding: 8px 16px;
+      display: none;
+      transition: opacity 0.2s ease;
+      opacity: 1;
+    }
+    .voice-overlay.text-mode .greeting-msg { display: block; }
+    .voice-overlay.text-mode.text-typing .greeting-msg { opacity: 0; }
+    .voice-overlay.text-mode.chat-active .greeting-msg { display: none; }
+
+    /* Text mode thinking spinner (centered small dots) */
+    .text-thinking-dots {
+      display: none;
+      justify-content: center;
+      padding: 16px 0;
+      width: 100%;
+    }
+    .text-thinking-dots.visible { display: flex; }
+    .text-thinking-dots-inner {
+      display: flex; flex-wrap: wrap; width: 48px; gap: 4px; justify-content: center;
+    }
+    .text-thinking-dot {
+      width: 18px; height: 18px; border-radius: 50%; background: var(--surface-bold);
+      animation: spinFade 1.2s ease-in-out infinite;
+    }
+    .text-thinking-dot:nth-child(2) { animation-delay: 0.15s; }
+    .text-thinking-dot:nth-child(3) { animation-delay: 0.3s; }
+    .text-thinking-dot:nth-child(4) { animation-delay: 0.45s; }
+
+    /* Small avatar above input (post-send) */
+    .kb-bot-mini {
+      display: none;
+      justify-content: center;
+      padding: 12px 0 4px;
+    }
+    .kb-bot-mini.visible { display: flex; }
+    .kb-bot-mini video {
+      width: 58px; height: 58px; object-fit: cover;
+    }
+
+    /* Input bar */
+    .chat-input-bar {
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+      padding: 0 12px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .input-add-btn {
+      width: 42px; height: 42px; background: #e7e9ff; border-radius: var(--shape-pill);
+      display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0;
+    }
+    .input-add-btn svg { width: 26px; height: 26px; }
+    .input-field-wrap {
+      flex: 1; min-width: 0; background: #eeeeef; border-radius: 24px; display: flex; align-items: center;
+      padding: 6px 8px; gap: 8px; height: 42px;
+    }
+    .input-expanded .input-field-wrap {
+      border-radius: 20px; padding: 5px 5px 5px 8px;
+    }
+    .input-field {
+      flex: 1; min-width: 0; border: none; background: none; outline: none; font-family: var(--font-family);
+      font-size: 16px; color: var(--text-high); line-height: 1.3; padding: 4px 8px;
+    }
+    .input-field::placeholder { color: var(--text-low); opacity: 0.65; }
+    .input-send-btn {
+      width: 32px; height: 32px; background: var(--surface-bold); border-radius: var(--shape-pill);
+      display: none; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0;
+    }
+    .input-send-btn.visible { display: flex; }
+    .input-send-btn svg { width: 20px; height: 20px; }
+    .input-end-btns {
+      display: flex; gap: 6px; align-items: center; flex-shrink: 0;
+    }
+    .input-mic-btn, .input-close-btn {
+      width: 42px; height: 42px; border-radius: var(--shape-pill);
+      display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0;
+    }
+    .input-mic-btn { background: #e7e9ff; }
+    .input-mic-btn svg, .input-close-btn svg { width: 26px; height: 26px; }
+    .input-close-btn { background: #3900ad; }
+
+    /* Collapsed / Expanded input state toggle */
+    .input-collapsed {
+      display: flex; flex: 1; min-width: 0; gap: 6px; align-items: flex-end;
+      transition: opacity 0.2s ease;
+    }
+    .input-expanded {
+      display: flex; flex: 1; min-width: 0; gap: 6px; align-items: flex-end;
+      transition: opacity 0.2s ease;
+      opacity: 0; pointer-events: none; height: 0; overflow: hidden;
+      position: absolute; left: 0; right: 0;
+    }
+    .kb-mode.has-text .input-expanded {
+      opacity: 1; pointer-events: auto; height: auto; overflow: visible;
+      position: relative;
+    }
+    .kb-mode.has-text .input-collapsed {
+      opacity: 0; pointer-events: none; height: 0; overflow: hidden;
+      position: absolute; left: 0; right: 0;
+    }
+
+    /* Fake keyboard */
+    .fake-keyboard {
+      background: #d1d3d9;
+      padding: 10px 6px 0;
+      border-radius: 27px 27px 0 0;
+    }
+    .kb-row { display: flex; gap: 6px; margin-bottom: 12px; justify-content: center; }
+    .kb-row.r2 { padding: 0 18px; }
+    .kb-row.r3 { gap: 0; }
+    .kb-key {
+      flex: 1; height: 38px; background: rgba(255,255,255,0.85); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; color: #1c1c1c; border: none; cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .kb-key:active { background: rgba(255,255,255,1); }
+    .kb-key.special {
+      flex: 0 0 40px; background: rgba(255,255,255,0.55); font-size: 16px;
+    }
+    .kb-key.shift-key, .kb-key.delete-key { flex: 0 0 40px; background: rgba(255,255,255,0.55); font-size: 18px; }
+    .kb-key.r3-letters { flex: 1; margin: 0 3px; }
+    .kb-row4 { display: flex; gap: 5px; margin-bottom: 10px; }
+    .kb-key.mode-key { flex: 0 0 83px; background: rgba(255,255,255,0.55); font-size: 16px; }
+    .kb-key.space-key { flex: 1; }
+    .kb-key.return-key { flex: 0 0 83px; background: #007AFF; color: white; font-size: 17px; }
+    .kb-emoji-row {
+      display: flex; justify-content: space-between; padding: 10px 32px 6px;
+    }
+    .kb-emoji-row span { font-size: 20px; opacity: 0.5; cursor: pointer; }
+
+    /* Responsive */
+    @media (max-width: 400px) {
+      body { padding: 0; }
+      .phone-frame { border-radius: 0; height: 100vh; height: 100dvh; width: 100%; }
+      .voice-overlay { border-radius: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-time">9:30</span>
+    <div class="status-icons">
+      <img src="https://www.figma.com/api/mcp/asset/1dc715d8-a293-4d3c-9cd9-aa35f703301e" alt="WiFi">
+      <img src="https://www.figma.com/api/mcp/asset/a969b00c-06fa-479c-84f1-f49622bac5ee" alt="Signal">
+      <img src="https://www.figma.com/api/mcp/asset/0e51d086-1db9-436a-8d42-7f468c6a1e06" alt="Battery">
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-start">
+      <button class="back-btn" aria-label="Menu">
+        <img src="https://www.figma.com/api/mcp/asset/3772df9d-13c0-4cb4-b8cf-3bf2b1a61e04" alt="Menu">
+      </button>
+      <div class="logo-btn">
+        <img src="https://www.figma.com/api/mcp/asset/a5d014e9-86a3-40a4-9e90-6819bc77fb65" alt="Jio Logo">
+      </div>
+    </div>
+    <div class="avatar-container">
+      <img class="avatar-img" src="https://www.figma.com/api/mcp/asset/5773af3c-af33-47e4-b537-322fb7cd62fa" alt="Profile">
+      <div class="avatar-badge"><span>9</span></div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content">
+    <!-- Your Assistants -->
+    <div>
+      <div class="section-title">
+        <h2>Your Assistants</h2>
+      </div>
+      <div class="assistants-scroll">
+        <!-- Astrology -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/18587855-6e96-46a0-b5fd-5781f5d7ae1a" alt="">
+          </div>
+          <div class="assistant-icon" style="background: var(--navi-600);">
+            <img src="https://www.figma.com/api/mcp/asset/83a40c69-b0f1-4c78-9812-6da472f59613" alt="Astrology" style="width: 48px; height: 55px; object-fit: contain;">
+          </div>
+          <span class="assistant-label">Astrology</span>
+        </div>
+        <!-- Bollywood -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/18587855-6e96-46a0-b5fd-5781f5d7ae1a" alt="">
+          </div>
+          <div class="assistant-icon" style="background: var(--pink-1200);">
+            <img src="https://www.figma.com/api/mcp/asset/3e922bcd-66d0-401f-82ac-33295d554913" alt="Bollywood" style="width: 46px; height: 49px; object-fit: contain;">
+          </div>
+          <span class="assistant-label">Bollywood</span>
+        </div>
+        <!-- Cricket -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/18587855-6e96-46a0-b5fd-5781f5d7ae1a" alt="">
+          </div>
+          <div class="assistant-icon">
+            <img src="https://www.figma.com/api/mcp/asset/0831dd36-9a7d-40de-a4eb-ed97c92f9ee5" alt="Cricket">
+          </div>
+          <span class="assistant-label">Cricket</span>
+        </div>
+        <!-- Devotion -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/18587855-6e96-46a0-b5fd-5781f5d7ae1a" alt="">
+          </div>
+          <div class="assistant-icon">
+            <img src="https://www.figma.com/api/mcp/asset/04938379-fa3b-4ab3-922e-651dec336f56" alt="Devotion">
+          </div>
+          <span class="assistant-label">Devotion</span>
+        </div>
+        <!-- Education -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/35409708-a705-4f1d-b8d9-1232c5fb2d7b" alt="">
+          </div>
+          <div class="assistant-avatar">
+            <img src="https://www.figma.com/api/mcp/asset/0ab3732e-d88c-4a15-86bb-119ee193a93a" alt="Education">
+          </div>
+          <span class="assistant-label">Education</span>
+        </div>
+        <!-- Finance -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/35409708-a705-4f1d-b8d9-1232c5fb2d7b" alt="">
+          </div>
+          <div class="assistant-avatar">
+            <img src="https://www.figma.com/api/mcp/asset/977b4fa9-94fa-4693-817a-5f1fff19218e" alt="Finance">
+          </div>
+          <span class="assistant-label">Finance</span>
+        </div>
+        <!-- Government -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/35409708-a705-4f1d-b8d9-1232c5fb2d7b" alt="">
+          </div>
+          <div class="assistant-avatar">
+            <img src="https://www.figma.com/api/mcp/asset/a1678e6e-7a09-4c39-8ed4-51ac90ffa7d1" alt="Government">
+          </div>
+          <span class="assistant-label">Government</span>
+        </div>
+        <!-- Health -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/35409708-a705-4f1d-b8d9-1232c5fb2d7b" alt="">
+          </div>
+          <div class="assistant-avatar">
+            <img src="https://www.figma.com/api/mcp/asset/3ef3e66d-92cd-403a-b1f9-06fb40077d8f" alt="Health">
+          </div>
+          <span class="assistant-label">Health</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tools -->
+    <div>
+      <div class="section-title">
+        <h2>Tools</h2>
+      </div>
+      <div class="tools-container">
+        <div class="tools-row">
+          <div class="chip">
+            <div class="chip-icon">
+              <img src="https://www.figma.com/api/mcp/asset/f500b70b-3363-4ae3-8634-b22f93b69d08" alt="">
+            </div>
+            <span class="chip-label">Quick Translate</span>
+          </div>
+          <div class="chip">
+            <div class="chip-icon">
+              <img src="https://www.figma.com/api/mcp/asset/2dc785fa-03f3-4ba5-ab7c-c61ab0c73fcd" alt="">
+            </div>
+            <span class="chip-label">Create image</span>
+          </div>
+          <div class="chip">
+            <div class="chip-icon">
+              <img src="https://www.figma.com/api/mcp/asset/1957f6ac-a6e2-4bdc-995d-93eff27222c6" alt="">
+            </div>
+            <span class="chip-label">Health Calculator</span>
+          </div>
+        </div>
+        <div class="tools-row">
+          <div class="chip">
+            <div class="chip-icon">
+              <img src="https://www.figma.com/api/mcp/asset/aeaa3e1b-3a68-46b5-9092-6e7754eb0219" alt="">
+            </div>
+            <span class="chip-label">Generate videos</span>
+          </div>
+          <div class="chip">
+            <div class="chip-icon">
+              <img src="https://www.figma.com/api/mcp/asset/4209920f-b900-4bed-8de2-10d108538030" alt="">
+            </div>
+            <span class="chip-label">Analyse docs</span>
+          </div>
+          <div class="chip">
+            <div class="chip-icon">
+              <img src="https://www.figma.com/api/mcp/asset/1c808234-f3ae-4803-84e8-0c1719157cd2" alt="">
+            </div>
+            <span class="chip-label">Smart Shopping</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Updates -->
+    <div>
+      <div class="updates-header">
+        <h2>Updates</h2>
+        <button class="view-all-btn">View all</button>
+      </div>
+      <div class="update-card">
+        <button class="update-more-btn" aria-label="More options">
+          <img src="https://www.figma.com/api/mcp/asset/23ab3239-b590-43bc-861c-44d388b0a936" alt="More">
+        </button>
+        <div class="update-card-content">
+          <div class="update-icon">
+            <img src="https://www.figma.com/api/mcp/asset/f5907d1d-8f80-4a30-8425-626dfd1a84b8" alt="Bill">
+          </div>
+          <div class="update-text">
+            <span class="update-text-title">Due in 2 days</span>
+            <p class="update-text-body">"Your electricity bill of &#8377;1,240 is due tomorrow. Want me to take care of it?"</p>
+          </div>
+        </div>
+        <div class="update-actions">
+          <button class="btn btn-subtle">Dismiss</button>
+          <button class="btn btn-bold">Pay bill</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Homepage Chat Input Bar -->
+  <div class="home-input-bar">
+    <button class="home-add-btn" aria-label="Add">
+      <svg viewBox="0 0 26 26" fill="none"><path d="M13 6v14M6 13h14" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <div class="home-input-pill" onclick="openTypingMode()">
+      <span>Ask anything</span>
+    </div>
+    <button class="home-voice-btn" aria-label="Voice" onclick="openVoiceMode()">
+      <svg viewBox="0 0 26 26" fill="none">
+        <rect x="6" y="9" width="2.5" height="8" rx="1.25" fill="white"/>
+        <rect x="11.75" y="5" width="2.5" height="16" rx="1.25" fill="white"/>
+        <rect x="17.5" y="7" width="2.5" height="12" rx="1.25" fill="white"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Voice Mode Overlay -->
+  <div class="voice-overlay" id="voiceOverlay">
+    <!-- Status Bar (same as home) -->
+    <div class="status-bar">
+      <span class="status-time">9:30</span>
+      <div class="status-icons">
+        <img src="https://www.figma.com/api/mcp/asset/1dc715d8-a293-4d3c-9cd9-aa35f703301e" alt="WiFi">
+        <img src="https://www.figma.com/api/mcp/asset/a969b00c-06fa-479c-84f1-f49622bac5ee" alt="Signal">
+        <img src="https://www.figma.com/api/mcp/asset/0e51d086-1db9-436a-8d42-7f468c6a1e06" alt="Battery">
+      </div>
+    </div>
+
+    <!-- Voice Header -->
+    <div class="voice-header">
+      <div class="voice-header-start">
+        <button class="voice-back-btn" onclick="closeVoiceMode()" aria-label="Back">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12.5 15L7.5 10L12.5 5" stroke="#0c0d10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <span class="voice-title">New chat</span>
+      </div>
+      <button class="voice-speaker-btn" aria-label="Speaker">
+        <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5L7 9H3v8h4l5 4V5z" fill="#6d17ce"/>
+          <path d="M17.5 8.5a6 6 0 010 9" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/>
+          <path d="M20.5 6a10 10 0 010 14" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Voice Container -->
+    <div class="voice-container">
+      <!-- Connecting: thinking video -->
+      <video class="voice-spinner visible" id="voiceSpinner" src="avatar-thinking.mp4" muted playsinline></video>
+
+      <!-- Connected/Welcome: bot dots + avatar video -->
+      <div class="voice-bot-dots" id="voiceBotDots">
+        <div class="voice-bot-dot"></div>
+        <div class="voice-bot-dot"></div>
+        <div class="voice-bot-dot"></div>
+        <div class="voice-bot-dot"></div>
+      </div>
+      <!-- Centered avatar (welcome/listening state) -->
+      <video class="avatar-center" id="avatarCenter" src="avatar-idle.mp4" muted playsinline loop></video>
+      <!-- Status text -->
+      <span class="voice-status" id="voiceStatus">Connecting...</span>
+
+      <!-- Greeting (text mode only) -->
+      <p class="greeting-msg" id="greetingMsg">Hi, how can I help you today?</p>
+
+      <!-- Chat messages (dynamically populated) -->
+      <div class="chat-messages" id="chatMessages">
+        <!-- Thinking indicators (reusable, appended when needed) -->
+      </div>
+    </div>
+
+    <!-- Avatar + Say something (floats above action buttons) -->
+    <div class="voice-avatar-area" id="voiceAvatarArea">
+      <span class="voice-avatar-label" id="voiceAvatarLabel">Say something...</span>
+      <video class="avatar-idle" id="avatarIdle" src="avatar-idle.mp4" muted playsinline loop></video>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="voice-actions">
+      <!-- Plus / Add -->
+      <button class="voice-action-btn" aria-label="Add">
+        <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13 6v14M6 13h14" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <!-- Mic -->
+      <button class="voice-action-btn" aria-label="Microphone">
+        <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="9" y="3" width="8" height="13" rx="4" fill="#6d17ce"/>
+          <path d="M6 12a7 7 0 0014 0" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/>
+          <path d="M13 22v-3" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <!-- Keyboard -->
+      <button class="voice-action-btn" aria-label="Keyboard" onclick="openKeyboardMode()">
+        <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="6" width="20" height="14" rx="3" stroke="#6d17ce" stroke-width="2"/>
+          <circle cx="8" cy="11" r="1.2" fill="#6d17ce"/>
+          <circle cx="13" cy="11" r="1.2" fill="#6d17ce"/>
+          <circle cx="18" cy="11" r="1.2" fill="#6d17ce"/>
+          <rect x="8" y="15" width="10" height="2" rx="1" fill="#6d17ce"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Keyboard bottom section -->
+    <div class="kb-bottom">
+      <!-- Mini bot dots (shown after send) -->
+      <div class="kb-bot-mini" id="kbBotMini">
+        <video id="kbBotMiniVideo" src="avatar-idle.mp4" muted playsinline loop></video>
+      </div>
+
+      <!-- Input bar -->
+      <div class="chat-input-bar" id="chatInputBar">
+        <!-- + button -->
+        <button class="input-add-btn" aria-label="Add">
+          <svg viewBox="0 0 26 26" fill="none"><path d="M13 6v14M6 13h14" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+
+        <!-- Collapsed: pill input + end buttons -->
+        <div class="input-collapsed" id="inputCollapsed">
+          <div class="input-field-wrap" style="cursor:text;" onclick="document.getElementById('chatInput').focus()">
+            <input type="text" class="input-field" id="chatInput" placeholder="Ask anything" autocomplete="off">
+          </div>
+          <div class="input-end-btns">
+            <button class="input-mic-btn" aria-label="Microphone">
+              <svg viewBox="0 0 26 26" fill="none"><rect x="9" y="3" width="8" height="13" rx="4" fill="#6d17ce"/><path d="M6 12a7 7 0 0014 0" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/><path d="M13 22v-3" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <button class="input-close-btn" aria-label="Close" onclick="closeKeyboardMode()">
+              <svg viewBox="0 0 26 26" fill="none"><path d="M8 8l10 10M18 8L8 18" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Expanded: full-width input with inline send -->
+        <div class="input-expanded" id="inputExpanded">
+          <div class="input-field-wrap">
+            <input type="text" class="input-field" id="chatInputExpanded" placeholder="Ask anything" autocomplete="off">
+            <button class="input-send-btn visible" id="sendBtn" aria-label="Send" onclick="sendMessage()">
+              <svg viewBox="0 0 20 20" fill="none"><path d="M10 16V4m0 0l5 5m-5-5L5 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fake keyboard -->
+      <div class="fake-keyboard" id="fakeKeyboard">
+        <div class="kb-row">
+          <button class="kb-key" data-k="q">q</button><button class="kb-key" data-k="w">w</button><button class="kb-key" data-k="e">e</button><button class="kb-key" data-k="r">r</button><button class="kb-key" data-k="t">t</button><button class="kb-key" data-k="y">y</button><button class="kb-key" data-k="u">u</button><button class="kb-key" data-k="i">i</button><button class="kb-key" data-k="o">o</button><button class="kb-key" data-k="p">p</button>
+        </div>
+        <div class="kb-row r2">
+          <button class="kb-key" data-k="a">a</button><button class="kb-key" data-k="s">s</button><button class="kb-key" data-k="d">d</button><button class="kb-key" data-k="f">f</button><button class="kb-key" data-k="g">g</button><button class="kb-key" data-k="h">h</button><button class="kb-key" data-k="j">j</button><button class="kb-key" data-k="k">k</button><button class="kb-key" data-k="l">l</button>
+        </div>
+        <div class="kb-row r3">
+          <button class="kb-key shift-key">&#x21E7;</button>
+          <div style="display:flex;flex:1;gap:6px;">
+            <button class="kb-key r3-letters" data-k="z">z</button><button class="kb-key r3-letters" data-k="x">x</button><button class="kb-key r3-letters" data-k="c">c</button><button class="kb-key r3-letters" data-k="v">v</button><button class="kb-key r3-letters" data-k="b">b</button><button class="kb-key r3-letters" data-k="n">n</button><button class="kb-key r3-letters" data-k="m">m</button>
+          </div>
+          <button class="kb-key delete-key" onclick="kbDelete()">&#x232B;</button>
+        </div>
+        <div class="kb-row4">
+          <button class="kb-key mode-key">ABC</button>
+          <button class="kb-key space-key" data-k=" "> </button>
+          <button class="kb-key return-key" onclick="sendMessage()">&#x21A9;</button>
+        </div>
+        <div class="kb-emoji-row"><span>&#x1F600;</span><span>&#x1F3A4;</span></div>
+      </div>
+    </div>
+
+    <!-- Text-mode bottom bar (unified input + keyboard for text users) -->
+    <div class="text-bottom-bar" id="textBottomBar">
+      <div class="text-input-row">
+        <button class="home-add-btn" aria-label="Add">
+          <svg viewBox="0 0 26 26" fill="none"><path d="M13 6v14M6 13h14" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <!-- Collapsed: pill + voice btn -->
+        <div class="home-input-pill" onclick="activateTextInput()">
+          <span>Ask anything</span>
+        </div>
+        <button class="home-voice-btn" aria-label="Voice" onclick="switchToVoiceFromText()">
+          <svg viewBox="0 0 26 26" fill="none">
+            <rect x="6" y="9" width="2.5" height="8" rx="1.25" fill="white"/>
+            <rect x="11.75" y="5" width="2.5" height="16" rx="1.25" fill="white"/>
+            <rect x="17.5" y="7" width="2.5" height="12" rx="1.25" fill="white"/>
+          </svg>
+        </button>
+        <!-- Expanded: input with send -->
+        <div class="text-input-expanded" id="textInputExpanded">
+          <input type="text" id="textModeInput" placeholder="Ask anything" autocomplete="off">
+          <button class="text-send-btn" aria-label="Send" onclick="textModeSend()">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M10 16V4m0 0l5 5m-5-5L5 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- Keyboard (reuse fake keyboard) -->
+      <div class="fake-keyboard text-kb">
+        <div class="kb-row">
+          <button class="kb-key" data-tk="q">q</button><button class="kb-key" data-tk="w">w</button><button class="kb-key" data-tk="e">e</button><button class="kb-key" data-tk="r">r</button><button class="kb-key" data-tk="t">t</button><button class="kb-key" data-tk="y">y</button><button class="kb-key" data-tk="u">u</button><button class="kb-key" data-tk="i">i</button><button class="kb-key" data-tk="o">o</button><button class="kb-key" data-tk="p">p</button>
+        </div>
+        <div class="kb-row r2">
+          <button class="kb-key" data-tk="a">a</button><button class="kb-key" data-tk="s">s</button><button class="kb-key" data-tk="d">d</button><button class="kb-key" data-tk="f">f</button><button class="kb-key" data-tk="g">g</button><button class="kb-key" data-tk="h">h</button><button class="kb-key" data-tk="j">j</button><button class="kb-key" data-tk="k">k</button><button class="kb-key" data-tk="l">l</button>
+        </div>
+        <div class="kb-row r3">
+          <button class="kb-key shift-key">&#x21E7;</button>
+          <div style="display:flex;flex:1;gap:6px;">
+            <button class="kb-key r3-letters" data-tk="z">z</button><button class="kb-key r3-letters" data-tk="x">x</button><button class="kb-key r3-letters" data-tk="c">c</button><button class="kb-key r3-letters" data-tk="v">v</button><button class="kb-key r3-letters" data-tk="b">b</button><button class="kb-key r3-letters" data-tk="n">n</button><button class="kb-key r3-letters" data-tk="m">m</button>
+          </div>
+          <button class="kb-key delete-key" onclick="textModeDelete()">&#x232B;</button>
+        </div>
+        <div class="kb-row4">
+          <button class="kb-key mode-key">ABC</button>
+          <button class="kb-key space-key" data-tk=" "> </button>
+          <button class="kb-key return-key" onclick="textModeSend()">&#x21A9;</button>
+        </div>
+        <div class="kb-emoji-row"><span>&#x1F600;</span><span>&#x1F3A4;</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // === Elements ===
+  const overlay = document.getElementById('voiceOverlay');
+  const spinner = document.getElementById('voiceSpinner');
+  const botDots = document.getElementById('voiceBotDots');
+  const avatarCenter = document.getElementById('avatarCenter');
+  const statusText = document.getElementById('voiceStatus');
+  const voiceTitle = document.querySelector('.voice-title');
+  const chatMessages = document.getElementById('chatMessages');
+  const kbBotMini = document.getElementById('kbBotMini');
+  let conversationHistory = []; // [{role: 'user', content}, {role: 'assistant', content}]
+  const kbBotMiniVideo = document.getElementById('kbBotMiniVideo');
+  const avatarIdle = document.getElementById('avatarIdle');
+  const voiceAvatarArea = document.getElementById('voiceAvatarArea');
+  const chatInput = document.getElementById('chatInput');
+  const chatInputExpanded = document.getElementById('chatInputExpanded');
+  const inputCollapsed = document.getElementById('inputCollapsed');
+  const inputExpanded = document.getElementById('inputExpanded');
+
+  let voiceTimeout1, voiceTimeout2;
+  let kbTimeouts = [];
+  const wakeupSound = new Audio('wakeup.mp3');
+
+  function clearKbTimeouts() { kbTimeouts.forEach(t => clearTimeout(t)); kbTimeouts = []; }
+
+  // === Voice Mode ===
+  function openVoiceMode() {
+    resetKeyboardMode();
+    spinner.classList.add('visible');
+    spinner.currentTime = 0;
+    spinner.play().catch(() => {});
+    wakeupSound.currentTime = 0;
+    wakeupSound.play().catch(() => {});
+    botDots.classList.remove('visible', 'listening');
+    statusText.textContent = 'Connecting...';
+    statusText.classList.remove('visible');
+    overlay.classList.remove('glow', 'listening-mode', 'kb-mode', 'chat-active', 'has-text', 'kb-hidden', 'text-mode');
+    overlay.classList.add('active');
+    avatarCenter.classList.remove('visible');
+    avatarCenter.pause();
+    voiceAvatarArea.classList.remove('visible');
+    avatarIdle.classList.remove('visible');
+    avatarIdle.pause();
+
+    // When connecting video ends, show border + avatar + "Say something..." immediately
+    spinner.onended = () => {
+      spinner.classList.remove('visible');
+      spinner.pause();
+      botDots.classList.remove('visible');
+      overlay.classList.add('glow');
+      // Show centered avatar video
+      avatarCenter.classList.add('visible');
+      avatarCenter.currentTime = 0;
+      avatarCenter.play().catch(() => {});
+      // Show "Say something..." + activate mic right away
+      statusText.textContent = 'Say something...';
+      statusText.classList.add('visible');
+      startListening();
+    };
+  }
+
+  function closeVoiceMode() {
+    stopListening();
+    avatarCenter.classList.remove('visible');
+    avatarCenter.pause();
+    voiceAvatarArea.classList.remove('visible');
+    avatarIdle.classList.remove('visible');
+    avatarIdle.pause();
+    overlay.classList.remove('active', 'glow', 'listening-mode', 'kb-mode', 'chat-active', 'has-text', 'kb-hidden', 'text-mode', 'text-typing');
+    clearTimeout(voiceTimeout1);
+    clearTimeout(voiceTimeout2);
+    clearKbTimeouts();
+    resetKeyboardMode();
+  }
+
+  // === Keyboard Mode ===
+  function openKeyboardMode() {
+    overlay.classList.remove('glow', 'listening-mode');
+    overlay.classList.add('kb-mode');
+    // Show avatar centered, hide dots
+    avatarCenter.classList.add('visible');
+    avatarCenter.play().catch(() => {});
+    voiceAvatarArea.classList.remove('visible');
+    avatarIdle.classList.remove('visible');
+    avatarIdle.pause();
+    botDots.classList.remove('visible', 'listening');
+    statusText.textContent = 'Say something...';
+    statusText.classList.add('visible');
+    chatInput.value = '';
+    chatInputExpanded.value = '';
+    chatInput.focus();
+    syncInputState();
+    // Keep mic active — user can still speak in voice mode
+    if (!isListening) startListening();
+  }
+
+  // === Text Mode (from homepage input pill) ===
+  const textModeInput = document.getElementById('textModeInput');
+  function openTypingMode() {
+    resetKeyboardMode();
+    overlay.classList.remove('glow', 'listening-mode', 'kb-mode', 'kb-hidden', 'chat-active', 'text-typing');
+    overlay.classList.add('active', 'text-mode');
+    spinner.classList.remove('visible');
+    spinner.pause();
+    botDots.classList.remove('visible', 'listening');
+    statusText.classList.remove('visible');
+    voiceTitle.textContent = 'New chat';
+    textModeInput.value = '';
+  }
+
+  function activateTextInput() {
+    overlay.classList.remove('kb-hidden');
+    overlay.classList.add('text-typing');
+    textModeInput.value = '';
+    setTimeout(() => { textModeInput.focus(); }, 100);
+  }
+
+  function textModeSend() {
+    const text = textModeInput.value.trim();
+    if (!text) return;
+    textModeInput.value = '';
+    overlay.classList.remove('text-typing');
+    overlay.classList.add('kb-hidden');
+    showResponse(text);
+  }
+
+  function textModeDelete() {
+    textModeInput.value = textModeInput.value.slice(0, -1);
+    syncTextTyping();
+  }
+
+  function syncTextTyping() {
+    if (textModeInput.value.trim().length > 0) {
+      overlay.classList.add('text-typing');
+    } else {
+      overlay.classList.remove('text-typing');
+    }
+  }
+
+  // Text mode fake keyboard keys
+  document.querySelectorAll('.kb-key[data-tk]').forEach(key => {
+    key.addEventListener('click', () => {
+      textModeInput.value += key.dataset.tk;
+      syncTextTyping();
+    });
+  });
+
+  // Real keyboard input sync
+  textModeInput.addEventListener('input', syncTextTyping);
+
+  // === Switch from text mode to voice mode (preserves conversation) ===
+  function switchToVoiceFromText() {
+    // Remove text mode — keeps chat-active so messages stay visible
+    overlay.classList.remove('text-mode', 'kb-mode', 'kb-hidden', 'text-typing');
+    // Add voice border
+    overlay.classList.add('glow');
+    // Show avatar + "Say something..." above action buttons
+    voiceAvatarArea.classList.add('visible');
+    avatarIdle.classList.add('visible');
+    avatarIdle.play().catch(() => {});
+    // Start listening immediately (already in a session, skip connecting)
+    startListening();
+  }
+
+  function closeKeyboardMode() {
+    overlay.classList.remove('kb-mode', 'chat-active', 'has-text', 'kb-hidden');
+    clearKbTimeouts();
+    resetKeyboardMode();
+    // Return to voice welcome
+    botDots.classList.add('visible', 'listening');
+    statusText.textContent = 'Say something...';
+    statusText.classList.add('visible');
+    overlay.classList.add('glow');
+  }
+
+  function resetKeyboardMode() {
+    // Clear chat messages
+    chatMessages.innerHTML = '';
+    conversationHistory = [];
+    kbBotMini.classList.remove('visible');
+    chatInput.value = '';
+    chatInputExpanded.value = '';
+    if (textModeInput) textModeInput.value = '';
+    voiceTitle.textContent = 'New chat';
+    syncInputState();
+  }
+
+  // Sync collapsed/expanded input based on text content
+  function syncInputState() {
+    const hasText = (chatInput.value.trim().length > 0) || (chatInputExpanded.value.trim().length > 0);
+    if (hasText) {
+      overlay.classList.add('has-text');
+    } else {
+      overlay.classList.remove('has-text');
+    }
+  }
+
+  // Keep both inputs in sync
+  chatInput.addEventListener('input', () => {
+    chatInputExpanded.value = chatInput.value;
+    syncInputState();
+  });
+  chatInputExpanded.addEventListener('input', () => {
+    chatInput.value = chatInputExpanded.value;
+    syncInputState();
+  });
+
+  // Fake keyboard key presses
+  document.querySelectorAll('.kb-key[data-k]').forEach(key => {
+    key.addEventListener('click', () => {
+      const activeEl = overlay.classList.contains('has-text') ? chatInputExpanded : chatInput;
+      activeEl.value += key.dataset.k;
+      chatInput.value = activeEl.value;
+      chatInputExpanded.value = activeEl.value;
+      syncInputState();
+    });
+  });
+
+  function kbDelete() {
+    const activeEl = overlay.classList.contains('has-text') ? chatInputExpanded : chatInput;
+    activeEl.value = activeEl.value.slice(0, -1);
+    chatInput.value = activeEl.value;
+    chatInputExpanded.value = activeEl.value;
+    syncInputState();
+  }
+
+  // === Helper: create feedback icons HTML ===
+  function createFeedbackIcons() {
+    const div = document.createElement('div');
+    div.className = 'ai-feedback';
+    div.innerHTML = `
+      <button aria-label="Like"><svg viewBox="0 0 16 16" fill="none"><path d="M4.5 7v6.5m0-6.5L7 2c.8 0 1.5.7 1.5 1.5V6h4c.8 0 1.4.7 1.3 1.5l-.8 5.5c-.1.6-.6 1-1.2 1H4.5m0-7H2.5c-.6 0-1 .4-1 1v5.5c0 .6.4 1 1 1h2" stroke="#191b1e" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button aria-label="Dislike"><svg viewBox="0 0 16 16" fill="none"><path d="M11.5 9V2.5m0 6.5L9 14c-.8 0-1.5-.7-1.5-1.5V10h-4c-.8 0-1.4-.7-1.3-1.5l.8-5.5c.1-.6.6-1 1.2-1h7.3m0 6.5h2c.6 0 1-.4 1-1V3c0-.6-.4-1-1-1h-2" stroke="#191b1e" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button aria-label="Copy"><svg viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="2" stroke="#191b1e"/><path d="M11 5V3a2 2 0 00-2-2H3a2 2 0 00-2 2v6a2 2 0 002 2h2" stroke="#191b1e"/></svg></button>
+      <button aria-label="Share"><svg viewBox="0 0 16 16" fill="none"><circle cx="12" cy="3" r="2" stroke="#191b1e"/><circle cx="4" cy="8" r="2" stroke="#191b1e"/><circle cx="12" cy="13" r="2" stroke="#191b1e"/><path d="M6 9l4 3M6 7l4-3" stroke="#191b1e"/></svg></button>`;
+    return div;
+  }
+
+  // === Helper: create thinking indicator ===
+  function createThinkingEl(isTextMode) {
+    const el = document.createElement('div');
+    if (isTextMode) {
+      el.className = 'text-thinking-dots visible';
+      el.innerHTML = '<div class="text-thinking-dots-inner"><div class="text-thinking-dot"></div><div class="text-thinking-dot"></div><div class="text-thinking-dot"></div><div class="text-thinking-dot"></div></div>';
+    } else {
+      el.className = 'thinking-row visible';
+      el.innerHTML = '<svg class="thinking-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#6d17ce" stroke-width="2" stroke-dasharray="16 34" stroke-linecap="round"/></svg><span class="thinking-text">Thinking...</span>';
+    }
+    return el;
+  }
+
+  // === Typewriter effect ===
+  function typeWriter(el, text, scrollContainer) {
+    return new Promise(resolve => {
+      let i = 0;
+      const speed = 18; // ms per character
+      function type() {
+        if (i < text.length) {
+          el.textContent += text.charAt(i);
+          i++;
+          if (scrollContainer) scrollContainer.scrollTop = scrollContainer.scrollHeight;
+          setTimeout(type, speed);
+        } else {
+          resolve();
+        }
+      }
+      type();
+    });
+  }
+
+  // === Shared response flow (real API) ===
+  async function showResponse(text) {
+    clearKbTimeouts();
+
+    const isTextMode = overlay.classList.contains('text-mode');
+
+    // UI: enter chat mode
+    overlay.classList.add('chat-active');
+    overlay.classList.remove('has-text', 'glow', 'listening-mode', 'text-typing');
+    avatarCenter.classList.remove('visible');
+    avatarCenter.pause();
+    voiceAvatarArea.classList.remove('visible');
+    avatarIdle.classList.remove('visible');
+    avatarIdle.pause();
+    voiceTitle.textContent = extractTitle(text);
+
+    if (isTextMode) {
+      overlay.classList.add('kb-hidden');
+      overlay.classList.remove('kb-mode');
+      kbBotMini.classList.remove('visible');
+    } else {
+      overlay.classList.remove('kb-mode', 'kb-hidden');
+      kbBotMini.classList.remove('visible');
+    }
+
+    // 1. Add user bubble
+    const userEl = document.createElement('div');
+    userEl.className = 'user-bubble';
+    userEl.textContent = text;
+    chatMessages.appendChild(userEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // 2. Add to conversation history
+    conversationHistory.push({ role: 'user', content: text });
+
+    // 3. Show thinking indicator
+    const thinkingEl = createThinkingEl(isTextMode);
+    chatMessages.appendChild(thinkingEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // 4. Call API
+    let responseText = '';
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: conversationHistory }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      responseText = data.text;
+    } catch (err) {
+      responseText = 'Sorry, I couldn\'t get a response. Please try again.';
+      console.error('API error:', err);
+    }
+
+    // 5. Remove thinking indicator
+    thinkingEl.remove();
+
+    // 6. Add AI response element
+    const aiEl = document.createElement('div');
+    aiEl.className = 'ai-response';
+    chatMessages.appendChild(aiEl);
+
+    // 7. Start TTS and typewriter simultaneously in voice mode
+    let ttsPromise = Promise.resolve();
+    if (!isTextMode && responseText) {
+      ttsPromise = playTTS(responseText);
+    }
+
+    // Typewriter runs in parallel with audio
+    await typeWriter(aiEl, responseText, chatMessages);
+
+    // 8. Add feedback icons
+    const feedbackEl = createFeedbackIcons();
+    chatMessages.appendChild(feedbackEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // 9. Push to history
+    conversationHistory.push({ role: 'assistant', content: responseText });
+
+    // 10. Voice mode: wait for TTS to finish, then transition to listening
+    if (!isTextMode) {
+      ttsPromise.then(() => {
+        overlay.classList.remove('glow');
+        overlay.classList.add('listening-mode');
+        voiceAvatarArea.classList.add('visible');
+        avatarIdle.classList.add('visible');
+        avatarIdle.play().catch(() => {});
+        startListening();
+      });
+    }
+  }
+
+  // === TTS Playback ===
+  let currentTTSAudio = null;
+
+  async function playTTS(text) {
+    try {
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) throw new Error('TTS request failed');
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+
+      return new Promise(resolve => {
+        if (currentTTSAudio) {
+          currentTTSAudio.pause();
+          currentTTSAudio = null;
+        }
+        currentTTSAudio = new Audio(url);
+        currentTTSAudio.onended = () => {
+          URL.revokeObjectURL(url);
+          currentTTSAudio = null;
+          resolve();
+        };
+        currentTTSAudio.onerror = () => {
+          URL.revokeObjectURL(url);
+          currentTTSAudio = null;
+          resolve();
+        };
+        currentTTSAudio.play().catch(() => resolve());
+      });
+    } catch (err) {
+      console.error('TTS error:', err);
+    }
+  }
+
+  // === Send Message (voice mode keyboard) ===
+  function sendMessage() {
+    const text = (chatInputExpanded.value || chatInput.value).trim();
+    if (!text) return;
+
+    chatInput.value = '';
+    chatInputExpanded.value = '';
+    syncInputState();
+    showResponse(text);
+  }
+
+  function extractTitle(text) {
+    const words = text.split(' ').slice(0, 5);
+    let title = words.join(' ');
+    if (title.length > 24) title = title.substring(0, 24) + '...';
+    return title;
+  }
+
+  // === Web Speech API — Voice Listening ===
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  let isListening = false;
+
+  function startListening() {
+    if (!SpeechRecognition || isListening) return;
+
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.continuous = false;
+
+    recognition.onstart = () => {
+      isListening = true;
+    };
+
+    recognition.onspeechstart = () => {
+      // User started talking → switch to green border + "Listening..."
+      overlay.classList.remove('glow');
+      overlay.classList.add('listening-mode');
+      statusText.textContent = 'Listening...';
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript.trim();
+      isListening = false;
+      if (transcript) {
+        // Hide voice UI, show response
+        botDots.classList.remove('visible', 'listening');
+        statusText.classList.remove('visible');
+        showResponse(transcript);
+      }
+    };
+
+    recognition.onerror = () => {
+      isListening = false;
+      // Return to welcome state
+      overlay.classList.remove('listening-mode');
+      overlay.classList.add('glow');
+      statusText.textContent = 'Say something...';
+    };
+
+    recognition.onend = () => {
+      isListening = false;
+      // If still on welcome/listening screen (no result), reset to welcome
+      if (!overlay.classList.contains('chat-active')) {
+        overlay.classList.remove('listening-mode');
+        overlay.classList.add('glow');
+        statusText.textContent = 'Say something...';
+      }
+    };
+
+    try {
+      recognition.start();
+    } catch (e) {
+      // Mic unavailable — stay on welcome, user can use keyboard
+    }
+  }
+
+  function stopListening() {
+    if (recognition && isListening) {
+      try { recognition.stop(); } catch (e) {}
+      isListening = false;
+    }
+  }
+</script>
+
+</body>
+</html>
