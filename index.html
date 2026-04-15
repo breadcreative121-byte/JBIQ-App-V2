@@ -648,6 +648,13 @@
     .voice-speaker-btn {
       display: none;
     }
+    .voice-new-chat-btn {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      background: none; border: none; cursor: pointer;
+      border-radius: var(--shape-pill);
+      flex-shrink: 0;
+    }
 
     /* Voice Container (center area) */
     .voice-container {
@@ -1406,7 +1413,10 @@
         </button>
         <span class="voice-title">New chat</span>
       </div>
-      <button class="voice-speaker-btn" aria-label="Speaker">
+      <button class="voice-new-chat-btn" onclick="newConversation()" aria-label="New chat">
+        <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_new_chat.svg" width="20" height="20" alt="New chat">
+      </button>
+      <button class="voice-speaker-btn" aria-label="Speaker" style="display:none;">
         <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 5L7 9H3v8h4l5 4V5z" fill="#6d17ce"/>
           <path d="M17.5 8.5a6 6 0 010 9" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/>
@@ -1587,34 +1597,62 @@
     avatarIdle.classList.remove('visible');
     avatarIdle.pause();
 
-    // When connecting video ends, show border + avatar + "Say something..." immediately
+    // When connecting video ends, show avatar + "Say something..."
     spinner.onended = () => {
       spinner.classList.remove('visible');
       spinner.pause();
       botDots.classList.remove('visible');
       overlay.classList.add('glow');
-      // Show centered avatar video
       avatarCenter.classList.add('visible');
       avatarCenter.currentTime = 0;
       avatarCenter.play().catch(() => {});
-      // Show "Say something..." + activate mic right away
       statusText.textContent = 'Say something...';
       statusText.classList.add('visible');
-      startListening();
+      // Only start listening after welcome audio finishes
+      welcomeSound.onended = () => {
+        startListening();
+      };
+      // Fallback: if welcome already ended or errored, start after 3s
+      setTimeout(() => {
+        if (!isListening) startListening();
+      }, 3000);
     };
+  }
+
+  function newConversation() {
+    resetKeyboardMode(true);
+    overlay.classList.remove('chat-active', 'kb-mode', 'kb-hidden', 'text-mode', 'text-typing', 'listening-mode', 'user-speaking');
+    avatarCenter.classList.add('visible');
+    avatarCenter.currentTime = 0;
+    avatarCenter.play().catch(() => {});
+    statusText.textContent = 'Say something...';
+    statusText.classList.add('visible');
+    overlay.classList.add('glow');
+    startListening();
   }
 
   function closeVoiceMode() {
     stopListening();
+    // Stop all audio
+    if (currentTTSAudio) { currentTTSAudio.pause(); currentTTSAudio = null; }
+    wakeupSound.pause(); wakeupSound.currentTime = 0;
+    welcomeSound.pause(); welcomeSound.currentTime = 0;
+    understoodSound.pause(); understoodSound.currentTime = 0;
+    messageSentSound.pause(); messageSentSound.currentTime = 0;
+    // Stop videos
     avatarCenter.classList.remove('visible');
     avatarCenter.pause();
+    spinner.classList.remove('visible');
+    spinner.pause();
     voiceAvatarArea.classList.remove('visible');
     avatarIdle.classList.remove('visible');
     avatarIdle.pause();
-    overlay.classList.remove('active', 'glow', 'listening-mode', 'kb-mode', 'chat-active', 'has-text', 'kb-hidden', 'text-mode', 'text-typing');
+    // Reset state
+    overlay.classList.remove('active', 'glow', 'listening-mode', 'kb-mode', 'chat-active', 'has-text', 'kb-hidden', 'text-mode', 'text-typing', 'user-speaking', 'agent-speaking');
     clearTimeout(voiceTimeout1);
     clearTimeout(voiceTimeout2);
     clearKbTimeouts();
+    isProcessingResponse = false;
     resetKeyboardMode();
   }
 
@@ -1991,6 +2029,7 @@
   let isProcessingResponse = false;
   let liveBubble = null;
   let micStream = null; // Persisted mic stream to avoid re-prompting
+  let activeRec = null; // Track current recognition instance
 
   // Acquire mic permission once and keep the stream alive
   async function acquireMic() {
@@ -2004,11 +2043,17 @@
   }
 
   function startListening() {
-    if (!SpeechRecognition || isListening) return;
+    if (!SpeechRecognition) return;
 
-    // Create fresh instance each time (required by spec after stop/abort)
-    // but mic permission is already granted via persisted micStream
+    // Force stop any existing instance
+    if (activeRec) {
+      try { activeRec.abort(); } catch(e) {}
+      activeRec = null;
+    }
+    isListening = false;
+
     const rec = new SpeechRecognition();
+    activeRec = rec;
     rec.lang = 'en-IN';
     rec.interimResults = true;
     rec.maxAlternatives = 1;
@@ -2082,12 +2127,21 @@
 
     try {
       rec.start();
-    } catch (e) {}
+      isListening = true;
+      console.log('Speech recognition started');
+    } catch (e) {
+      console.error('Speech recognition start failed:', e);
+      isListening = false;
+      activeRec = null;
+    }
   }
 
   function stopListening() {
     isListening = false;
-    // Don't release micStream — keep it alive to avoid re-prompting
+    if (activeRec) {
+      try { activeRec.abort(); } catch(e) {}
+      activeRec = null;
+    }
     stopVoiceReactive();
   }
 
