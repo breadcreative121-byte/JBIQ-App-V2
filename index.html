@@ -1006,66 +1006,45 @@
       display: flex;
       gap: 6px;
       align-items: flex-end;
-      padding: 0 12px;
+      padding: 0 16px;
       width: 100%;
       box-sizing: border-box;
       position: relative;
     }
-    .text-input-row .home-input-pill { cursor: text; flex: 1; min-width: 0; }
-
     /* Text mode: when keyboard hidden, add bottom padding */
     .voice-overlay.text-mode.kb-hidden .text-bottom-bar { padding-bottom: 24px; }
 
-    /* Text mode: collapsed pill + voice btn (default) */
-    .text-input-row .home-input-pill,
-    .text-input-row .home-voice-btn {
-      transition: opacity 0.2s ease;
+    /* Unified text pill — always visible, textarea inside */
+    .text-pill {
+      flex: 1; min-width: 0;
+      background: #eeeeef; border-radius: 24px;
+      display: flex; align-items: flex-end;
+      padding: 6px 8px; gap: 8px; min-height: 42px;
     }
-
-    /* Text mode expanded input (typing state) — hidden by default, out of flow */
-    .text-input-expanded {
-      display: flex;
-      background: #eeeeef; border-radius: 20px;
-      padding: 5px 5px 5px 8px; gap: 8px; height: 42px;
-      align-items: center;
-      opacity: 0; pointer-events: none;
-      position: absolute; left: 54px; right: 12px; bottom: 0;
-      transition: opacity 0.2s ease;
-    }
-    .text-input-expanded input {
+    .text-pill textarea {
       flex: 1; min-width: 0; border: none; background: none; outline: none;
       font-family: var(--font-family); font-size: 16px; color: var(--text-high);
       line-height: 1.3; padding: 4px 8px;
+      resize: none; overflow: hidden;
+      min-height: 24px; max-height: 120px;
     }
-    .text-input-expanded input::placeholder { color: var(--text-low); opacity: 0.65; }
+    .text-pill textarea::placeholder { color: var(--text-low); opacity: 0.65; }
     .text-send-btn {
       width: 32px; height: 32px; background: var(--surface-bold); border-radius: var(--shape-pill);
       display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0;
     }
     .text-send-btn svg { width: 20px; height: 20px; }
 
-    /* When typing: crossfade collapsed → expanded */
-    .voice-overlay.text-mode.text-typing .text-input-row .home-input-pill {
-      opacity: 0; pointer-events: none; position: absolute;
-    }
-    .voice-overlay.text-mode.text-typing .text-input-row .home-voice-btn {
-      opacity: 0; pointer-events: none; position: absolute;
-    }
-    .voice-overlay.text-mode.text-typing .text-input-expanded {
-      opacity: 1; pointer-events: auto;
-      position: relative; left: auto; right: auto; bottom: auto;
-      flex: 1; min-width: 0;
-    }
+    /* When typing: hide voice btn, show send btn */
+    .voice-overlay.text-mode.text-typing #textVoiceBtn { display: none; }
 
     /* Greeting message */
     .greeting-msg {
       font-size: 16px; color: var(--text-high); line-height: 1.3; padding: 8px 16px;
       display: none;
-      transition: opacity 0.2s ease;
-      opacity: 1;
     }
     .voice-overlay.text-mode .greeting-msg { display: block; }
-    .voice-overlay.text-mode.text-typing .greeting-msg { opacity: 0; }
+    .voice-overlay.text-mode.text-typing .greeting-msg { display: none; }
     .voice-overlay.text-mode.chat-active .greeting-msg { display: none; }
 
     /* Text mode thinking spinner (centered small dots) */
@@ -1518,24 +1497,20 @@
         <button class="home-add-btn" aria-label="Add">
           <svg viewBox="0 0 26 26" fill="none"><path d="M13 6v14M6 13h14" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
-        <!-- Collapsed: pill + voice btn -->
-        <div class="home-input-pill" onclick="activateTextInput()">
-          <span>Ask anything</span>
+        <!-- Unified pill: textarea always inside, grows when typing -->
+        <div class="text-pill" id="textPill">
+          <textarea id="textModeInput" placeholder="Ask anything" rows="1" autocomplete="off"></textarea>
+          <button class="text-send-btn" id="textSendBtn" aria-label="Send" onclick="textModeSend()" style="display:none;">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M10 16V4m0 0l5 5m-5-5L5 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
-        <button class="home-voice-btn" aria-label="Voice" onclick="switchToVoiceFromText()">
+        <button class="home-voice-btn" id="textVoiceBtn" aria-label="Voice" onclick="switchToVoiceFromText()">
           <svg viewBox="0 0 26 26" fill="none">
             <rect x="6" y="9" width="2.5" height="8" rx="1.25" fill="white"/>
             <rect x="11.75" y="5" width="2.5" height="16" rx="1.25" fill="white"/>
             <rect x="17.5" y="7" width="2.5" height="12" rx="1.25" fill="white"/>
           </svg>
         </button>
-        <!-- Expanded: input with send -->
-        <div class="text-input-expanded" id="textInputExpanded">
-          <input type="text" id="textModeInput" placeholder="Ask anything" autocomplete="off">
-          <button class="text-send-btn" aria-label="Send" onclick="textModeSend()">
-            <svg viewBox="0 0 20 20" fill="none"><path d="M10 16V4m0 0l5 5m-5-5L5 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
       </div>
       <!-- Keyboard (reuse fake keyboard) -->
     </div>
@@ -1704,34 +1679,55 @@
     statusText.classList.remove('visible');
     voiceTitle.textContent = 'New chat';
     textModeInput.value = '';
+    textModeInput.style.height = 'auto';
+    textSendBtn.style.display = 'none';
+    textModeInput.focus();
   }
 
   function activateTextInput() {
     overlay.classList.remove('kb-hidden');
-    overlay.classList.add('text-typing');
     textModeInput.value = '';
-    setTimeout(() => { textModeInput.focus(); }, 100);
+    textModeInput.style.height = 'auto';
+    textSendBtn.style.display = 'none';
+    textModeInput.focus();
   }
 
   function textModeSend() {
     const text = textModeInput.value.trim();
     if (!text) return;
     textModeInput.value = '';
+    textModeInput.style.height = 'auto';
+    textSendBtn.style.display = 'none';
     overlay.classList.remove('text-typing');
-    overlay.classList.add('kb-hidden');
     showResponse(text);
   }
 
+  const textSendBtn = document.getElementById('textSendBtn');
+  const textVoiceBtn = document.getElementById('textVoiceBtn');
+
   function syncTextTyping() {
-    if (textModeInput.value.trim().length > 0) {
+    // Auto-resize textarea
+    textModeInput.style.height = 'auto';
+    textModeInput.style.height = textModeInput.scrollHeight + 'px';
+
+    const hasText = textModeInput.value.trim().length > 0;
+    if (hasText) {
       overlay.classList.add('text-typing');
+      textSendBtn.style.display = 'flex';
     } else {
       overlay.classList.remove('text-typing');
+      textSendBtn.style.display = 'none';
     }
   }
 
-  // Real keyboard input sync
+  // Real keyboard input sync + auto-resize
   textModeInput.addEventListener('input', syncTextTyping);
+  textModeInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      textModeSend();
+    }
+  });
 
   // === Switch from text mode to voice mode (preserves conversation) ===
   function switchToVoiceFromText() {
