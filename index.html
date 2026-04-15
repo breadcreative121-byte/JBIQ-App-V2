@@ -671,6 +671,7 @@
     .voice-overlay.chat-active .voice-container {
       overflow-y: auto;
       overflow-x: hidden;
+      position: relative;
       justify-content: flex-start;
       padding-top: 8px;
       padding-bottom: 130px;
@@ -846,6 +847,7 @@
     }
     .voice-overlay.chat-active .voice-bot-dots { display: none; }
     .voice-overlay.chat-active .voice-status { display: none; }
+    .voice-overlay.chat-active .voice-avatar-area { display: none !important; }
     .voice-overlay.chat-active .chat-messages { display: flex; }
     .voice-overlay.chat-active .avatar-center { display: none !important; }
 
@@ -1844,10 +1846,12 @@
     voiceTitle.textContent = extractTitle(text);
 
     if (isTextMode) {
-      overlay.classList.add('kb-hidden');
-      overlay.classList.remove('kb-mode');
+      kbBotMini.classList.remove('visible');
+    } else if (overlay.classList.contains('kb-mode')) {
+      // Voice mode with keyboard active — keep kb-mode so input stays
       kbBotMini.classList.remove('visible');
     } else {
+      // Voice mode without keyboard — hide kb
       overlay.classList.remove('kb-mode', 'kb-hidden');
       kbBotMini.classList.remove('visible');
     }
@@ -2075,7 +2079,10 @@
       startVoiceReactive();
     };
 
+    let lastProcessedIndex = 0;
+
     rec.onspeechstart = () => {
+      if (isProcessingResponse) return; // Don't create bubble while processing
       overlay.classList.remove('glow');
       overlay.classList.add('listening-mode', 'user-speaking');
       statusText.textContent = 'Listening...';
@@ -2093,12 +2100,15 @@
     };
 
     rec.onresult = (event) => {
+      if (isProcessingResponse) return; // Ignore results while processing
+
       let interimText = '';
       let finalText = '';
-      for (let i = 0; i < event.results.length; i++) {
+      for (let i = lastProcessedIndex; i < event.results.length; i++) {
         const result = event.results[i];
         if (result.isFinal) {
           finalText += result[0].transcript;
+          lastProcessedIndex = i + 1;
         } else {
           interimText += result[0].transcript;
         }
