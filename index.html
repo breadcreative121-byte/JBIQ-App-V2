@@ -288,6 +288,7 @@
     .chip-icon img {
       width: 100%;
       height: 100%;
+      filter: brightness(0) saturate(100%) invert(38%) sepia(95%) saturate(500%) hue-rotate(143deg) brightness(85%) contrast(101%);
     }
 
     .chip-label {
@@ -350,6 +351,7 @@
     .update-icon img {
       width: 100%;
       height: 100%;
+      filter: brightness(0) saturate(100%) invert(38%) sepia(95%) saturate(500%) hue-rotate(143deg) brightness(85%) contrast(101%);
     }
 
     .update-text {
@@ -1177,7 +1179,7 @@
   <div class="header">
     <div class="header-start">
       <button class="back-btn" aria-label="Menu">
-        <img src="https://www.figma.com/api/mcp/asset/3772df9d-13c0-4cb4-b8cf-3bf2b1a61e04" alt="Menu">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M4 7h16a1 1 0 100-2H4a1 1 0 000 2zm16 10H4a1 1 0 000 2h16a1 1 0 000-2zm0-6H4a1 1 0 000 2h16a1 1 0 000-2z" fill="#0c0d10"/></svg>
       </button>
       <div class="logo-btn">
         <img src="https://www.figma.com/api/mcp/asset/aebfef99-5134-4ce2-bbe3-ed05652df698" alt="Jio Logo">
@@ -1289,19 +1291,19 @@
         <div class="tools-row">
           <div class="chip">
             <div class="chip-icon">
-              <img src="https://www.figma.com/api/mcp/asset/f500b70b-3363-4ae3-8634-b22f93b69d08" alt="">
+              <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_language.svg" alt="">
             </div>
             <span class="chip-label">Quick Translate</span>
           </div>
           <div class="chip">
             <div class="chip-icon">
-              <img src="https://www.figma.com/api/mcp/asset/2dc785fa-03f3-4ba5-ab7c-c61ab0c73fcd" alt="">
+              <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_image.svg" alt="">
             </div>
             <span class="chip-label">Create image</span>
           </div>
           <div class="chip">
             <div class="chip-icon">
-              <img src="https://www.figma.com/api/mcp/asset/1957f6ac-a6e2-4bdc-995d-93eff27222c6" alt="">
+              <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_health_conditions.svg" alt="">
             </div>
             <span class="chip-label">Health Calculator</span>
           </div>
@@ -1309,19 +1311,19 @@
         <div class="tools-row">
           <div class="chip">
             <div class="chip-icon">
-              <img src="https://www.figma.com/api/mcp/asset/aeaa3e1b-3a68-46b5-9092-6e7754eb0219" alt="">
+              <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_call_video.svg" alt="">
             </div>
             <span class="chip-label">Generate videos</span>
           </div>
           <div class="chip">
             <div class="chip-icon">
-              <img src="https://www.figma.com/api/mcp/asset/4209920f-b900-4bed-8de2-10d108538030" alt="">
+              <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_document.svg" alt="">
             </div>
             <span class="chip-label">Analyse docs</span>
           </div>
           <div class="chip">
             <div class="chip-icon">
-              <img src="https://www.figma.com/api/mcp/asset/1c808234-f3ae-4803-84e8-0c1719157cd2" alt="">
+              <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_cart.svg" alt="">
             </div>
             <span class="chip-label">Smart Shopping</span>
           </div>
@@ -1337,11 +1339,11 @@
       </div>
       <div class="update-card">
         <button class="update-more-btn" aria-label="More options">
-          <img src="https://www.figma.com/api/mcp/asset/23ab3239-b590-43bc-861c-44d388b0a936" alt="More">
+          <svg viewBox="0 0 16 16" fill="none" width="16" height="16"><circle cx="8" cy="3" r="1.5" fill="#191b1e"/><circle cx="8" cy="8" r="1.5" fill="#191b1e"/><circle cx="8" cy="13" r="1.5" fill="#191b1e"/></svg>
         </button>
         <div class="update-card-content">
           <div class="update-icon">
-            <img src="https://www.figma.com/api/mcp/asset/f5907d1d-8f80-4a30-8425-626dfd1a84b8" alt="Bill">
+            <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_pay_bill.svg" alt="Bill">
           </div>
           <div class="update-text">
             <span class="update-text-title">Due in 2 days</span>
@@ -1558,7 +1560,8 @@
   function clearKbTimeouts() { kbTimeouts.forEach(t => clearTimeout(t)); kbTimeouts = []; }
 
   // === Voice Mode ===
-  function openVoiceMode() {
+  async function openVoiceMode() {
+    await acquireMic(); // Get mic permission once — stays cached
     resetKeyboardMode();
     spinner.classList.add('visible');
     spinner.currentTime = 0;
@@ -1865,10 +1868,13 @@
     // 10. Voice mode: wait for TTS to finish, then transition to listening
     if (!isTextMode) {
       ttsPromise.then(() => {
+        isProcessingResponse = false;
         overlay.classList.remove('glow');
         overlay.classList.add('listening-mode');
         startListening();
       });
+    } else {
+      isProcessingResponse = false;
     }
   }
 
@@ -1976,33 +1982,44 @@
 
   // === Web Speech API — Voice Listening ===
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let recognition = null;
   let isListening = false;
+  let isProcessingResponse = false;
+  let liveBubble = null;
+  let micStream = null; // Persisted mic stream to avoid re-prompting
+
+  // Acquire mic permission once and keep the stream alive
+  async function acquireMic() {
+    if (micStream) return true;
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 
   function startListening() {
     if (!SpeechRecognition || isListening) return;
 
-    recognition = new SpeechRecognition();
-    recognition.lang = 'en-IN';
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
-    recognition.continuous = true;
+    // Create fresh instance each time (required by spec after stop/abort)
+    // but mic permission is already granted via persisted micStream
+    const rec = new SpeechRecognition();
+    rec.lang = 'en-IN';
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    rec.continuous = true;
 
-    let liveBubble = null;
-
-    recognition.onstart = () => {
+    rec.onstart = () => {
       isListening = true;
       startVoiceReactive();
     };
 
-    recognition.onspeechstart = () => {
-      // User started talking → switch to "Listening..."
+    rec.onspeechstart = () => {
       overlay.classList.remove('glow');
       overlay.classList.add('listening-mode', 'user-speaking');
       statusText.textContent = 'Listening...';
       statusText.classList.add('visible');
 
-      // Show chat area and create live bubble
       overlay.classList.add('chat-active');
       if (!liveBubble) {
         liveBubble = document.createElement('div');
@@ -2014,7 +2031,7 @@
       }
     };
 
-    recognition.onresult = (event) => {
+    rec.onresult = (event) => {
       let interimText = '';
       let finalText = '';
       for (let i = 0; i < event.results.length; i++) {
@@ -2026,59 +2043,46 @@
         }
       }
 
-      // Update live bubble with interim text
       if (liveBubble && !finalText) {
         liveBubble.textContent = interimText || '...';
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
 
-      // Final result — send to API
       if (finalText.trim()) {
-        // Remove live bubble — showResponse will create the real one
         if (liveBubble) { liveBubble.remove(); liveBubble = null; }
+        overlay.classList.remove('user-speaking');
+        isProcessingResponse = true;
         isListening = false;
-        overlay.classList.remove('user-speaking', 'chat-active');
-        botDots.classList.remove('visible', 'listening');
-        statusText.classList.remove('visible');
+        try { rec.abort(); } catch(e) {}
         showResponse(finalText.trim());
       }
     };
 
-    recognition.onerror = () => {
+    rec.onerror = (e) => {
+      if (e.error === 'no-speech' || e.error === 'aborted') return;
       isListening = false;
       if (liveBubble) { liveBubble.remove(); liveBubble = null; }
-      overlay.classList.remove('user-speaking', 'listening-mode', 'chat-active');
-      overlay.classList.add('glow');
+      overlay.classList.remove('user-speaking', 'listening-mode');
       statusText.textContent = 'Say something...';
     };
 
-    recognition.onend = () => {
+    rec.onend = () => {
       isListening = false;
       overlay.classList.remove('user-speaking');
       if (liveBubble) { liveBubble.remove(); liveBubble = null; }
-      if (!overlay.classList.contains('chat-active')) {
-        overlay.classList.remove('listening-mode');
-        overlay.classList.add('glow');
-        statusText.textContent = 'Say something...';
-      }
-      // Auto-restart if still in voice mode
-      if (overlay.classList.contains('active') && !overlay.classList.contains('text-mode')) {
-        setTimeout(() => startListening(), 300);
+      if (!isProcessingResponse && overlay.classList.contains('active') && !overlay.classList.contains('text-mode')) {
+        setTimeout(() => startListening(), 500);
       }
     };
 
     try {
-      recognition.start();
-    } catch (e) {
-      // Mic unavailable — stay on welcome, user can use keyboard
-    }
+      rec.start();
+    } catch (e) {}
   }
 
   function stopListening() {
-    if (recognition && isListening) {
-      try { recognition.stop(); } catch (e) {}
-      isListening = false;
-    }
+    isListening = false;
+    // Don't release micStream — keep it alive to avoid re-prompting
     stopVoiceReactive();
   }
 
