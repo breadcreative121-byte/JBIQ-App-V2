@@ -837,9 +837,10 @@
       flex: 1;
       padding: 8px 0;
     }
-    .voice-overlay.chat-active .voice-bot-dots,
+    .voice-overlay.chat-active .voice-bot-dots { display: none; }
     .voice-overlay.chat-active .voice-status { display: none; }
     .voice-overlay.chat-active .chat-messages { display: flex; }
+    .voice-overlay.chat-active .avatar-center { display: none !important; }
 
     .user-bubble {
       background: #f5f5f5;
@@ -1575,7 +1576,10 @@
     botDots.classList.remove('visible', 'listening');
     statusText.textContent = 'Connecting...';
     statusText.classList.remove('visible');
-    overlay.classList.remove('glow', 'listening-mode', 'kb-mode', 'chat-active', 'has-text', 'kb-hidden', 'text-mode');
+    // Only remove chat-active if starting fresh (no existing messages)
+    const hasMessages = chatMessages.children.length > 0;
+    overlay.classList.remove('glow', 'listening-mode', 'kb-mode', 'has-text', 'kb-hidden', 'text-mode');
+    if (!hasMessages) overlay.classList.remove('chat-active');
     overlay.classList.add('active');
     avatarCenter.classList.remove('visible');
     avatarCenter.pause();
@@ -1691,9 +1695,9 @@
   }
 
   function closeKeyboardMode() {
-    overlay.classList.remove('kb-mode', 'chat-active', 'has-text', 'kb-hidden');
+    overlay.classList.remove('kb-mode', 'has-text', 'kb-hidden');
     clearKbTimeouts();
-    resetKeyboardMode();
+    resetKeyboardMode(false);
     // Return to voice welcome
     botDots.classList.add('visible', 'listening');
     statusText.textContent = 'Say something...';
@@ -1701,15 +1705,16 @@
     overlay.classList.add('glow');
   }
 
-  function resetKeyboardMode() {
-    // Clear chat messages
-    chatMessages.innerHTML = '';
-    conversationHistory = [];
+  function resetKeyboardMode(clearHistory = true) {
+    if (clearHistory) {
+      chatMessages.innerHTML = '';
+      conversationHistory = [];
+      voiceTitle.textContent = 'New chat';
+    }
     kbBotMini.classList.remove('visible');
     chatInput.value = '';
     chatInputExpanded.value = '';
     if (textModeInput) textModeInput.value = '';
-    voiceTitle.textContent = 'New chat';
     syncInputState();
   }
 
