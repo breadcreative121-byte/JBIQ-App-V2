@@ -459,6 +459,30 @@
       display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0;
     }
     .home-voice-btn svg { width: 26px; height: 26px; }
+    .home-voice-btn svg rect:nth-child(1) {
+      animation: voiceBar1 1.2s ease-in-out infinite;
+      transform-origin: center;
+    }
+    .home-voice-btn svg rect:nth-child(2) {
+      animation: voiceBar2 1.2s ease-in-out 0.2s infinite;
+      transform-origin: center;
+    }
+    .home-voice-btn svg rect:nth-child(3) {
+      animation: voiceBar3 1.2s ease-in-out 0.4s infinite;
+      transform-origin: center;
+    }
+    @keyframes voiceBar1 {
+      0%, 100% { height: 8px; y: 9; }
+      50% { height: 14px; y: 6; }
+    }
+    @keyframes voiceBar2 {
+      0%, 100% { height: 16px; y: 5; }
+      50% { height: 8px; y: 9; }
+    }
+    @keyframes voiceBar3 {
+      0%, 100% { height: 12px; y: 7; }
+      50% { height: 16px; y: 5; }
+    }
 
     /* ============ VOICE MODE OVERLAY ============ */
     .voice-overlay {
@@ -634,7 +658,6 @@
       padding: 0 16px;
       min-height: 0;
       overflow: hidden;
-      transition: padding 0.4s cubic-bezier(0.32, 0.72, 0, 1), gap 0.4s cubic-bezier(0.32, 0.72, 0, 1);
     }
     .voice-overlay.chat-active .voice-container {
       overflow-y: auto;
@@ -733,8 +756,6 @@
       object-fit: cover;
       display: none;
       flex-shrink: 0;
-      transition: width 0.4s cubic-bezier(0.32, 0.72, 0, 1),
-                  height 0.4s cubic-bezier(0.32, 0.72, 0, 1);
     }
     .avatar-center.visible { display: block; }
     .voice-overlay.chat-active .avatar-center { display: none !important; }
@@ -747,9 +768,8 @@
       line-height: 1.3;
       text-align: center;
       opacity: 0;
-      transition: opacity 0.4s ease,
-                  font-size 0.4s cubic-bezier(0.32, 0.72, 0, 1);
     }
+    .voice-status.visible { opacity: 1; }
 
     .voice-status.visible {
       opacity: 1;
@@ -833,6 +853,35 @@
     @keyframes bubbleIn {
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Thinking row */
+    .thinking-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      padding: 6px 2px;
+      align-self: flex-start;
+    }
+    .thinking-row.visible { display: flex; }
+    .thinking-icon {
+      width: 20px; height: 20px; opacity: 0.5;
+      animation: thinkSpin 1.5s linear infinite;
+    }
+    @keyframes thinkSpin { to { transform: rotate(360deg); } }
+    .thinking-text {
+      font-size: 14px; color: var(--text-low); opacity: 0.65; line-height: 1.3;
+      background: linear-gradient(90deg, var(--text-low) 25%, #999 50%, var(--text-low) 75%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmerText 2s ease-in-out infinite;
+    }
+    @keyframes shimmerText {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
 
     /* AI response bubble */
@@ -1502,6 +1551,9 @@
   let voiceTimeout1, voiceTimeout2;
   let kbTimeouts = [];
   const wakeupSound = new Audio('wakeup.mp3');
+  const welcomeSound = new Audio('welcome.mp3');
+  const understoodSound = new Audio('va-understood.mp3');
+  const messageSentSound = new Audio('message-sent.mp3');
 
   function clearKbTimeouts() { kbTimeouts.forEach(t => clearTimeout(t)); kbTimeouts = []; }
 
@@ -1512,7 +1564,11 @@
     spinner.currentTime = 0;
     spinner.play().catch(() => {});
     wakeupSound.currentTime = 0;
+    welcomeSound.currentTime = 0;
     wakeupSound.play().catch(() => {});
+    wakeupSound.onended = () => {
+      welcomeSound.play().catch(() => {});
+    };
     botDots.classList.remove('visible', 'listening');
     statusText.textContent = 'Connecting...';
     statusText.classList.remove('visible');
@@ -1688,15 +1744,10 @@
   }
 
   // === Helper: create thinking indicator ===
-  function createThinkingEl(isTextMode) {
+  function createThinkingEl() {
     const el = document.createElement('div');
-    if (isTextMode) {
-      el.className = 'text-thinking-dots visible';
-      el.innerHTML = '<div class="text-thinking-dots-inner"><div class="text-thinking-dot"></div><div class="text-thinking-dot"></div><div class="text-thinking-dot"></div><div class="text-thinking-dot"></div></div>';
-    } else {
-      el.className = 'thinking-row visible';
-      el.innerHTML = '<svg class="thinking-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#6d17ce" stroke-width="2" stroke-dasharray="16 34" stroke-linecap="round"/></svg><span class="thinking-text">Thinking...</span>';
-    }
+    el.className = 'thinking-row visible';
+    el.innerHTML = '<svg class="thinking-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#6d17ce" stroke-width="2" stroke-dasharray="16 34" stroke-linecap="round"/></svg><span class="thinking-text">Thinking...</span>';
     return el;
   }
 
@@ -1754,12 +1805,15 @@
     // 2. Add to conversation history
     conversationHistory.push({ role: 'user', content: text });
 
-    // 3. Show thinking indicator
-    const thinkingEl = createThinkingEl(isTextMode);
+    // 3. Play understood sound + show thinking indicator
+    understoodSound.currentTime = 0;
+    understoodSound.play().catch(() => {});
+    const thinkingEl = createThinkingEl();
     chatMessages.appendChild(thinkingEl);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // 4. Call API
+    // 4. Call API + enforce minimum 4s thinking time
+    const thinkingStart = Date.now();
     let responseText = '';
     try {
       const res = await fetch('/api/chat', {
@@ -1775,8 +1829,16 @@
       console.error('API error:', err);
     }
 
-    // 5. Remove thinking indicator
+    // Wait for minimum 4s thinking duration
+    const elapsed = Date.now() - thinkingStart;
+    if (elapsed < 4000) {
+      await new Promise(r => setTimeout(r, 4000 - elapsed));
+    }
+
+    // 5. Remove thinking indicator + play message sent sound
     thinkingEl.remove();
+    messageSentSound.currentTime = 0;
+    messageSentSound.play().catch(() => {});
 
     // 6. Add AI response element
     const aiEl = document.createElement('div');
@@ -1922,9 +1984,11 @@
 
     recognition = new SpeechRecognition();
     recognition.lang = 'en-IN';
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.maxAlternatives = 1;
-    recognition.continuous = false;
+    recognition.continuous = true;
+
+    let liveBubble = null;
 
     recognition.onstart = () => {
       isListening = true;
@@ -1932,26 +1996,58 @@
     };
 
     recognition.onspeechstart = () => {
-      // User started talking → switch to green border + "Listening..."
+      // User started talking → switch to "Listening..."
       overlay.classList.remove('glow');
       overlay.classList.add('listening-mode', 'user-speaking');
       statusText.textContent = 'Listening...';
+      statusText.classList.add('visible');
+
+      // Show chat area and create live bubble
+      overlay.classList.add('chat-active');
+      if (!liveBubble) {
+        liveBubble = document.createElement('div');
+        liveBubble.className = 'user-bubble';
+        liveBubble.style.opacity = '0.6';
+        liveBubble.textContent = '...';
+        chatMessages.appendChild(liveBubble);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
     };
 
     recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript.trim();
-      isListening = false;
-      overlay.classList.remove('user-speaking');
-      if (transcript) {
+      let interimText = '';
+      let finalText = '';
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          finalText += result[0].transcript;
+        } else {
+          interimText += result[0].transcript;
+        }
+      }
+
+      // Update live bubble with interim text
+      if (liveBubble && !finalText) {
+        liveBubble.textContent = interimText || '...';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      // Final result — send to API
+      if (finalText.trim()) {
+        // Remove live bubble — showResponse will create the real one
+        if (liveBubble) { liveBubble.remove(); liveBubble = null; }
+        isListening = false;
+        overlay.classList.remove('user-speaking', 'chat-active');
         botDots.classList.remove('visible', 'listening');
         statusText.classList.remove('visible');
-        showResponse(transcript);
+        showResponse(finalText.trim());
       }
     };
 
     recognition.onerror = () => {
       isListening = false;
-      overlay.classList.remove('user-speaking', 'listening-mode');
+      if (liveBubble) { liveBubble.remove(); liveBubble = null; }
+      overlay.classList.remove('user-speaking', 'listening-mode', 'chat-active');
       overlay.classList.add('glow');
       statusText.textContent = 'Say something...';
     };
@@ -1959,10 +2055,15 @@
     recognition.onend = () => {
       isListening = false;
       overlay.classList.remove('user-speaking');
+      if (liveBubble) { liveBubble.remove(); liveBubble = null; }
       if (!overlay.classList.contains('chat-active')) {
         overlay.classList.remove('listening-mode');
         overlay.classList.add('glow');
         statusText.textContent = 'Say something...';
+      }
+      // Auto-restart if still in voice mode
+      if (overlay.classList.contains('active') && !overlay.classList.contains('text-mode')) {
+        setTimeout(() => startListening(), 300);
       }
     };
 
