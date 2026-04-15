@@ -51,39 +51,12 @@
       position: relative;
       display: flex;
       flex-direction: column;
+      padding: 24px 0;
     }
 
-    /* Status Bar */
+    /* Status Bar — hidden */
     .status-bar {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      padding: 10px 24px;
-      height: 52px;
-      background: white;
-    }
-
-    .status-time {
-      font-size: 14px;
-      line-height: 1.3;
-      color: var(--text-low);
-      opacity: 0.65;
-    }
-
-    .status-icons {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .status-icons img {
-      width: 17px;
-      height: 17px;
-    }
-
-    .status-icons img:last-child {
-      width: 8px;
-      height: 15px;
+      display: none;
     }
 
     /* Header */
@@ -501,37 +474,99 @@
       overflow: clip;
     }
 
+    /* Voice mode animated background circles */
+    .voice-bg-circles {
+      position: absolute;
+      bottom: 80px;
+      left: 0;
+      right: 0;
+      height: 720px;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      border-radius: 45px;
+    }
+    .voice-overlay.text-mode .voice-bg-circles { display: none; }
+
+    .voice-bg-circle {
+      position: absolute;
+      border-radius: 50%;
+      transform: translateY(100%);
+      opacity: 0;
+      transition: transform 1.2s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.8s ease;
+    }
+    /* Faster transition when voice-reactive scaling */
+    .voice-bg-circle[style*="scale"] {
+      transition: transform 0.08s ease-out;
+    }
+    /* Stop ambient animation when user or assistant is speaking */
+    .voice-overlay.user-speaking .voice-bg-circle,
+    .voice-overlay.agent-speaking .voice-bg-circle {
+      animation: none !important;
+      transition: transform 0.06s ease-out;
+    }
+    .voice-overlay.active .voice-bg-circle {
+      opacity: 1;
+    }
+    .voice-bg-circle:nth-child(1) {
+      width: 460px; height: 460px;
+      background: #EDE7FF;
+      bottom: -450px; left: 50%;
+      transition-delay: 0.5s;
+    }
+    .voice-overlay.active .voice-bg-circle:nth-child(1) {
+      transform: translateX(-50%) translate(0, 0);
+      animation: floatCircle1 20s ease-in-out 1.7s infinite;
+    }
+    .voice-bg-circle:nth-child(2) {
+      width: 460px; height: 460px;
+      background: #E4DBFF;
+      bottom: -440px; left: -180px;
+      transition-delay: 0.7s;
+    }
+    .voice-overlay.active .voice-bg-circle:nth-child(2) {
+      transform: translate(0, 0);
+      animation: floatCircle2 25s ease-in-out 1.9s infinite;
+    }
+    .voice-bg-circle:nth-child(3) {
+      width: 460px; height: 460px;
+      background: #F6F3FF;
+      bottom: -420px; right: -160px;
+      transition-delay: 0.9s;
+    }
+    .voice-overlay.active .voice-bg-circle:nth-child(3) {
+      transform: translate(0, 0);
+      animation: floatCircle3 18s ease-in-out 2.1s infinite;
+    }
+
+    @keyframes floatCircle1 {
+      0%, 100% { transform: translateX(-50%) translate(0, 0); }
+      25% { transform: translateX(-50%) translate(30px, -40px); }
+      50% { transform: translateX(-50%) translate(-20px, -60px); }
+      75% { transform: translateX(-50%) translate(15px, -20px); }
+    }
+    @keyframes floatCircle2 {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(40px, -30px); }
+      40% { transform: translate(20px, -70px); }
+      60% { transform: translate(-15px, -40px); }
+      80% { transform: translate(25px, -15px); }
+    }
+    @keyframes floatCircle3 {
+      0%, 100% { transform: translate(0, 0); }
+      30% { transform: translate(-35px, -50px); }
+      60% { transform: translate(25px, -30px); }
+      85% { transform: translate(-10px, -65px); }
+    }
+
     .voice-overlay.active {
       visibility: visible;
       pointer-events: auto;
       overflow: visible;
     }
 
-    /* Gradient border via pseudo-element with smooth fade */
-    .voice-overlay::before {
-      content: '';
-      position: absolute;
-      inset: -5px;
-      border-radius: 35px;
-      padding: 5px;
-      background: linear-gradient(to bottom, rgba(127, 57, 227, 0) 0%, rgba(127, 57, 227, 0.35) 70%, rgba(127, 57, 227, 0.5) 100%);
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      mask-composite: exclude;
-      opacity: 0;
-      transition: opacity 0.6s ease;
-      pointer-events: none;
-      z-index: 999;
-    }
-    .voice-overlay.glow::before,
-    .voice-overlay.kb-mode::before {
-      opacity: 1;
-    }
-    .voice-overlay.listening-mode::before {
-      background: linear-gradient(to bottom, rgba(0, 173, 139, 0) 0%, rgba(0, 173, 139, 0.35) 70%, rgba(0, 173, 139, 0.5) 100%);
-      opacity: 1;
-    }
+    /* Gradient border — disabled */
+    .voice-overlay::before { display: none; }
 
     /* Status bar + Header — always fixed, no transitions */
     .voice-overlay .status-bar {
@@ -545,6 +580,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 10px 16px 10px 12px;
+      padding-top: 24px;
       height: 56px;
       background: white;
       transition: none;
@@ -665,6 +701,8 @@
     .voice-avatar-area {
       display: none;
       flex-direction: column;
+      position: relative;
+      z-index: 5;
       align-items: center;
       gap: 8px;
       flex-shrink: 0;
@@ -723,14 +761,16 @@
       gap: 16px;
       align-items: center;
       justify-content: center;
-      padding: 24px 0;
+      padding: 24px 0 24px;
       transition: opacity 0.4s ease;
+      position: relative;
+      z-index: 5;
     }
 
     .voice-action-btn {
       width: 42px;
       height: 42px;
-      background: #e7e9ff;
+      background: #EDE7FF;
       border-radius: var(--shape-pill);
       display: flex;
       align-items: center;
@@ -744,14 +784,15 @@
       background: #dcd5f5;
     }
 
-    .voice-action-btn svg {
+    .voice-action-btn svg,
+    .voice-action-btn img {
       width: 26px;
       height: 26px;
     }
 
     /* ============ KEYBOARD / CHAT MODE ============ */
-    /* Keep centered in visible area above keyboard + input */
-    .voice-overlay.kb-mode .voice-container { justify-content: center; gap: 8px; padding-bottom: 340px; }
+    /* Keep centered in visible area above input */
+    .voice-overlay.kb-mode .voice-container { justify-content: center; gap: 8px; padding-bottom: 80px; }
     .voice-overlay.kb-mode .voice-bot-dots { display: none; }
     .voice-overlay.kb-mode .avatar-center { width: 66px; height: 66px; }
     .voice-overlay.kb-mode .voice-status { font-size: 16px; }
@@ -866,9 +907,9 @@
       width: 100%;
       gap: 12px;
       flex-shrink: 0;
-      padding-bottom: 0;
+      padding-bottom: 24px;
       transform: translateY(100%);
-      transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+      transition: transform 0.4s cubic-bezier(0.32, 0, 0, 1);
       position: absolute;
       bottom: 0;
       left: 0;
@@ -881,7 +922,6 @@
       transform: translateY(0);
       padding-bottom: 24px;
     }
-    .voice-overlay.kb-mode.kb-hidden .fake-keyboard { display: none; }
 
     /* Text-mode: unified bottom bar [+] [Ask anything / typed text] [voice btn] */
     .text-bottom-bar {
@@ -893,7 +933,7 @@
       left: 0;
       right: 0;
       z-index: 11;
-      padding-bottom: 0;
+      padding-bottom: 24px;
       transform: translateY(100%);
       transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
     }
@@ -916,7 +956,6 @@
 
     /* Text mode: when keyboard hidden, add bottom padding */
     .voice-overlay.text-mode.kb-hidden .text-bottom-bar { padding-bottom: 24px; }
-    .voice-overlay.text-mode.kb-hidden .text-bottom-bar .text-kb { display: none; }
 
     /* Text mode: collapsed pill + voice btn (default) */
     .text-input-row .home-input-pill,
@@ -1010,7 +1049,7 @@
       box-sizing: border-box;
     }
     .input-add-btn {
-      width: 42px; height: 42px; background: #e7e9ff; border-radius: var(--shape-pill);
+      width: 42px; height: 42px; background: #EDE7FF; border-radius: var(--shape-pill);
       display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0;
     }
     .input-add-btn svg { width: 26px; height: 26px; }
@@ -1039,9 +1078,9 @@
       width: 42px; height: 42px; border-radius: var(--shape-pill);
       display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0;
     }
-    .input-mic-btn { background: #e7e9ff; }
+    .input-mic-btn { background: #EDE7FF; }
     .input-mic-btn svg, .input-close-btn svg { width: 26px; height: 26px; }
-    .input-close-btn { background: #3900ad; }
+    .input-close-btn { background: #6D17CE; }
 
     /* Collapsed / Expanded input state toggle */
     .input-collapsed {
@@ -1063,35 +1102,6 @@
       position: absolute; left: 0; right: 0;
     }
 
-    /* Fake keyboard */
-    .fake-keyboard {
-      background: #d1d3d9;
-      padding: 10px 6px 0;
-      border-radius: 27px 27px 0 0;
-    }
-    .kb-row { display: flex; gap: 6px; margin-bottom: 12px; justify-content: center; }
-    .kb-row.r2 { padding: 0 18px; }
-    .kb-row.r3 { gap: 0; }
-    .kb-key {
-      flex: 1; height: 38px; background: rgba(255,255,255,0.85); border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; color: #1c1c1c; border: none; cursor: pointer;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    .kb-key:active { background: rgba(255,255,255,1); }
-    .kb-key.special {
-      flex: 0 0 40px; background: rgba(255,255,255,0.55); font-size: 16px;
-    }
-    .kb-key.shift-key, .kb-key.delete-key { flex: 0 0 40px; background: rgba(255,255,255,0.55); font-size: 18px; }
-    .kb-key.r3-letters { flex: 1; margin: 0 3px; }
-    .kb-row4 { display: flex; gap: 5px; margin-bottom: 10px; }
-    .kb-key.mode-key { flex: 0 0 83px; background: rgba(255,255,255,0.55); font-size: 16px; }
-    .kb-key.space-key { flex: 1; }
-    .kb-key.return-key { flex: 0 0 83px; background: #007AFF; color: white; font-size: 17px; }
-    .kb-emoji-row {
-      display: flex; justify-content: space-between; padding: 10px 32px 6px;
-    }
-    .kb-emoji-row span { font-size: 20px; opacity: 0.5; cursor: pointer; }
 
     /* Responsive */
     @media (max-width: 400px) {
@@ -1121,7 +1131,7 @@
         <img src="https://www.figma.com/api/mcp/asset/3772df9d-13c0-4cb4-b8cf-3bf2b1a61e04" alt="Menu">
       </button>
       <div class="logo-btn">
-        <img src="https://www.figma.com/api/mcp/asset/a5d014e9-86a3-40a4-9e90-6819bc77fb65" alt="Jio Logo">
+        <img src="https://www.figma.com/api/mcp/asset/aebfef99-5134-4ce2-bbe3-ed05652df698" alt="Jio Logo">
       </div>
     </div>
     <div class="avatar-container">
@@ -1317,6 +1327,13 @@
 
   <!-- Voice Mode Overlay -->
   <div class="voice-overlay" id="voiceOverlay">
+    <!-- Animated background circles -->
+    <div class="voice-bg-circles">
+      <div class="voice-bg-circle"></div>
+      <div class="voice-bg-circle"></div>
+      <div class="voice-bg-circle"></div>
+    </div>
+
     <!-- Status Bar (same as home) -->
     <div class="status-bar">
       <span class="status-time">9:30</span>
@@ -1380,29 +1397,14 @@
 
     <!-- Bottom Actions -->
     <div class="voice-actions">
-      <!-- Plus / Add -->
       <button class="voice-action-btn" aria-label="Add">
-        <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M13 6v14M6 13h14" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" width="24" height="24"><path d="M12 5v14M5 12h14" stroke="#6D17CE" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
-      <!-- Mic -->
       <button class="voice-action-btn" aria-label="Microphone">
-        <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="9" y="3" width="8" height="13" rx="4" fill="#6d17ce"/>
-          <path d="M6 12a7 7 0 0014 0" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/>
-          <path d="M13 22v-3" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" width="24" height="24"><path d="M12 15a3 3 0 003-3V5a3 3 0 00-6 0v7a3 3 0 003 3zm6-5a1 1 0 00-1 1v1a5 5 0 11-10 0v-1a1 1 0 10-2 0v1a7 7 0 1014 0v-1a1 1 0 00-1-1zm-3 10H9a1 1 0 000 2h6a1 1 0 000-2z" fill="#6D17CE"/></svg>
       </button>
-      <!-- Keyboard -->
       <button class="voice-action-btn" aria-label="Keyboard" onclick="openKeyboardMode()">
-        <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="6" width="20" height="14" rx="3" stroke="#6d17ce" stroke-width="2"/>
-          <circle cx="8" cy="11" r="1.2" fill="#6d17ce"/>
-          <circle cx="13" cy="11" r="1.2" fill="#6d17ce"/>
-          <circle cx="18" cy="11" r="1.2" fill="#6d17ce"/>
-          <rect x="8" y="15" width="10" height="2" rx="1" fill="#6d17ce"/>
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" width="24" height="24"><rect x="2" y="5" width="20" height="14" rx="3" stroke="#6D17CE" stroke-width="1.5"/><circle cx="7" cy="10" r="1" fill="#6D17CE"/><circle cx="12" cy="10" r="1" fill="#6D17CE"/><circle cx="17" cy="10" r="1" fill="#6D17CE"/><rect x="7" y="14" width="10" height="1.5" rx=".75" fill="#6D17CE"/></svg>
       </button>
     </div>
 
@@ -1446,28 +1448,6 @@
         </div>
       </div>
 
-      <!-- Fake keyboard -->
-      <div class="fake-keyboard" id="fakeKeyboard">
-        <div class="kb-row">
-          <button class="kb-key" data-k="q">q</button><button class="kb-key" data-k="w">w</button><button class="kb-key" data-k="e">e</button><button class="kb-key" data-k="r">r</button><button class="kb-key" data-k="t">t</button><button class="kb-key" data-k="y">y</button><button class="kb-key" data-k="u">u</button><button class="kb-key" data-k="i">i</button><button class="kb-key" data-k="o">o</button><button class="kb-key" data-k="p">p</button>
-        </div>
-        <div class="kb-row r2">
-          <button class="kb-key" data-k="a">a</button><button class="kb-key" data-k="s">s</button><button class="kb-key" data-k="d">d</button><button class="kb-key" data-k="f">f</button><button class="kb-key" data-k="g">g</button><button class="kb-key" data-k="h">h</button><button class="kb-key" data-k="j">j</button><button class="kb-key" data-k="k">k</button><button class="kb-key" data-k="l">l</button>
-        </div>
-        <div class="kb-row r3">
-          <button class="kb-key shift-key">&#x21E7;</button>
-          <div style="display:flex;flex:1;gap:6px;">
-            <button class="kb-key r3-letters" data-k="z">z</button><button class="kb-key r3-letters" data-k="x">x</button><button class="kb-key r3-letters" data-k="c">c</button><button class="kb-key r3-letters" data-k="v">v</button><button class="kb-key r3-letters" data-k="b">b</button><button class="kb-key r3-letters" data-k="n">n</button><button class="kb-key r3-letters" data-k="m">m</button>
-          </div>
-          <button class="kb-key delete-key" onclick="kbDelete()">&#x232B;</button>
-        </div>
-        <div class="kb-row4">
-          <button class="kb-key mode-key">ABC</button>
-          <button class="kb-key space-key" data-k=" "> </button>
-          <button class="kb-key return-key" onclick="sendMessage()">&#x21A9;</button>
-        </div>
-        <div class="kb-emoji-row"><span>&#x1F600;</span><span>&#x1F3A4;</span></div>
-      </div>
     </div>
 
     <!-- Text-mode bottom bar (unified input + keyboard for text users) -->
@@ -1496,27 +1476,6 @@
         </div>
       </div>
       <!-- Keyboard (reuse fake keyboard) -->
-      <div class="fake-keyboard text-kb">
-        <div class="kb-row">
-          <button class="kb-key" data-tk="q">q</button><button class="kb-key" data-tk="w">w</button><button class="kb-key" data-tk="e">e</button><button class="kb-key" data-tk="r">r</button><button class="kb-key" data-tk="t">t</button><button class="kb-key" data-tk="y">y</button><button class="kb-key" data-tk="u">u</button><button class="kb-key" data-tk="i">i</button><button class="kb-key" data-tk="o">o</button><button class="kb-key" data-tk="p">p</button>
-        </div>
-        <div class="kb-row r2">
-          <button class="kb-key" data-tk="a">a</button><button class="kb-key" data-tk="s">s</button><button class="kb-key" data-tk="d">d</button><button class="kb-key" data-tk="f">f</button><button class="kb-key" data-tk="g">g</button><button class="kb-key" data-tk="h">h</button><button class="kb-key" data-tk="j">j</button><button class="kb-key" data-tk="k">k</button><button class="kb-key" data-tk="l">l</button>
-        </div>
-        <div class="kb-row r3">
-          <button class="kb-key shift-key">&#x21E7;</button>
-          <div style="display:flex;flex:1;gap:6px;">
-            <button class="kb-key r3-letters" data-tk="z">z</button><button class="kb-key r3-letters" data-tk="x">x</button><button class="kb-key r3-letters" data-tk="c">c</button><button class="kb-key r3-letters" data-tk="v">v</button><button class="kb-key r3-letters" data-tk="b">b</button><button class="kb-key r3-letters" data-tk="n">n</button><button class="kb-key r3-letters" data-tk="m">m</button>
-          </div>
-          <button class="kb-key delete-key" onclick="textModeDelete()">&#x232B;</button>
-        </div>
-        <div class="kb-row4">
-          <button class="kb-key mode-key">ABC</button>
-          <button class="kb-key space-key" data-tk=" "> </button>
-          <button class="kb-key return-key" onclick="textModeSend()">&#x21A9;</button>
-        </div>
-        <div class="kb-emoji-row"><span>&#x1F600;</span><span>&#x1F3A4;</span></div>
-      </div>
     </div>
   </div>
 </div>
@@ -1647,11 +1606,6 @@
     showResponse(text);
   }
 
-  function textModeDelete() {
-    textModeInput.value = textModeInput.value.slice(0, -1);
-    syncTextTyping();
-  }
-
   function syncTextTyping() {
     if (textModeInput.value.trim().length > 0) {
       overlay.classList.add('text-typing');
@@ -1659,14 +1613,6 @@
       overlay.classList.remove('text-typing');
     }
   }
-
-  // Text mode fake keyboard keys
-  document.querySelectorAll('.kb-key[data-tk]').forEach(key => {
-    key.addEventListener('click', () => {
-      textModeInput.value += key.dataset.tk;
-      syncTextTyping();
-    });
-  });
 
   // Real keyboard input sync
   textModeInput.addEventListener('input', syncTextTyping);
@@ -1728,24 +1674,6 @@
     syncInputState();
   });
 
-  // Fake keyboard key presses
-  document.querySelectorAll('.kb-key[data-k]').forEach(key => {
-    key.addEventListener('click', () => {
-      const activeEl = overlay.classList.contains('has-text') ? chatInputExpanded : chatInput;
-      activeEl.value += key.dataset.k;
-      chatInput.value = activeEl.value;
-      chatInputExpanded.value = activeEl.value;
-      syncInputState();
-    });
-  });
-
-  function kbDelete() {
-    const activeEl = overlay.classList.contains('has-text') ? chatInputExpanded : chatInput;
-    activeEl.value = activeEl.value.slice(0, -1);
-    chatInput.value = activeEl.value;
-    chatInputExpanded.value = activeEl.value;
-    syncInputState();
-  }
 
   // === Helper: create feedback icons HTML ===
   function createFeedbackIcons() {
@@ -1877,9 +1805,6 @@
       ttsPromise.then(() => {
         overlay.classList.remove('glow');
         overlay.classList.add('listening-mode');
-        voiceAvatarArea.classList.add('visible');
-        avatarIdle.classList.add('visible');
-        avatarIdle.play().catch(() => {});
         startListening();
       });
     }
@@ -1906,12 +1831,58 @@
           currentTTSAudio = null;
         }
         currentTTSAudio = new Audio(url);
+
+        // Connect TTS audio to analyser for circle pulsing
+        let ttsAnalyser, ttsSource, ttsAnimFrame;
+        const startTTSPulse = () => {
+          try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            ttsAnalyser = ctx.createAnalyser();
+            ttsAnalyser.fftSize = 256;
+            ttsAnalyser.smoothingTimeConstant = 0.85;
+            ttsSource = ctx.createMediaElementSource(currentTTSAudio);
+            ttsSource.connect(ttsAnalyser);
+            ttsAnalyser.connect(ctx.destination);
+
+            const pulseTTS = () => {
+              if (!ttsAnalyser) return;
+              const data = new Uint8Array(ttsAnalyser.frequencyBinCount);
+              ttsAnalyser.getByteFrequencyData(data);
+              let sum = 0;
+              for (let i = 0; i < data.length; i++) sum += data[i];
+              const avg = sum / data.length;
+              const s1 = 1 + (avg / 255) * 0.3;
+              const s2 = 1 + (avg / 255) * 0.22;
+              const s3 = 1 + (avg / 255) * 0.35;
+              if (circleEls[0]) circleEls[0].style.transform = `translateX(-50%) scale(${s1})`;
+              if (circleEls[1]) circleEls[1].style.transform = `scale(${s2})`;
+              if (circleEls[2]) circleEls[2].style.transform = `scale(${s3})`;
+              ttsAnimFrame = requestAnimationFrame(pulseTTS);
+            };
+            pulseTTS();
+          } catch (e) {}
+        };
+
+        const stopTTSPulse = () => {
+          if (ttsAnimFrame) cancelAnimationFrame(ttsAnimFrame);
+          ttsAnalyser = null;
+          circleEls.forEach(c => { c.style.transform = ''; });
+        };
+
+        currentTTSAudio.onplay = () => {
+          overlay.classList.add('agent-speaking');
+          startTTSPulse();
+        };
         currentTTSAudio.onended = () => {
+          overlay.classList.remove('agent-speaking');
+          stopTTSPulse();
           URL.revokeObjectURL(url);
           currentTTSAudio = null;
           resolve();
         };
         currentTTSAudio.onerror = () => {
+          overlay.classList.remove('agent-speaking');
+          stopTTSPulse();
           URL.revokeObjectURL(url);
           currentTTSAudio = null;
           resolve();
@@ -1957,20 +1928,21 @@
 
     recognition.onstart = () => {
       isListening = true;
+      startVoiceReactive();
     };
 
     recognition.onspeechstart = () => {
       // User started talking → switch to green border + "Listening..."
       overlay.classList.remove('glow');
-      overlay.classList.add('listening-mode');
+      overlay.classList.add('listening-mode', 'user-speaking');
       statusText.textContent = 'Listening...';
     };
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript.trim();
       isListening = false;
+      overlay.classList.remove('user-speaking');
       if (transcript) {
-        // Hide voice UI, show response
         botDots.classList.remove('visible', 'listening');
         statusText.classList.remove('visible');
         showResponse(transcript);
@@ -1979,15 +1951,14 @@
 
     recognition.onerror = () => {
       isListening = false;
-      // Return to welcome state
-      overlay.classList.remove('listening-mode');
+      overlay.classList.remove('user-speaking', 'listening-mode');
       overlay.classList.add('glow');
       statusText.textContent = 'Say something...';
     };
 
     recognition.onend = () => {
       isListening = false;
-      // If still on welcome/listening screen (no result), reset to welcome
+      overlay.classList.remove('user-speaking');
       if (!overlay.classList.contains('chat-active')) {
         overlay.classList.remove('listening-mode');
         overlay.classList.add('glow');
@@ -2007,6 +1978,62 @@
       try { recognition.stop(); } catch (e) {}
       isListening = false;
     }
+    stopVoiceReactive();
+  }
+
+  // === Voice-reactive circles ===
+  let audioContext, analyser, micSource, animFrameId;
+  const circleEls = document.querySelectorAll('.voice-bg-circle');
+
+  function startVoiceReactive() {
+    if (audioContext) return; // already running
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.8;
+
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        micSource = audioContext.createMediaStreamSource(stream);
+        micSource.connect(analyser);
+        pulseCircles();
+      }).catch(() => {});
+    } catch (e) {}
+  }
+
+  function stopVoiceReactive() {
+    if (animFrameId) cancelAnimationFrame(animFrameId);
+    animFrameId = null;
+    if (audioContext) {
+      audioContext.close().catch(() => {});
+      audioContext = null;
+      analyser = null;
+      micSource = null;
+    }
+    // Reset circle scales
+    circleEls.forEach(c => { c.style.transform = ''; });
+  }
+
+  function pulseCircles() {
+    if (!analyser) return;
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+
+    // Get average volume (0-255)
+    let sum = 0;
+    for (let i = 0; i < data.length; i++) sum += data[i];
+    const avg = sum / data.length;
+
+    // Map volume to scale: quiet = 1.0, loud = 1.25
+    const scale = 1 + (avg / 255) * 0.25;
+    const scale2 = 1 + (avg / 255) * 0.18;
+    const scale3 = 1 + (avg / 255) * 0.3;
+
+    if (circleEls[0]) circleEls[0].style.transform = `translateX(-50%) scale(${scale})`;
+    if (circleEls[1]) circleEls[1].style.transform = `scale(${scale2})`;
+    if (circleEls[2]) circleEls[2].style.transform = `scale(${scale3})`;
+
+    animFrameId = requestAnimationFrame(pulseCircles);
   }
 </script>
 
