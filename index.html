@@ -1608,15 +1608,30 @@
       avatarCenter.play().catch(() => {});
       statusText.textContent = 'Say something...';
       statusText.classList.add('visible');
-      // Only start listening after welcome audio finishes
-      welcomeSound.onended = () => {
-        startListening();
-      };
-      // Fallback: if welcome already ended or errored, start after 3s
-      setTimeout(() => {
-        if (!isListening) startListening();
-      }, 3000);
     };
+
+    // Start listening after welcome audio ends, or fallback after delays
+    welcomeSound.onended = () => {
+      console.log('Welcome ended, starting listening');
+      if (!isListening) startListening();
+    };
+
+    // Fallback 1: if video doesn't fire onended, show UI after 3s
+    setTimeout(() => {
+      spinner.classList.remove('visible');
+      spinner.pause();
+      overlay.classList.add('glow');
+      avatarCenter.classList.add('visible');
+      avatarCenter.play().catch(() => {});
+      statusText.textContent = 'Say something...';
+      statusText.classList.add('visible');
+    }, 3000);
+
+    // Fallback 2: always start listening after 5s no matter what
+    setTimeout(() => {
+      console.log('Fallback: starting listening after 5s');
+      if (!isListening) startListening();
+    }, 5000);
   }
 
   function newConversation() {

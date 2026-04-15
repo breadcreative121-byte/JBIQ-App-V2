@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: jbiq-app-v2
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
