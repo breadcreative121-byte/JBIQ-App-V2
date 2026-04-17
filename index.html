@@ -891,6 +891,51 @@
       background-clip: text;
       animation: shimmerText 2s ease-in-out infinite;
     }
+
+    /* Searching for places indicator */
+    .searching-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      width: 100%;
+      padding: 6px 2px;
+      align-self: flex-start;
+      animation: bubbleIn 0.3s ease;
+    }
+    .searching-logos {
+      display: flex;
+      align-items: center;
+      padding-right: 5px;
+    }
+    .searching-logo {
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: #f5f5f6;
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .searching-logo + .searching-logo {
+      margin-left: -5px;
+      border: 0.5px solid white;
+    }
+    .searching-logo svg { width: 100%; height: 100%; display: block; }
+    .searching-text {
+      font-size: 14px;
+      color: var(--text-low);
+      opacity: 0.65;
+      line-height: 1.3;
+      padding-left: 6px;
+      background: linear-gradient(90deg, var(--text-low) 25%, #999 50%, var(--text-low) 75%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmerText 2s ease-in-out infinite;
+    }
     @keyframes shimmerText {
       0% { background-position: 200% 0; }
       100% { background-position: -200% 0; }
@@ -960,6 +1005,121 @@
     }
     .feedback-icons button:hover { opacity: 1; }
     .feedback-icons svg { width: 16px; height: 16px; }
+
+    /* Restaurant carousel (conversation journey) — keeps 16px left, extends to right edge */
+    .restaurant-carousel {
+      width: calc(100% + 16px);
+      margin-right: -16px;
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 8px 16px 16px 0;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      animation: bubbleIn 0.5s ease;
+    }
+    .restaurant-carousel::-webkit-scrollbar { display: none; }
+    .restaurant-card {
+      flex-shrink: 0;
+      width: 190px;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .restaurant-card-img {
+      width: 190px;
+      height: 190px;
+      border-radius: 16px;
+      object-fit: cover;
+      display: block;
+      background: #eeeeef;
+    }
+    .restaurant-card-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-high);
+      line-height: 1;
+      padding-top: 4px;
+    }
+    .restaurant-card-cuisine {
+      font-size: 12px;
+      color: var(--text-high);
+      line-height: 1;
+    }
+    .restaurant-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--text-medium);
+      opacity: 0.8;
+      line-height: 1.3;
+    }
+    .restaurant-star { width: 12px; height: 12px; flex-shrink: 0; }
+
+    /* Restaurant focus card (tap-to-expand) */
+    .restaurant-focus-card {
+      width: 100%;
+      background: #f5f5f5;
+      border-radius: 20px;
+      padding: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin: 8px 0;
+      animation: bubbleIn 0.4s ease;
+    }
+    .restaurant-focus-img {
+      width: 118px;
+      height: 118px;
+      border-radius: 16px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: #eeeeef;
+    }
+    .restaurant-focus-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 4px 0;
+    }
+    .restaurant-focus-name {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--text-high);
+      line-height: 1;
+    }
+    .restaurant-focus-cuisine,
+    .restaurant-focus-meta {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-medium);
+      opacity: 0.8;
+      line-height: 1.3;
+    }
+    .directions-btn {
+      align-self: flex-start;
+      margin: 8px 0;
+      padding: 10px 20px;
+      background: var(--surface-subtle);
+      border: none;
+      border-radius: var(--shape-pill);
+      font-family: var(--font-family);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-high-tinted);
+      cursor: pointer;
+      line-height: 1;
+      transition: opacity 0.15s;
+    }
+    .directions-btn:hover { opacity: 0.85; }
+    .restaurant-card { cursor: pointer; }
+    .restaurant-card:active { transform: scale(0.98); transition: transform 0.1s; }
 
     /* Bottom bar area: input + keyboard — always in DOM, slides up/down */
     .kb-bottom {
@@ -2410,6 +2570,34 @@
     return el;
   }
 
+  function createSearchingEl() {
+    const el = document.createElement('div');
+    el.className = 'searching-row';
+    el.innerHTML = `
+      <div class="searching-logos">
+        <div class="searching-logo">
+          <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 2C6.7 2 4 4.7 4 8c0 4.5 6 10 6 10s6-5.5 6-10c0-3.3-2.7-6-6-6z" fill="#EA4335"/>
+            <path d="M10 2C6.7 2 4 4.7 4 8c0 1.1.2 2.2.6 3.2L10 2z" fill="#FBBC04"/>
+            <path d="M15.4 11.2C15.8 10.2 16 9.1 16 8c0-3.3-2.7-6-6-6v6l5.4 3.2z" fill="#34A853"/>
+            <path d="M10 8l-5.4 3.2C5.4 13 7.5 15.5 10 18c2.5-2.5 4.6-5 5.4-6.8L10 8z" fill="#4285F4"/>
+            <circle cx="10" cy="8" r="2.2" fill="white"/>
+          </svg>
+        </div>
+        <div class="searching-logo" style="background:#00AA6C;">
+          <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="7" cy="10" r="3" fill="white"/>
+            <circle cx="13" cy="10" r="3" fill="white"/>
+            <circle cx="7" cy="10" r="1.3" fill="#000"/>
+            <circle cx="13" cy="10" r="1.3" fill="#000"/>
+          </svg>
+        </div>
+      </div>
+      <span class="searching-text">Searching for places...</span>
+    `;
+    return el;
+  }
+
   // === Typewriter effect ===
   function typeWriter(el, text, scrollContainer) {
     return new Promise(resolve => {
@@ -2429,6 +2617,109 @@
     });
   }
 
+  // === Conversation Journeys ===
+  function matchesRestaurantQuery(text) {
+    const t = text.toLowerCase();
+    return (
+      t.includes('top restaurants') ||
+      t.includes('restaurants near') ||
+      t.includes('aas paas restaurants')
+    );
+  }
+
+  const RESTAURANTS = [
+    { name: 'Spice Garden',   cuisine: 'Indian Cuisine',       distance: '1.2 ki', rating: '4.93', img: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&h=400&fit=crop', summary: 'Cozy spot for rich North Indian curries and tandoor dishes. Warm service, great for family dinners.' },
+    { name: "Bob's Burgers",  cuisine: 'American Cuisine',     distance: '0.8 ki', rating: '4.85', img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=400&fit=crop', summary: 'Laid-back American diner with juicy burgers, crispy fries, and thick shakes. Perfect for casual meetups.' },
+    { name: 'Sakura Sushi',   cuisine: 'Japanese Cuisine',     distance: '1.5 ki', rating: '4.78', img: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400&h=400&fit=crop', summary: 'Fresh sushi, sashimi, and ramen in a modern Japanese setting. Ideal for date nights and quiet dinners.' },
+    { name: 'Bella Italia',   cuisine: 'Italian Cuisine',      distance: '2.1 ki', rating: '4.70', img: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400&h=400&fit=crop', summary: 'Wood-fired pizzas and fresh handmade pasta in a warm, rustic setting. Family-friendly vibe.' },
+    { name: 'Taj Palace',     cuisine: 'North Indian Cuisine', distance: '0.5 ki', rating: '4.92', img: 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=400&h=400&fit=crop', summary: 'Refined North Indian dining with signature tandoori platters and a luxurious ambience. Great for special occasions.' },
+  ];
+
+  function renderRestaurantCarousel(parent) {
+    const wrap = document.createElement('div');
+    wrap.className = 'restaurant-carousel';
+    RESTAURANTS.forEach(r => {
+      const card = document.createElement('div');
+      card.className = 'restaurant-card';
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.innerHTML = `
+        <img class="restaurant-card-img" src="${r.img}" alt="${r.name}" loading="lazy">
+        <div class="restaurant-card-name"></div>
+        <div class="restaurant-card-cuisine"></div>
+        <div class="restaurant-card-meta">
+          <span class="restaurant-distance"></span>
+          <svg class="restaurant-star" viewBox="0 0 12 12" fill="#0c0d10"><path d="M6 1l1.5 3 3.3.3-2.5 2.2.8 3.3L6 8l-3.1 1.8.8-3.3L1.2 4.3 4.5 4 6 1z"/></svg>
+          <span class="restaurant-rating"></span>
+        </div>
+      `;
+      card.querySelector('.restaurant-card-name').textContent = r.name;
+      card.querySelector('.restaurant-card-cuisine').textContent = r.cuisine;
+      card.querySelector('.restaurant-distance').textContent = r.distance;
+      card.querySelector('.restaurant-rating').textContent = r.rating;
+      card.addEventListener('click', () => showRestaurantFocus(r));
+      wrap.appendChild(card);
+    });
+    parent.appendChild(wrap);
+    return wrap;
+  }
+
+  async function showRestaurantFocus(r) {
+    // Brief thinking indicator for continuity
+    const thinkingEl = createThinkingEl();
+    chatMessages.appendChild(thinkingEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    await new Promise(res => setTimeout(res, 1200));
+    thinkingEl.remove();
+    messageSentSound.currentTime = 0;
+    messageSentSound.play().catch(() => {});
+
+    // Assistant summary text (typewriter)
+    const summaryText = `${r.name} — ${r.cuisine}, ${r.distance} away, rated ${r.rating}. ${r.summary}`;
+    const aiEl = document.createElement('div');
+    aiEl.className = 'ai-response';
+    chatMessages.appendChild(aiEl);
+
+    const isTextMode = overlay.classList.contains('text-mode');
+    let ttsPromise = Promise.resolve();
+    if (!isTextMode) {
+      ttsPromise = playTTS(summaryText);
+    }
+    await typeWriter(aiEl, summaryText, chatMessages);
+
+    // Focus card
+    const focus = document.createElement('div');
+    focus.className = 'restaurant-focus-card';
+    focus.innerHTML = `
+      <img class="restaurant-focus-img" src="${r.img}" alt="" loading="lazy">
+      <div class="restaurant-focus-info">
+        <div class="restaurant-focus-name"></div>
+        <div class="restaurant-focus-cuisine"></div>
+        <div class="restaurant-focus-meta"></div>
+      </div>
+    `;
+    focus.querySelector('.restaurant-focus-name').textContent = r.name;
+    focus.querySelector('.restaurant-focus-cuisine').textContent = r.cuisine;
+    focus.querySelector('.restaurant-focus-meta').textContent = `${r.rating} • ${r.distance.replace('ki', 'kilometre')}`;
+    chatMessages.appendChild(focus);
+
+    // Directions button
+    const dirBtn = document.createElement('button');
+    dirBtn.className = 'directions-btn';
+    dirBtn.textContent = 'Directions';
+    chatMessages.appendChild(dirBtn);
+
+    // Feedback icons
+    const feedbackEl = createFeedbackIcons();
+    chatMessages.appendChild(feedbackEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // Log the tap in conversation history so follow-up API calls have context
+    conversationHistory.push({ role: 'user', content: `Tell me more about ${r.name}` });
+    conversationHistory.push({ role: 'assistant', content: summaryText });
+  }
+
   // === Shared response flow (real API) ===
   async function showResponse(text) {
     clearKbTimeouts();
@@ -2443,7 +2734,8 @@
     voiceAvatarArea.classList.remove('visible');
     avatarIdle.classList.remove('visible');
     avatarIdle.pause();
-    voiceTitle.textContent = extractTitle(text);
+    const isRestaurantQuery = matchesRestaurantQuery(text);
+    voiceTitle.textContent = isRestaurantQuery ? 'Top restaurants' : extractTitle(text);
 
     if (isTextMode) {
       kbBotMini.classList.remove('visible');
@@ -2469,25 +2761,45 @@
     // 3. Play understood sound + show thinking indicator
     understoodSound.currentTime = 0;
     understoodSound.play().catch(() => {});
-    const thinkingEl = createThinkingEl();
+    let thinkingEl = createThinkingEl();
     chatMessages.appendChild(thinkingEl);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // 3b. For restaurant journey, swap Thinking... -> Searching for places... after 1.2s
+    if (isRestaurantQuery) {
+      setTimeout(() => {
+        if (!thinkingEl || !thinkingEl.isConnected) return;
+        thinkingEl.style.transition = 'opacity 0.25s ease';
+        thinkingEl.style.opacity = '0';
+        setTimeout(() => {
+          if (!thinkingEl.isConnected) return;
+          const searchingEl = createSearchingEl();
+          thinkingEl.replaceWith(searchingEl);
+          thinkingEl = searchingEl;
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 250);
+      }, 1200);
+    }
 
     // 4. Call API + enforce minimum 4s thinking time
     const thinkingStart = Date.now();
     let responseText = '';
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: conversationHistory }),
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      responseText = data.text;
-    } catch (err) {
-      responseText = 'Sorry, I couldn\'t get a response. Please try again.';
-      console.error('API error:', err);
+    if (isRestaurantQuery) {
+      responseText = 'Here are top restaurants near you — Spice Garden is top-rated.';
+    } else {
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: conversationHistory }),
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        responseText = data.text;
+      } catch (err) {
+        responseText = 'Sorry, I couldn\'t get a response. Please try again.';
+        console.error('API error:', err);
+      }
     }
 
     // Wait for minimum 4s thinking duration
@@ -2514,6 +2826,12 @@
 
     // Typewriter runs in parallel with audio
     await typeWriter(aiEl, responseText, chatMessages);
+
+    // 7b. Render restaurant carousel for matching queries
+    if (isRestaurantQuery) {
+      renderRestaurantCarousel(chatMessages);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 
     // 8. Add feedback icons
     const feedbackEl = createFeedbackIcons();
