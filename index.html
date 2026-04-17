@@ -1119,6 +1119,339 @@
     .restaurant-card { cursor: pointer; }
     .restaurant-card:active { transform: scale(0.98); transition: transform 0.1s; }
 
+    /* ============ Shopping journey (JioMart) ============ */
+    /* JioMart chip used in the searching indicator */
+    .jiomart-chip {
+      background: #0a3478 !important;
+      color: white;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+    }
+
+    /* Shopping product card (state A — initial confirm) */
+    .shopping-card {
+      width: 100%;
+      background: #f5f5f5;
+      border-radius: 20px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 8px 0;
+      animation: bubbleIn 0.4s ease;
+    }
+    .shopping-card.is-dim { opacity: 0.55; filter: saturate(0.8); transition: opacity 0.25s ease, filter 0.25s ease; }
+    .shopping-card-top {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .shopping-card-img {
+      width: 88px;
+      height: 88px;
+      border-radius: 16px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: #eeeeef;
+    }
+    .shopping-card-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 2px 0;
+    }
+    .shopping-card-brand {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-medium);
+      opacity: 0.7;
+      line-height: 1.1;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .shopping-card-name {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--text-high);
+      line-height: 1.15;
+    }
+    .shopping-card-qty {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text-medium);
+      opacity: 0.8;
+      line-height: 1.2;
+    }
+    .shopping-card-price-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 4px 2px 0;
+    }
+    .shopping-card-price {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--text-high);
+      line-height: 1;
+    }
+    .shopping-card-eta {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--surface-bold-green);
+      line-height: 1.2;
+    }
+    .shopping-card-source {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-medium);
+      opacity: 0.8;
+      padding: 2px 0 0;
+    }
+    .shopping-card-source-logo {
+      width: 16px; height: 16px; border-radius: 999px;
+      background: #0a3478;
+      color: white;
+      font-size: 8px;
+      font-weight: 900;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .shopping-actions {
+      display: flex;
+      gap: 8px;
+      padding-top: 4px;
+    }
+    .shopping-pay-btn {
+      flex: 1;
+      padding: 14px 20px;
+      background: var(--surface-bold);
+      color: white;
+      border: none;
+      border-radius: var(--shape-pill);
+      font-family: var(--font-family);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .shopping-pay-btn:hover { opacity: 0.92; }
+    .shopping-pay-btn:active { transform: scale(0.98); }
+    .shopping-cancel-btn {
+      padding: 14px 18px;
+      background: var(--surface-subtle);
+      color: var(--text-high-tinted);
+      border: none;
+      border-radius: var(--shape-pill);
+      font-family: var(--font-family);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1;
+      transition: opacity 0.15s;
+    }
+    .shopping-cancel-btn:hover { opacity: 0.85; }
+
+    /* State B — order confirmed card (Figma 22751:42192) */
+    .order-confirmed {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid var(--stroke-subtle);
+      border-radius: var(--shape-4xl);
+      padding: 16px;
+      margin: 8px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      animation: orderConfirmedIn 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @keyframes orderConfirmedIn {
+      0% { opacity: 0; transform: translateY(12px) scale(0.98); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .order-confirmed-merchant {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-high);
+      line-height: 1;
+    }
+    .order-confirmed-merchant-logo {
+      width: 24px; height: 24px;
+      border-radius: 999px;
+      background: #e21b22;
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .order-confirmed-merchant-logo svg { width: 14px; height: 14px; }
+    .order-confirmed-product {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .order-confirmed-img {
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      object-fit: cover;
+      background: #eaf4fb;
+      flex-shrink: 0;
+    }
+    .order-confirmed-product-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding-top: 2px;
+    }
+    .order-confirmed-product-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-high);
+      line-height: 1.2;
+    }
+    .order-confirmed-product-qty {
+      font-size: 13px;
+      color: var(--text-medium);
+      opacity: 0.7;
+      line-height: 1.3;
+    }
+    .order-confirmed-product-price {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-high);
+      line-height: 1.2;
+      padding-top: 4px;
+    }
+    .order-confirmed-heading {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--text-high);
+      line-height: 1.1;
+      padding-top: 2px;
+    }
+    .order-confirmed-progress {
+      width: 100%;
+      height: 4px;
+      background: #e9e7ef;
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+    .order-confirmed-progress-fill {
+      height: 100%;
+      background: var(--surface-bold);
+      border-radius: 999px;
+      width: 0%;
+      animation: orderProgressFill 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) 0.25s forwards;
+    }
+    @keyframes orderProgressFill {
+      0% { width: 0%; }
+      100% { width: 18%; }
+    }
+    .order-confirmed-stages {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text-medium);
+      opacity: 0.55;
+    }
+    .order-confirmed-stages .is-active {
+      color: var(--text-high);
+      font-weight: 700;
+      opacity: 1;
+    }
+    .order-confirmed-receipt-btn {
+      width: 100%;
+      padding: 14px 20px;
+      margin-top: 4px;
+      background: var(--surface-subtle);
+      color: var(--text-high-tinted);
+      border: none;
+      border-radius: var(--shape-pill);
+      font-family: var(--font-family);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .order-confirmed-receipt-btn:hover { opacity: 0.9; }
+    .order-confirmed-receipt-btn:active { transform: scale(0.98); }
+
+    /* State C — voice-only confirm warning */
+    .shopping-warning {
+      width: 100%;
+      background: #fff7e6;
+      border: 1px solid #f5b544;
+      border-radius: 18px;
+      padding: 12px 14px;
+      margin: 8px 0;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      animation: warningIn 0.35s ease;
+    }
+    @keyframes warningIn {
+      0% { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .shopping-warning-icon {
+      width: 22px; height: 22px; flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 999px;
+      background: #f5b544;
+      color: white;
+      font-weight: 900;
+      font-size: 14px;
+      margin-top: 1px;
+    }
+    .shopping-warning-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .shopping-warning-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #7a4a00;
+      line-height: 1.2;
+    }
+    .shopping-warning-sub {
+      font-size: 13px;
+      color: #7a4a00;
+      opacity: 0.85;
+      line-height: 1.3;
+    }
+    .shopping-warning-arrow {
+      align-self: center;
+      color: #f5b544;
+      font-size: 18px;
+      font-weight: 900;
+      animation: arrowBounce 1.2s ease-in-out infinite;
+    }
+    @keyframes arrowBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(4px); }
+    }
+    /* Highlight the pay button while warning is visible */
+    .shopping-pay-btn.is-hinted {
+      animation: hintPulse 1.3s ease-in-out infinite;
+    }
+    @keyframes hintPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(109, 23, 206, 0.55); }
+      50% { box-shadow: 0 0 0 8px rgba(109, 23, 206, 0); }
+    }
+
     /* Bottom bar area: input + keyboard — always in DOM, slides up/down */
     .kb-bottom {
       display: flex;
@@ -2302,6 +2635,8 @@
   const welcomeSound = new Audio('welcome.mp3');
   const understoodSound = new Audio('va-understood.mp3');
   const messageSentSound = new Audio('message-sent.mp3');
+  const paySuccessSound = new Audio('pay_success.mp3');
+  const infoWarningSound = new Audio('info_warning.mp3');
 
   function clearKbTimeouts() { kbTimeouts.forEach(t => clearTimeout(t)); kbTimeouts = []; }
 
@@ -2662,6 +2997,263 @@
     return wrap;
   }
 
+  // === Shopping journey (JioMart) ===
+  function matchesShoppingQuery(text) {
+    const t = text.toLowerCase();
+    // Trigger verbs indicating a single-item purchase intent
+    const hasVerb = /\b(order|buy|get me|purchase|pay for)\b/.test(t);
+    // Exclude obvious non-shopping contexts
+    const hasRestaurant = /\b(restaurant|table|reservation)\b/.test(t);
+    return hasVerb && !hasRestaurant;
+  }
+
+  function parseShoppingItem(text) {
+    const m = text.toLowerCase().match(/\b(?:order|buy|get me|purchase|pay for)\s+(?:me\s+)?(?:a|an|some)?\s*([a-z0-9 '\-]+?)(?:\s+(?:from|on|please|now))?[\.!\?]?\s*$/i);
+    const raw = m && m[1] ? m[1].trim() : 'item';
+    return raw || 'item';
+  }
+
+  // Lightweight catalog — matches on substring of parsed item
+  const SHOPPING_CATALOG = [
+    { keys: ['coffee'],        name: 'Bru Instant Coffee', brand: 'Bru',        qty: '100 g jar',  price: 249, eta: 'Today, 30 min', img: 'https://images.unsplash.com/photo-1559525839-8f75b3e99cdb?w=400&h=400&fit=crop' },
+    { keys: ['milk'],          name: 'Amul Toned Milk',    brand: 'Amul',       qty: '1 L pack',   price: 66,  eta: 'Today, 20 min', img: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&h=400&fit=crop' },
+    { keys: ['bread'],         name: 'Britannia Bread',    brand: 'Britannia',  qty: '400 g loaf', price: 55,  eta: 'Today, 25 min', img: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=400&fit=crop' },
+    { keys: ['eggs', 'egg'],   name: 'Farm Fresh Eggs',    brand: 'Keggs',      qty: 'Pack of 6',  price: 78,  eta: 'Today, 30 min', img: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&h=400&fit=crop' },
+    { keys: ['biscuits', 'biscuit', '50-50', 'parle'], name: 'Parle 50-50 Biscuits', brand: 'Parle', qty: '300 g pack', price: 60, eta: 'Today, 30 min', img: 'https://images.unsplash.com/photo-1548365328-9f547fb09530?w=400&h=400&fit=crop' },
+    { keys: ['water'],         name: 'Bisleri Water',      brand: 'Bisleri',    qty: '1 L bottle', price: 20,  eta: 'Today, 20 min', img: 'https://images.unsplash.com/photo-1560847468-5eef0b4824e2?w=400&h=400&fit=crop' },
+    { keys: ['rice'],          name: 'India Gate Basmati', brand: 'India Gate', qty: '5 kg bag',   price: 640, eta: 'Today, 45 min', img: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=400&fit=crop' },
+  ];
+
+  function resolveShoppingProduct(itemText) {
+    const t = (itemText || '').toLowerCase();
+    for (const p of SHOPPING_CATALOG) {
+      if (p.keys.some(k => t.includes(k))) return p;
+    }
+    // Fallback — generic product using the spoken text as the name
+    const prettyName = (itemText || 'item').replace(/\b\w/g, c => c.toUpperCase());
+    return {
+      keys: [],
+      name: prettyName,
+      brand: 'JioMart Pick',
+      qty: '1 unit',
+      price: 199,
+      eta: 'Today, 30 min',
+      img: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=400&fit=crop',
+    };
+  }
+
+  function createSearchingJioMartEl() {
+    const el = document.createElement('div');
+    el.className = 'searching-row';
+    el.innerHTML = `
+      <div class="searching-logos">
+        <div class="searching-logo jiomart-chip">JM</div>
+      </div>
+      <span class="searching-text">Searching JioMart...</span>
+    `;
+    return el;
+  }
+
+  // Active order — shared across tap / voice-confirm paths
+  let activeOrder = null; // { product, cardEl, payBtn, warningEl, tapped, completed, warningVisible }
+
+  function renderShoppingCard(product) {
+    const card = document.createElement('div');
+    card.className = 'shopping-card';
+    card.innerHTML = `
+      <div class="shopping-card-top">
+        <img class="shopping-card-img" src="${product.img}" alt="" loading="lazy">
+        <div class="shopping-card-info">
+          <div class="shopping-card-brand"></div>
+          <div class="shopping-card-name"></div>
+          <div class="shopping-card-qty"></div>
+          <div class="shopping-card-source">
+            <span class="shopping-card-source-logo">JM</span>
+            <span>JioMart • ${product.eta}</span>
+          </div>
+        </div>
+      </div>
+      <div class="shopping-card-price-row">
+        <div class="shopping-card-price">₹${product.price}</div>
+        <div class="shopping-card-eta">Free delivery</div>
+      </div>
+      <div class="shopping-actions">
+        <button class="shopping-cancel-btn" type="button">Cancel</button>
+        <button class="shopping-pay-btn" type="button">Confirm &amp; Pay</button>
+      </div>
+    `;
+    card.querySelector('.shopping-card-brand').textContent = product.brand;
+    card.querySelector('.shopping-card-name').textContent = product.name;
+    card.querySelector('.shopping-card-qty').textContent = product.qty;
+
+    const payBtn = card.querySelector('.shopping-pay-btn');
+    const cancelBtn = card.querySelector('.shopping-cancel-btn');
+
+    payBtn.addEventListener('click', () => {
+      if (activeOrder && activeOrder.product === product && !activeOrder.completed) {
+        activeOrder.tapped = true;
+        handleConfirmAndPay();
+      }
+    });
+    cancelBtn.addEventListener('click', () => {
+      if (activeOrder && activeOrder.product === product && !activeOrder.completed) {
+        dismissShoppingWarning();
+        card.style.transition = 'opacity 0.2s ease';
+        card.style.opacity = '0';
+        setTimeout(() => { card.remove(); }, 220);
+        activeOrder = null;
+        conversationHistory.push({ role: 'user', content: 'Cancel that order' });
+        conversationHistory.push({ role: 'assistant', content: 'Order cancelled.' });
+        // Return to listening state in voice mode
+        if (!overlay.classList.contains('text-mode')) {
+          overlay.classList.add('listening-mode');
+          startListening();
+        }
+      }
+    });
+
+    activeOrder = { product, cardEl: card, payBtn, warningEl: null, tapped: false, completed: false, warningVisible: false };
+    return card;
+  }
+
+  function showTapToConfirmWarning() {
+    if (!activeOrder || activeOrder.completed) return;
+    if (activeOrder.warningVisible) {
+      // Already shown — just replay the sound as a reinforcement
+      try { infoWarningSound.currentTime = 0; infoWarningSound.play().catch(() => {}); } catch(e) {}
+      return;
+    }
+
+    try { infoWarningSound.currentTime = 0; infoWarningSound.play().catch(() => {}); } catch(e) {}
+
+    const warn = document.createElement('div');
+    warn.className = 'shopping-warning';
+    warn.innerHTML = `
+      <div class="shopping-warning-icon">!</div>
+      <div class="shopping-warning-body">
+        <div class="shopping-warning-title">Tap to confirm payment</div>
+        <div class="shopping-warning-sub">For your safety, payments need an on-screen tap. Tap <b>Confirm &amp; Pay</b> below to complete.</div>
+      </div>
+      <div class="shopping-warning-arrow">↓</div>
+    `;
+
+    // Insert just before the product card so the arrow points down to the pay button
+    if (activeOrder.cardEl && activeOrder.cardEl.parentNode) {
+      activeOrder.cardEl.parentNode.insertBefore(warn, activeOrder.cardEl);
+    } else {
+      chatMessages.appendChild(warn);
+    }
+    if (activeOrder.payBtn) activeOrder.payBtn.classList.add('is-hinted');
+    activeOrder.warningEl = warn;
+    activeOrder.warningVisible = true;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function dismissShoppingWarning() {
+    if (activeOrder && activeOrder.warningEl) {
+      activeOrder.warningEl.remove();
+      activeOrder.warningEl = null;
+      activeOrder.warningVisible = false;
+    }
+    if (activeOrder && activeOrder.payBtn) {
+      activeOrder.payBtn.classList.remove('is-hinted');
+    }
+  }
+
+  async function handleConfirmAndPay() {
+    if (!activeOrder || activeOrder.completed) return;
+    activeOrder.completed = true;
+
+    // Play success chime
+    try { paySuccessSound.currentTime = 0; paySuccessSound.play().catch(() => {}); } catch(e) {}
+
+    dismissShoppingWarning();
+
+    const { product, cardEl } = activeOrder;
+
+    // Fade the pre-confirm product card out
+    if (cardEl) {
+      cardEl.querySelectorAll('button').forEach(b => { b.disabled = true; b.style.pointerEvents = 'none'; });
+      cardEl.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+      cardEl.style.opacity = '0';
+      cardEl.style.transform = 'scale(0.98)';
+      setTimeout(() => { if (cardEl.isConnected) cardEl.remove(); }, 260);
+    }
+
+    // Assistant line (Hinglish, matches Figma 22751:42192)
+    const confirmLine = 'Order ho gaya. 20 minute mein aayega';
+    const aiEl = document.createElement('div');
+    aiEl.className = 'ai-response';
+    aiEl.textContent = confirmLine;
+    chatMessages.appendChild(aiEl);
+
+    // Confirmation card
+    const card = document.createElement('div');
+    card.className = 'order-confirmed';
+    card.innerHTML = `
+      <div class="order-confirmed-merchant">
+        <span class="order-confirmed-merchant-logo">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M6 8h12l-1 10.5a1.5 1.5 0 01-1.5 1.3h-9A1.5 1.5 0 015 18.5L4 8h2z" fill="white"/><path d="M9 8V6a3 3 0 016 0v2" stroke="white" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <span>JioMart</span>
+      </div>
+      <div class="order-confirmed-product">
+        <img class="order-confirmed-img" src="${product.img}" alt="" loading="lazy">
+        <div class="order-confirmed-product-info">
+          <div class="order-confirmed-product-name"></div>
+          <div class="order-confirmed-product-qty">Quality: 1</div>
+          <div class="order-confirmed-product-price">₹${product.price}</div>
+        </div>
+      </div>
+      <div class="order-confirmed-heading">Your order is confirmed</div>
+      <div class="order-confirmed-progress">
+        <div class="order-confirmed-progress-fill"></div>
+      </div>
+      <div class="order-confirmed-stages">
+        <span class="is-active">Processing</span>
+        <span>Shipped</span>
+        <span>Delivered</span>
+      </div>
+      <button class="order-confirmed-receipt-btn" type="button">Download Receipt</button>
+    `;
+    card.querySelector('.order-confirmed-product-name').textContent = product.name;
+    card.querySelector('.order-confirmed-receipt-btn').addEventListener('click', () => {
+      // Stub — receipt download is not wired in this prototype
+    });
+    chatMessages.appendChild(card);
+
+    // Feedback icons (match the rest of the chat pattern)
+    const feedbackEl = createFeedbackIcons();
+    chatMessages.appendChild(feedbackEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // TTS the Hinglish confirmation line in voice mode
+    let ttsPromise = Promise.resolve();
+    if (!overlay.classList.contains('text-mode')) {
+      ttsPromise = playTTS(confirmLine);
+    }
+
+    const historySummary = `Order placed: ${product.name} (${product.qty}) for ₹${product.price} on JioMart. ETA ${product.eta}.`;
+    conversationHistory.push({ role: 'user', content: 'Confirm and pay' });
+    conversationHistory.push({ role: 'assistant', content: historySummary });
+
+    // Return to listening in voice mode after TTS finishes
+    if (!overlay.classList.contains('text-mode')) {
+      ttsPromise.then(() => {
+        overlay.classList.remove('glow');
+        overlay.classList.add('listening-mode');
+        isProcessingResponse = false;
+        startListening();
+      });
+    }
+
+    activeOrder = null;
+  }
+
+  function matchesVoiceConfirmPhrase(text) {
+    return /\b(confirm|complete|place order|pay now|yes do it|go ahead|proceed)\b/i.test(text);
+  }
+
   async function showRestaurantFocus(r) {
     // Brief thinking indicator for continuity
     const thinkingEl = createThinkingEl();
@@ -2724,6 +3316,30 @@
 
     const isTextMode = overlay.classList.contains('text-mode');
 
+    // Text/keyboard confirm-intercept: if the user typed "confirm"/"pay"/"complete"
+    // while a shopping order is still pending, show the tap-to-confirm warning
+    // instead of forwarding to the Claude API (which would reply "I can't process
+    // real orders"). Mirrors the voice-confirm interception in rec.onresult.
+    if (activeOrder && !activeOrder.tapped && !activeOrder.completed &&
+        matchesVoiceConfirmPhrase(text)) {
+      overlay.classList.add('chat-active');
+      const userEl = document.createElement('div');
+      userEl.className = 'user-bubble';
+      userEl.textContent = text;
+      chatMessages.appendChild(userEl);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      showTapToConfirmWarning();
+
+      isProcessingResponse = false;
+      // In voice mode, resume listening so the user can still tap or try again
+      if (!isTextMode && !overlay.classList.contains('kb-mode')) {
+        overlay.classList.add('listening-mode');
+        startListening();
+      }
+      return;
+    }
+
     // UI: enter chat mode
     overlay.classList.add('chat-active');
     overlay.classList.remove('has-text', 'glow', 'listening-mode', 'text-typing');
@@ -2733,7 +3349,12 @@
     avatarIdle.classList.remove('visible');
     avatarIdle.pause();
     const isRestaurantQuery = matchesRestaurantQuery(text);
-    voiceTitle.textContent = isRestaurantQuery ? 'Top restaurants' : extractTitle(text);
+    const isShoppingQuery = !isRestaurantQuery && matchesShoppingQuery(text);
+    const shoppingItemText = isShoppingQuery ? parseShoppingItem(text) : '';
+    const shoppingProduct = isShoppingQuery ? resolveShoppingProduct(shoppingItemText) : null;
+    voiceTitle.textContent = isRestaurantQuery
+      ? 'Top restaurants'
+      : (isShoppingQuery ? `Order ${shoppingItemText}` : extractTitle(text));
 
     if (isTextMode) {
       kbBotMini.classList.remove('visible');
@@ -2779,11 +3400,29 @@
       }, 1200);
     }
 
+    // 3c. For shopping journey, swap Thinking... -> Searching JioMart... after 1.2s
+    if (isShoppingQuery) {
+      setTimeout(() => {
+        if (!thinkingEl || !thinkingEl.isConnected) return;
+        thinkingEl.style.transition = 'opacity 0.25s ease';
+        thinkingEl.style.opacity = '0';
+        setTimeout(() => {
+          if (!thinkingEl.isConnected) return;
+          const searchingEl = createSearchingJioMartEl();
+          thinkingEl.replaceWith(searchingEl);
+          thinkingEl = searchingEl;
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 250);
+      }, 1200);
+    }
+
     // 4. Call API + enforce minimum 4s thinking time
     const thinkingStart = Date.now();
     let responseText = '';
     if (isRestaurantQuery) {
       responseText = 'Here are top restaurants near you — Spice Garden is top-rated.';
+    } else if (isShoppingQuery && shoppingProduct) {
+      responseText = `Found ${shoppingProduct.name} on JioMart for ₹${shoppingProduct.price}. Tap Confirm & Pay to place the order.`;
     } else {
       try {
         const res = await fetch('/api/chat', {
@@ -2828,6 +3467,13 @@
     // 7b. Render restaurant carousel for matching queries
     if (isRestaurantQuery) {
       renderRestaurantCarousel(chatMessages);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // 7c. Render shopping product card for matching queries
+    if (isShoppingQuery && shoppingProduct) {
+      const cardEl = renderShoppingCard(shoppingProduct);
+      chatMessages.appendChild(cardEl);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
@@ -3038,6 +3684,19 @@
       if (finalText.trim()) {
         if (liveBubble) { liveBubble.remove(); liveBubble = null; }
         overlay.classList.remove('user-speaking');
+
+        // Voice-confirm interception: if there's an active un-tapped order and the user
+        // tries to confirm by voice, show the tap-to-confirm warning instead of
+        // forwarding the transcript to showResponse().
+        if (activeOrder && !activeOrder.tapped && !activeOrder.completed &&
+            matchesVoiceConfirmPhrase(finalText)) {
+          showTapToConfirmWarning();
+          isProcessingResponse = false;
+          isListening = false;
+          try { rec.abort(); } catch(e) {}
+          return;
+        }
+
         isProcessingResponse = true;
         isListening = false;
         try { rec.abort(); } catch(e) {}
