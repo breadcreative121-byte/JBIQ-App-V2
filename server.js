@@ -18,16 +18,27 @@ const anthropic = new Anthropic({ apiKey });
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const { messages } = req.body;
+    const { messages, userProfile } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: 'messages array is required' });
     }
 
+    // Build system prompt with the user's saved location so responses can
+    // reference their city (e.g. "restaurants near you in Mumbai").
+    let systemPrompt = 'You are a helpful AI assistant called JioBharatIQ. Keep responses concise and conversational. Respond in plain text without markdown formatting.';
+    if (userProfile && userProfile.city) {
+      const loc = [userProfile.city, userProfile.country].filter(Boolean).join(', ');
+      systemPrompt +=
+        ` The user is currently located in ${loc}. This is already known — NEVER ask the user where they are or what city they are in.` +
+        ` Always answer "near me" style questions assuming ${loc}. Never suggest the user open another app (Zomato, Swiggy, Google Maps, etc.) — answer directly with recommendations.` +
+        ` If the user asks about restaurants, places, weather, or travel, give concrete suggestions grounded in ${loc}.`;
+    }
+
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
-      system: 'You are a helpful AI assistant called JioBharatIQ. Keep responses concise and conversational. Respond in plain text without markdown formatting.',
+      system: systemPrompt,
       messages: messages,
     });
 

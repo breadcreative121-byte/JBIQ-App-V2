@@ -821,8 +821,16 @@
     }
 
     /* ============ KEYBOARD / CHAT MODE ============ */
-    /* Keep centered in visible area above input */
+    /* Keep centered in visible area above input (welcome/idle only) */
     .voice-overlay.kb-mode .voice-container { justify-content: center; gap: 8px; padding-bottom: 80px; }
+    /* But once chat is active, the container is a scroller — centering pushes
+       the first messages above scrollTop 0 and makes them unreachable. Pin
+       content to the top and reserve enough padding for the keyboard bar. */
+    .voice-overlay.kb-mode.chat-active .voice-container {
+      justify-content: flex-start;
+      gap: 8px;
+      padding-bottom: 130px;
+    }
     .voice-overlay.kb-mode .voice-bot-dots { display: none; }
     .voice-overlay.kb-mode .avatar-center { width: 66px; height: 66px; }
     .voice-overlay.kb-mode .voice-status { font-size: 16px; }
@@ -2631,6 +2639,18 @@
 
   let voiceTimeout1, voiceTimeout2;
   let kbTimeouts = [];
+
+  // === Prototype user profile ===
+  // Persisted in localStorage so it survives reloads but can be overridden
+  // via `localStorage.setItem('jbiq_user_city', '...')` in the console.
+  const USER_PROFILE = {
+    city: localStorage.getItem('jbiq_user_city') || 'Mumbai',
+    country: localStorage.getItem('jbiq_user_country') || 'India',
+  };
+  // Seed localStorage on first run so the value is visible in DevTools.
+  if (!localStorage.getItem('jbiq_user_city')) localStorage.setItem('jbiq_user_city', USER_PROFILE.city);
+  if (!localStorage.getItem('jbiq_user_country')) localStorage.setItem('jbiq_user_country', USER_PROFILE.country);
+
   const wakeupSound = new Audio('wakeup.mp3');
   const welcomeSound = new Audio('welcome.mp3');
   const understoodSound = new Audio('va-understood.mp3');
@@ -2953,11 +2973,14 @@
   // === Conversation Journeys ===
   function matchesRestaurantQuery(text) {
     const t = text.toLowerCase();
-    return (
-      t.includes('top restaurants') ||
-      t.includes('restaurants near') ||
-      t.includes('aas paas restaurants')
-    );
+    // Tolerant regex for "restaurant(s)" and common misspellings like
+    // "resturants", "restuarants", "restraunts", "restaurent", etc.
+    const hasRestWord = /\brest[aeiour]{2,6}nts?\b/.test(t);
+    if (!hasRestWord) return false;
+    // Only trigger the journey when the intent is "find one", not e.g.
+    // "I own a restaurant". Match common discovery verbs/qualifiers.
+    return /\b(top|best|near|good|find|show|recommend|suggest|around|close)\b/.test(t)
+        || t.includes('aas paas');
   }
 
   const RESTAURANTS = [
@@ -3433,7 +3456,7 @@
     const thinkingStart = Date.now();
     let responseText = '';
     if (isRestaurantQuery) {
-      responseText = 'Here are top restaurants near you — Spice Garden is top-rated.';
+      responseText = `Here are top restaurants near you in ${USER_PROFILE.city} — Spice Garden is top-rated.`;
     } else if (isShoppingQuery && shoppingProduct) {
       responseText = `Found ${shoppingProduct.name} on JioMart for ₹${shoppingProduct.price}. Tap Confirm & Pay to place the order.`;
     } else {
@@ -3441,7 +3464,7 @@
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: conversationHistory }),
+          body: JSON.stringify({ messages: conversationHistory, userProfile: USER_PROFILE }),
         });
         const data = await res.json();
         if (data.error) throw new Error(data.error);
