@@ -2399,32 +2399,32 @@
       <!-- Recent section -->
       <div class="menu-section-label">Recent</div>
       <button class="menu-convo-item">
-        <span class="menu-convo-title">Chat title</span>
-        <span class="menu-convo-meta">Domain  •  9 minutes ago</span>
+        <span class="menu-convo-title">Top restaurants near me</span>
+        <span class="menu-convo-meta">Food  •  9 minutes ago</span>
       </button>
       <button class="menu-convo-item">
-        <span class="menu-convo-title">Chat title</span>
-        <span class="menu-convo-meta">Domain  •  9 minutes ago</span>
+        <span class="menu-convo-title">Order Bru coffee on JioMart</span>
+        <span class="menu-convo-meta">Shopping  •  24 minutes ago</span>
       </button>
       <button class="menu-convo-item">
-        <span class="menu-convo-title">Chat title</span>
-        <span class="menu-convo-meta">Domain  •  9 minutes ago</span>
+        <span class="menu-convo-title">IPL fixtures this weekend</span>
+        <span class="menu-convo-meta">Sports  •  1 hour ago</span>
       </button>
       <button class="menu-convo-item">
-        <span class="menu-convo-title">Chat title</span>
-        <span class="menu-convo-meta">Domain  •  9 minutes ago</span>
+        <span class="menu-convo-title">Recharge my Jio plan</span>
+        <span class="menu-convo-meta">Jio  •  3 hours ago</span>
       </button>
       <button class="menu-convo-item">
-        <span class="menu-convo-title">Chat title</span>
-        <span class="menu-convo-meta">Domain  •  9 minutes ago</span>
+        <span class="menu-convo-title">Best treks near Lonavala</span>
+        <span class="menu-convo-meta">Travel  •  Yesterday</span>
       </button>
       <button class="menu-convo-item">
-        <span class="menu-convo-title">Chat title</span>
-        <span class="menu-convo-meta">Domain  •  9 minutes ago</span>
+        <span class="menu-convo-title">Explain the new budget 2026</span>
+        <span class="menu-convo-meta">News  •  Yesterday</span>
       </button>
       <button class="menu-convo-item">
-        <span class="menu-convo-title">Chat title</span>
-        <span class="menu-convo-meta">Domain  •  9 minutes ago</span>
+        <span class="menu-convo-title">Diwali gift ideas under ₹1000</span>
+        <span class="menu-convo-meta">Shopping  •  2 days ago</span>
       </button>
     </div>
 
@@ -3308,6 +3308,19 @@
     // Log the tap in conversation history so follow-up API calls have context
     conversationHistory.push({ role: 'user', content: `Tell me more about ${r.name}` });
     conversationHistory.push({ role: 'assistant', content: summaryText });
+
+    // After TTS finishes, resume listening in voice mode. Without this the mic
+    // would never come back after the user taps a restaurant card.
+    if (!isTextMode) {
+      ttsPromise.then(() => {
+        isProcessingResponse = false;
+        overlay.classList.remove('glow');
+        overlay.classList.add('listening-mode');
+        startListening();
+      });
+    } else {
+      isProcessingResponse = false;
+    }
   }
 
   // === Shared response flow (real API) ===
@@ -3502,6 +3515,18 @@
   let currentTTSAudio = null;
 
   async function playTTS(text) {
+    // Guarantee the mic is not listening while TTS plays — otherwise Chrome's
+    // SpeechRecognition picks up the assistant's own voice and transcribes it
+    // back as a user bubble (causes echo/double-input).
+    isProcessingResponse = true;
+    if (activeRec) {
+      try { activeRec.abort(); } catch(e) {}
+      activeRec = null;
+    }
+    isListening = false;
+    overlay.classList.remove('user-speaking');
+    if (liveBubble) { liveBubble.remove(); liveBubble = null; }
+
     try {
       const res = await fetch('/api/tts', {
         method: 'POST',
@@ -3605,16 +3630,24 @@
   let isListening = false;
   let isProcessingResponse = false;
   let liveBubble = null;
-  let micStream = null; // Persisted mic stream to avoid re-prompting
   let activeRec = null; // Track current recognition instance
 
-  // Acquire mic permission once and keep the stream alive
+  // Trigger the mic permission prompt early, then release the stream so it
+  // doesn't block SpeechRecognition from acquiring the mic. Holding the stream
+  // open across the whole session caused rec.start() to silently get no audio
+  // in recent Chrome builds, leaving the overlay stuck on "Say something...".
+  let micGranted = false;
   async function acquireMic() {
-    if (micStream) return true;
+    if (micGranted) return true;
     try {
-      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(t => t.stop());
+      micGranted = true;
       return true;
     } catch (e) {
+      console.warn('Mic permission denied or unavailable:', e);
+      statusText.textContent = 'Mic permission needed';
+      statusText.classList.add('visible');
       return false;
     }
   }
@@ -3705,11 +3738,21 @@
     };
 
     rec.onerror = (e) => {
+      console.warn('SpeechRecognition error:', e.error);
       if (e.error === 'no-speech' || e.error === 'aborted') return;
       isListening = false;
       if (liveBubble) { liveBubble.remove(); liveBubble = null; }
       overlay.classList.remove('user-speaking', 'listening-mode');
-      statusText.textContent = 'Say something...';
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        statusText.textContent = 'Mic permission needed';
+      } else if (e.error === 'audio-capture') {
+        statusText.textContent = 'No microphone found';
+      } else if (e.error === 'network') {
+        statusText.textContent = 'Network error — check connection';
+      } else {
+        statusText.textContent = 'Say something...';
+      }
+      statusText.classList.add('visible');
     };
 
     rec.onend = () => {
