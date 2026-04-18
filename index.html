@@ -531,6 +531,30 @@
       animation: none !important;
       transition: transform 0.06s ease-out;
     }
+    /* Subtle CSS-driven pulse while the assistant is speaking (replaces the
+       Web Audio analyser-driven scaling, which could silence audio by
+       rerouting it through a suspended AudioContext). */
+    .voice-overlay.agent-speaking .voice-bg-circle:nth-child(1) {
+      animation: ttsPulseA 1.1s ease-in-out infinite !important;
+    }
+    .voice-overlay.agent-speaking .voice-bg-circle:nth-child(2) {
+      animation: ttsPulseB 1.3s ease-in-out 0.1s infinite !important;
+    }
+    .voice-overlay.agent-speaking .voice-bg-circle:nth-child(3) {
+      animation: ttsPulseC 0.95s ease-in-out 0.2s infinite !important;
+    }
+    @keyframes ttsPulseA {
+      0%, 100% { transform: translateX(-50%) scale(1); }
+      50%      { transform: translateX(-50%) scale(1.12); }
+    }
+    @keyframes ttsPulseB {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.08); }
+    }
+    @keyframes ttsPulseC {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.14); }
+    }
     .voice-overlay.active .voice-bg-circle {
       opacity: 1;
     }
@@ -3537,6 +3561,34 @@
   // === TTS Playback ===
   let currentTTSAudio = null;
 
+  // Fallback to the browser's built-in SpeechSynthesis so the prototype still
+  // speaks when /api/tts is unavailable (e.g. ElevenLabs quota exhausted).
+  function playBrowserTTS(text) {
+    return new Promise(resolve => {
+      if (!('speechSynthesis' in window)) { resolve(); return; }
+      try {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-IN';
+        u.rate = 1.0;
+        u.pitch = 1.0;
+        // Prefer an Indian English voice if one is installed
+        const voices = window.speechSynthesis.getVoices();
+        const preferred = voices.find(v => /en[-_]IN/i.test(v.lang))
+                       || voices.find(v => /en[-_]GB/i.test(v.lang))
+                       || voices.find(v => /en/i.test(v.lang));
+        if (preferred) u.voice = preferred;
+        overlay.classList.add('agent-speaking');
+        u.onend = () => { overlay.classList.remove('agent-speaking'); resolve(); };
+        u.onerror = () => { overlay.classList.remove('agent-speaking'); resolve(); };
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(u);
+      } catch (e) {
+        overlay.classList.remove('agent-speaking');
+        resolve();
+      }
+    });
+  }
+
   async function playTTS(text) {
     // Guarantee the mic is not listening while TTS plays — otherwise Chrome's
     // SpeechRecognition picks up the assistant's own voice and transcribes it
@@ -3556,7 +3608,12 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
       });
-      if (!res.ok) throw new Error('TTS request failed');
+      if (!res.ok) {
+        // ElevenLabs rejected (quota / auth / network). Fall back to the
+        // browser's built-in speech synthesis so the prototype still talks.
+        console.warn('TTS backend failed (status ' + res.status + '), using browser fallback');
+        return playBrowserTTS(text);
+      }
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -3568,65 +3625,34 @@
         }
         currentTTSAudio = new Audio(url);
 
-        // Connect TTS audio to analyser for circle pulsing
-        let ttsAnalyser, ttsSource, ttsAnimFrame;
-        const startTTSPulse = () => {
-          try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            ttsAnalyser = ctx.createAnalyser();
-            ttsAnalyser.fftSize = 256;
-            ttsAnalyser.smoothingTimeConstant = 0.85;
-            ttsSource = ctx.createMediaElementSource(currentTTSAudio);
-            ttsSource.connect(ttsAnalyser);
-            ttsAnalyser.connect(ctx.destination);
-
-            const pulseTTS = () => {
-              if (!ttsAnalyser) return;
-              const data = new Uint8Array(ttsAnalyser.frequencyBinCount);
-              ttsAnalyser.getByteFrequencyData(data);
-              let sum = 0;
-              for (let i = 0; i < data.length; i++) sum += data[i];
-              const avg = sum / data.length;
-              const s1 = 1 + (avg / 255) * 0.3;
-              const s2 = 1 + (avg / 255) * 0.22;
-              const s3 = 1 + (avg / 255) * 0.35;
-              if (circleEls[0]) circleEls[0].style.transform = `translateX(-50%) scale(${s1})`;
-              if (circleEls[1]) circleEls[1].style.transform = `scale(${s2})`;
-              if (circleEls[2]) circleEls[2].style.transform = `scale(${s3})`;
-              ttsAnimFrame = requestAnimationFrame(pulseTTS);
-            };
-            pulseTTS();
-          } catch (e) {}
-        };
-
-        const stopTTSPulse = () => {
-          if (ttsAnimFrame) cancelAnimationFrame(ttsAnimFrame);
-          ttsAnalyser = null;
-          circleEls.forEach(c => { c.style.transform = ''; });
-        };
-
         currentTTSAudio.onplay = () => {
           overlay.classList.add('agent-speaking');
-          startTTSPulse();
         };
         currentTTSAudio.onended = () => {
           overlay.classList.remove('agent-speaking');
-          stopTTSPulse();
           URL.revokeObjectURL(url);
           currentTTSAudio = null;
           resolve();
         };
         currentTTSAudio.onerror = () => {
+          console.warn('TTS audio element error:', currentTTSAudio && currentTTSAudio.error);
           overlay.classList.remove('agent-speaking');
-          stopTTSPulse();
           URL.revokeObjectURL(url);
           currentTTSAudio = null;
           resolve();
         };
-        currentTTSAudio.play().catch(() => resolve());
+        currentTTSAudio.play().catch((e) => {
+          console.warn('TTS audio play() rejected:', e && (e.name + ': ' + e.message));
+          overlay.classList.remove('agent-speaking');
+          URL.revokeObjectURL(url);
+          currentTTSAudio = null;
+          resolve();
+        });
       });
     } catch (err) {
       console.error('TTS error:', err);
+      // Network or unexpected failure — still try to speak via the browser.
+      return playBrowserTTS(text);
     }
   }
 
