@@ -1,0 +1,641 @@
+/* ============================================================================
+   JBIQ DISCOVERY — shared styles for renderDiscoveryView() output.
+   Extracted from place-playground.html. The playground file stays authoritative
+   as the schema sandbox; this file ships the render primitives into the main
+   app via index.html.
+
+   Namespacing contract: every element produced by renderDiscoveryView() is
+   wrapped in <div class="jbiq-discovery">. The --font-family override and the
+   body-level resets are scoped to that wrapper so index.html's Inter font and
+   its own token namespace stay authoritative outside discovery content.
+   ============================================================================ */
+
+/* ----------------------------------------------------------------------------
+   JIOTYPE — JDS font via CDN. Scoped to .jbiq-discovery via the wrapper's
+   font-family below; these @font-face declarations only make the family
+   available, they don't apply it.
+   ---------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'JioType';
+  font-weight: 100 900;
+  font-style: normal;
+  src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JioType';
+  font-weight: 100 900;
+  font-style: italic;
+  src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Italic.woff2') format('woff2');
+}
+
+/* ----------------------------------------------------------------------------
+   DESIGN TOKENS — JDS-sourced. Live on :root so the primitives can reference
+   them without needing the wrapper ancestor (this works because index.html
+   uses *different* token names, so there's no collision). NOTE: --font-family
+   is intentionally NOT defined here — index.html's :root owns it globally,
+   and we override only inside .jbiq-discovery (see below).
+   ---------------------------------------------------------------------------- */
+:root {
+  /* color.surface — JDS surface-* */
+  --color-surface-primary: #ffffff;
+  --color-surface-secondary: #f5f5f5;
+  --color-surface-tertiary: #eeeeef;
+
+  /* color.text — JDS text-* */
+  --color-text-primary: #0c0d10;
+  --color-text-secondary: rgba(12, 13, 16, 0.65);
+  --color-text-tertiary: rgba(12, 13, 16, 0.38);
+  --color-text-on-primary: #ffffff;
+
+  /* color.action — JDS primary (purple) */
+  --color-action-primary: #6d17ce;
+  --color-action-primary-hover: #310064;
+  --color-action-primary-surface: #ede7ff;
+
+  /* color.border — JDS stroke-* */
+  --color-border-default: rgba(12, 13, 16, 0.08);
+  --color-border-strong: rgba(12, 13, 16, 0.12);
+
+  /* color.overlay — badges over media */
+  --color-overlay-dark: rgba(12, 13, 16, 0.6);
+  --color-overlay-warning: rgba(240, 109, 15, 0.9);
+
+  /* color.status — JDS semantic */
+  --color-status-open: #0c0d10;
+  --color-status-closing-soon: #f06d0f;
+  --color-status-closed: rgba(12, 13, 16, 0.65);
+
+  /* color.feedback — JDS error */
+  --color-feedback-error-bg: rgba(250, 47, 64, 0.08);
+  --color-feedback-error-text: #fa2f40;
+  --color-feedback-error-border: rgba(250, 47, 64, 0.3);
+
+  /* space — JDS spacing tokens */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-xxl: 32px;
+
+  /* radius — JDS shape-* */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* font — JDS typography roles (size/weight/tracking). NOT font-family. */
+  --font-size-caption: 12px;
+  --font-size-small: 12px;
+  --font-size-body: 14px;
+  --font-size-title: 16px;
+  --font-size-hero: 18px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+  --font-line-height-tight: 1.2;
+  --font-line-height-normal: 1.5;
+  --font-tracking-headline: -0.03em;
+  --font-tracking-body: -0.005em;
+  --font-tracking-small: 0.005em;
+
+  /* layout — used by primitives */
+  --layout-card-width: 220px;
+  --layout-card-media-height: 110px;
+  --layout-map-height: 132px;
+}
+
+/* ----------------------------------------------------------------------------
+   Namespace wrapper — every discovery element lives inside this class.
+   Scoped font + reset so the main app's typography isn't disturbed.
+   ---------------------------------------------------------------------------- */
+.jbiq-discovery {
+  --font-family: 'JioType', 'JioTypeVar', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-family);
+  color: var(--color-text-primary);
+  line-height: var(--font-line-height-normal);
+  -webkit-font-smoothing: antialiased;
+}
+.jbiq-discovery *,
+.jbiq-discovery *::before,
+.jbiq-discovery *::after { box-sizing: border-box; }
+
+/* ----------------------------------------------------------------------------
+   COMPOSITION: .discovery-view — vertical stack of primitive sections.
+   ---------------------------------------------------------------------------- */
+.discovery-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+}
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: SubjectHeader
+   ---------------------------------------------------------------------------- */
+.subject-header { padding: 0 var(--space-lg); }
+.subject-header__title {
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-tracking-headline);
+}
+.subject-header__subtitle {
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin: var(--space-xs) 0 0;
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-tracking-small);
+}
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: LocationContext
+   ---------------------------------------------------------------------------- */
+.location-context {
+  padding: 0 var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+}
+.location-context__separator { color: var(--color-text-tertiary); }
+.location-context__change {
+  font-family: inherit;
+  font-size: var(--font-size-caption);
+  color: var(--color-action-primary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.location-context__change:hover { color: var(--color-action-primary-hover); }
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: FilterChipBar
+   ---------------------------------------------------------------------------- */
+.filter-chip-bar {
+  display: flex;
+  gap: var(--space-xs);
+  padding: 0 var(--space-lg);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.filter-chip-bar::-webkit-scrollbar { display: none; }
+.filter-chip {
+  flex-shrink: 0;
+  background: transparent;
+  border: 0.5px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  padding: var(--space-xs) var(--space-md);
+  font-family: inherit;
+  font-size: var(--font-size-small);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.filter-chip--selected {
+  background: var(--color-action-primary);
+  color: var(--color-text-on-primary);
+  border-color: transparent;
+}
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: SortControl
+   ---------------------------------------------------------------------------- */
+.sort-control {
+  padding: 0 var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.sort-control__label {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+.sort-control__select {
+  font-family: inherit;
+  font-size: var(--font-size-small);
+  padding: var(--space-xs) var(--space-md);
+  border: 0.5px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: MapPanel (schematic SVG — hex values inside SVG are allowed)
+   ---------------------------------------------------------------------------- */
+.map-panel {
+  margin: 0 var(--space-lg);
+  height: var(--layout-map-height);
+  border-radius: var(--radius-md);
+  background: #E8EEF2; /* map-panel SVG exception: schematic land colour */
+  overflow: hidden;
+  position: relative;
+}
+.map-panel__svg { display: block; width: 100%; height: 100%; }
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: CollectionContainer — one primitive, three layouts.
+   ---------------------------------------------------------------------------- */
+.collection-container { padding: 0 var(--space-lg); }
+
+.collection-container--carousel {
+  display: flex;
+  gap: var(--space-sm);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.collection-container--carousel::-webkit-scrollbar { display: none; }
+
+.collection-container--grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm);
+}
+
+.collection-container--list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: PlaceResultCard
+   ---------------------------------------------------------------------------- */
+.place-card {
+  flex-shrink: 0;
+  width: var(--layout-card-width);
+  background: var(--color-surface-primary);
+  border: 0.5px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  scroll-snap-align: start;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
+}
+.place-card:hover { border-color: var(--color-border-strong); }
+.place-card__media {
+  height: var(--layout-card-media-height);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+  position: relative;
+  background-size: cover;
+  background-position: center;
+}
+.place-card__status-badge {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-on-primary);
+}
+.place-card__status-badge--open,
+.place-card__status-badge--closed { background: var(--color-overlay-dark); }
+.place-card__status-badge--closing-soon { background: var(--color-overlay-warning); }
+.place-card__content { padding: var(--space-sm) var(--space-md) var(--space-md); }
+.place-card__title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-xs);
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-tracking-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.place-card__tags {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-xs);
+}
+.place-card__meta {
+  display: flex;
+  gap: var(--space-sm);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  align-items: center;
+}
+.place-card__rating-value {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  margin-right: 2px;
+}
+.place-card__specs {
+  margin: var(--space-xs) 0 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+.place-card__badge {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-on-primary);
+  background: var(--color-action-primary);
+}
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: CatalogResultCard (carousel / grid / list adaptive)
+   ---------------------------------------------------------------------------- */
+.catalog-card {
+  background: var(--color-surface-primary);
+  border: 0.5px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+}
+.catalog-card:hover { border-color: var(--color-border-strong); }
+
+.collection-container--carousel > .catalog-card {
+  flex-shrink: 0;
+  width: var(--layout-card-width);
+  scroll-snap-align: start;
+}
+
+.collection-container--list > .catalog-card {
+  flex-direction: row;
+  align-items: stretch;
+}
+.collection-container--list > .catalog-card .catalog-card__media {
+  width: 96px;
+  min-width: 96px;
+  height: auto;
+  min-height: 96px;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: var(--radius-lg);
+}
+.collection-container--list > .catalog-card .catalog-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.catalog-card__media {
+  height: var(--layout-card-media-height);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  flex-shrink: 0;
+}
+.catalog-card__status-badge {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-on-primary);
+  background: var(--color-overlay-dark);
+}
+.catalog-card__status-badge--live { background: var(--color-feedback-error-text); }
+.catalog-card__badge {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-on-primary);
+  background: var(--color-action-primary);
+}
+.catalog-card__content {
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+.catalog-card__title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-tracking-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.catalog-card__subtitle {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+.catalog-card__tags {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+.catalog-card__meta {
+  display: flex;
+  gap: var(--space-sm);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.catalog-card__price {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-bold);
+}
+.catalog-card__rating-value {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  margin-right: 2px;
+}
+.catalog-card__temporal {
+  color: var(--color-action-primary);
+  font-weight: var(--font-weight-medium);
+}
+.catalog-card__specs {
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: CompareTable — sticky 85px label column + scroll-snap options.
+   ---------------------------------------------------------------------------- */
+.compare-table {
+  margin: 0 var(--space-lg);
+  border: 0.5px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-surface-primary);
+}
+.compare-table__scroller {
+  display: grid;
+  grid-template-columns: 85px 1fr;
+}
+.compare-table__labels {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface-secondary);
+  border-right: 0.5px solid var(--color-border-default);
+}
+.compare-table__options {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.compare-table__options::-webkit-scrollbar { display: none; }
+.compare-table__option {
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+  scroll-snap-align: start;
+  border-right: 0.5px solid var(--color-border-default);
+  background: none;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  padding: 0;
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.compare-table__option:last-child { border-right: none; }
+.compare-table__option--recommended { background: var(--color-action-primary-surface); }
+
+.compare-table__label-cell,
+.compare-table__cell {
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  line-height: var(--font-line-height-tight);
+  height: 52px;
+  display: flex;
+  align-items: center;
+  border-bottom: 0.5px solid var(--color-border-default);
+  overflow: hidden;
+}
+.compare-table__label-cell:last-child,
+.compare-table__cell:last-child { border-bottom: none; }
+.compare-table__label-cell {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+.compare-table__cell { color: var(--color-text-primary); }
+.compare-table__cell--best {
+  color: var(--color-action-primary);
+  font-weight: var(--font-weight-bold);
+}
+.compare-table__cell--worst { color: var(--color-text-secondary); }
+
+.compare-table__header-cell,
+.compare-table__header-label {
+  height: 108px;
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  border-bottom: 0.5px solid var(--color-border-default);
+  overflow: hidden;
+}
+.compare-table__header-cell { justify-content: flex-end; }
+.compare-table__header-label {
+  background: var(--color-surface-secondary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-secondary);
+  letter-spacing: var(--font-tracking-small);
+  text-transform: uppercase;
+  justify-content: flex-end;
+}
+.compare-table__option-title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-tracking-body);
+  margin: 0;
+}
+.compare-table__option-subtitle {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+.compare-table__option-badge {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 2px var(--space-sm);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-on-primary);
+  background: var(--color-action-primary);
+}
+
+/* ----------------------------------------------------------------------------
+   EMPTY STATE
+   ---------------------------------------------------------------------------- */
+.empty-state {
+  padding: var(--space-xl) var(--space-lg);
+  text-align: center;
+}
+.empty-state__title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-xs);
+}
+.empty-state__body {
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-sm);
+}
+.empty-state__prompt {
+  font-size: var(--font-size-small);
+  color: var(--color-action-primary);
+  margin: 0;
+}
+
+/* ----------------------------------------------------------------------------
+   VALIDATOR BANNER — only surfaces if a malformed view is passed to
+   renderDiscoveryView. Under normal operation this never renders.
+   ---------------------------------------------------------------------------- */
+.validator-banner {
+  margin: var(--space-md) var(--space-lg);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-feedback-error-bg);
+  border: 0.5px solid var(--color-feedback-error-border);
+  color: var(--color-feedback-error-text);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-small);
+}
+.validator-banner__title {
+  font-weight: var(--font-weight-medium);
+  margin: 0 0 var(--space-xs);
+}
+.validator-banner__list {
+  margin: 0;
+  padding-left: var(--space-lg);
+}

@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>JioBharatIQ Home</title>
+  <!-- Discovery playground: shared schema/primitives for in-chat DiscoveryView rendering. -->
+  <link rel="stylesheet" href="discovery.css">
+  <script src="discovery.js" defer></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
 
@@ -3054,6 +3057,28 @@
     return hasVerb && !hasRestaurant;
   }
 
+  // === DiscoveryView / Compare routing ===
+  // Patterns map user utterances to one of the 7 Compare mocks shipped in
+  // discovery.js. First match wins. Order matters — more specific patterns
+  // first.
+  const COMPARE_QUERY_PATTERNS = [
+    { re: /\bhome\s*loan/i,                                      view: 'home_loans' },
+    { re: /\bhealth\s*insurance/i,                               view: 'health_insurance' },
+    { re: /\bemi\b/i,                                            view: 'emi_fridge' },
+    { re: /\brecharge\b/i,                                       view: 'recharge_299' },
+    { re: /\bphone.{0,30}(under|less).{0,10}(₹|rs\.?)?\s*20/i,   view: 'phones_20k' },
+    { re: /\btatkal\b|\btrain/i,                                 view: 'trains_tatkal' },
+    { re: /\bflight/i,                                           view: 'flights_mumbai' },
+  ];
+
+  function matchCompareQuery(text) {
+    const t = (text || '').toLowerCase();
+    for (const p of COMPARE_QUERY_PATTERNS) {
+      if (p.re.test(t)) return p.view;
+    }
+    return null;
+  }
+
   function parseShoppingItem(text) {
     const m = text.toLowerCase().match(/\b(?:order|buy|get me|purchase|pay for)\s+(?:me\s+)?(?:a|an|some)?\s*([a-z0-9 '\-]+?)(?:\s+(?:from|on|please|now))?[\.!\?]?\s*$/i);
     const raw = m && m[1] ? m[1].trim() : 'item';
@@ -3412,9 +3437,11 @@
     const isShoppingQuery = !isRestaurantQuery && matchesShoppingQuery(text);
     const shoppingItemText = isShoppingQuery ? parseShoppingItem(text) : '';
     const shoppingProduct = isShoppingQuery ? resolveShoppingProduct(shoppingItemText) : null;
+    // Compare sub-pattern: only fires when neither existing journey matched.
+    const compareKey = (!isRestaurantQuery && !isShoppingQuery) ? matchCompareQuery(text) : null;
     voiceTitle.textContent = isRestaurantQuery
       ? 'Top restaurants'
-      : (isShoppingQuery ? `Order ${shoppingItemText}` : extractTitle(text));
+      : (isShoppingQuery ? `Order ${shoppingItemText}` : (compareKey ? 'Comparing options' : extractTitle(text)));
 
     if (isTextMode) {
       kbBotMini.classList.remove('visible');
@@ -3535,6 +3562,17 @@
       const cardEl = renderShoppingCard(shoppingProduct);
       chatMessages.appendChild(cardEl);
       chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // 7d. Render DiscoveryView (Compare sub-pattern) for matching queries.
+    // Primitives come from discovery.js; styling from discovery.css. The
+    // element is wrapped in .jbiq-discovery so scoping applies.
+    if (compareKey && window.renderDiscoveryView && window.DATASETS) {
+      const ds = window.DATASETS[compareKey];
+      if (ds) {
+        chatMessages.appendChild(window.renderDiscoveryView(ds.view));
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
     }
 
     // 8. Add feedback icons
