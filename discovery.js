@@ -92,6 +92,7 @@ const tokens = {
  * @property {{ kind: 'open'|'closing_soon'|'closed', label: string }} [status]
  * @property {string[]} [specs]
  * @property {string} [badge]           -- rank / callout (e.g. "#1", "Top rated")
+ * @property {string[]} [filter_ids]    -- chip ids this card passes; enables chip-based filtering (§8)
  * @property {string} primary_event
  * @property {Array<{ kind: 'call'|'directions'|'save', label: string, event: string }>} [secondary_events]
  */
@@ -110,6 +111,7 @@ const tokens = {
  * @property {string[]} [tags]
  * @property {string[]} [specs]
  * @property {string} [badge]
+ * @property {string[]} [filter_ids]      -- chip ids this card passes (§8)
  * @property {string} primary_event
  */
 
@@ -215,7 +217,11 @@ function validatePlace(view, errors) {
   if (!view.collection || view.collection.layout !== 'carousel') {
     errors.push('Place collection.layout must be "carousel"');
   }
-  for (const card of view.collection?.cards || []) {
+  const placeCards = view.collection?.cards || [];
+  if (placeCards.length > 5) {
+    errors.push(`Place collection.cards must not exceed 5 (got ${placeCards.length}) — §7 3–5 card cap`);
+  }
+  for (const card of placeCards) {
     if (card.variant !== 'place') {
       errors.push(`card "${card.id}" has variant "${card.variant}", must be "place"`);
     }
@@ -234,7 +240,11 @@ function validateCatalog(view, errors) {
   if (!view.collection || !validLayouts.includes(view.collection.layout)) {
     errors.push(`Catalog collection.layout must be one of ${validLayouts.join('|')}`);
   }
-  for (const card of view.collection?.cards || []) {
+  const catalogCards = view.collection?.cards || [];
+  if (catalogCards.length > 5) {
+    errors.push(`Catalog collection.cards must not exceed 5 (got ${catalogCards.length}) — §7 3–5 card cap`);
+  }
+  for (const card of catalogCards) {
     if (card.variant !== 'catalog') {
       errors.push(`card "${card.id}" has variant "${card.variant}", must be "catalog"`);
     }
@@ -833,18 +843,99 @@ function renderDiscoveryBody(view) {
  * Top-level dispatcher. Wraps the rendered body in a namespaced container so
  * discovery.css rules (scoped under .jbiq-discovery) apply — and so the host
  * page's typography/resets aren't disturbed outside discovery content.
+ * The live view is stashed on the wrapper so chip/sort dispatch can re-render
+ * in place (§8 — chips must refine, not just log).
  * @param {DiscoveryView} view
  */
 function renderDiscoveryView(view) {
-  const body = renderDiscoveryBody(view);
   const wrapper = document.createElement('div');
   wrapper.className = 'jbiq-discovery';
-  wrapper.appendChild(body);
+  wrapper.__jbiqView = view;
+  wrapper.appendChild(renderDiscoveryBody(deriveDisplayView(view)));
   return wrapper;
 }
 
 // Back-compat alias.
 const renderPlaceDiscoveryView = renderDiscoveryView;
+
+/**
+ * Re-render the body for a wrapper whose stashed view has mutated (chip
+ * toggle, sort change). Preserves the wrapper so focus/scroll neighbours in
+ * the chat transcript stay put.
+ */
+function rerenderDiscoveryView(wrapper) {
+  const view = wrapper && wrapper.__jbiqView;
+  if (!view) return;
+  const newBody = renderDiscoveryBody(deriveDisplayView(view));
+  wrapper.replaceChildren(newBody);
+}
+
+/**
+ * Pure: return a shallow-cloned view with cards filtered by selected chips
+ * and sorted by the selected sort option. Compare views are returned
+ * unchanged (row/option matrix isn't amenable to card-filtering in v1).
+ */
+function deriveDisplayView(view) {
+  if (view.sub_pattern !== 'place' && view.sub_pattern !== 'catalog') return view;
+  const cards = view.collection && view.collection.cards;
+  if (!Array.isArray(cards)) return view;
+
+  const chips = (view.filters && view.filters.chips) || [];
+  const selectedIds = chips.filter((c) => c.selected).map((c) => c.id);
+  const anyCardHasFilterIds = cards.some((c) => Array.isArray(c.filter_ids) && c.filter_ids.length > 0);
+
+  let nextCards = cards;
+  if (selectedIds.length > 0 && anyCardHasFilterIds) {
+    nextCards = cards.filter((card) => {
+      if (!Array.isArray(card.filter_ids)) return false;
+      return selectedIds.every((id) => card.filter_ids.includes(id));
+    });
+  }
+
+  const sortId = view.sort && view.sort.selected_id;
+  if (sortId) nextCards = sortCards(nextCards, sortId, view.sub_pattern);
+
+  return { ...view, collection: { ...view.collection, cards: nextCards } };
+}
+
+/**
+ * Heuristic sorter keyed off well-known sort option ids. Unknown ids fall
+ * back to the input order so author intent is respected.
+ */
+function sortCards(cards, sortId, subPattern) {
+  const copy = cards.slice();
+  const priceNumeric = (card) => {
+    if (typeof card.price_level === 'string') return card.price_level.length;
+    const label = card.price_label || '';
+    const m = label.replace(/,/g, '').match(/\d+(\.\d+)?/);
+    return m ? parseFloat(m[0]) : Infinity;
+  };
+  const rating = (card) => (card.rating && typeof card.rating.value === 'number' ? card.rating.value : 0);
+  const distance = (card) => (typeof card.distance_km === 'number' ? card.distance_km : Infinity);
+
+  switch (sortId) {
+    case 'price':
+    case 'price_asc':
+      copy.sort((a, b) => priceNumeric(a) - priceNumeric(b));
+      break;
+    case 'price_desc':
+      copy.sort((a, b) => priceNumeric(b) - priceNumeric(a));
+      break;
+    case 'rating':
+      copy.sort((a, b) => rating(b) - rating(a));
+      break;
+    case 'distance':
+      copy.sort((a, b) => distance(a) - distance(b));
+      break;
+    case 'popular':
+    case 'relevance':
+    case 'new':
+    default:
+      // Preserve author order.
+      break;
+  }
+  return copy;
+}
 
 /* ========================================================================
    SECTION: mocks
@@ -911,6 +1002,7 @@ const MOCK_RESTAURANTS = {
         price_level: '₹₹',
         tags: ['Iranian', 'Cafe'],
         status: { kind: 'open', label: 'Open' },
+        filter_ids: ['open_now', 'under_500', 'four_plus', 'iranian'],
         primary_event: 'place.restaurant.britannia.open',
       },
       {
@@ -923,6 +1015,7 @@ const MOCK_RESTAURANTS = {
         price_level: '₹₹₹',
         tags: ['Seafood', 'Coastal'],
         status: { kind: 'open', label: 'Open' },
+        filter_ids: ['open_now', 'four_plus'],
         primary_event: 'place.restaurant.trishna.open',
       },
       {
@@ -935,6 +1028,7 @@ const MOCK_RESTAURANTS = {
         price_level: '₹₹₹',
         tags: ['Indian', 'Contemporary'],
         status: { kind: 'closing_soon', label: 'Closing 11pm' },
+        filter_ids: ['four_plus'],
         primary_event: 'place.restaurant.bombay_canteen.open',
       },
       {
@@ -947,6 +1041,7 @@ const MOCK_RESTAURANTS = {
         price_level: '₹₹',
         tags: ['Japanese', 'Izakaya'],
         status: { kind: 'open', label: 'Open' },
+        filter_ids: ['open_now', 'under_500', 'four_plus'],
         primary_event: 'place.restaurant.kofuku.open',
       },
       {
@@ -959,6 +1054,7 @@ const MOCK_RESTAURANTS = {
         price_level: '₹₹',
         tags: ['Punjabi', 'Family'],
         status: { kind: 'open', label: 'Open' },
+        filter_ids: ['open_now', 'under_500', 'four_plus', 'family'],
         primary_event: 'place.restaurant.papa_pancho.open',
       },
     ],
@@ -977,14 +1073,14 @@ const MOCK_DOCTORS = {
   sub_pattern: 'place',
   state: 'PARTIAL_RESULT_SHOWN',
   subject: { title: 'Doctors near you', subtitle: '12 consulting today' },
-  location_context: { area: 'Koramangala, Bangalore', change_event: 'location.change.koramangala' },
+  location_context: { area: 'Andheri West, Mumbai', change_event: 'location.change.andheri_west' },
   filters: {
     multi_select: true,
     chips: [
       { id: 'consulting_today', label: 'Consulting today', value: 'today',       selected: true },
       { id: 'open_now',         label: 'Open now',         value: 'open',        selected: false },
-      { id: 'cardiologist',     label: 'Cardiologist',     value: 'cardio',      selected: false },
-      { id: 'dermatologist',    label: 'Dermatologist',    value: 'derma',       selected: false },
+      { id: 'general_physician', label: 'General Physician', value: 'gp',        selected: false },
+      { id: 'pediatrician',     label: 'Pediatrician',     value: 'peds',        selected: false },
       { id: 'female_doctor',    label: 'Female doctor',    value: 'female',      selected: false },
     ],
   },
@@ -997,14 +1093,14 @@ const MOCK_DOCTORS = {
     selected_id: 'distance',
   },
   map: {
-    center: { lat: 12.930, lng: 77.632 },
+    center: { lat: 19.136, lng: 72.826 },
     zoom: 15,
-    user_location: { lat: 12.930, lng: 77.632 },
+    user_location: { lat: 19.136, lng: 72.826 },
     markers: [
-      { id: 'rao',    lat: 12.931, lng: 77.634 },
-      { id: 'menon',  lat: 12.928, lng: 77.628 },
-      { id: 'sharma', lat: 12.936, lng: 77.631 },
-      { id: 'iyer',   lat: 12.925, lng: 77.637 },
+      { id: 'rao',    lat: 19.137, lng: 72.828 },
+      { id: 'menon',  lat: 19.133, lng: 72.822 },
+      { id: 'sharma', lat: 19.142, lng: 72.825 },
+      { id: 'iyer',   lat: 19.130, lng: 72.831 },
     ],
   },
   collection: {
@@ -1017,7 +1113,7 @@ const MOCK_DOCTORS = {
         media: { alt: 'Dr. Anand Rao', fallback_color: '#B5C7D6' },
         rating: { value: 4.8, count: 87 },
         distance_km: 1.5,
-        tags: ['Cardiologist', 'Interventional', 'Senior Consultant'],
+        tags: ['General Physician', 'Fever & flu', 'Senior Consultant'],
         status: { kind: 'open', label: 'Consulting now' },
         primary_event: 'place.doctor.rao.open',
       },
@@ -1039,7 +1135,7 @@ const MOCK_DOCTORS = {
         title: 'Dr. Neha Sharma',
         media: { alt: 'Dr. Neha Sharma', fallback_color: '#D0D9E0' },
         rating: { value: 4.4, count: 32 },
-        tags: ['Cardiologist', 'Female doctor'],
+        tags: ['General Physician', 'Female doctor'],
         primary_event: 'place.doctor.sharma.open',
       },
       {
@@ -1049,7 +1145,7 @@ const MOCK_DOCTORS = {
         media: { alt: 'Dr. Ramesh Iyer', fallback_color: '#ADC0D0' },
         rating: { value: 4.9, count: 256 },
         distance_km: 0.8,
-        tags: ['Cardiologist', 'Pediatric'],
+        tags: ['Pediatrician', 'Fever & flu'],
         primary_event: 'place.doctor.iyer.open',
       },
     ],
@@ -1067,8 +1163,8 @@ const MOCK_APARTMENTS = {
   kind: 'discovery_view',
   sub_pattern: 'place',
   state: 'PARTIAL_RESULT_SHOWN',
-  subject: { title: '2 BHK in Bandra West', subtitle: '8 listings match' },
-  location_context: { area: 'Bandra West, Mumbai', change_event: 'location.change.bandra_west' },
+  subject: { title: '2 BHK in Andheri West', subtitle: '8 listings match' },
+  location_context: { area: 'Andheri West, Mumbai', change_event: 'location.change.andheri_west' },
   filters: {
     multi_select: true,
     chips: [
@@ -1088,14 +1184,14 @@ const MOCK_APARTMENTS = {
     selected_id: 'price_asc',
   },
   map: {
-    center: { lat: 19.060, lng: 72.830 },
+    center: { lat: 19.136, lng: 72.826 },
     zoom: 15,
-    user_location: { lat: 19.060, lng: 72.830 },
+    user_location: { lat: 19.136, lng: 72.826 },
     markers: [
-      { id: 'sealine',     lat: 19.061, lng: 72.829 },
-      { id: 'bandra_crest', lat: 19.057, lng: 72.832 },
-      { id: 'pali_heights', lat: 19.063, lng: 72.827 },
-      { id: 'hill_view',   lat: 19.059, lng: 72.834 },
+      { id: 'sealine',          lat: 19.137, lng: 72.825 },
+      { id: 'lokhandwala_crest', lat: 19.133, lng: 72.828 },
+      { id: 'four_bung_heights', lat: 19.139, lng: 72.823 },
+      { id: 'hill_view',        lat: 19.135, lng: 72.830 },
     ],
   },
   collection: {
@@ -1114,23 +1210,23 @@ const MOCK_APARTMENTS = {
       },
       {
         variant: 'place',
-        id: 'bandra_crest',
-        title: 'Bandra Crest',
-        media: { alt: 'Bandra Crest balcony view', fallback_color: '#BDC7C1' },
+        id: 'lokhandwala_crest',
+        title: 'Lokhandwala Crest',
+        media: { alt: 'Lokhandwala Crest balcony view', fallback_color: '#BDC7C1' },
         distance_km: 0.7,
-        tags: ['Furnished', 'Sea-facing'],
+        tags: ['Furnished', 'Pool'],
         specs: ['2 BHK', '1,100 sqft', '₹62,000/mo'],
-        primary_event: 'place.apartment.bandra_crest.open',
+        primary_event: 'place.apartment.lokhandwala_crest.open',
       },
       {
         variant: 'place',
-        id: 'pali_heights',
-        title: 'Pali Heights',
-        media: { alt: 'Pali Heights building facade', fallback_color: '#C2CFC8' },
+        id: 'four_bung_heights',
+        title: 'Four Bungalows Heights',
+        media: { alt: 'Four Bungalows Heights facade', fallback_color: '#C2CFC8' },
         distance_km: 1.2,
         tags: ['Unfurnished', 'Gated'],
         specs: ['2 BHK', '920 sqft', '₹48,000/mo'],
-        primary_event: 'place.apartment.pali_heights.open',
+        primary_event: 'place.apartment.four_bung_heights.open',
       },
       {
         variant: 'place',
@@ -1146,7 +1242,7 @@ const MOCK_APARTMENTS = {
   },
   meta: {
     intent: 'discover',
-    query: '2 BHK apartments for rent in Bandra West',
+    query: '2 BHK apartments for rent in Andheri West',
     total_count: 8,
     trace_id: 'trace-apartments-001',
   },
@@ -1273,8 +1369,8 @@ const MOCK_PLUMBERS = {
   kind: 'discovery_view',
   sub_pattern: 'place',
   state: 'PARTIAL_RESULT_SHOWN',
-  subject: { title: 'Plumbers in your area', subtitle: '4 available now · Koramangala' },
-  location_context: { area: 'Koramangala, Bangalore', change_event: 'location.change.koramangala' },
+  subject: { title: 'Plumbers in your area', subtitle: '4 available now · Andheri West' },
+  location_context: { area: 'Andheri West, Mumbai', change_event: 'location.change.andheri_west' },
   filters: {
     multi_select: true,
     chips: [
@@ -1294,14 +1390,14 @@ const MOCK_PLUMBERS = {
     selected_id: 'availability',
   },
   map: {
-    center: { lat: 12.935, lng: 77.624 },
+    center: { lat: 19.136, lng: 72.826 },
     zoom: 14,
-    user_location: { lat: 12.935, lng: 77.624 },
+    user_location: { lat: 19.136, lng: 72.826 },
     markers: [
-      { id: 'urban_co',  lat: 12.938, lng: 77.627 },
-      { id: 'mr_handy',  lat: 12.929, lng: 77.621 },
-      { id: 'quickfix',  lat: 12.940, lng: 77.619 },
-      { id: 'localpros', lat: 12.933, lng: 77.631 },
+      { id: 'urban_co',  lat: 19.139, lng: 72.829 },
+      { id: 'mr_handy',  lat: 19.131, lng: 72.823 },
+      { id: 'quickfix',  lat: 19.142, lng: 72.821 },
+      { id: 'localpros', lat: 19.134, lng: 72.833 },
     ],
   },
   collection: {
@@ -1334,7 +1430,7 @@ const MOCK_PLUMBERS = {
       {
         variant: 'place',
         id: 'quickfix',
-        title: 'QuickFix Bangalore',
+        title: 'QuickFix Mumbai',
         media: { alt: 'QuickFix worker', fallback_color: '#B6CBDC' },
         rating: { value: 4.2, count: 184 },
         distance_km: 0.9,
@@ -1510,6 +1606,7 @@ const MOCK_KURTA_DIWALI = {
         price_label: '₹1,499',
         rating: { value: 4.4, count: 1820 },
         tags: ['Silk', 'Men'],
+        filter_ids: ['men', 'under_2k', 'silk'],
         primary_event: 'catalog.kurta.fabindia_silk.open',
       },
       {
@@ -1522,6 +1619,7 @@ const MOCK_KURTA_DIWALI = {
         rating: { value: 4.6, count: 842 },
         tags: ['Silk blend', 'Men'],
         badge: 'Festive pick',
+        filter_ids: ['men', 'silk'],
         primary_event: 'catalog.kurta.manyavar.open',
       },
       {
@@ -1533,6 +1631,7 @@ const MOCK_KURTA_DIWALI = {
         price_label: '₹2,199',
         rating: { value: 4.3, count: 611 },
         tags: ['Cotton', 'Women'],
+        filter_ids: ['women', 'cotton'],
         primary_event: 'catalog.kurta.biba.open',
       },
       {
@@ -1544,6 +1643,7 @@ const MOCK_KURTA_DIWALI = {
         price_label: '₹1,899',
         rating: { value: 4.5, count: 432 },
         tags: ['Rayon', 'Women'],
+        filter_ids: ['women', 'under_2k'],
         primary_event: 'catalog.kurta.soch.open',
       },
       {
@@ -1555,19 +1655,8 @@ const MOCK_KURTA_DIWALI = {
         price_label: '₹899',
         rating: { value: 4.1, count: 2210 },
         tags: ['Cotton', 'Women'],
+        filter_ids: ['women', 'under_2k', 'cotton'],
         primary_event: 'catalog.kurta.jaipur.open',
-      },
-      {
-        variant: 'catalog',
-        id: 'anita_groom_sherwani',
-        title: 'Brocade sherwani kurta',
-        subtitle: 'Anita Dongre',
-        media: { alt: 'Brocade sherwani', fallback_color: '#D6BC85' },
-        price_label: '₹4,999',
-        rating: { value: 4.7, count: 98 },
-        tags: ['Brocade', 'Men'],
-        badge: 'Limited',
-        primary_event: 'catalog.kurta.anita.open',
       },
     ],
   },
@@ -1759,7 +1848,7 @@ const MOCK_DEVOTIONAL_MORNING = {
   kind: 'discovery_view',
   sub_pattern: 'catalog',
   state: 'PARTIAL_RESULT_SHOWN',
-  subject: { title: 'Morning devotionals', subtitle: 'Start your day · 6 playlists' },
+  subject: { title: 'Morning devotionals', subtitle: 'Start your day · 5 playlists' },
   filters: {
     multi_select: true,
     chips: [
@@ -1837,23 +1926,12 @@ const MOCK_DEVOTIONAL_MORNING = {
         rating: { value: 4.8, count: 41820 },
         primary_event: 'catalog.devotional.nitnem.open',
       },
-      {
-        variant: 'catalog',
-        id: 'aarti_collection',
-        title: 'Morning aarti collection',
-        subtitle: 'Anuradha Paudwal',
-        media: { alt: 'Morning aarti cover', fallback_color: '#D18A46' },
-        temporal_label: '38 min',
-        tags: ['Hindi', 'Aarti'],
-        rating: { value: 4.6, count: 72410 },
-        primary_event: 'catalog.devotional.aarti.open',
-      },
     ],
   },
   meta: {
     intent: 'discover',
     query: 'Devotional songs for morning',
-    total_count: 6,
+    total_count: 5,
     trace_id: 'trace-devotional-001',
   },
 };
@@ -2540,7 +2618,7 @@ const MOCK_TRAINS_TATKAL = {
   kind: 'discovery_view',
   sub_pattern: 'compare',
   state: 'PARTIAL_RESULT_SHOWN',
-  subject: { title: 'Tatkal trains home', subtitle: 'Delhi → Patna · Tomorrow' },
+  subject: { title: 'Tatkal trains home', subtitle: 'Mumbai → Patna · Tomorrow' },
   filters: {
     multi_select: true,
     chips: [
@@ -2583,7 +2661,7 @@ const MOCK_TRAINS_TATKAL = {
     ],
     rows: [
       {
-        id: 'depart', label: 'Depart NDLS',
+        id: 'depart', label: 'Depart LTT',
         values: [
           { option_id: 'rajdhani', display: '16:55' },
           { option_id: 'duronto',  display: '21:15' },
@@ -2916,16 +2994,64 @@ window.MOCK_EMI_FRIDGE = MOCK_EMI_FRIDGE;
    one listener on its own root; for host integration we listen on `document`
    but only fire for targets that live inside a `.jbiq-discovery` container so
    we never interfere with the host app's own event handling.
+
+   Chip and sort events mutate the wrapper's stashed view and trigger a
+   re-render (§8 — chips must narrow the result set in a single tap,
+   reversible in a single tap). All other events are passed through to any
+   listeners added via `window.addEventListener('jbiq-discovery-event', ...)`,
+   which is how the host (chat) can react to card taps, location changes, etc.
    ============================================================================ */
+function jbiqEmit(wrapper, name, detail) {
+  window.dispatchEvent(new CustomEvent('jbiq-discovery-event', {
+    detail: { wrapper, name, ...detail },
+  }));
+}
+
 document.addEventListener('click', (e) => {
   const target = e.target.closest('[data-event]');
   if (!target) return;
-  if (!target.closest('.jbiq-discovery')) return;
-  console.log(target.getAttribute('data-event'));
+  const wrapper = target.closest('.jbiq-discovery');
+  if (!wrapper) return;
+
+  const name = target.getAttribute('data-event');
+  const view = wrapper.__jbiqView;
+
+  // Chip toggle: `filter.toggle.<chip_id>`
+  const chipMatch = /^filter\.toggle\.(.+)$/.exec(name);
+  if (chipMatch && view && view.filters && Array.isArray(view.filters.chips)) {
+    const chipId = chipMatch[1];
+    const chip = view.filters.chips.find((c) => c.id === chipId);
+    if (chip) {
+      if (view.filters.multi_select === false) {
+        view.filters.chips.forEach((c) => { c.selected = (c.id === chipId) ? !c.selected : false; });
+      } else {
+        chip.selected = !chip.selected;
+      }
+      rerenderDiscoveryView(wrapper);
+    }
+    jbiqEmit(wrapper, name, { chipId });
+    return;
+  }
+
+  // Any other click is a host-observable event (card tap, location change,
+  // secondary action). Re-dispatch as a CustomEvent for the host to handle.
+  jbiqEmit(wrapper, name, {});
 });
+
 document.addEventListener('change', (e) => {
   const target = e.target.closest('[data-event-prefix]');
   if (!target) return;
-  if (!target.closest('.jbiq-discovery')) return;
-  console.log(`${target.getAttribute('data-event-prefix')}.${target.value}`);
+  const wrapper = target.closest('.jbiq-discovery');
+  if (!wrapper) return;
+
+  const prefix = target.getAttribute('data-event-prefix');
+  const value = target.value;
+  const name = `${prefix}.${value}`;
+  const view = wrapper.__jbiqView;
+
+  if (prefix === 'sort.change' && view && view.sort) {
+    view.sort.selected_id = value;
+    rerenderDiscoveryView(wrapper);
+  }
+  jbiqEmit(wrapper, name, { prefix, value });
 });
