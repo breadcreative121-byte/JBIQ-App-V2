@@ -1182,7 +1182,7 @@ const MOCK_APARTMENTS = {
   filters: {
     multi_select: true,
     chips: [
-      { id: 'under_50k',       label: 'Under ₹50k',      value: 50000, selected: true },
+      { id: 'under_50k',       label: 'Under ₹50k',      value: 50000, selected: false },
       { id: 'two_bhk',         label: '2 BHK',           value: 2,     selected: false },
       { id: 'semi_furnished',  label: 'Semi-furnished',  value: 'semi', selected: false },
       { id: 'near_metro',      label: 'Near metro',      value: 'metro', selected: false },
@@ -1499,7 +1499,7 @@ const MOCK_SCHOOLS_BANDRA = {
   filters: {
     multi_select: true,
     chips: [
-      { id: 'cbse',      label: 'CBSE',       value: 'cbse', selected: true },
+      { id: 'cbse',      label: 'CBSE',       value: 'cbse', selected: false },
       { id: 'icse',      label: 'ICSE',       value: 'icse', selected: false },
       { id: 'ib',        label: 'IB',         value: 'ib',   selected: false },
       { id: 'k12',       label: 'K-12',       value: 'k12',  selected: false },
@@ -1611,7 +1611,7 @@ const MOCK_KURTA_DIWALI = {
   filters: {
     multi_select: true,
     chips: [
-      { id: 'men',        label: 'Men',          value: 'men',   selected: true },
+      { id: 'men',        label: 'Men',          value: 'men',   selected: false },
       { id: 'women',      label: 'Women',        value: 'women', selected: false },
       { id: 'under_2k',   label: 'Under ₹2k',    value: 2000,    selected: false },
       { id: 'silk',       label: 'Silk',         value: 'silk',  selected: false },
@@ -2089,7 +2089,7 @@ const MOCK_IPL_TODAY = {
   filters: {
     multi_select: true,
     chips: [
-      { id: 'today',     label: 'Today',     value: 'today', selected: true },
+      { id: 'today',     label: 'Today',     value: 'today', selected: false },
       { id: 'tomorrow',  label: 'Tomorrow',  value: 'tmw',   selected: false },
       { id: 'playoffs',  label: 'Playoffs',  value: 'po',    selected: false },
       { id: 'english',   label: 'English',   value: 'en',    selected: false },
