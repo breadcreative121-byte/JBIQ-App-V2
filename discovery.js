@@ -132,6 +132,21 @@ const tokens = {
  * @property {Array<{ option_id: string, display: string, emphasis?: 'best'|'worst' }>} values
  */
 
+/**
+ * §9 Edge Affordance — one optional ancillary action per response.
+ * Rendered below the collection, visually subordinate to card CTAs.
+ * The `kind` is a semantic hint so QA / analytics can bucket behaviour;
+ * labels are free-form and author-chosen. When `query` is set, the host
+ * seeds the next user message with that text on tap (simulating a typed
+ * follow-up). Without `query` the edge is a pure analytics event.
+ *
+ * @typedef {Object} EdgeAffordance
+ * @property {string} label
+ * @property {string} event
+ * @property {'see_more'|'compare'|'save_later'|'remind_later'|'context_shift'} kind
+ * @property {string} [query]
+ */
+
 /* ---- Discovery view (union discriminated by sub_pattern) ---- */
 
 /**
@@ -146,6 +161,7 @@ const tokens = {
  * @property {{ center: {lat: number, lng: number}, zoom: number, user_location?: {lat: number, lng: number}, markers: MapMarker[] }} map
  * @property {{ layout: 'carousel', cards: PlaceResultCard[] }} collection
  * @property {{ title: string, body: string, refine_prompt: string }} [empty_state]
+ * @property {EdgeAffordance} [edge_affordance]  -- §9: single ancillary action
  * @property {{ intent: 'discover', query: string, total_count: number, trace_id: string }} meta
  */
 
@@ -159,6 +175,7 @@ const tokens = {
  * @property {{ options: Array<{id: string, label: string}>, selected_id: string }} [sort]
  * @property {{ layout: 'carousel'|'grid'|'list', cards: CatalogResultCard[] }} collection
  * @property {{ title: string, body: string, refine_prompt: string }} [empty_state]
+ * @property {EdgeAffordance} [edge_affordance]  -- §9: single ancillary action
  * @property {{ intent: 'discover', query: string, total_count: number, trace_id: string }} meta
  */
 
@@ -172,6 +189,7 @@ const tokens = {
  * @property {{ options: Array<{id: string, label: string}>, selected_id: string }} [sort]
  * @property {{ layout: 'table', header: { label_column: string, recommended_id?: string }, options: CompareOption[], rows: CompareRow[] }} collection
  * @property {{ title: string, body: string, refine_prompt: string }} [empty_state]
+ * @property {EdgeAffordance} [edge_affordance]  -- §9: single ancillary action
  * @property {{ intent: 'discover', query: string, total_count: number, trace_id: string }} meta
  */
 
@@ -182,6 +200,8 @@ const tokens = {
    Base rules + per-sub-pattern rules. Pure functions; no side effects.
    Top-level dispatcher: validateDiscoveryView.
    ======================================================================== */
+
+const VALID_EDGE_KINDS = ['see_more', 'compare', 'save_later', 'remind_later', 'context_shift'];
 
 function validateCommon(view, errors) {
   if (view.kind !== 'discovery_view') {
@@ -195,6 +215,14 @@ function validateCommon(view, errors) {
   }
   if (!view.meta || !view.meta.trace_id) {
     errors.push('meta.trace_id must be non-empty');
+  }
+  if (view.edge_affordance) {
+    const e = view.edge_affordance;
+    if (!e.label) errors.push('edge_affordance.label must be non-empty');
+    if (!e.event) errors.push('edge_affordance.event must be non-empty');
+    if (!VALID_EDGE_KINDS.includes(e.kind)) {
+      errors.push(`edge_affordance.kind must be one of ${VALID_EDGE_KINDS.join('|')} (got "${e.kind}")`);
+    }
   }
 }
 
@@ -781,6 +809,30 @@ function appendCollectionOrEmpty(container, view, layout, renderCard) {
   }
 }
 
+/**
+ * §9 Edge Affordance — a single optional next-action pill rendered below the
+ * collection. Subordinate styling; not a replacement for refinement chips or
+ * card CTAs.
+ * @param {EdgeAffordance} edge
+ */
+function renderEdgeAffordance(edge) {
+  return el('div', { class: 'edge-affordance' }, [
+    el('button', {
+      class: `edge-affordance__btn edge-affordance__btn--${edge.kind}`,
+      type: 'button',
+      'data-event': edge.event,
+      'data-edge-kind': edge.kind,
+      text: edge.label,
+    }),
+  ]);
+}
+
+function appendEdgeAffordance(container, view) {
+  if (view.edge_affordance) {
+    container.appendChild(renderEdgeAffordance(view.edge_affordance));
+  }
+}
+
 /** @param {PlaceDiscoveryView} view */
 function renderPlaceBody(view) {
   const container = el('div', { class: 'discovery-view' });
@@ -797,6 +849,7 @@ function renderPlaceBody(view) {
     markers: view.map.markers,
   }));
   appendCollectionOrEmpty(container, view, 'carousel', renderPlaceResultCard);
+  appendEdgeAffordance(container, view);
   return container;
 }
 
@@ -806,6 +859,7 @@ function renderCatalogBody(view) {
   container.appendChild(renderSubjectHeader(view.subject));
   appendFiltersAndSort(container, view);
   appendCollectionOrEmpty(container, view, view.collection.layout, renderCatalogResultCard);
+  appendEdgeAffordance(container, view);
   return container;
 }
 
@@ -819,6 +873,7 @@ function renderCompareBody(view) {
     options: view.collection.options,
     rows: view.collection.rows,
   }));
+  appendEdgeAffordance(container, view);
   return container;
 }
 
@@ -1069,6 +1124,12 @@ const MOCK_RESTAURANTS = {
       },
     ],
   },
+  edge_affordance: {
+    label: 'See more restaurants',
+    event: 'edge.restaurants.see_more',
+    kind: 'see_more',
+    query: 'Show me more restaurants nearby',
+  },
   meta: {
     intent: 'discover',
     query: 'Restaurants near me',
@@ -1164,6 +1225,12 @@ const MOCK_DOCTORS = {
       },
     ],
   },
+  edge_affordance: {
+    label: 'Search by speciality',
+    event: 'edge.doctors.context_shift',
+    kind: 'context_shift',
+    query: 'Find doctors by speciality near me',
+  },
   meta: {
     intent: 'discover',
     query: 'Doctors near me',
@@ -1257,6 +1324,12 @@ const MOCK_APARTMENTS = {
         primary_event: 'place.apartment.hill_view.open',
       },
     ],
+  },
+  edge_affordance: {
+    label: 'See more listings',
+    event: 'edge.apartments.see_more',
+    kind: 'see_more',
+    query: 'Show me more 2 BHK listings in Andheri',
   },
   meta: {
     intent: 'discover',
@@ -1379,6 +1452,12 @@ const MOCK_BIRYANI_HYDERABAD = {
       },
     ],
   },
+  edge_affordance: {
+    label: 'Compare top 3',
+    event: 'edge.biryani.compare',
+    kind: 'compare',
+    query: 'Compare Paradise, Bawarchi and Shah Ghouse',
+  },
   meta: {
     intent: 'discover',
     query: 'Best biryani in Hyderabad',
@@ -1480,6 +1559,12 @@ const MOCK_PLUMBERS = {
         primary_event: 'place.plumber.localpros.open',
       },
     ],
+  },
+  edge_affordance: {
+    label: 'Remind me tomorrow',
+    event: 'edge.plumbers.remind_later',
+    kind: 'remind_later',
+    query: 'Remind me to book a plumber tomorrow morning',
   },
   meta: {
     intent: 'discover',
@@ -1592,6 +1677,12 @@ const MOCK_SCHOOLS_BANDRA = {
       },
     ],
   },
+  edge_affordance: {
+    label: 'Compare by fees',
+    event: 'edge.schools.compare',
+    kind: 'compare',
+    query: 'Compare these schools by annual fees',
+  },
   meta: {
     intent: 'discover',
     query: 'Schools for my child in Bandra',
@@ -1692,6 +1783,12 @@ const MOCK_KURTA_DIWALI = {
       },
     ],
   },
+  edge_affordance: {
+    label: 'See more',
+    event: 'edge.kurta.see_more',
+    kind: 'see_more',
+    query: 'Show me more kurtas for Diwali',
+  },
   meta: {
     intent: 'discover',
     query: 'Shop for a kurta for Diwali',
@@ -1790,6 +1887,12 @@ const MOCK_GIFTS_WEDDING = {
       },
     ],
   },
+  edge_affordance: {
+    label: 'See more gift ideas',
+    event: 'edge.gifts.see_more',
+    kind: 'see_more',
+    query: 'Show me more wedding gift ideas',
+  },
   meta: {
     intent: 'discover',
     query: "Gifts for my sister's wedding",
@@ -1875,6 +1978,12 @@ const MOCK_MOVIES_WEEKEND = {
         primary_event: 'catalog.movie.chhota_bheem.open',
       },
     ],
+  },
+  edge_affordance: {
+    label: 'Compare showtimes',
+    event: 'edge.movies.compare',
+    kind: 'compare',
+    query: 'Compare showtimes for weekend movies',
   },
   meta: {
     intent: 'discover',
@@ -1974,6 +2083,12 @@ const MOCK_DEVOTIONAL_MORNING = {
       },
     ],
   },
+  edge_affordance: {
+    label: 'Save for later',
+    event: 'edge.devotional.save_later',
+    kind: 'save_later',
+    query: 'Save these devotional tracks to my library',
+  },
   meta: {
     intent: 'discover',
     query: 'Devotional songs for morning',
@@ -2072,6 +2187,12 @@ const MOCK_COURSES_DATASCIENCE = {
       },
     ],
   },
+  edge_affordance: {
+    label: 'Compare all 5',
+    event: 'edge.courses.compare',
+    kind: 'compare',
+    query: 'Compare these 5 data science courses',
+  },
   meta: {
     intent: 'discover',
     query: 'Online courses for data science',
@@ -2154,6 +2275,12 @@ const MOCK_IPL_TODAY = {
         primary_event: 'catalog.ipl.srh_lsg.open',
       },
     ],
+  },
+  edge_affordance: {
+    label: 'Remind me for MI vs CSK',
+    event: 'edge.ipl.remind_later',
+    kind: 'remind_later',
+    query: 'Remind me 15 minutes before MI vs CSK starts',
   },
   meta: {
     intent: 'discover',
@@ -2254,6 +2381,12 @@ const MOCK_SCHEMES_FARMERS = {
         primary_event: 'catalog.scheme.soil_health.open',
       },
     ],
+  },
+  edge_affordance: {
+    label: 'See all central schemes',
+    event: 'edge.schemes.see_more',
+    kind: 'see_more',
+    query: 'Show me all central government schemes for farmers',
   },
   meta: {
     intent: 'discover',
@@ -2463,6 +2596,12 @@ const MOCK_FLIGHTS_MUMBAI = {
       },
     ],
   },
+  edge_affordance: {
+    label: 'Set price alert',
+    event: 'edge.flights.remind_later',
+    kind: 'remind_later',
+    query: 'Alert me if any flight drops below ₹3,500',
+  },
   meta: {
     intent: 'discover',
     query: 'Cheap flights to Mumbai tomorrow',
@@ -2665,6 +2804,12 @@ const MOCK_PHONES_20K = {
       },
     ],
   },
+  edge_affordance: {
+    label: 'See reviews',
+    event: 'edge.phones.context_shift',
+    kind: 'context_shift',
+    query: 'Show reviews for these phones',
+  },
   meta: {
     intent: 'discover',
     query: 'Best phones under ₹20,000',
@@ -2770,6 +2915,12 @@ const MOCK_TRAINS_TATKAL = {
       },
     ],
   },
+  edge_affordance: {
+    label: 'Set tatkal alert',
+    event: 'edge.tatkal.remind_later',
+    kind: 'remind_later',
+    query: 'Alert me 5 minutes before tatkal booking opens',
+  },
   meta: {
     intent: 'discover',
     query: 'Tatkal trains to hometown',
@@ -2866,6 +3017,12 @@ const MOCK_HEALTH_INSURANCE = {
         ],
       },
     ],
+  },
+  edge_affordance: {
+    label: 'Talk to an advisor',
+    event: 'edge.health_insurance.context_shift',
+    kind: 'context_shift',
+    query: 'Connect me with an insurance advisor',
   },
   meta: {
     intent: 'discover',

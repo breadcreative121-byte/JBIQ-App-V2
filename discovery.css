@@ -643,6 +643,39 @@
 }
 
 /* ----------------------------------------------------------------------------
+   EDGE AFFORDANCE (§9) — one optional ancillary action, rendered after the
+   collection. Deliberately subordinate to card CTAs: ghost-style pill, left-
+   aligned, tight vertical rhythm.
+   ---------------------------------------------------------------------------- */
+.edge-affordance {
+  padding: var(--space-xs) var(--space-lg) 0;
+}
+.edge-affordance__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 6px var(--space-md);
+  background: transparent;
+  border: 1px solid var(--color-stroke-subtle, rgba(0, 0, 0, 0.12));
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-action-primary);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.edge-affordance__btn:hover { background: rgba(116, 66, 228, 0.06); }
+.edge-affordance__btn:active { background: rgba(116, 66, 228, 0.12); }
+.edge-affordance__btn::after {
+  content: '›';
+  font-size: 16px;
+  line-height: 1;
+  margin-left: 2px;
+  opacity: 0.6;
+}
+
+/* ----------------------------------------------------------------------------
    VALIDATOR BANNER — only surfaces if a malformed view is passed to
    renderDiscoveryView. Under normal operation this never renders.
    ---------------------------------------------------------------------------- */

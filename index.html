@@ -2696,6 +2696,20 @@
     showResponse(text);
   }
 
+  // §9 Edge Affordance — when a user taps the ancillary action below a
+  // DiscoveryView (e.g. "Compare top 3", "See more", "Remind me later"),
+  // seed the next turn with the author-authored follow-up query. The chat
+  // is already in chat-active state, so we go straight to showResponse().
+  window.addEventListener('jbiq-discovery-event', (e) => {
+    const detail = e.detail || {};
+    if (!detail.name || !detail.name.startsWith('edge.')) return;
+    const view = detail.wrapper && detail.wrapper.__jbiqView;
+    const edge = view && view.edge_affordance;
+    if (edge && edge.query && !isProcessingResponse) {
+      showResponse(edge.query);
+    }
+  });
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', populatePrototypesList);
   } else {
@@ -3002,7 +3016,7 @@
   function createThinkingEl() {
     const el = document.createElement('div');
     el.className = 'thinking-row visible';
-    el.innerHTML = '<svg class="thinking-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#6d17ce" stroke-width="2" stroke-dasharray="16 34" stroke-linecap="round"/></svg><span class="thinking-text">Thinking...</span>';
+    el.innerHTML = '<span class="thinking-text">Thinking...</span>';
     return el;
   }
 
