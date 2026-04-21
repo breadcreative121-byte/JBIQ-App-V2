@@ -2045,9 +2045,12 @@
     .proto-item:active { background: #eee; }
 
     /* Responsive */
-    @media (max-width: 400px) {
+    /* Any phone-sized viewport (iPhone Pro Max is 430px; catch everything
+       up to 500px so the 360×780 simulator doesn't clip on real devices).
+       Also catch touch-primary devices up to tablet width. */
+    @media (max-width: 500px), (pointer: coarse) and (max-width: 820px) {
       body { padding: 0; }
-      .phone-frame { border-radius: 0; height: 100vh; height: 100dvh; width: 100%; }
+      .phone-frame { border-radius: 0; height: 100vh; height: 100dvh; width: 100%; max-width: 100%; }
       .voice-overlay { border-radius: 0; }
       .menu-overlay { border-radius: 0; }
       .tools-overlay { border-radius: 0; }
