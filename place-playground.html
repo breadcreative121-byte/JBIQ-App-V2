@@ -189,7 +189,7 @@
     /* ========================================================================
        PRIMITIVE: SubjectHeader
        ======================================================================== */
-    .subject-header { padding: 0 var(--space-lg); }
+    .subject-header { padding: 0; }
     .subject-header__title {
       font-size: var(--font-size-title);
       font-weight: var(--font-weight-bold);
@@ -211,7 +211,7 @@
        PRIMITIVE: LocationContext
        ======================================================================== */
     .location-context {
-      padding: 0 var(--space-lg);
+      padding: 0;
       display: flex;
       align-items: center;
       gap: var(--space-xs);
@@ -289,9 +289,7 @@
        hex values inside the SVG are explicitly allowed.
        ======================================================================== */
     .map-panel {
-      margin: 0 var(--space-lg);
       height: var(--layout-map-height);
-      border-radius: var(--radius-md);
       background: #E8EEF2; /* map-panel SVG exception: schematic land colour */
       overflow: hidden;
       position: relative;

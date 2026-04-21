@@ -135,7 +135,8 @@
    `padding: 0 var(--space-lg)` so the first item still aligns with the
    subject header and map. */
 .jbiq-discovery .filter-chip-bar,
-.jbiq-discovery .collection-container--carousel {
+.jbiq-discovery .collection-container--carousel,
+.jbiq-discovery .collection-container--grid {
   margin-left: calc(-1 * var(--space-lg));
   margin-right: calc(-1 * var(--space-lg));
 }
@@ -153,7 +154,7 @@
 /* ----------------------------------------------------------------------------
    PRIMITIVE: SubjectHeader
    ---------------------------------------------------------------------------- */
-.subject-header { padding: 0 var(--space-lg); }
+.subject-header { padding: 0; }
 .subject-header__title {
   font-size: var(--font-size-title);
   font-weight: var(--font-weight-bold);
@@ -175,7 +176,7 @@
    PRIMITIVE: LocationContext
    ---------------------------------------------------------------------------- */
 .location-context {
-  padding: 0 var(--space-lg);
+  padding: 0;
   display: flex;
   align-items: center;
   gap: var(--space-xs);
@@ -251,9 +252,7 @@
    PRIMITIVE: MapPanel (schematic SVG — hex values inside SVG are allowed)
    ---------------------------------------------------------------------------- */
 .map-panel {
-  margin: 0 var(--space-lg);
   height: var(--layout-map-height);
-  border-radius: var(--radius-md);
   background: #E8EEF2; /* map-panel SVG exception: schematic land colour */
   overflow: hidden;
   position: relative;
@@ -297,20 +296,18 @@
   flex-shrink: 0;
   width: var(--layout-card-width);
   background: var(--color-surface-primary);
-  border: 0.5px solid var(--color-border-default);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
   scroll-snap-align: start;
   cursor: pointer;
   padding: 0;
   text-align: left;
   font-family: inherit;
 }
-.place-card:hover { border-color: var(--color-border-strong); }
 .place-card__media {
-  height: var(--layout-card-media-height);
-  border-top-left-radius: var(--radius-lg);
-  border-top-right-radius: var(--radius-lg);
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
   position: relative;
   background-size: cover;
   background-position: center;
@@ -328,7 +325,7 @@
 .place-card__status-badge--open,
 .place-card__status-badge--closed { background: var(--color-overlay-dark); }
 .place-card__status-badge--closing-soon { background: var(--color-overlay-warning); }
-.place-card__content { padding: var(--space-sm) var(--space-md) var(--space-md); }
+.place-card__content { padding: var(--space-sm) 0 var(--space-md); }
 .place-card__title {
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-bold);
@@ -379,9 +376,9 @@
    ---------------------------------------------------------------------------- */
 .catalog-card {
   background: var(--color-surface-primary);
-  border: 0.5px solid var(--color-border-default);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
   cursor: pointer;
   padding: 0;
   text-align: left;
@@ -390,7 +387,6 @@
   display: flex;
   flex-direction: column;
 }
-.catalog-card:hover { border-color: var(--color-border-strong); }
 
 .collection-container--carousel > .catalog-card {
   flex-shrink: 0;
@@ -416,9 +412,8 @@
 }
 
 .catalog-card__media {
-  height: var(--layout-card-media-height);
-  border-top-left-radius: var(--radius-lg);
-  border-top-right-radius: var(--radius-lg);
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-lg);
   background-size: cover;
   background-position: center;
   position: relative;
@@ -448,7 +443,7 @@
   background: var(--color-action-primary);
 }
 .catalog-card__content {
-  padding: var(--space-sm) var(--space-md) var(--space-md);
+  padding: var(--space-sm) 0 var(--space-md);
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
@@ -648,32 +643,25 @@
    aligned, tight vertical rhythm.
    ---------------------------------------------------------------------------- */
 .edge-affordance {
-  padding: var(--space-xs) var(--space-lg) 0;
+  padding: var(--space-xs) 0 0;
 }
 .edge-affordance__btn {
   display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
-  padding: 6px var(--space-md);
-  background: transparent;
-  border: 1px solid var(--color-stroke-subtle, rgba(0, 0, 0, 0.12));
+  padding: var(--space-xs) var(--space-md);
+  background: var(--color-action-primary-surface);
+  border: none;
   border-radius: var(--radius-pill);
   font-family: inherit;
-  font-size: var(--font-size-small);
-  font-weight: var(--font-weight-medium);
+  font-size: 14px;
+  font-weight: 700;
   color: var(--color-action-primary);
   cursor: pointer;
   transition: background 0.15s ease;
 }
 .edge-affordance__btn:hover { background: rgba(116, 66, 228, 0.06); }
 .edge-affordance__btn:active { background: rgba(116, 66, 228, 0.12); }
-.edge-affordance__btn::after {
-  content: '›';
-  font-size: 16px;
-  line-height: 1;
-  margin-left: 2px;
-  opacity: 0.6;
-}
 
 /* ----------------------------------------------------------------------------
    VALIDATOR BANNER — only surfaces if a malformed view is passed to
