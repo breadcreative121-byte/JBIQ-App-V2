@@ -153,7 +153,7 @@
 /* ----------------------------------------------------------------------------
    PRIMITIVE: SubjectHeader
    ---------------------------------------------------------------------------- */
-.subject-header { padding: 0; }
+.subject-header { padding: 0 var(--space-lg); }
 .subject-header__title {
   font-size: var(--font-size-title);
   font-weight: var(--font-weight-bold);
@@ -175,7 +175,7 @@
    PRIMITIVE: LocationContext
    ---------------------------------------------------------------------------- */
 .location-context {
-  padding: 0;
+  padding: 0 var(--space-lg);
   display: flex;
   align-items: center;
   gap: var(--space-xs);
@@ -251,7 +251,9 @@
    PRIMITIVE: MapPanel (schematic SVG — hex values inside SVG are allowed)
    ---------------------------------------------------------------------------- */
 .map-panel {
+  margin: 0 var(--space-lg);
   height: var(--layout-map-height);
+  border-radius: var(--radius-md);
   background: #E8EEF2; /* map-panel SVG exception: schematic land colour */
   overflow: hidden;
   position: relative;
@@ -326,7 +328,7 @@
 .place-card__status-badge--open,
 .place-card__status-badge--closed { background: var(--color-overlay-dark); }
 .place-card__status-badge--closing-soon { background: var(--color-overlay-warning); }
-.place-card__content { padding: var(--space-sm) 0 var(--space-md); }
+.place-card__content { padding: var(--space-sm) var(--space-md) var(--space-md); }
 .place-card__title {
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-bold);
@@ -446,7 +448,7 @@
   background: var(--color-action-primary);
 }
 .catalog-card__content {
-  padding: var(--space-sm) 0 var(--space-md);
+  padding: var(--space-sm) var(--space-md) var(--space-md);
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
@@ -646,7 +648,7 @@
    aligned, tight vertical rhythm.
    ---------------------------------------------------------------------------- */
 .edge-affordance {
-  padding: var(--space-xs) 0 0;
+  padding: var(--space-xs) var(--space-lg) 0;
 }
 .edge-affordance__btn {
   display: inline-flex;

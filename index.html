@@ -110,12 +110,6 @@
     }
 
     .avatar-container {
-      /* Purple fallback behind the profile image so, if it 404s, the frame
-         still reads as an avatar slot rather than an empty transparent box.
-         The img is border-radius-clipped separately so the badge (top:-4px)
-         stays visible. */
-      background: var(--color-action-primary, #6d17ce);
-      border-radius: var(--shape-pill);
       position: relative;
       width: 42px;
       height: 42px;
@@ -195,48 +189,37 @@
       flex-shrink: 0;
       cursor: pointer;
       position: relative;
-      background: none;
-      border: none;
-      font-family: inherit;
-      color: inherit;
     }
 
     .assistant-icon {
       width: 74px;
       height: 74px;
-      border-radius: 50%;
+      border-radius: 98.667px;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
-      isolation: isolate;
     }
 
-    .assistant-icon-glyph {
-      width: 48px;
-      height: 48px;
-      object-fit: contain;
-    }
-
-    .assistant-icon-full {
+    .assistant-icon img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
 
-    /* Thin purple ring outside the avatar, replacing the Figma ring asset.
-       Positioned on the parent so it sits outside the clipped icon. */
-    .assistant-item::before {
-      content: '';
+    .assistant-ring {
       position: absolute;
       top: 0;
-      left: calc(50% - 41px);
+      left: 0;
       width: 82px;
       height: 82px;
-      border-radius: 50%;
-      border: 1px solid rgba(109, 23, 206, 0.25);
       pointer-events: none;
+    }
+
+    .assistant-ring img {
+      width: 100%;
+      height: 100%;
     }
 
     .assistant-label {
@@ -246,6 +229,21 @@
       opacity: 0.8;
       line-height: 1.2;
       white-space: nowrap;
+    }
+
+    /* Avatar-based assistant (smaller) */
+    .assistant-avatar {
+      width: 74px;
+      height: 46px;
+      border-radius: var(--shape-pill);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .assistant-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     /* Tools */
@@ -456,52 +454,25 @@
     .home-input-pill {
       flex: 1; min-width: 0; background: #eeeeef; border-radius: 24px; height: 42px;
       display: flex; align-items: center; padding: 6px 16px; cursor: text;
-      gap: 8px;
     }
-    .home-input-pill--with-mic { padding-right: 8px; }
-    .home-input-placeholder {
-      flex: 1; min-width: 0;
+    .home-input-pill span {
       font-size: 16px; color: var(--text-low); opacity: 0.65; line-height: 1.3;
       font-family: var(--font-family);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .home-input-mic {
-      width: 32px; height: 32px; border: none; background: none; padding: 0;
-      display: flex; align-items: center; justify-content: center; cursor: pointer;
-      border-radius: var(--shape-pill); flex-shrink: 0;
-    }
-    .home-input-mic:hover { background: rgba(12, 13, 16, 0.04); }
-    .home-input-mic svg { display: block; }
-
-    /* Text-mode voice button — icon-only circular voice button still used
-       inside text mode (Figma design only updates the home input bar). */
     .home-voice-btn {
       width: 42px; height: 42px; background: #6d17ce; border-radius: var(--shape-pill);
       display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0;
     }
     .home-voice-btn svg { width: 26px; height: 26px; }
-
-    /* Voice/Speak pill — Figma design replaces the icon-only round voice
-       button with a pill that carries a waveform + "Speak" label. */
-    .home-speak-btn {
-      display: flex; align-items: center; gap: 6px;
-      height: 42px; padding: 0 14px 0 12px;
-      background: #6d17ce; color: white;
-      border: none; border-radius: var(--shape-pill);
-      cursor: pointer; flex-shrink: 0;
-      font-family: var(--font-family);
-      font-size: 14px; font-weight: 500; letter-spacing: -0.005em;
-    }
-    .home-speak-btn:hover { background: #5b0fb0; }
-    .home-speak-btn svg rect:nth-child(1) {
+    .home-voice-btn svg rect:nth-child(1) {
       animation: voiceBar1 1.2s ease-in-out infinite;
       transform-origin: center;
     }
-    .home-speak-btn svg rect:nth-child(2) {
+    .home-voice-btn svg rect:nth-child(2) {
       animation: voiceBar2 1.2s ease-in-out 0.2s infinite;
       transform-origin: center;
     }
-    .home-speak-btn svg rect:nth-child(3) {
+    .home-voice-btn svg rect:nth-child(3) {
       animation: voiceBar3 1.2s ease-in-out 0.4s infinite;
       transform-origin: center;
     }
@@ -2111,69 +2082,99 @@
       </div>
     </div>
     <div class="avatar-container">
-      <img class="avatar-img" src="assets/profile/deepa.jpg" alt="Profile" onerror="this.remove()">
+      <img class="avatar-img" src="https://www.figma.com/api/mcp/asset/5773af3c-af33-47e4-b537-322fb7cd62fa" alt="Profile">
       <div class="avatar-badge"><span>9</span></div>
     </div>
   </div>
 
   <!-- Main Content -->
   <div class="content">
-    <!-- Your Assistants — Figma node 20144:16967.
-         Each avatar falls back to its palette-colour circle if the asset
-         fails to load (onerror removes the broken img, exposing bg). -->
+    <!-- Your Assistants -->
     <div>
       <div class="section-title">
         <h2>Your Assistants</h2>
       </div>
       <div class="assistants-scroll">
-        <button class="assistant-item" type="button">
-          <span class="assistant-icon" style="background: #0d2da0;">
-            <img src="assets/assistants/astrology.svg" alt="" class="assistant-icon-glyph" onerror="this.remove()">
-          </span>
+        <!-- Astrology -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/18587855-6e96-46a0-b5fd-5781f5d7ae1a" alt="">
+          </div>
+          <div class="assistant-icon" style="background: var(--navi-600);">
+            <img src="https://www.figma.com/api/mcp/asset/83a40c69-b0f1-4c78-9812-6da472f59613" alt="Astrology" style="width: 48px; height: 55px; object-fit: contain;">
+          </div>
           <span class="assistant-label">Astrology</span>
-        </button>
-        <button class="assistant-item" type="button">
-          <span class="assistant-icon" style="background: #e11894;">
-            <img src="assets/assistants/bollywood.svg" alt="" class="assistant-icon-glyph" onerror="this.remove()">
-          </span>
+        </div>
+        <!-- Bollywood -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/18587855-6e96-46a0-b5fd-5781f5d7ae1a" alt="">
+          </div>
+          <div class="assistant-icon" style="background: var(--pink-1200);">
+            <img src="https://www.figma.com/api/mcp/asset/3e922bcd-66d0-401f-82ac-33295d554913" alt="Bollywood" style="width: 46px; height: 49px; object-fit: contain;">
+          </div>
           <span class="assistant-label">Bollywood</span>
-        </button>
-        <button class="assistant-item" type="button">
-          <span class="assistant-icon" style="background: #2ac44e;">
-            <img src="assets/assistants/cricket.svg" alt="" class="assistant-icon-full" onerror="this.remove()">
-          </span>
+        </div>
+        <!-- Cricket -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/18587855-6e96-46a0-b5fd-5781f5d7ae1a" alt="">
+          </div>
+          <div class="assistant-icon">
+            <img src="https://www.figma.com/api/mcp/asset/0831dd36-9a7d-40de-a4eb-ed97c92f9ee5" alt="Cricket">
+          </div>
           <span class="assistant-label">Cricket</span>
-        </button>
-        <button class="assistant-item" type="button">
-          <span class="assistant-icon" style="background: #5d00b5;">
-            <img src="assets/assistants/devotion.svg" alt="" class="assistant-icon-full" onerror="this.remove()">
-          </span>
+        </div>
+        <!-- Devotion -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/18587855-6e96-46a0-b5fd-5781f5d7ae1a" alt="">
+          </div>
+          <div class="assistant-icon">
+            <img src="https://www.figma.com/api/mcp/asset/04938379-fa3b-4ab3-922e-651dec336f56" alt="Devotion">
+          </div>
           <span class="assistant-label">Devotion</span>
-        </button>
-        <button class="assistant-item" type="button">
-          <span class="assistant-icon" style="background: #2563eb;">
-            <img src="assets/assistants/education.png" alt="" class="assistant-icon-full" onerror="this.remove()">
-          </span>
+        </div>
+        <!-- Education -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/35409708-a705-4f1d-b8d9-1232c5fb2d7b" alt="">
+          </div>
+          <div class="assistant-avatar">
+            <img src="https://www.figma.com/api/mcp/asset/0ab3732e-d88c-4a15-86bb-119ee193a93a" alt="Education">
+          </div>
           <span class="assistant-label">Education</span>
-        </button>
-        <button class="assistant-item" type="button">
-          <span class="assistant-icon" style="background: #d97706;">
-            <img src="assets/assistants/finance.png" alt="" class="assistant-icon-full" onerror="this.remove()">
-          </span>
+        </div>
+        <!-- Finance -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/35409708-a705-4f1d-b8d9-1232c5fb2d7b" alt="">
+          </div>
+          <div class="assistant-avatar">
+            <img src="https://www.figma.com/api/mcp/asset/977b4fa9-94fa-4693-817a-5f1fff19218e" alt="Finance">
+          </div>
           <span class="assistant-label">Finance</span>
-        </button>
-        <button class="assistant-item" type="button">
-          <span class="assistant-icon" style="background: #4f46e5;">
-            <img src="assets/assistants/government.png" alt="" class="assistant-icon-full" onerror="this.remove()">
-          </span>
+        </div>
+        <!-- Government -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/35409708-a705-4f1d-b8d9-1232c5fb2d7b" alt="">
+          </div>
+          <div class="assistant-avatar">
+            <img src="https://www.figma.com/api/mcp/asset/a1678e6e-7a09-4c39-8ed4-51ac90ffa7d1" alt="Government">
+          </div>
           <span class="assistant-label">Government</span>
-        </button>
-        <button class="assistant-item" type="button">
-          <span class="assistant-icon" style="background: #dc2626;">
-            <img src="assets/assistants/health.png" alt="" class="assistant-icon-full" onerror="this.remove()">
-          </span>
+        </div>
+        <!-- Health -->
+        <div class="assistant-item">
+          <div class="assistant-ring">
+            <img src="https://www.figma.com/api/mcp/asset/35409708-a705-4f1d-b8d9-1232c5fb2d7b" alt="">
+          </div>
+          <div class="assistant-avatar">
+            <img src="https://www.figma.com/api/mcp/asset/3ef3e66d-92cd-403a-b1f9-06fb40077d8f" alt="Health">
+          </div>
           <span class="assistant-label">Health</span>
-        </button>
+        </div>
       </div>
     </div>
 
@@ -2254,30 +2255,20 @@
 
   </div>
 
-  <!-- Homepage Chat Input Bar — Figma node 20053:24827
-       (ChatInput_Text_Collapsed). Collapsed pill wraps the placeholder,
-       the mic opens typing mode with STT, the Speak pill opens voice
-       conversation mode. -->
+  <!-- Homepage Chat Input Bar -->
   <div class="home-input-bar">
     <button class="home-add-btn" aria-label="Add">
       <svg viewBox="0 0 26 26" fill="none"><path d="M13 6v14M6 13h14" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/></svg>
     </button>
-    <div class="home-input-pill home-input-pill--with-mic" onclick="openTypingMode()">
-      <span class="home-input-placeholder">Hey Deepa, what's on your mind?</span>
-      <button class="home-input-mic" aria-label="Dictate" onclick="event.stopPropagation(); openTypingMode();">
-        <svg viewBox="0 0 16 24" fill="none" width="17" height="25">
-          <rect x="4" y="2" width="8" height="13" rx="4" fill="#191b1e"/>
-          <path d="M1.5 13.5c0 3.6 2.9 6.5 6.5 6.5s6.5-2.9 6.5-6.5M8 20v3" stroke="#191b1e" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-        </svg>
-      </button>
+    <div class="home-input-pill" onclick="openTypingMode()">
+      <span>Ask anything</span>
     </div>
-    <button class="home-speak-btn" aria-label="Speak" onclick="openVoiceMode()">
-      <svg viewBox="0 0 20 20" fill="none" width="18" height="18" aria-hidden="true">
-        <rect x="4" y="7" width="2" height="6" rx="1" fill="white"/>
-        <rect x="9" y="4" width="2" height="12" rx="1" fill="white"/>
-        <rect x="14" y="6" width="2" height="8" rx="1" fill="white"/>
+    <button class="home-voice-btn" aria-label="Voice" onclick="openVoiceMode()">
+      <svg viewBox="0 0 26 26" fill="none">
+        <rect x="6" y="9" width="2.5" height="8" rx="1.25" fill="white"/>
+        <rect x="11.75" y="5" width="2.5" height="16" rx="1.25" fill="white"/>
+        <rect x="17.5" y="7" width="2.5" height="12" rx="1.25" fill="white"/>
       </svg>
-      <span>Speak</span>
     </button>
   </div>
 
