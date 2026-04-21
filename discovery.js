@@ -895,7 +895,17 @@ function deriveDisplayView(view) {
   const sortId = view.sort && view.sort.selected_id;
   if (sortId) nextCards = sortCards(nextCards, sortId, view.sub_pattern);
 
-  return { ...view, collection: { ...view.collection, cards: nextCards } };
+  const next = { ...view, collection: { ...view.collection, cards: nextCards } };
+
+  // Place views carry map markers that must reference visible cards only.
+  // Without this, filtering orphans markers and the validator rejects the
+  // derived view on re-render (also: orphan pins on the map are bad UX).
+  if (view.sub_pattern === 'place' && view.map && Array.isArray(view.map.markers)) {
+    const visibleIds = new Set(nextCards.map((c) => c.id));
+    next.map = { ...view.map, markers: view.map.markers.filter((m) => visibleIds.has(m.id)) };
+  }
+
+  return next;
 }
 
 /**
@@ -1115,6 +1125,7 @@ const MOCK_DOCTORS = {
         distance_km: 1.5,
         tags: ['General Physician', 'Fever & flu', 'Senior Consultant'],
         status: { kind: 'open', label: 'Consulting now' },
+        filter_ids: ['consulting_today', 'open_now', 'general_physician'],
         primary_event: 'place.doctor.rao.open',
       },
       {
@@ -1126,6 +1137,7 @@ const MOCK_DOCTORS = {
         distance_km: 2.3,
         tags: ['Dermatologist', 'MBBS MD'],
         status: { kind: 'closing_soon', label: 'Next slot 6pm' },
+        filter_ids: ['consulting_today', 'open_now'],
         primary_event: 'place.doctor.menon.open',
       },
       {
@@ -1136,6 +1148,7 @@ const MOCK_DOCTORS = {
         media: { alt: 'Dr. Neha Sharma', fallback_color: '#D0D9E0' },
         rating: { value: 4.4, count: 32 },
         tags: ['General Physician', 'Female doctor'],
+        filter_ids: ['consulting_today', 'general_physician', 'female_doctor'],
         primary_event: 'place.doctor.sharma.open',
       },
       {
@@ -1146,6 +1159,7 @@ const MOCK_DOCTORS = {
         rating: { value: 4.9, count: 256 },
         distance_km: 0.8,
         tags: ['Pediatrician', 'Fever & flu'],
+        filter_ids: ['consulting_today', 'pediatrician'],
         primary_event: 'place.doctor.iyer.open',
       },
     ],
@@ -1206,6 +1220,7 @@ const MOCK_APARTMENTS = {
         distance_km: 0.4,
         tags: ['Semi-furnished', 'Parking'],
         specs: ['2 BHK', '850 sqft', '₹45,000/mo'],
+        filter_ids: ['under_50k', 'two_bhk', 'semi_furnished', 'near_metro'],
         primary_event: 'place.apartment.sealine.open',
       },
       {
@@ -1216,6 +1231,7 @@ const MOCK_APARTMENTS = {
         distance_km: 0.7,
         tags: ['Furnished', 'Pool'],
         specs: ['2 BHK', '1,100 sqft', '₹62,000/mo'],
+        filter_ids: ['two_bhk', 'near_metro'],
         primary_event: 'place.apartment.lokhandwala_crest.open',
       },
       {
@@ -1226,6 +1242,7 @@ const MOCK_APARTMENTS = {
         distance_km: 1.2,
         tags: ['Unfurnished', 'Gated'],
         specs: ['2 BHK', '920 sqft', '₹48,000/mo'],
+        filter_ids: ['under_50k', 'two_bhk'],
         primary_event: 'place.apartment.four_bung_heights.open',
       },
       {
@@ -1236,6 +1253,7 @@ const MOCK_APARTMENTS = {
         distance_km: 0.9,
         tags: ['Semi-furnished', 'Gym'],
         specs: ['2 BHK', '1,050 sqft', '₹55,000/mo'],
+        filter_ids: ['two_bhk', 'semi_furnished', 'near_metro'],
         primary_event: 'place.apartment.hill_view.open',
       },
     ],
@@ -1302,6 +1320,7 @@ const MOCK_BIRYANI_HYDERABAD = {
         tags: ['Hyderabadi', 'Dum', 'Family'],
         status: { kind: 'open', label: 'Open' },
         badge: '#1',
+        filter_ids: ['top_rated', 'four_five', 'hyderabadi', 'family_pack'],
         primary_event: 'place.biryani.paradise.open',
       },
       {
@@ -1315,6 +1334,7 @@ const MOCK_BIRYANI_HYDERABAD = {
         tags: ['Hyderabadi', 'Dum'],
         status: { kind: 'open', label: 'Open' },
         badge: '#2',
+        filter_ids: ['top_rated', 'four_five', 'hyderabadi'],
         primary_event: 'place.biryani.bawarchi.open',
       },
       {
@@ -1328,6 +1348,7 @@ const MOCK_BIRYANI_HYDERABAD = {
         tags: ['Mutton', 'Late-night'],
         status: { kind: 'open', label: 'Open till 2am' },
         badge: '#3',
+        filter_ids: ['top_rated', 'under_500', 'four_five'],
         primary_event: 'place.biryani.shah_ghouse.open',
       },
       {
@@ -1340,6 +1361,7 @@ const MOCK_BIRYANI_HYDERABAD = {
         price_level: '₹',
         tags: ['Old city', 'Mutton'],
         status: { kind: 'closing_soon', label: 'Closing 11pm' },
+        filter_ids: ['under_500'],
         primary_event: 'place.biryani.shadab.open',
       },
       {
@@ -1352,6 +1374,7 @@ const MOCK_BIRYANI_HYDERABAD = {
         price_level: '₹',
         tags: ['Budget', 'Chicken'],
         status: { kind: 'open', label: 'Open' },
+        filter_ids: ['under_500'],
         primary_event: 'place.biryani.alpha.open',
       },
     ],
@@ -1413,6 +1436,7 @@ const MOCK_PLUMBERS = {
         price_label: '₹349/visit',
         tags: ['Verified', '30-min ETA'],
         status: { kind: 'open', label: 'Available now' },
+        filter_ids: ['available_now', 'under_500', 'verified'],
         primary_event: 'place.plumber.urban_co.open',
       },
       {
@@ -1425,6 +1449,7 @@ const MOCK_PLUMBERS = {
         price_label: '₹299/visit',
         tags: ['24/7', 'Emergency'],
         status: { kind: 'open', label: 'Available now' },
+        filter_ids: ['available_now', 'twentyfour', 'under_500'],
         primary_event: 'place.plumber.mr_handy.open',
       },
       {
@@ -1438,6 +1463,7 @@ const MOCK_PLUMBERS = {
         tags: ['Verified'],
         // Busy status — stress test: no availability
         status: { kind: 'closing_soon', label: 'Busy · 2hr ETA' },
+        filter_ids: ['under_500', 'verified'],
         primary_event: 'place.plumber.quickfix.open',
       },
       {
@@ -1450,6 +1476,7 @@ const MOCK_PLUMBERS = {
         price_label: '₹250/visit',
         tags: ['Budget'],
         status: { kind: 'open', label: 'Available now' },
+        filter_ids: ['available_now', 'under_500'],
         primary_event: 'place.plumber.localpros.open',
       },
     ],
@@ -1511,6 +1538,7 @@ const MOCK_SCHOOLS_BANDRA = {
         distance_km: 0.5,
         specs: ['CBSE', 'K-12', '₹2.8L/yr'],
         tags: ['Co-ed', 'Day'],
+        filter_ids: ['cbse', 'k12', 'day_school'],
         primary_event: 'place.school.jamnabai.open',
       },
       {
@@ -1523,6 +1551,7 @@ const MOCK_SCHOOLS_BANDRA = {
         specs: ['IB', 'K-12', '₹11.5L/yr'],
         tags: ['Co-ed', 'IB PYP/MYP/DP'],
         badge: 'Top rated',
+        filter_ids: ['ib', 'k12'],
         primary_event: 'place.school.dhirubhai.open',
       },
       {
@@ -1534,6 +1563,7 @@ const MOCK_SCHOOLS_BANDRA = {
         distance_km: 0.8,
         specs: ['ICSE', 'Classes 1-10', '₹1.9L/yr'],
         tags: ['Co-ed', 'Day'],
+        filter_ids: ['icse', 'day_school'],
         primary_event: 'place.school.learners.open',
       },
       {
@@ -1545,6 +1575,7 @@ const MOCK_SCHOOLS_BANDRA = {
         distance_km: 1.3,
         specs: ['ICSE', 'K-12', '₹1.6L/yr'],
         tags: ['Co-ed', 'Heritage'],
+        filter_ids: ['icse', 'k12'],
         primary_event: 'place.school.bombay_scottish.open',
       },
       {
@@ -1556,6 +1587,7 @@ const MOCK_SCHOOLS_BANDRA = {
         distance_km: 1.1,
         specs: ['IB', 'Grades 9-12', '₹9.2L/yr'],
         tags: ['Co-ed', 'Senior'],
+        filter_ids: ['ib'],
         primary_event: 'place.school.cathedral_ib.open',
       },
     ],
@@ -1704,6 +1736,7 @@ const MOCK_GIFTS_WEDDING = {
         price_label: '₹1,999 – ₹4,999',
         rating: { value: 4.6, count: 312 },
         tags: ['Silver', 'Religious'],
+        filter_ids: ['under_2k', 'two_to_five', 'silver'],
         primary_event: 'catalog.gift.silver_thali.open',
       },
       {
@@ -1716,6 +1749,7 @@ const MOCK_GIFTS_WEDDING = {
         rating: { value: 4.8, count: 1024 },
         tags: ['Personalised', 'Art'],
         badge: 'Bestseller',
+        filter_ids: ['under_2k', 'personalised', 'couple_sets'],
         primary_event: 'catalog.gift.portrait.open',
       },
       {
@@ -1727,6 +1761,7 @@ const MOCK_GIFTS_WEDDING = {
         price_label: '₹2,499',
         rating: { value: 4.4, count: 2011 },
         tags: ['Home', 'Practical'],
+        filter_ids: ['two_to_five'],
         primary_event: 'catalog.gift.kitchen_set.open',
       },
       {
@@ -1739,6 +1774,7 @@ const MOCK_GIFTS_WEDDING = {
         rating: { value: 4.5, count: 5820 },
         tags: ['Same-day', 'Delivery'],
         temporal_label: 'Same-day delivery',
+        filter_ids: ['under_2k', 'two_to_five'],
         primary_event: 'catalog.gift.hamper.open',
       },
       {
@@ -1749,6 +1785,7 @@ const MOCK_GIFTS_WEDDING = {
         media: { alt: 'Urban Ladder gift card', fallback_color: '#C9B896' },
         price_label: '₹5,000',
         tags: ['Gift card', 'Flexible'],
+        filter_ids: ['two_to_five'],
         primary_event: 'catalog.gift.voucher.open',
       },
     ],
@@ -1798,6 +1835,7 @@ const MOCK_MOVIES_WEEKEND = {
         temporal_label: 'Fri 8pm · 5 shows',
         tags: ['Hindi', 'IMAX'],
         badge: 'Opening night',
+        filter_ids: ['weekend', 'hindi', 'imax'],
         primary_event: 'catalog.movie.jawan_2.open',
       },
       {
@@ -1809,6 +1847,7 @@ const MOCK_MOVIES_WEEKEND = {
         rating: { value: 4.8, count: 24100 },
         temporal_label: 'Sat 9:30pm · 2 shows',
         tags: ['English', 'IMAX 70mm'],
+        filter_ids: ['weekend', 'english', 'imax'],
         primary_event: 'catalog.movie.oppenheimer.open',
       },
       {
@@ -1820,6 +1859,7 @@ const MOCK_MOVIES_WEEKEND = {
         rating: { value: 4.5, count: 3210 },
         temporal_label: 'Sun 6:45pm · 3 shows',
         tags: ['Hindi', 'Festival'],
+        filter_ids: ['weekend', 'hindi'],
         primary_event: 'catalog.movie.mehta_boys.open',
       },
       {
@@ -1831,6 +1871,7 @@ const MOCK_MOVIES_WEEKEND = {
         rating: { value: 4.1, count: 1042 },
         temporal_label: 'Sat 11am · 4 shows',
         tags: ['Hindi', 'Kids'],
+        filter_ids: ['weekend', 'hindi'],
         primary_event: 'catalog.movie.chhota_bheem.open',
       },
     ],
@@ -1879,6 +1920,7 @@ const MOCK_DEVOTIONAL_MORNING = {
         temporal_label: '42 min',
         tags: ['Hindi', 'Chant'],
         rating: { value: 4.9, count: 182410 },
+        filter_ids: ['morning', 'hindi', 'under_1h'],
         primary_event: 'catalog.devotional.hanuman_chalisa.open',
       },
       {
@@ -1891,6 +1933,7 @@ const MOCK_DEVOTIONAL_MORNING = {
         tags: ['Sanskrit', 'Classical'],
         rating: { value: 4.9, count: 94820 },
         badge: 'Top pick',
+        filter_ids: ['morning', 'under_1h'],
         primary_event: 'catalog.devotional.suprabhatam.open',
       },
       {
@@ -1902,6 +1945,7 @@ const MOCK_DEVOTIONAL_MORNING = {
         temporal_label: '1h 12min',
         tags: ['Hindi', 'Loop'],
         rating: { value: 4.8, count: 58200 },
+        filter_ids: ['morning', 'hindi'],
         primary_event: 'catalog.devotional.gayatri.open',
       },
       {
@@ -1913,6 +1957,7 @@ const MOCK_DEVOTIONAL_MORNING = {
         temporal_label: '54 min',
         tags: ['Tamil', 'Classical'],
         rating: { value: 4.7, count: 12410 },
+        filter_ids: ['morning', 'tamil', 'under_1h'],
         primary_event: 'catalog.devotional.thevaram.open',
       },
       {
@@ -1924,6 +1969,7 @@ const MOCK_DEVOTIONAL_MORNING = {
         temporal_label: '1h 5min',
         tags: ['Punjabi', 'Gurbani'],
         rating: { value: 4.8, count: 41820 },
+        filter_ids: ['morning'],
         primary_event: 'catalog.devotional.nitnem.open',
       },
     ],
@@ -1972,6 +2018,7 @@ const MOCK_COURSES_DATASCIENCE = {
         rating: { value: 4.6, count: 128412 },
         price_label: '₹3,999/mo',
         specs: ['11 courses', 'Beginner', 'English', 'Certificate'],
+        filter_ids: ['beginner', 'under_5k', 'certificate'],
         primary_event: 'catalog.course.ibm_ds.open',
       },
       {
@@ -1984,6 +2031,7 @@ const MOCK_COURSES_DATASCIENCE = {
         price_label: '₹3,50,000',
         specs: ['12 months', 'Advanced', 'Hindi + English'],
         badge: 'Industry-backed',
+        filter_ids: ['advanced'],
         primary_event: 'catalog.course.upgrad.open',
       },
       {
@@ -1995,6 +2043,7 @@ const MOCK_COURSES_DATASCIENCE = {
         rating: { value: 4.8, count: 54210 },
         price_label: 'Free',
         specs: ['7 lessons', 'Beginner', 'English', 'Hands-on'],
+        filter_ids: ['beginner', 'under_5k'],
         primary_event: 'catalog.course.kaggle.open',
       },
       {
@@ -2006,6 +2055,7 @@ const MOCK_COURSES_DATASCIENCE = {
         rating: { value: 4.5, count: 3210 },
         price_label: '₹3,49,000',
         specs: ['14 months', 'Intermediate', 'Live mentorship'],
+        filter_ids: ['intermediate'],
         primary_event: 'catalog.course.scaler.open',
       },
       {
@@ -2017,6 +2067,7 @@ const MOCK_COURSES_DATASCIENCE = {
         rating: { value: 4.3, count: 21840 },
         price_label: 'Free (₹1,000 certificate)',
         specs: ['12 weeks', 'Beginner', 'English', 'Govt.-backed'],
+        filter_ids: ['beginner', 'under_5k', 'certificate'],
         primary_event: 'catalog.course.nptel.open',
       },
     ],
@@ -2065,6 +2116,7 @@ const MOCK_IPL_TODAY = {
         status_label: 'Live · 14.3 overs',
         tags: ['Mumbai', 'Live TV + JioCinema'],
         badge: 'Live',
+        filter_ids: ['today', 'english', 'hindi'],
         primary_event: 'catalog.ipl.mi_csk.open',
       },
       {
@@ -2076,6 +2128,7 @@ const MOCK_IPL_TODAY = {
         temporal_label: 'Today 7:30pm',
         status_label: 'Toss done · RCB bowl',
         tags: ['Bengaluru'],
+        filter_ids: ['today', 'english', 'hindi'],
         primary_event: 'catalog.ipl.rcb_kkr.open',
       },
       {
@@ -2086,6 +2139,7 @@ const MOCK_IPL_TODAY = {
         media: { alt: 'GT vs RR match art', fallback_color: '#4D7FC9' },
         temporal_label: 'Tomorrow 3:30pm',
         tags: ['Ahmedabad', 'Doubleheader'],
+        filter_ids: ['tomorrow', 'english', 'hindi'],
         primary_event: 'catalog.ipl.gt_rr.open',
       },
       {
@@ -2096,6 +2150,7 @@ const MOCK_IPL_TODAY = {
         media: { alt: 'SRH vs LSG match art', fallback_color: '#F26722' },
         temporal_label: 'Tomorrow 7:30pm',
         tags: ['Hyderabad'],
+        filter_ids: ['tomorrow', 'english', 'hindi'],
         primary_event: 'catalog.ipl.srh_lsg.open',
       },
     ],
@@ -2145,6 +2200,7 @@ const MOCK_SCHEMES_FARMERS = {
         status_label: 'Active',
         tags: ['Direct benefit'],
         badge: 'Top-up pending',
+        filter_ids: ['active', 'subsidy', 'pan_india'],
         primary_event: 'catalog.scheme.pm_kisan.open',
       },
       {
@@ -2157,6 +2213,7 @@ const MOCK_SCHEMES_FARMERS = {
         specs: ['Crop insurance', 'Premium 2% (kharif) / 1.5% (rabi)'],
         status_label: 'Enrolment window',
         tags: ['Insurance'],
+        filter_ids: ['active', 'insurance', 'pan_india'],
         primary_event: 'catalog.scheme.pmfby.open',
       },
       {
@@ -2168,6 +2225,7 @@ const MOCK_SCHEMES_FARMERS = {
         temporal_label: 'Open all year',
         specs: ['Short-term credit', '4% interest (after subvention)', 'Up to ₹3L'],
         tags: ['Credit'],
+        filter_ids: ['active', 'credit', 'pan_india'],
         primary_event: 'catalog.scheme.kcc.open',
       },
       {
@@ -2180,6 +2238,7 @@ const MOCK_SCHEMES_FARMERS = {
         specs: ['Online mandi', '1,400+ markets', 'Zero commission'],
         status_label: 'Active',
         tags: ['Market access'],
+        filter_ids: ['active', 'pan_india'],
         primary_event: 'catalog.scheme.enam.open',
       },
       {
@@ -2191,6 +2250,7 @@ const MOCK_SCHEMES_FARMERS = {
         temporal_label: 'Renewal due Mar 2026',
         specs: ['Free testing', 'Every 3 years', 'Region-specific advisory'],
         tags: ['Advisory'],
+        filter_ids: ['active', 'pan_india'],
         primary_event: 'catalog.scheme.soil_health.open',
       },
     ],
