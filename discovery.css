@@ -115,10 +115,30 @@
   color: var(--color-text-primary);
   line-height: var(--font-line-height-normal);
   -webkit-font-smoothing: antialiased;
+  /* Fit the chat container width. `.chat-messages` is a flex column with
+     `align-items: flex-end`, so without stretch the element would size to its
+     widest child (the carousel) and overflow the phone viewport. */
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
 }
 .jbiq-discovery *,
 .jbiq-discovery *::before,
 .jbiq-discovery *::after { box-sizing: border-box; }
+/* Flex items default to min-width: auto (= content size), which defeats the
+   overflow-x:auto on carousels, chip bars, and the compare-table scroller.
+   Reset so they scroll inside the chat width instead of expanding past it. */
+.discovery-view > * { min-width: 0; }
+/* Full-bleed horizontal rails: extend to the phone frame's full width so
+   cards and chips can peek from edge to edge. The negative margin cancels
+   the 16px side inset on `.voice-container`; each primitive keeps its own
+   `padding: 0 var(--space-lg)` so the first item still aligns with the
+   subject header and map. */
+.jbiq-discovery .filter-chip-bar,
+.jbiq-discovery .collection-container--carousel {
+  margin-left: calc(-1 * var(--space-lg));
+  margin-right: calc(-1 * var(--space-lg));
+}
 
 /* ----------------------------------------------------------------------------
    COMPOSITION: .discovery-view — vertical stack of primitive sections.
@@ -250,6 +270,10 @@
   gap: var(--space-sm);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
+  /* Honour the 16px left/right padding when snapping — otherwise mandatory
+     snap eats the first card's left inset on initial render. */
+  scroll-padding-left: var(--space-lg);
+  scroll-padding-right: var(--space-lg);
   scrollbar-width: none;
 }
 .collection-container--carousel::-webkit-scrollbar { display: none; }

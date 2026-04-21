@@ -2006,6 +2006,43 @@
       height: 1px;
       background: var(--stroke-subtle);
     }
+    .proto-group-title {
+      padding: 16px 20px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-medium);
+      opacity: 0.7;
+    }
+    .proto-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 20px;
+      width: 100%;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-family);
+      font-size: 15px;
+      color: var(--text-high);
+      text-align: left;
+      transition: background 0.15s;
+    }
+    .proto-item::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-top: 1.5px solid var(--text-medium);
+      border-right: 1.5px solid var(--text-medium);
+      transform: rotate(45deg);
+      opacity: 0.5;
+      flex-shrink: 0;
+    }
+    .proto-item:hover { background: #f8f8f8; }
+    .proto-item:active { background: #eee; }
 
     /* Responsive */
     @media (max-width: 400px) {
@@ -2590,28 +2627,7 @@
       </button>
     </div>
 
-    <div class="tools-content">
-      <button class="tool-item">
-        <div class="tool-item-icon">
-          <span class="tool-icon-mask" style="-webkit-mask-image: url(https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_widgets.svg); mask-image: url(https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_widgets.svg);"></span>
-        </div>
-        <div class="tool-item-text">
-          <span class="tool-item-name">Restaurant discovery</span>
-          <span class="tool-item-desc">Find great places to eat based on your taste, location, and budget.</span>
-        </div>
-      </button>
-      <div class="tool-divider"></div>
-
-      <button class="tool-item">
-        <div class="tool-item-icon">
-          <span class="tool-icon-mask" style="-webkit-mask-image: url(https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_cart.svg); mask-image: url(https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_cart.svg);"></span>
-        </div>
-        <div class="tool-item-text">
-          <span class="tool-item-name">Shopping order and payment</span>
-          <span class="tool-item-desc">Browse items, place orders, and complete payments in one flow.</span>
-        </div>
-      </button>
-    </div>
+    <div class="tools-content" id="prototypesList"></div>
   </div>
 </div>
 
@@ -2644,6 +2660,43 @@
   function closePrototypesPanel() {
     document.getElementById('menuOverlay').classList.remove('pushed-left');
     document.getElementById('prototypesOverlay').classList.remove('active');
+  }
+
+  // Populate the Prototypes panel from the DiscoveryView registry exported by
+  // discovery.js. Tapping a row fires runPrototypeQuery() — closes the drawer,
+  // opens the chat in text mode, and sends the label through showResponse() so
+  // the full journey (user bubble, thinking, view) renders as if typed.
+  function populatePrototypesList() {
+    const root = document.getElementById('prototypesList');
+    if (!root || !window.DATASET_GROUPS) return;
+    root.innerHTML = '';
+    window.DATASET_GROUPS.forEach(g => {
+      const h = document.createElement('div');
+      h.className = 'proto-group-title';
+      h.textContent = g.group;
+      root.appendChild(h);
+      g.items.forEach(it => {
+        const btn = document.createElement('button');
+        btn.className = 'proto-item';
+        btn.type = 'button';
+        btn.textContent = it.label;
+        btn.addEventListener('click', () => runPrototypeQuery(it.label));
+        root.appendChild(btn);
+      });
+    });
+  }
+
+  function runPrototypeQuery(text) {
+    closePrototypesPanel();
+    closeMenuPanel();
+    openTypingMode();
+    showResponse(text);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', populatePrototypesList);
+  } else {
+    populatePrototypesList();
   }
 
   // === Elements ===
@@ -3006,7 +3059,7 @@
     if (!hasRestWord) return false;
     // Only trigger the journey when the intent is "find one", not e.g.
     // "I own a restaurant". Match common discovery verbs/qualifiers.
-    return /\b(top|best|near|good|find|show|recommend|suggest|around|close)\b/.test(t)
+    return /\b(top|best|near\w*|good|find|show|recommend|suggest|around|close)\b/.test(t)
         || t.includes('aas paas');
   }
 
@@ -3057,11 +3110,12 @@
     return hasVerb && !hasRestaurant;
   }
 
-  // === DiscoveryView / Compare routing ===
-  // Patterns map user utterances to one of the 7 Compare mocks shipped in
-  // discovery.js. First match wins. Order matters — more specific patterns
-  // first.
-  const COMPARE_QUERY_PATTERNS = [
+  // === DiscoveryView routing (Place + Catalog + Compare) ===
+  // Patterns map user utterances to one of the 19 DiscoveryView mocks shipped
+  // in discovery.js (restaurants stays on the existing carousel journey).
+  // First match wins — more specific patterns first.
+  const DISCOVERY_QUERY_PATTERNS = [
+    // Compare (7)
     { re: /\bhome\s*loan/i,                                      view: 'home_loans' },
     { re: /\bhealth\s*insurance/i,                               view: 'health_insurance' },
     { re: /\bemi\b/i,                                            view: 'emi_fridge' },
@@ -3069,11 +3123,25 @@
     { re: /\bphone.{0,30}(under|less).{0,10}(₹|rs\.?)?\s*20/i,   view: 'phones_20k' },
     { re: /\btatkal\b|\btrain/i,                                 view: 'trains_tatkal' },
     { re: /\bflight/i,                                           view: 'flights_mumbai' },
+    // Place (5) — restaurants intentionally omitted; handled by carousel
+    { re: /\bbiryani\b/i,                                        view: 'biryani_hyderabad' },
+    { re: /\b(doctor|fever|consult)/i,                           view: 'doctors' },
+    { re: /\bplumber/i,                                          view: 'plumbers' },
+    { re: /\bschool/i,                                           view: 'schools_bandra' },
+    { re: /\b(apartment|flat|2\s*bhk|\brent\b)/i,                view: 'apartments' },
+    // Catalog (7)
+    { re: /\bkurta/i,                                            view: 'kurta_diwali' },
+    { re: /\bgift/i,                                             view: 'gifts_wedding' },
+    { re: /\bmovie/i,                                            view: 'movies_weekend' },
+    { re: /\bdevotional/i,                                       view: 'devotional_morning' },
+    { re: /\b(data\s*science|online\s*course)/i,                 view: 'courses_datascience' },
+    { re: /\bipl\b/i,                                            view: 'ipl_today' },
+    { re: /\b(scheme|farmer|subsidy)/i,                          view: 'schemes_farmers' },
   ];
 
-  function matchCompareQuery(text) {
+  function matchDiscoveryQuery(text) {
     const t = (text || '').toLowerCase();
-    for (const p of COMPARE_QUERY_PATTERNS) {
+    for (const p of DISCOVERY_QUERY_PATTERNS) {
       if (p.re.test(t)) return p.view;
     }
     return null;
@@ -3437,11 +3505,13 @@
     const isShoppingQuery = !isRestaurantQuery && matchesShoppingQuery(text);
     const shoppingItemText = isShoppingQuery ? parseShoppingItem(text) : '';
     const shoppingProduct = isShoppingQuery ? resolveShoppingProduct(shoppingItemText) : null;
-    // Compare sub-pattern: only fires when neither existing journey matched.
-    const compareKey = (!isRestaurantQuery && !isShoppingQuery) ? matchCompareQuery(text) : null;
+    // DiscoveryView (Place / Catalog / Compare): only fires when neither
+    // existing journey matched.
+    const discoveryKey = (!isRestaurantQuery && !isShoppingQuery) ? matchDiscoveryQuery(text) : null;
+    const discoveryDs = (discoveryKey && window.DATASETS) ? window.DATASETS[discoveryKey] : null;
     voiceTitle.textContent = isRestaurantQuery
       ? 'Top restaurants'
-      : (isShoppingQuery ? `Order ${shoppingItemText}` : (compareKey ? 'Comparing options' : extractTitle(text)));
+      : (isShoppingQuery ? `Order ${shoppingItemText}` : (discoveryDs ? discoveryDs.view.subject.title : extractTitle(text)));
 
     if (isTextMode) {
       kbBotMini.classList.remove('visible');
@@ -3510,6 +3580,12 @@
       responseText = `Here are top restaurants near you in ${USER_PROFILE.city} — Spice Garden is top-rated.`;
     } else if (isShoppingQuery && shoppingProduct) {
       responseText = `Found ${shoppingProduct.name} on JioMart for ₹${shoppingProduct.price}. Tap Confirm & Pay to place the order.`;
+    } else if (discoveryDs) {
+      // DiscoveryView carries its own Context Line (subject.title + subtitle)
+      // per Response Pattern Model §6. No prose needed above the cards —
+      // doubling the header would violate §3.4 (filler / intent echo) and
+      // §5 (single Context Line slot).
+      responseText = '';
     } else {
       try {
         const res = await fetch('/api/chat', {
@@ -3526,6 +3602,16 @@
       }
     }
 
+    // Speakable form for TTS + conversation history when no on-screen prose
+    // exists: synthesize a Context Line from the DiscoveryView subject.
+    let spokenText = responseText;
+    if (!responseText && discoveryDs && discoveryDs.view.subject) {
+      const s = discoveryDs.view.subject;
+      spokenText = s.subtitle
+        ? `${s.title} — ${s.subtitle.replace(/\s*·\s*/g, ', ')}`
+        : s.title;
+    }
+
     // Wait for minimum 4s thinking duration
     const elapsed = Date.now() - thinkingStart;
     if (elapsed < 4000) {
@@ -3537,19 +3623,27 @@
     messageSentSound.currentTime = 0;
     messageSentSound.play().catch(() => {});
 
-    // 6. Add AI response element
-    const aiEl = document.createElement('div');
-    aiEl.className = 'ai-response';
-    chatMessages.appendChild(aiEl);
-
-    // 7. Start TTS and typewriter simultaneously in voice mode
-    let ttsPromise = Promise.resolve();
-    if (!isTextMode && responseText) {
-      ttsPromise = playTTS(responseText);
+    // 6. Add AI response element only if there's prose to show. DiscoveryView
+    // queries suppress this — the sub-pattern header is the Context Line.
+    let aiEl = null;
+    if (responseText) {
+      aiEl = document.createElement('div');
+      aiEl.className = 'ai-response';
+      chatMessages.appendChild(aiEl);
     }
 
-    // Typewriter runs in parallel with audio
-    await typeWriter(aiEl, responseText, chatMessages);
+    // 7. Start TTS and typewriter simultaneously in voice mode. TTS speaks
+    // `spokenText` so voice-mode users still hear the Context Line even
+    // when no prose is rendered above the DiscoveryView cards.
+    let ttsPromise = Promise.resolve();
+    if (!isTextMode && spokenText) {
+      ttsPromise = playTTS(spokenText);
+    }
+
+    // Typewriter only runs when there is prose to type.
+    if (aiEl) {
+      await typeWriter(aiEl, responseText, chatMessages);
+    }
 
     // 7b. Render restaurant carousel for matching queries
     if (isRestaurantQuery) {
@@ -3564,15 +3658,12 @@
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // 7d. Render DiscoveryView (Compare sub-pattern) for matching queries.
+    // 7d. Render DiscoveryView (Place / Catalog / Compare) for matching queries.
     // Primitives come from discovery.js; styling from discovery.css. The
     // element is wrapped in .jbiq-discovery so scoping applies.
-    if (compareKey && window.renderDiscoveryView && window.DATASETS) {
-      const ds = window.DATASETS[compareKey];
-      if (ds) {
-        chatMessages.appendChild(window.renderDiscoveryView(ds.view));
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      }
+    if (discoveryDs && window.renderDiscoveryView) {
+      chatMessages.appendChild(window.renderDiscoveryView(discoveryDs.view));
+      chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     // 8. Add feedback icons
@@ -3580,8 +3671,9 @@
     chatMessages.appendChild(feedbackEl);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // 9. Push to history
-    conversationHistory.push({ role: 'assistant', content: responseText });
+    // 9. Push to history — use spokenText so DiscoveryView turns still leave a
+    // trace in the conversation (empty assistant turns would confuse Claude).
+    conversationHistory.push({ role: 'assistant', content: spokenText || responseText });
 
     // 10. Voice mode: wait for TTS to finish, then transition to listening
     if (!isTextMode) {
