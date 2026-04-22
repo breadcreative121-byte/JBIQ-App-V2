@@ -492,30 +492,24 @@ function renderMapPanel({ userLocation, markers }) {
     svg.appendChild(dot);
   }
 
-  // Markers: teardrop pin with optional label
+  // Markers: classic map-pin icon (teardrop body with inner dot). The tip
+  // anchors to the marker coordinate; body sits above it.
   for (const m of markers) {
     const { x, y } = project(m.lat, m.lng);
     const g = document.createElementNS(SVG_NS, 'g');
     g.setAttribute('transform', `translate(${x}, ${y})`);
 
     const pin = document.createElementNS(SVG_NS, 'path');
-    pin.setAttribute('d', 'M 0 0 L -5 -8 A 8 8 0 1 1 5 -8 Z');
+    pin.setAttribute('d', 'M 0 0 C -4 -6 -7 -10 -7 -14 A 7 7 0 1 1 7 -14 C 7 -10 4 -6 0 0 Z');
     pin.setAttribute('fill', tokens.color.action.primary);
     g.appendChild(pin);
 
-    if (m.pin_label) {
-      const label = document.createElementNS(SVG_NS, 'text');
-      label.setAttribute('x', '0');
-      label.setAttribute('y', '-10');
-      label.setAttribute('text-anchor', 'middle');
-      label.setAttribute('dominant-baseline', 'central');
-      label.setAttribute('font-size', String(tokens.font.size.caption));
-      label.setAttribute('font-family', tokens.font.family);
-      label.setAttribute('fill', tokens.color.text.onPrimary);
-      label.setAttribute('font-weight', String(tokens.font.weight.medium));
-      label.textContent = m.pin_label;
-      g.appendChild(label);
-    }
+    const inner = document.createElementNS(SVG_NS, 'circle');
+    inner.setAttribute('cx', '0');
+    inner.setAttribute('cy', '-14');
+    inner.setAttribute('r', '2.5');
+    inner.setAttribute('fill', '#ffffff');
+    g.appendChild(inner);
 
     svg.appendChild(g);
   }

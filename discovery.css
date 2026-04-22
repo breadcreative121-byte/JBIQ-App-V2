@@ -255,6 +255,7 @@
 .map-panel {
   height: var(--layout-map-height);
   background: #E8EEF2; /* map-panel SVG exception: schematic land colour */
+  border-radius: var(--radius-lg);
   overflow: hidden;
   position: relative;
 }

@@ -3664,6 +3664,14 @@
     return null;
   }
 
+  // Strip the §15 pivot beat ("On screen — …" / "I've put them on screen — …")
+  // from a voice_disclosure so the outcome + anchor + shape read as text prose
+  // above the widget (the widget itself is the pivot surface in text mode).
+  function stripVoicePivot(vd) {
+    if (!vd) return '';
+    return vd.replace(/\s+(?:I've put them on screen|On screen)\s+—\s+[^.?!]*[.?!]?\s*$/, '').trim();
+  }
+
   function parseShoppingItem(text) {
     const m = text.toLowerCase().match(/\b(?:order|buy|get me|purchase|pay for)\s+(?:me\s+)?(?:a|an|some)?\s*([a-z0-9 '\-]+?)(?:\s+(?:from|on|please|now))?[\.!\?]?\s*$/i);
     const raw = m && m[1] ? m[1].trim() : 'item';
@@ -4111,11 +4119,12 @@
     } else if (isShoppingQuery && shoppingProduct) {
       responseText = `Found ${shoppingProduct.name} on JioMart for ₹${shoppingProduct.price}. Tap Confirm & Pay to place the order.`;
     } else if (discoveryDs) {
-      // DiscoveryView carries its own Context Line (subject.title + subtitle)
-      // per Response Pattern Model §6. No prose needed above the cards —
-      // doubling the header would violate §3.4 (filler / intent echo) and
-      // §5 (single Context Line slot).
-      responseText = '';
+      // Text mode: render the §15 four-beat summary (outcome + anchor + shape)
+      // as prose above the widget. The widget itself is the pivot surface, so
+      // the "on screen…" pivot is stripped. Voice mode stays silent on screen;
+      // TTS carries the full voice_disclosure via spokenText below.
+      const vd = discoveryDs.view.voice_disclosure;
+      responseText = (isTextMode && vd) ? stripVoicePivot(vd) : '';
     } else if (textFixture) {
       // Text Response Patterns §6 — prose text comes from the fixture's
       // headline (Info-Complex / Advisory) or body (Info-Simple / Conversational).
@@ -4139,11 +4148,13 @@
       }
     }
 
-    // Speakable form for TTS + conversation history when no on-screen prose
-    // exists. Prefer the view's hand-authored §15 four-beat voice_disclosure;
-    // fall back to the Context Line synthesized from the subject.
+    // Speakable form for TTS + conversation history. Always prefer the full
+    // §15 four-beat voice_disclosure (including pivot) when a DiscoveryView
+    // is in play — text mode renders a stripped version on screen but the
+    // complete disclosure still lands in TTS + conversationHistory so follow-
+    // up turns keep context and §15 acceptance criteria are preserved.
     let spokenText = responseText;
-    if (!responseText && discoveryDs && discoveryDs.view.voice_disclosure) {
+    if (discoveryDs && discoveryDs.view.voice_disclosure) {
       spokenText = discoveryDs.view.voice_disclosure;
     } else if (!responseText && discoveryDs && discoveryDs.view.subject) {
       const s = discoveryDs.view.subject;
@@ -4215,22 +4226,6 @@
     // element is wrapped in .jbiq-discovery so scoping applies.
     if (discoveryDs && window.renderDiscoveryView) {
       chatMessages.appendChild(window.renderDiscoveryView(discoveryDs.view));
-      // Text mode: follow the widget with a written narrative summary. Voice mode
-      // speaks this string via TTS instead, so showing it would duplicate.
-      if (isTextMode && discoveryDs.view.voice_disclosure) {
-        // Strip the trailing "On screen — tap X, or …" pivot: it's a voice
-        // affordance (reading out what's on screen + a follow-up prompt) and
-        // reads as filler in a written transcript where the widget is visible.
-        const summaryText = discoveryDs.view.voice_disclosure
-          .replace(/\s*(?:I['’]ve put them on screen|On screen)\s*[—–-][^]*$/i, '')
-          .trim();
-        if (summaryText) {
-          const summaryEl = document.createElement('div');
-          summaryEl.className = 'ai-response';
-          summaryEl.textContent = summaryText;
-          chatMessages.appendChild(summaryEl);
-        }
-      }
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
