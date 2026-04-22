@@ -1130,6 +1130,7 @@ const MOCK_RESTAURANTS = {
     kind: 'see_more',
     query: 'Show me more restaurants nearby',
   },
+  voice_disclosure: "15 restaurants within 2 km, 5 open now. Britannia & Co. — Iranian cafe, 1.2 km, 4.6 stars. Others span Punjabi to Japanese, mostly mid-range. I've put them on screen — tap one, or filter by cuisine.",
   meta: {
     intent: 'discover',
     query: 'Restaurants near me',
@@ -1231,6 +1232,7 @@ const MOCK_DOCTORS = {
     kind: 'context_shift',
     query: 'Find doctors by speciality near me',
   },
+  voice_disclosure: "12 doctors consulting today. Dr. Anand Rao is free now — GP, 1.5 km, 4.8 stars. Others range from pediatrics to dermatology, within 2 km. I've put them on screen — tap one, or ask for a pediatrician?",
   meta: {
     intent: 'discover',
     query: 'Doctors near me',
@@ -1331,6 +1333,7 @@ const MOCK_APARTMENTS = {
     kind: 'see_more',
     query: 'Show me more 2 BHK listings in Andheri',
   },
+  voice_disclosure: "8 two-BHK flats in Andheri West. Cheapest is Sealine Residences — ₹45,000 a month, 850 sqft, 0.4 km from metro. Others range up to ₹62,000, one is furnished with a pool. On screen — tap Sealine, or filter by amenities?",
   meta: {
     intent: 'discover',
     query: '2 BHK apartments for rent in Andheri West',
@@ -1458,6 +1461,7 @@ const MOCK_BIRYANI_HYDERABAD = {
     kind: 'compare',
     query: 'Compare Paradise, Bawarchi and Shah Ghouse',
   },
+  voice_disclosure: "18 biryani spots in Hyderabad. Paradise is #1 — 4.7 stars, Hyderabadi dum, 2.4 km. Bawarchi and Shah Ghouse follow close behind at similar prices. On screen — tap Paradise, or compare the top three?",
   meta: {
     intent: 'discover',
     query: 'Best biryani in Hyderabad',
@@ -1566,6 +1570,7 @@ const MOCK_PLUMBERS = {
     kind: 'remind_later',
     query: 'Remind me to book a plumber tomorrow morning',
   },
+  voice_disclosure: "4 plumbers free now in Andheri. Urban Company is closest — ₹349, 30-min ETA, 4.8 stars. Mr Handy and LocalPros are also available; QuickFix is busy. On screen — tap Urban Company, or hear the others?",
   meta: {
     intent: 'discover',
     query: 'Plumber in my area',
@@ -1683,6 +1688,7 @@ const MOCK_SCHOOLS_BANDRA = {
     kind: 'compare',
     query: 'Compare these schools by annual fees',
   },
+  voice_disclosure: "5 Bandra schools with admissions open. Jamnabai Narsee is closest — CBSE K-12, 0.5 km, ₹2.8 lakh a year. Others span ICSE and IB, up to ₹11.5 lakh. On screen — tap one, or compare by fees?",
   meta: {
     intent: 'discover',
     query: 'Schools for my child in Bandra',
@@ -1789,6 +1795,7 @@ const MOCK_KURTA_DIWALI = {
     kind: 'see_more',
     query: 'Show me more kurtas for Diwali',
   },
+  voice_disclosure: "240 Diwali kurtas, delivery by Nov 10. FabIndia's silk Nehru kurta is top — ₹1,499, 4.4 stars, silk. Others span ₹899 to ₹3,299 across men and women. On screen — tap one, or filter by fabric?",
   meta: {
     intent: 'discover',
     query: 'Shop for a kurta for Diwali',
@@ -1893,6 +1900,7 @@ const MOCK_GIFTS_WEDDING = {
     kind: 'see_more',
     query: 'Show me more wedding gift ideas',
   },
+  voice_disclosure: "120 wedding gift ideas, 5 curated under ₹2k. A silver pooja thali from GIVA is popular — ₹1,999, 4.6 stars. Others include a personalised couple portrait, a kitchen set, and hampers. On screen — tap one, or narrow by price?",
   meta: {
     intent: 'discover',
     query: "Gifts for my sister's wedding",
@@ -1985,6 +1993,7 @@ const MOCK_MOVIES_WEEKEND = {
     kind: 'compare',
     query: 'Compare showtimes for weekend movies',
   },
+  voice_disclosure: "32 weekend movies — 4 up top. Jawan 2 opens Friday 8pm, IMAX, 5 shows. The others run Saturday and Sunday across Hindi and English. I've put them on screen — pick one, or ask me to narrow.",
   meta: {
     intent: 'discover',
     query: 'Movies playing this weekend',
@@ -2089,6 +2098,7 @@ const MOCK_DEVOTIONAL_MORNING = {
     kind: 'save_later',
     query: 'Save these devotional tracks to my library',
   },
+  voice_disclosure: "5 morning devotionals. Hariharan's Hanuman Chalisa is top — 42 minutes, 4.9 stars, in Hindi. Others run from 28 minutes to over an hour across Sanskrit, Tamil, and Punjabi. On screen — play one, or filter by language?",
   meta: {
     intent: 'discover',
     query: 'Devotional songs for morning',
@@ -2193,6 +2203,7 @@ const MOCK_COURSES_DATASCIENCE = {
     kind: 'compare',
     query: 'Compare these 5 data science courses',
   },
+  voice_disclosure: "120 data science courses, 5 starter picks. Coursera's IBM Professional leads — ₹3,999 a month, 4.6 stars, certificate. Others include a free Kaggle intro and a paid upGrad path. On screen — tap one, or filter by price?",
   meta: {
     intent: 'discover',
     query: 'Online courses for data science',
@@ -2282,6 +2293,7 @@ const MOCK_IPL_TODAY = {
     kind: 'remind_later',
     query: 'Remind me 15 minutes before MI vs CSK starts',
   },
+  voice_disclosure: "2 matches today, 2 tomorrow. MI vs CSK is live now — Wankhede Mumbai, 14.3 overs in, English and Hindi. RCB vs KKR starts at 7:30pm. On screen — tap to watch, or set a reminder?",
   meta: {
     intent: 'discover',
     query: 'IPL matches today',
@@ -2388,6 +2400,7 @@ const MOCK_SCHEMES_FARMERS = {
     kind: 'see_more',
     query: 'Show me all central government schemes for farmers',
   },
+  voice_disclosure: "5 active farmer schemes. PM-KISAN's 17th instalment is open now — ₹6,000 a year, direct to bank, for under-2-hectare holdings. Others cover crop insurance, credit, and soil advisory. On screen — tap one, or see all central schemes?",
   meta: {
     intent: 'discover',
     query: 'Government schemes for farmers',
@@ -2488,6 +2501,7 @@ const MOCK_HOME_LOANS = {
       },
     ],
   },
+  voice_disclosure: "3 home loans under 8%. SBI MaxGain has the lowest rate — 7.80 percent, ₹41,293 monthly, processing fee capped at ₹10k. HDFC and ICICI are slightly higher. On screen — tap SBI, or compare all three?",
   meta: {
     intent: 'discover',
     query: 'Compare home loans under 8%',
@@ -2602,6 +2616,7 @@ const MOCK_FLIGHTS_MUMBAI = {
     kind: 'remind_later',
     query: 'Alert me if any flight drops below ₹3,500',
   },
+  voice_disclosure: "4 non-stop flights to Mumbai tomorrow. IndiGo is cheapest — ₹4,299, 6:20 AM, 1h 50m. Others run up to ₹6,499 through the afternoon. On screen — tap IndiGo, or set a price alert below ₹3,500?",
   meta: {
     intent: 'discover',
     query: 'Cheap flights to Mumbai tomorrow',
@@ -2698,6 +2713,7 @@ const MOCK_RECHARGE_299 = {
       },
     ],
   },
+  voice_disclosure: "3 plans at ₹299 for 28 days. Jio gives the most — 2 GB a day, unlimited calls, JioCinema Premium. Airtel and Vi offer 1.5 GB with smaller OTT perks. On screen — tap Jio, or compare side by side?",
   meta: {
     intent: 'discover',
     query: '₹299 mobile recharge plans',
@@ -2810,6 +2826,7 @@ const MOCK_PHONES_20K = {
     kind: 'context_shift',
     query: 'Show reviews for these phones',
   },
+  voice_disclosure: "3 phones under ₹20,000. Redmi Note 14 Pro leads on camera — 200 megapixels, 8+256, ₹18,999. Samsung M35 is cheapest at ₹16,499 with a bigger battery. On screen — tap Redmi, or narrow by spec?",
   meta: {
     intent: 'discover',
     query: 'Best phones under ₹20,000',
@@ -2921,6 +2938,7 @@ const MOCK_TRAINS_TATKAL = {
     kind: 'remind_later',
     query: 'Alert me 5 minutes before tatkal booking opens',
   },
+  voice_disclosure: "3 tatkal trains to Patna tomorrow. Rajdhani Express leaves LTT at 4:55 PM — 14h 45m, ₹2,305 in 3AC. Duronto runs later, Sampark Kranti is cheapest. On screen — tap Rajdhani, or set a tatkal alert?",
   meta: {
     intent: 'discover',
     query: 'Tatkal trains to hometown',
@@ -3024,6 +3042,7 @@ const MOCK_HEALTH_INSURANCE = {
     kind: 'context_shift',
     query: 'Connect me with an insurance advisor',
   },
+  voice_disclosure: "3 family health plans at ₹10L cover. Star Optima has the widest network — ₹18,920 a year, 14,000 hospitals, cashless. Niva Bupa costs more but adds unlimited restore. On screen — tap Star, or talk to an advisor?",
   meta: {
     intent: 'discover',
     query: 'Health insurance for family of 4',
@@ -3113,6 +3132,7 @@ const MOCK_EMI_FRIDGE = {
       },
     ],
   },
+  voice_disclosure: "3 EMI options for this ₹32,990 fridge. Bajaj Finserv is zero-interest — ₹2,749 a month, 12 months, ₹249 fee. HDFC and SBI cards charge real interest on top. On screen — tap Bajaj, or see interest totals?",
   meta: {
     intent: 'discover',
     query: 'EMI options for this fridge',

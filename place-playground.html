@@ -96,7 +96,7 @@
       --font-tracking-small: 0.005em;    /* JDS body-2xs / overline */
 
       /* layout — app-specific, not in JDS catalogue */
-      --layout-mobile-frame-width: 380px;
+      --layout-mobile-frame-width: 390px;
       --layout-card-width: 220px;
       --layout-card-media-height: 110px;
       --layout-map-height: 132px;
@@ -177,13 +177,148 @@
     }
 
     /* ========================================================================
+       TEXT RESPONSE PATTERNS (§6) — prose canonical shapes, rendered inside
+       the mobile frame below the YOU: line. Tokens match the rest of the
+       playground stylesheet (JDS primary purple + neutrals).
+       ======================================================================== */
+    .text-response {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      padding: var(--space-md) var(--space-lg) var(--space-lg);
+      font-family: var(--font-family);
+      font-size: var(--font-size-body);
+      color: var(--color-text-primary);
+      line-height: var(--font-line-height-normal);
+      letter-spacing: var(--font-tracking-body);
+    }
+    .text-response__headline {
+      margin: 0;
+      font-size: var(--font-size-title);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-text-primary);
+    }
+    .text-response__body {
+      margin: 0;
+    }
+    .text-response__steps {
+      margin: 0;
+      padding-left: var(--space-xl);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    .text-response__caveat {
+      margin: 0;
+      font-size: var(--font-size-caption);
+      color: var(--color-text-secondary);
+    }
+
+    /* Advisory comparison table — compact, no outer borders, subtle row divider,
+       recommended row tinted with primary-surface + left accent. */
+    .text-response__table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--font-size-caption);
+    }
+    .text-response__table th {
+      text-align: left;
+      font-weight: var(--font-weight-medium);
+      font-size: var(--font-size-caption);
+      color: var(--color-text-secondary);
+      padding: var(--space-xs) var(--space-sm) var(--space-xs) 0;
+      border-bottom: 0.5px solid var(--color-border-default);
+    }
+    .text-response__table td {
+      padding: var(--space-sm) var(--space-sm) var(--space-sm) 0;
+      border-bottom: 0.5px solid var(--color-border-default);
+      vertical-align: top;
+    }
+    .text-response__table tr:last-child td { border-bottom: none; }
+    .text-response__table-label {
+      font-weight: var(--font-weight-bold);
+      white-space: nowrap;
+    }
+    .text-response__table-fit {
+      color: var(--color-text-secondary);
+    }
+    .text-response__table tr.is-recommended {
+      background: var(--color-action-primary-surface);
+    }
+    .text-response__table tr.is-recommended td:first-child {
+      box-shadow: inset 3px 0 0 var(--color-action-primary);
+    }
+    .text-response__table tr.is-recommended .text-response__table-fit {
+      color: var(--color-action-primary);
+      font-weight: var(--font-weight-bold);
+    }
+
+    /* Pivots — §6 handoff. Secondary chip for Info-Complex alternatives; primary
+       CTA for Advisory recommendations. */
+    .text-response__pivots {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      margin-top: var(--space-xs);
+    }
+    .text-response__pivot-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: var(--space-sm) var(--space-md);
+      background: var(--color-action-primary-surface);
+      border: none;
+      border-radius: var(--radius-pill);
+      font-family: inherit;
+      font-size: var(--font-size-body);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-action-primary);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .text-response__pivot-chip:hover  { background: rgba(116, 66, 228, 0.16); }
+    .text-response__pivot-chip:active { background: rgba(116, 66, 228, 0.24); }
+    .text-response__pivot-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 18px;
+      background: var(--color-action-primary);
+      border: none;
+      border-radius: var(--radius-pill);
+      font-family: inherit;
+      font-size: var(--font-size-body);
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-on-primary);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .text-response__pivot-cta:hover  { background: var(--color-action-primary-hover); }
+    .text-response__pivot-cta:active { background: #1f0042; }
+
+    /* Conversational — acknowledgement sized for a single line. */
+    .text-response--conversational .text-response__body {
+      font-size: var(--font-size-title);
+      color: var(--color-text-primary);
+    }
+
+    /* ========================================================================
        COMPOSITION
        ======================================================================== */
     .discovery-view {
       display: flex;
       flex-direction: column;
       gap: var(--space-md);
-      padding: var(--space-md) 0;
+      padding: var(--space-md) var(--space-lg);
+    }
+    /* Full-bleed rails: cancel the 16px discovery-view inset so chips, cards,
+       and their internal 16px padding land the first item at exactly 16px
+       from the frame edge — matching the main app's voice-container layout. */
+    .discovery-view > .filter-chip-bar,
+    .discovery-view > .collection-container--carousel,
+    .discovery-view > .collection-container--grid,
+    .discovery-view > .collection-container--list {
+      margin-left: calc(-1 * var(--space-lg));
+      margin-right: calc(-1 * var(--space-lg));
     }
 
     /* ========================================================================
@@ -308,6 +443,8 @@
       gap: var(--space-sm);
       overflow-x: auto;
       scroll-snap-type: x mandatory;
+      scroll-padding-left: var(--space-lg);
+      scroll-padding-right: var(--space-lg);
       scrollbar-width: none;
     }
     .collection-container--carousel::-webkit-scrollbar { display: none; }
@@ -331,20 +468,18 @@
       flex-shrink: 0;
       width: var(--layout-card-width);
       background: var(--color-surface-primary);
-      border: 0.5px solid var(--color-border-default);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
+      border: none;
+      border-radius: 0;
+      overflow: visible;
       scroll-snap-align: start;
       cursor: pointer;
       padding: 0;
       text-align: left;
       font-family: inherit;
     }
-    .place-card:hover { border-color: var(--color-border-strong); }
     .place-card__media {
-      height: var(--layout-card-media-height);
-      border-top-left-radius: var(--radius-lg);
-      border-top-right-radius: var(--radius-lg);
+      aspect-ratio: 16 / 9;
+      border-radius: var(--radius-lg);
       position: relative;
       background-size: cover;
       background-position: center;
@@ -367,7 +502,7 @@
       background: var(--color-overlay-warning);
     }
     .place-card__content {
-      padding: var(--space-sm) var(--space-md) var(--space-md);
+      padding: var(--space-sm) 0 var(--space-md);
     }
     .place-card__title {
       font-size: var(--font-size-body);
@@ -422,9 +557,9 @@
        ======================================================================== */
     .catalog-card {
       background: var(--color-surface-primary);
-      border: 0.5px solid var(--color-border-default);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
+      border: none;
+      border-radius: 0;
+      overflow: visible;
       cursor: pointer;
       padding: 0;
       text-align: left;
@@ -433,7 +568,6 @@
       display: flex;
       flex-direction: column;
     }
-    .catalog-card:hover { border-color: var(--color-border-strong); }
 
     /* carousel variant: fixed width + scroll-snap */
     .collection-container--carousel > .catalog-card {
@@ -446,14 +580,13 @@
     .collection-container--list > .catalog-card {
       flex-direction: row;
       align-items: stretch;
+      gap: var(--space-md);
     }
     .collection-container--list > .catalog-card .catalog-card__media {
       width: 96px;
       min-width: 96px;
       height: auto;
       min-height: 96px;
-      border-top-right-radius: 0;
-      border-bottom-left-radius: var(--radius-lg);
     }
     .collection-container--list > .catalog-card .catalog-card__content {
       flex: 1;
@@ -461,9 +594,8 @@
     }
 
     .catalog-card__media {
-      height: var(--layout-card-media-height);
-      border-top-left-radius: var(--radius-lg);
-      border-top-right-radius: var(--radius-lg);
+      aspect-ratio: 3 / 4;
+      border-radius: var(--radius-lg);
       background-size: cover;
       background-position: center;
       position: relative;
@@ -493,7 +625,7 @@
       background: var(--color-action-primary);
     }
     .catalog-card__content {
-      padding: var(--space-sm) var(--space-md) var(--space-md);
+      padding: var(--space-sm) 0 var(--space-md);
       display: flex;
       flex-direction: column;
       gap: var(--space-xs);
@@ -555,7 +687,6 @@
        at once within the 380px frame.
        ======================================================================== */
     .compare-table {
-      margin: 0 var(--space-lg);
       border: 0.5px solid var(--color-border-default);
       border-radius: var(--radius-lg);
       overflow: hidden;
@@ -3554,6 +3685,182 @@
        Dataset dropdown, mobile frame, validator panel, delegated listeners.
        ======================================================================== */
 
+    /* ========================================================================
+       TEXT RESPONSE PATTERNS (JBIQ Text Response Patterns v0.1, §6)
+       Four canonical prose shapes that sit alongside the three DiscoveryView
+       sub-patterns. Each fixture carries a `query` (the utterance) and the
+       structured content per §6. Ceilings per §7 are enforced at load.
+       ======================================================================== */
+
+    const TEXT_FIXTURES = {
+      info_upi_limit: {
+        kind: 'text',
+        type: 'info_simple',
+        query: "What's the UPI per-transaction limit?",
+        body: '₹1 lakh for most UPI apps. ₹5 lakh for education and healthcare. ₹10,000 for UPI 123Pay on feature phones. These are RBI-set limits.',
+        citation: 'per RBI',
+      },
+      info_upi_autopay: {
+        kind: 'text',
+        type: 'info_complex',
+        query: 'How does UPI AutoPay work?',
+        headline: 'UPI AutoPay is a standing instruction that lets a merchant debit your account on a set schedule. You approve the mandate once, and future payments happen without entering your UPI PIN.',
+        steps: [
+          'Approve the merchant mandate in your UPI app — set the amount, frequency, and end date.',
+          'Future debits happen automatically up to the mandate limit. You get a notification each time.',
+          'Cancel any time from the Mandates section in your UPI app — the merchant is notified instantly.',
+        ],
+        pivot: { label: 'Show my active mandates', next: 'show my active UPI mandates' },
+        alt_pivot: { label: 'Set up a new one', next: 'set up a new UPI AutoPay mandate' },
+      },
+      advisory_mobile_plan: {
+        kind: 'text',
+        type: 'advisory',
+        query: 'Which mobile plan should I get?',
+        headline: 'Based on your usage — about 1.5 GB a day and 200 minutes of talktime — the ₹299 plan is your best value.',
+        table: {
+          columns: ['Plan', 'Price', 'Fit'],
+          rows: [
+            { label: 'Current',     cells: ['₹239 · 1 GB/day', '28 days · 200 min'],     fit: 'Slightly under on data' },
+            { label: 'Recommended', cells: ['₹299 · 1.5 GB/day', '28 days · unlimited'], fit: 'Best match', recommended: true },
+            { label: 'Cheaper',     cells: ['₹179 · 1 GB/day', '24 days · 200 min'],     fit: 'Shorter validity' },
+          ],
+        },
+        pivot: { label: 'Switch me to ₹299', next: 'switch me to the ₹299 recharge plan', primary: true },
+      },
+      advisory_recharge_hinglish: {
+        kind: 'text',
+        type: 'advisory',
+        lang: 'hinglish',
+        query: 'Mere liye best recharge plan kaunsa hai?',
+        headline: 'Aapke usage ke hisaab se — roz 1.5 GB aur 200 min talktime — ₹299 wala plan sabse better hai.',
+        table: {
+          columns: ['Plan', 'Price', 'Fit'],
+          rows: [
+            { label: 'Abhi wala', cells: ['₹239 · 1 GB/day', '28 din · 200 min'],     fit: 'Thoda kam data' },
+            { label: 'Recommend', cells: ['₹299 · 1.5 GB/day', '28 din · unlimited'], fit: 'Best match', recommended: true },
+            { label: 'Sasta',     cells: ['₹179 · 1 GB/day', '24 din · 200 min'],     fit: 'Kam validity' },
+          ],
+        },
+        pivot: { label: 'Switch kar doon?', next: 'switch me to the ₹299 recharge plan', primary: true },
+      },
+      conversational_thanks: {
+        kind: 'text',
+        type: 'conversational',
+        query: 'Thanks, that helped.',
+        body: 'Glad it helped.',
+      },
+    };
+
+    const TEXT_RESPONSE_CEILINGS = {
+      transactional: 50, info_simple: 120, info_complex: 350,
+      advisory: 250, exploratory: 30, conversational: 15,
+    };
+
+    const TEXT_RESPONSE_ANTIPATTERNS = [
+      /\bgreat question\b/i, /\bhappy to help\b/i, /\bas an ai\b/i,
+      /\blet me know if\b/i, /\bhope this helps\b/i,
+      /\bso you'?re asking\b/i, /\banything else\b/i,
+    ];
+
+    (function auditTextFixtures() {
+      const words = s => (s || '').trim().split(/\s+/).filter(Boolean).length;
+      for (const [key, fx] of Object.entries(TEXT_FIXTURES)) {
+        const cap = TEXT_RESPONSE_CEILINGS[fx.type];
+        const body = [
+          fx.headline || '', fx.body || '',
+          (fx.steps || []).join(' '),
+          fx.table ? fx.table.rows.map(r => r.cells.join(' ') + ' ' + (r.fit || '')).join(' ') : '',
+        ].join(' ');
+        const n = words(body);
+        if (cap && n > cap) console.warn(`[text-response][ceiling] ${key} (${fx.type}) is ${n} words (cap ${cap})`);
+        const hay = JSON.stringify(fx);
+        for (const re of TEXT_RESPONSE_ANTIPATTERNS) {
+          if (re.test(hay)) console.warn(`[text-response][anti-pattern] ${key} matches ${re}`);
+        }
+      }
+    })();
+
+    function renderTextPivotChip(pivot) {
+      return el('button', {
+        type: 'button',
+        class: pivot.primary ? 'text-response__pivot-cta' : 'text-response__pivot-chip',
+        'data-event': `pivot.${pivot.next.replace(/\s+/g, '_').slice(0, 40)}`,
+        text: pivot.label,
+      });
+    }
+
+    function renderInfoSimpleView(fx) {
+      return el('div', { class: 'text-response text-response--info-simple' }, [
+        el('p', { class: 'text-response__body', text: fx.body }),
+      ]);
+    }
+
+    function renderInfoComplexView(fx) {
+      const list = el('ol', { class: 'text-response__steps' });
+      (fx.steps || []).forEach(s => list.appendChild(el('li', { text: s })));
+      const pivots = el('div', { class: 'text-response__pivots' });
+      if (fx.pivot)     pivots.appendChild(renderTextPivotChip(fx.pivot));
+      if (fx.alt_pivot) pivots.appendChild(renderTextPivotChip(fx.alt_pivot));
+      return el('div', { class: 'text-response text-response--info-complex' }, [
+        el('p', { class: 'text-response__headline', text: fx.headline }),
+        list,
+        pivots,
+      ]);
+    }
+
+    function renderAdvisoryView(fx) {
+      const thead = el('thead', {}, [
+        el('tr', {}, fx.table.columns.map(c => el('th', { text: c }))),
+      ]);
+      const tbody = el('tbody', {}, fx.table.rows.map(r => {
+        const tr = el('tr', { class: r.recommended ? 'is-recommended' : '' }, [
+          el('td', { class: 'text-response__table-label', text: r.label }),
+          el('td', { class: 'text-response__table-cell', text: r.cells.join(' · ') }),
+          el('td', { class: 'text-response__table-fit', text: r.fit || '' }),
+        ]);
+        return tr;
+      }));
+      const pivots = el('div', { class: 'text-response__pivots' });
+      if (fx.pivot) pivots.appendChild(renderTextPivotChip(fx.pivot));
+      return el('div', { class: 'text-response text-response--advisory' }, [
+        el('p', { class: 'text-response__headline', text: fx.headline }),
+        el('table', { class: 'text-response__table' }, [thead, tbody]),
+        fx.caveat ? el('p', { class: 'text-response__caveat', text: fx.caveat }) : null,
+        pivots,
+      ]);
+    }
+
+    function renderConversationalView(fx) {
+      return el('div', {
+        class: 'text-response text-response--conversational',
+        'data-conversational': 'true',
+      }, [
+        el('p', { class: 'text-response__body', text: fx.body }),
+      ]);
+    }
+
+    function renderTextResponseView(fx) {
+      switch (fx.type) {
+        case 'info_simple':    return renderInfoSimpleView(fx);
+        case 'info_complex':   return renderInfoComplexView(fx);
+        case 'advisory':       return renderAdvisoryView(fx);
+        case 'conversational': return renderConversationalView(fx);
+        default: return el('div', { text: `Unknown text-response type: ${fx.type}` });
+      }
+    }
+
+    /* ------------------------------------------------------------------------
+       Normalise an item into a uniform shape so the dropdown + renderer loop
+       don't need to branch. DiscoveryView items expose `.view`; text items
+       expose `.fixture`. The `.query` mirrors `view.meta.query` so the
+       `YOU: …` line appears consistently across both.
+       ------------------------------------------------------------------------ */
+    function itemShape(it) {
+      if (it.fixture) return { kind: 'text',      query: it.fixture.query, payload: it.fixture };
+      return            { kind: 'discovery', query: it.view.meta.query,    payload: it.view };
+    }
+
     // 20 queries across three sub-patterns. Each row: dropdown key, user-
     // visible label (matches the 20-query table in the brief), and the view.
     const DATASET_GROUPS = [
@@ -3590,6 +3897,16 @@
           { key: 'trains_tatkal',       label: 'Tatkal trains to hometown',         view: MOCK_TRAINS_TATKAL },
           { key: 'health_insurance',    label: 'Health insurance for family of 4',  view: MOCK_HEALTH_INSURANCE },
           { key: 'emi_fridge',          label: 'EMI options for this fridge',       view: MOCK_EMI_FRIDGE },
+        ],
+      },
+      {
+        group: 'Text Responses',
+        items: [
+          { key: 'info_upi_limit',             label: 'Info (simple) — UPI per-transaction limit', fixture: TEXT_FIXTURES.info_upi_limit },
+          { key: 'info_upi_autopay',           label: 'Info (complex) — How UPI AutoPay works',    fixture: TEXT_FIXTURES.info_upi_autopay },
+          { key: 'advisory_mobile_plan',       label: 'Advisory — Which mobile plan?',             fixture: TEXT_FIXTURES.advisory_mobile_plan },
+          { key: 'advisory_recharge_hinglish', label: 'Advisory (Hinglish) — Recharge plan',       fixture: TEXT_FIXTURES.advisory_recharge_hinglish },
+          { key: 'conversational_thanks',      label: 'Conversational — Thanks',                   fixture: TEXT_FIXTURES.conversational_thanks },
         ],
       },
     ];
@@ -3629,10 +3946,46 @@
       return details;
     }
 
-    function renderMobileFrame(view) {
+    function renderMobileFrame(item) {
+      const shape = itemShape(item);
+      const body = shape.kind === 'text'
+        ? renderTextResponseView(shape.payload)
+        : renderPlaceDiscoveryView(shape.payload);
       return el('div', { class: 'mobile-frame' }, [
-        el('p', { class: 'you-line', text: `YOU: ${view.meta.query}` }),
-        renderPlaceDiscoveryView(view),
+        el('p', { class: 'you-line', text: `YOU: ${shape.query}` }),
+        body,
+      ]);
+    }
+
+    function renderTextResponseInfoPanel(fx) {
+      const cap = TEXT_RESPONSE_CEILINGS[fx.type];
+      const words = s => (s || '').trim().split(/\s+/).filter(Boolean).length;
+      const body = [
+        fx.headline || '', fx.body || '',
+        (fx.steps || []).join(' '),
+        fx.table ? fx.table.rows.map(r => r.cells.join(' ') + ' ' + (r.fit || '')).join(' ') : '',
+      ].join(' ');
+      const n = words(body);
+      const withinCeiling = cap ? n <= cap : true;
+      const statusCls = withinCeiling
+        ? 'validator-panel__status validator-panel__status--pass'
+        : 'validator-panel__status validator-panel__status--fail';
+      const statusText = withinCeiling
+        ? `PASS — ${fx.type} (${n} words, cap ${cap})`
+        : `FAIL — ${fx.type} body is ${n} words (cap ${cap})`;
+      const pivotLine = fx.pivot
+        ? `Pivot: "${fx.pivot.label}"${fx.pivot.primary ? ' (primary CTA)' : ' (secondary chip)'}`
+        : (fx.type === 'info_simple' || fx.type === 'conversational'
+            ? 'No pivot — pure Q&A / acknowledgement (§6.2, §6.6).'
+            : 'No pivot declared.');
+      const content = el('div', { class: 'validator-panel__content' }, [
+        el('p', { class: statusCls, text: statusText }),
+        el('p', { style: { margin: '0' }, text: pivotLine }),
+        fx.lang ? el('p', { style: { margin: '0' }, text: `Language: ${fx.lang}` }) : null,
+      ]);
+      return el('details', { class: 'validator-panel' }, [
+        el('summary', { text: 'Text response audit' }),
+        content,
       ]);
     }
 
@@ -3643,7 +3996,7 @@
         el('h1', { class: 'page__title', text: 'JBIQ Discovery Playground' }),
         el('p', {
           class: 'page__subtitle',
-          text: 'Schema validation tool · 20 queries across Place, Catalog, Compare',
+          text: 'Schema validation tool · 20 DiscoveryView queries · 5 Text Response patterns',
         }),
       ]);
 
@@ -3666,9 +4019,14 @@
       const validatorSlot = el('div', {});
 
       const renderActive = () => {
-        const view = DATASETS[activeKey].view;
-        frameSlot.replaceChildren(renderMobileFrame(view));
-        validatorSlot.replaceChildren(renderValidatorPanel(view));
+        const item = DATASETS[activeKey];
+        const shape = itemShape(item);
+        frameSlot.replaceChildren(renderMobileFrame(item));
+        validatorSlot.replaceChildren(
+          shape.kind === 'text'
+            ? renderTextResponseInfoPanel(shape.payload)
+            : renderValidatorPanel(shape.payload)
+        );
       };
 
       select.addEventListener('change', (e) => {

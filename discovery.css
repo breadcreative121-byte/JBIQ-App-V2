@@ -136,7 +136,8 @@
    subject header and map. */
 .jbiq-discovery .filter-chip-bar,
 .jbiq-discovery .collection-container--carousel,
-.jbiq-discovery .collection-container--grid {
+.jbiq-discovery .collection-container--grid,
+.jbiq-discovery .collection-container--list {
   margin-left: calc(-1 * var(--space-lg));
   margin-right: calc(-1 * var(--space-lg));
 }
@@ -397,14 +398,13 @@
 .collection-container--list > .catalog-card {
   flex-direction: row;
   align-items: stretch;
+  gap: var(--space-md);
 }
 .collection-container--list > .catalog-card .catalog-card__media {
   width: 96px;
   min-width: 96px;
   height: auto;
   min-height: 96px;
-  border-top-right-radius: 0;
-  border-bottom-left-radius: var(--radius-lg);
 }
 .collection-container--list > .catalog-card .catalog-card__content {
   flex: 1;
@@ -502,7 +502,6 @@
    PRIMITIVE: CompareTable — sticky 85px label column + scroll-snap options.
    ---------------------------------------------------------------------------- */
 .compare-table {
-  margin: 0 var(--space-lg);
   border: 0.5px solid var(--color-border-default);
   border-radius: var(--radius-lg);
   overflow: hidden;

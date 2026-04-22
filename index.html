@@ -104,7 +104,7 @@
     .logo-btn img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      display: block;
     }
 
     .avatar-container {
@@ -895,6 +895,9 @@
       align-self: flex-end;
       animation: bubbleIn 0.3s ease;
     }
+    .user-bubble.is-voice {
+      font-style: italic;
+    }
     @keyframes bubbleIn {
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
@@ -990,6 +993,135 @@
     }
     .ai-feedback button:hover { opacity: 1; }
     .ai-feedback svg { width: 16px; height: 16px; }
+
+    /* ------------------------------------------------------------------------
+       JBIQ Text Response Patterns v0.1 — canonical shapes per §6.
+       Shared base matches .ai-response (full width, left-aligned). Info-Simple
+       and Conversational reuse that element; Info-Complex and Advisory get
+       richer containers for their headline + structured body + pivot.
+       ------------------------------------------------------------------------ */
+    .text-response {
+      width: 100%;
+      align-self: flex-start;
+      font-size: 16px;
+      color: var(--text-high);
+      line-height: 1.35;
+      padding: 8px 0;
+      animation: bubbleIn 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .text-response__headline {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.35;
+      color: var(--text-high);
+    }
+    .text-response__steps {
+      margin: 0;
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 15px;
+      line-height: 1.4;
+      color: var(--text-high);
+    }
+    .text-response__steps li { padding-left: 2px; }
+    .text-response__caveat {
+      margin: 0;
+      font-size: 13px;
+      color: var(--text-low);
+      line-height: 1.35;
+    }
+
+    /* Advisory — compact 3-col comparison table. Recommended row gets a
+       lavender surface + left accent to carry the recommendation visually
+       without shouting. Mirrors discovery.css compare-table--recommended. */
+    .text-response__table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      color: var(--text-high);
+      margin: 2px 0;
+    }
+    .text-response__table th {
+      text-align: left;
+      font-weight: 500;
+      color: var(--text-low);
+      font-size: 12px;
+      padding: 4px 8px 4px 0;
+      border-bottom: 0.5px solid rgba(0,0,0,0.08);
+    }
+    .text-response__table td {
+      padding: 8px 8px 8px 0;
+      border-bottom: 0.5px solid rgba(0,0,0,0.06);
+      vertical-align: top;
+    }
+    .text-response__table tr:last-child td { border-bottom: none; }
+    .text-response__table-label {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .text-response__table-fit {
+      color: var(--text-low);
+      font-size: 13px;
+    }
+    .text-response__table tr.is-recommended {
+      background: #ede7ff;
+    }
+    .text-response__table tr.is-recommended td:first-child {
+      box-shadow: inset 3px 0 0 #6d17ce;
+    }
+    .text-response__table tr.is-recommended .text-response__table-fit {
+      color: #6d17ce;
+      font-weight: 600;
+    }
+
+    /* Pivots — §6 mandates a handoff for every response except pure Q&A.
+       Secondary "chip" for Info-Complex alternatives; primary CTA for the
+       Advisory recommendation, matching the JDS CTA on ghost DiscoveryView
+       cards (commit 8f2f0d6). */
+    .text-response__pivots {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 2px;
+    }
+    .text-response__pivot-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 14px;
+      background: #ede7ff;
+      border: none;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      color: #6d17ce;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .text-response__pivot-chip:hover { background: #ddd0ff; }
+    .text-response__pivot-chip:active { background: #c9b6ff; }
+    .text-response__pivot-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 18px;
+      background: #6d17ce;
+      border: none;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      color: #ffffff;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .text-response__pivot-cta:hover { background: #310064; }
+    .text-response__pivot-cta:active { background: #1f0042; }
 
     .thinking-row {
       display: none;
@@ -2075,7 +2207,7 @@
         <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M4 7h16a1 1 0 100-2H4a1 1 0 000 2zm16 10H4a1 1 0 000 2h16a1 1 0 000-2zm0-6H4a1 1 0 000 2h16a1 1 0 000-2z" fill="#0c0d10"/></svg>
       </button>
       <div class="logo-btn">
-        <img src="https://www.figma.com/api/mcp/asset/aebfef99-5134-4ce2-bbe3-ed05652df698" alt="Jio Logo">
+        <img src="assets/logo.svg" alt="Jio Logo">
       </div>
     </div>
     <div class="avatar-container">
@@ -2095,40 +2227,40 @@
         <!-- Astrology -->
         <div class="assistant-item">
           <div class="assistant-ring">
-            <img src="https://www.figma.com/api/mcp/asset/18587855-6e96-46a0-b5fd-5781f5d7ae1a" alt="">
+            <img src="assets/assistants/ring.svg" alt="">
           </div>
           <div class="assistant-icon" style="background: var(--navi-600);">
-            <img src="https://www.figma.com/api/mcp/asset/83a40c69-b0f1-4c78-9812-6da472f59613" alt="Astrology" style="width: 48px; height: 55px; object-fit: contain;">
+            <img src="assets/assistants/astrology.svg" alt="Astrology" style="width: 48px; height: 55px; object-fit: contain;">
           </div>
           <span class="assistant-label">Astrology</span>
         </div>
         <!-- Bollywood -->
         <div class="assistant-item">
           <div class="assistant-ring">
-            <img src="https://www.figma.com/api/mcp/asset/18587855-6e96-46a0-b5fd-5781f5d7ae1a" alt="">
+            <img src="assets/assistants/ring.svg" alt="">
           </div>
           <div class="assistant-icon" style="background: var(--pink-1200);">
-            <img src="https://www.figma.com/api/mcp/asset/3e922bcd-66d0-401f-82ac-33295d554913" alt="Bollywood" style="width: 46px; height: 49px; object-fit: contain;">
+            <img src="assets/assistants/bollywood.svg" alt="Bollywood" style="width: 46px; height: 49px; object-fit: contain;">
           </div>
           <span class="assistant-label">Bollywood</span>
         </div>
         <!-- Cricket -->
         <div class="assistant-item">
           <div class="assistant-ring">
-            <img src="https://www.figma.com/api/mcp/asset/18587855-6e96-46a0-b5fd-5781f5d7ae1a" alt="">
+            <img src="assets/assistants/ring.svg" alt="">
           </div>
           <div class="assistant-icon">
-            <img src="https://www.figma.com/api/mcp/asset/0831dd36-9a7d-40de-a4eb-ed97c92f9ee5" alt="Cricket">
+            <img src="assets/assistants/cricket.svg" alt="Cricket">
           </div>
           <span class="assistant-label">Cricket</span>
         </div>
         <!-- Devotion -->
         <div class="assistant-item">
           <div class="assistant-ring">
-            <img src="https://www.figma.com/api/mcp/asset/18587855-6e96-46a0-b5fd-5781f5d7ae1a" alt="">
+            <img src="assets/assistants/ring.svg" alt="">
           </div>
           <div class="assistant-icon">
-            <img src="https://www.figma.com/api/mcp/asset/04938379-fa3b-4ab3-922e-651dec336f56" alt="Devotion">
+            <img src="assets/assistants/devotion.svg" alt="Devotion">
           </div>
           <span class="assistant-label">Devotion</span>
         </div>
@@ -2668,9 +2800,17 @@
   // the full journey (user bubble, thinking, view) renders as if typed.
   function populatePrototypesList() {
     const root = document.getElementById('prototypesList');
-    if (!root || !window.DATASET_GROUPS) return;
+    if (!root) return;
     root.innerHTML = '';
-    window.DATASET_GROUPS.forEach(g => {
+    // DiscoveryView prototypes (20 mocks from discovery.js) first, then the
+    // Text Response patterns defined locally. Items with an explicit `.query`
+    // send that utterance through the classifier; legacy items send the label.
+    const allGroups = [
+      ...(window.DATASET_GROUPS || []),
+      ...(window.TEXT_RESPONSE_PROTOTYPES || []),
+      ...(window.TRANSACTIONAL_PROTOTYPES || []),
+    ];
+    allGroups.forEach(g => {
       const h = document.createElement('div');
       h.className = 'proto-group-title';
       h.textContent = g.group;
@@ -2680,7 +2820,7 @@
         btn.className = 'proto-item';
         btn.type = 'button';
         btn.textContent = it.label;
-        btn.addEventListener('click', () => runPrototypeQuery(it.label));
+        btn.addEventListener('click', () => runPrototypeQuery(it.query || it.label));
         root.appendChild(btn);
       });
     });
@@ -3062,6 +3202,369 @@
       }
       type();
     });
+  }
+
+  // === Text Response Patterns (JBIQ Text Response Patterns v0.1) ===
+  // Classifies residual queries that don't match Restaurant/Shopping/Discovery
+  // into one of the six canonical types from §5. Order matters — shorter
+  // patterns (conversational) must be tested before the verb-based ones or
+  // "ok" would match "book" via a substring.
+  function classifyTextResponseType(text) {
+    const t = (text || '').trim().toLowerCase().replace(/[.!?,]+$/g, '');
+    if (!t) return null;
+
+    // Conversational — short acknowledgements, English + common Hindi particles
+    const CONVERSATIONAL = [
+      /^(thanks|thank you|thanks that helped|thanks,? that helped|ty|tysm)\b/,
+      /^(ok|okay|k|kk|cool|nice|great|got it|understood|noted)\b/,
+      /^(bye|goodbye|see you|ciao|cya)\b/,
+      /^(haan|theek hai|theek|thik hai|shukriya|dhanyavaad|achha)\b/,
+    ];
+    if (CONVERSATIONAL.some(re => re.test(t))) return 'conversational';
+
+    // Advisory — decision help. Tested before Informational so "which is best"
+    // doesn't get caught by the generic "what" rule.
+    const ADVISORY = [
+      /\bshould i\b/,
+      /\bwhich .* (best|better|should)\b/,
+      /\bhelp me (choose|decide|pick)\b/,
+      /\bwhat do you recommend\b/,
+      /\brecommend .* (me|plan|option)/,
+      /\bbest .* (for me|plan|option|recharge)\b/,
+      /\bmere liye .* (best|sahi|kaunsa)\b/,
+      /\bkaunsa .* (best|sahi|lena chahiye)\b/,
+    ];
+    if (ADVISORY.some(re => re.test(t))) return 'advisory';
+
+    // Transactional — action verbs. Excludes interrogatives ("how do I pay")
+    // which belong to Info-Complex.
+    const INTERROGATIVE = /^(how|what|when|where|why|which|can|does|is|are)\b/;
+    const TRANSACTIONAL = /\b(pay|recharge|book|order|buy|send|transfer|cancel|set up|schedule)\b/;
+    if (TRANSACTIONAL.test(t) && !INTERROGATIVE.test(t)) return 'transactional';
+
+    // Informational-Complex — explanation-requiring interrogatives
+    const INFO_COMPLEX = [
+      /\bhow does\b/,
+      /\bhow do i\b/,
+      /\bhow can i\b/,
+      /\bexplain\b/,
+      /\bwhy (does|do|is|are)\b/,
+      /\bwhat happens when\b/,
+      /\bwalk me through\b/,
+    ];
+    if (INFO_COMPLEX.some(re => re.test(t))) return 'info_complex';
+
+    // Informational-Simple — single-fact interrogatives
+    const INFO_SIMPLE = [
+      /^(what|whats|what's|what is)\b/,
+      /^(when|where|who)\b/,
+      /\bdefine\b/,
+      /\b(limit|rate|fee|timing|deadline) (is|of|for)?\b/,
+    ];
+    if (INFO_SIMPLE.some(re => re.test(t))) return 'info_simple';
+
+    // Exploratory — browse / compare intent not already caught by Restaurant
+    // or DiscoveryView regexes upstream. Rare but possible (e.g. "show me
+    // breakfast cafes" when no catalog matches).
+    const EXPLORATORY = [
+      /^(show me|find me|let me see|browse|list)\b/,
+      /\bwhat are my options\b/,
+    ];
+    if (EXPLORATORY.some(re => re.test(t))) return 'exploratory';
+
+    return null;
+  }
+
+  // §7 density ceilings (word counts for the body, not the pivot)
+  const TEXT_RESPONSE_CEILINGS = {
+    transactional:  50,
+    info_simple:    120,
+    info_complex:   350,
+    advisory:       250,
+    exploratory:    30,  // headline-only
+    conversational: 15,
+  };
+
+  // §13 banned openings — dev-time smell check against authored fixtures
+  const TEXT_RESPONSE_ANTIPATTERNS = [
+    /\bgreat question\b/i,
+    /\bhappy to help\b/i,
+    /\bas an ai\b/i,
+    /\blet me know if\b/i,
+    /\bhope this helps\b/i,
+    /\bso you'?re asking\b/i,
+    /\banything else\b/i,
+  ];
+
+  function wordCount(s) {
+    return (s || '').trim().split(/\s+/).filter(Boolean).length;
+  }
+
+  // Fixtures taken verbatim from the spec so the prototype matches the
+  // normative §6 examples. Keyed by query regex; first match wins.
+  const TEXT_RESPONSE_FIXTURES = [
+    {
+      match: /\bupi\b.*\b(limit|cap)\b|\b(per|transaction)\s*limit\b.*upi/i,
+      type: 'info_simple',
+      body: '₹1 lakh for most UPI apps. ₹5 lakh for education and healthcare. ₹10,000 for UPI 123Pay on feature phones. These are RBI-set limits.',
+      citation: 'per RBI',
+    },
+    {
+      match: /\bupi\s*autopay\b|\bautopay\s+work|\bstanding\s+instruction/i,
+      type: 'info_complex',
+      headline: 'UPI AutoPay is a standing instruction that lets a merchant debit your account on a set schedule. You approve the mandate once, and future payments happen without entering your UPI PIN.',
+      steps: [
+        'Approve the merchant mandate in your UPI app — set the amount, frequency, and end date.',
+        'Future debits happen automatically up to the mandate limit. You get a notification each time.',
+        'Cancel any time from the Mandates section in your UPI app — the merchant is notified instantly.',
+      ],
+      pivot: {
+        label: 'Show my active mandates',
+        next: 'show my active UPI mandates',
+      },
+      alt_pivot: {
+        label: 'Set up a new one',
+        next: 'set up a new UPI AutoPay mandate',
+      },
+    },
+    {
+      match: /\bmere liye\b.*\b(best|sahi|kaunsa)\b.*\b(recharge|plan)\b|\bkaunsa\b.*\brecharge\b.*\bbest\b/i,
+      type: 'advisory',
+      lang: 'hinglish',
+      headline: 'Aapke usage ke hisaab se — roz 1.5 GB aur 200 min talktime — ₹299 wala plan sabse better hai.',
+      table: {
+        columns: ['Plan', 'Price', 'Fit'],
+        rows: [
+          { label: 'Abhi wala', cells: ['₹239 · 1 GB/day', '28 din · 200 min'], fit: 'Thoda kam data' },
+          { label: 'Recommend', cells: ['₹299 · 1.5 GB/day', '28 din · unlimited'], fit: 'Best match', recommended: true },
+          { label: 'Sasta', cells: ['₹179 · 1 GB/day', '24 din · 200 min'], fit: 'Kam validity' },
+        ],
+      },
+      pivot: {
+        label: 'Switch kar doon?',
+        next: 'switch me to the ₹299 recharge plan',
+        primary: true,
+      },
+    },
+    {
+      match: /\b(which|what|best)\b.*\b(mobile|recharge)\s+plan\b|\brecommend\b.*\b(mobile|recharge)\s+plan\b|\bshould i get\b.*\b(plan|recharge)\b/i,
+      type: 'advisory',
+      headline: 'Based on your usage — about 1.5 GB a day and 200 minutes of talktime — the ₹299 plan is your best value.',
+      table: {
+        columns: ['Plan', 'Price', 'Fit'],
+        rows: [
+          { label: 'Current', cells: ['₹239 · 1 GB/day', '28 days · 200 min'], fit: 'Slightly under on data' },
+          { label: 'Recommended', cells: ['₹299 · 1.5 GB/day', '28 days · unlimited'], fit: 'Best match', recommended: true },
+          { label: 'Cheaper', cells: ['₹179 · 1 GB/day', '24 days · 200 min'], fit: 'Shorter validity' },
+        ],
+      },
+      pivot: {
+        label: 'Switch me to ₹299',
+        next: 'switch me to the ₹299 recharge plan',
+        primary: true,
+      },
+    },
+  ];
+
+  // Burger-menu Prototypes panel entries for the four canonical text-response
+  // shapes. Label is the descriptor; `query` is the exact utterance the user
+  // would have typed — that's what the classifier sees.
+  const TEXT_RESPONSE_PROTOTYPES = [
+    {
+      group: 'Text Responses',
+      items: [
+        { key: 'info_upi_limit',             label: 'Info (simple) — UPI per-transaction limit', query: "What's the UPI per-transaction limit?" },
+        { key: 'info_upi_autopay',           label: 'Info (complex) — How UPI AutoPay works',    query: 'How does UPI AutoPay work?' },
+        { key: 'advisory_mobile_plan',       label: 'Advisory — Which mobile plan?',             query: 'Which mobile plan should I get?' },
+        { key: 'advisory_recharge_hinglish', label: 'Advisory (Hinglish) — Recharge plan',       query: 'Mere liye best recharge plan kaunsa hai?' },
+        { key: 'conversational_thanks',      label: 'Conversational — Thanks',                   query: 'Thanks, that helped.' },
+      ],
+    },
+  ];
+  // Expose to populatePrototypesList (defined earlier in the file) so it can
+  // read this after DOMContentLoaded without hitting a TDZ error.
+  window.TEXT_RESPONSE_PROTOTYPES = TEXT_RESPONSE_PROTOTYPES;
+
+  // Transactional (single-path) prototypes. `query` is routed through the
+  // shopping matcher at showResponse() → resolveShoppingProduct().
+  const TRANSACTIONAL_PROTOTYPES = [
+    {
+      group: 'Transactional',
+      items: [
+        { key: 'order_bru_coffee', label: 'Order Bru coffee on JioMart', query: 'order Bru coffee' },
+      ],
+    },
+  ];
+  window.TRANSACTIONAL_PROTOTYPES = TRANSACTIONAL_PROTOTYPES;
+
+  // Canned ≤15-word conversational replies. No "is there anything else?".
+  const CONVERSATIONAL_REPLIES = [
+    'Glad it helped.',
+    'Anytime.',
+    'Noted.',
+    'Done.',
+  ];
+
+  function lookupTextResponseFixture(text, type) {
+    if (type === 'conversational') {
+      const pick = CONVERSATIONAL_REPLIES[Math.floor(Math.random() * CONVERSATIONAL_REPLIES.length)];
+      return { type: 'conversational', body: pick };
+    }
+    const fx = TEXT_RESPONSE_FIXTURES.find(f => f.type === type && f.match.test(text));
+    return fx || null;
+  }
+
+  // Dev-only guards — fire once per fixture set at load, plus per-response.
+  function enforceTextResponseCeiling(fixture) {
+    const cap = TEXT_RESPONSE_CEILINGS[fixture.type];
+    if (!cap) return;
+    const bodyText = [
+      fixture.headline || '',
+      fixture.body || '',
+      (fixture.steps || []).join(' '),
+      fixture.table ? fixture.table.rows.map(r => r.cells.join(' ') + ' ' + (r.fit || '')).join(' ') : '',
+    ].join(' ');
+    const n = wordCount(bodyText);
+    if (n > cap) {
+      console.warn(`[text-response][ceiling] ${fixture.type} body is ${n} words (cap ${cap})`);
+    }
+  }
+
+  function scanTextResponseAntiPatterns(fixture) {
+    const hay = JSON.stringify(fixture);
+    for (const re of TEXT_RESPONSE_ANTIPATTERNS) {
+      if (re.test(hay)) {
+        console.warn(`[text-response][anti-pattern] fixture matches ${re} — violates §13`);
+      }
+    }
+  }
+
+  // Audit all fixtures at load. Output visible in DevTools when reviewing new
+  // fixtures; no runtime impact.
+  TEXT_RESPONSE_FIXTURES.forEach(fx => {
+    enforceTextResponseCeiling(fx);
+    scanTextResponseAntiPatterns(fx);
+  });
+
+  // Seeding the next query: sets the chat input and calls sendMessage() so the
+  // pivot chip behaves identically to a typed follow-up. Used by Info-Complex
+  // pivot chips and Advisory primary CTAs.
+  function seedNextQuery(text) {
+    if (!text) return;
+    chatInput.value = text;
+    chatInputExpanded.value = text;
+    try { syncInputState(); } catch (e) {}
+    sendMessage();
+  }
+
+  function renderInfoSimple(parent, fixture) {
+    const el = document.createElement('div');
+    el.className = 'ai-response text-response text-response--info-simple';
+    parent.appendChild(el);
+    return { el, proseText: fixture.body, pivot: null };
+  }
+
+  function renderInfoComplex(parent, fixture) {
+    const wrap = document.createElement('div');
+    wrap.className = 'text-response text-response--info-complex';
+
+    const headline = document.createElement('p');
+    headline.className = 'text-response__headline';
+    wrap.appendChild(headline);
+
+    const list = document.createElement('ol');
+    list.className = 'text-response__steps';
+    (fixture.steps || []).forEach(s => {
+      const li = document.createElement('li');
+      li.textContent = s;
+      list.appendChild(li);
+    });
+    wrap.appendChild(list);
+
+    const pivots = document.createElement('div');
+    pivots.className = 'text-response__pivots';
+    if (fixture.pivot) pivots.appendChild(makePivotChip(fixture.pivot));
+    if (fixture.alt_pivot) pivots.appendChild(makePivotChip(fixture.alt_pivot));
+    wrap.appendChild(pivots);
+
+    parent.appendChild(wrap);
+    // Typewriter animates into the headline only; list + pivots appear immediately.
+    return { el: headline, proseText: fixture.headline, pivot: fixture.pivot };
+  }
+
+  function renderAdvisory(parent, fixture) {
+    const wrap = document.createElement('div');
+    wrap.className = 'text-response text-response--advisory';
+
+    const headline = document.createElement('p');
+    headline.className = 'text-response__headline';
+    wrap.appendChild(headline);
+
+    if (fixture.table) {
+      const table = document.createElement('table');
+      table.className = 'text-response__table';
+      const thead = document.createElement('thead');
+      const thr = document.createElement('tr');
+      fixture.table.columns.forEach(c => {
+        const th = document.createElement('th');
+        th.textContent = c;
+        thr.appendChild(th);
+      });
+      thead.appendChild(thr);
+      table.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      fixture.table.rows.forEach(r => {
+        const tr = document.createElement('tr');
+        if (r.recommended) tr.classList.add('is-recommended');
+        const td0 = document.createElement('td');
+        td0.className = 'text-response__table-label';
+        td0.textContent = r.label;
+        tr.appendChild(td0);
+        const td1 = document.createElement('td');
+        td1.className = 'text-response__table-cell';
+        td1.textContent = r.cells.join(' · ');
+        tr.appendChild(td1);
+        const td2 = document.createElement('td');
+        td2.className = 'text-response__table-fit';
+        td2.textContent = r.fit || '';
+        tr.appendChild(td2);
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      wrap.appendChild(table);
+    }
+
+    if (fixture.caveat) {
+      const c = document.createElement('p');
+      c.className = 'text-response__caveat';
+      c.textContent = fixture.caveat;
+      wrap.appendChild(c);
+    }
+
+    const pivots = document.createElement('div');
+    pivots.className = 'text-response__pivots';
+    if (fixture.pivot) pivots.appendChild(makePivotChip(fixture.pivot));
+    wrap.appendChild(pivots);
+
+    parent.appendChild(wrap);
+    return { el: headline, proseText: fixture.headline, pivot: fixture.pivot };
+  }
+
+  function renderConversational(parent, fixture) {
+    const el = document.createElement('div');
+    el.className = 'ai-response text-response text-response--conversational';
+    el.setAttribute('data-conversational', 'true');
+    parent.appendChild(el);
+    return { el, proseText: fixture.body, pivot: null };
+  }
+
+  function makePivotChip(pivot) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = pivot.primary ? 'text-response__pivot-cta' : 'text-response__pivot-chip';
+    btn.textContent = pivot.label;
+    btn.addEventListener('click', () => seedNextQuery(pivot.next));
+    return btn;
   }
 
   // === Conversation Journeys ===
@@ -3492,6 +3995,7 @@
       overlay.classList.add('chat-active');
       const userEl = document.createElement('div');
       userEl.className = 'user-bubble';
+      if (!isTextMode) userEl.classList.add('is-voice');
       userEl.textContent = text;
       chatMessages.appendChild(userEl);
       chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -3521,8 +4025,19 @@
     const shoppingProduct = isShoppingQuery ? resolveShoppingProduct(shoppingItemText) : null;
     // DiscoveryView (Place / Catalog / Compare): only fires when neither
     // existing journey matched.
-    const discoveryKey = (!isRestaurantQuery && !isShoppingQuery) ? matchDiscoveryQuery(text) : null;
+    // Text Response Patterns v0.1 — Advisory is a decision query ("should I",
+    // "which is best", Hinglish "mere liye ... best"). It must beat the
+    // upstream DiscoveryView regexes, which would otherwise catch "recharge"
+    // etc. as Exploratory (browse) when the user actually wants a recommendation.
+    const advisoryFixture = (!isRestaurantQuery && !isShoppingQuery && classifyTextResponseType(text) === 'advisory')
+      ? lookupTextResponseFixture(text, 'advisory') : null;
+    const discoveryKey = (!isRestaurantQuery && !isShoppingQuery && !advisoryFixture) ? matchDiscoveryQuery(text) : null;
     const discoveryDs = (discoveryKey && window.DATASETS) ? window.DATASETS[discoveryKey] : null;
+    // Other text-response types run only when no richer journey matched.
+    // Unknown types (or fixtureless matches) fall through to /api/chat.
+    const textType = (!isRestaurantQuery && !isShoppingQuery && !discoveryDs)
+      ? (advisoryFixture ? 'advisory' : classifyTextResponseType(text)) : null;
+    const textFixture = advisoryFixture || (textType ? lookupTextResponseFixture(text, textType) : null);
     voiceTitle.textContent = isRestaurantQuery
       ? 'Top restaurants'
       : (isShoppingQuery ? `Order ${shoppingItemText}` : (discoveryDs ? discoveryDs.view.subject.title : extractTitle(text)));
@@ -3541,6 +4056,7 @@
     // 1. Add user bubble
     const userEl = document.createElement('div');
     userEl.className = 'user-bubble';
+    if (!isTextMode) userEl.classList.add('is-voice');
     userEl.textContent = text;
     chatMessages.appendChild(userEl);
     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -3600,6 +4116,13 @@
       // doubling the header would violate §3.4 (filler / intent echo) and
       // §5 (single Context Line slot).
       responseText = '';
+    } else if (textFixture) {
+      // Text Response Patterns §6 — prose text comes from the fixture's
+      // headline (Info-Complex / Advisory) or body (Info-Simple / Conversational).
+      // TTS speaks the prose; the structured body (list, table, pivots) is
+      // rendered directly by the type-specific renderer below.
+      enforceTextResponseCeiling(textFixture);
+      responseText = textFixture.headline || textFixture.body || '';
     } else {
       try {
         const res = await fetch('/api/chat', {
@@ -3617,9 +4140,12 @@
     }
 
     // Speakable form for TTS + conversation history when no on-screen prose
-    // exists: synthesize a Context Line from the DiscoveryView subject.
+    // exists. Prefer the view's hand-authored §15 four-beat voice_disclosure;
+    // fall back to the Context Line synthesized from the subject.
     let spokenText = responseText;
-    if (!responseText && discoveryDs && discoveryDs.view.subject) {
+    if (!responseText && discoveryDs && discoveryDs.view.voice_disclosure) {
+      spokenText = discoveryDs.view.voice_disclosure;
+    } else if (!responseText && discoveryDs && discoveryDs.view.subject) {
       const s = discoveryDs.view.subject;
       spokenText = s.subtitle
         ? `${s.title} — ${s.subtitle.replace(/\s*·\s*/g, ', ')}`
@@ -3639,8 +4165,20 @@
 
     // 6. Add AI response element only if there's prose to show. DiscoveryView
     // queries suppress this — the sub-pattern header is the Context Line.
+    // Text-response fixtures delegate DOM construction to the type-specific
+    // renderer, which returns the element the typewriter should animate into.
     let aiEl = null;
-    if (responseText) {
+    if (textFixture) {
+      let rendered = null;
+      if (textFixture.type === 'info_simple')         rendered = renderInfoSimple(chatMessages, textFixture);
+      else if (textFixture.type === 'info_complex')   rendered = renderInfoComplex(chatMessages, textFixture);
+      else if (textFixture.type === 'advisory')       rendered = renderAdvisory(chatMessages, textFixture);
+      else if (textFixture.type === 'conversational') rendered = renderConversational(chatMessages, textFixture);
+      if (rendered) {
+        aiEl = rendered.el;
+        responseText = rendered.proseText || '';
+      }
+    } else if (responseText) {
       aiEl = document.createElement('div');
       aiEl.className = 'ai-response';
       chatMessages.appendChild(aiEl);
@@ -3677,6 +4215,22 @@
     // element is wrapped in .jbiq-discovery so scoping applies.
     if (discoveryDs && window.renderDiscoveryView) {
       chatMessages.appendChild(window.renderDiscoveryView(discoveryDs.view));
+      // Text mode: follow the widget with a written narrative summary. Voice mode
+      // speaks this string via TTS instead, so showing it would duplicate.
+      if (isTextMode && discoveryDs.view.voice_disclosure) {
+        // Strip the trailing "On screen — tap X, or …" pivot: it's a voice
+        // affordance (reading out what's on screen + a follow-up prompt) and
+        // reads as filler in a written transcript where the widget is visible.
+        const summaryText = discoveryDs.view.voice_disclosure
+          .replace(/\s*(?:I['’]ve put them on screen|On screen)\s*[—–-][^]*$/i, '')
+          .trim();
+        if (summaryText) {
+          const summaryEl = document.createElement('div');
+          summaryEl.className = 'ai-response';
+          summaryEl.textContent = summaryText;
+          chatMessages.appendChild(summaryEl);
+        }
+      }
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
@@ -3879,7 +4433,7 @@
       overlay.classList.add('chat-active');
       if (!liveBubble) {
         liveBubble = document.createElement('div');
-        liveBubble.className = 'user-bubble';
+        liveBubble.className = 'user-bubble is-voice';
         liveBubble.style.opacity = '0.6';
         liveBubble.textContent = '...';
         chatMessages.appendChild(liveBubble);

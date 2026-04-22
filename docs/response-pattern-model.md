@@ -37,6 +37,7 @@ Any JioBharatIQ response — human-designed or AI-generated — that violates th
 - Response patterns by intent shape
 - How confidence and autonomy modify the response
 - Prohibited response patterns
+- Voice disclosure at PARTIAL_RESULT_SHOWN
 
 ## Out of scope
 
@@ -74,8 +75,11 @@ All JioBharatIQ responses must uphold these invariants. Violations are structura
 - No response may present a form before showing any result
 - No response may commit the user to an irreversible action without entering COMMITMENT_REQUIRED
 - A response must never end with a gratuitous open-ended prompt (e.g., "Anything else?")
+- Voice disclosure at PARTIAL_RESULT_SHOWN must follow Section 15 (four-beat pattern, density ceilings, no commitment language)
 
 # 4. Intent Shape Taxonomy
+
+> **Cross-reference:** The companion [JBIQ Text Response Patterns v0.1](../Downloads/JBIQ_Text_Response_Patterns_v0_1.docx) spec defines a parallel six-type taxonomy for text responses specifically (Transactional, Informational-Simple, Informational-Complex, Advisory, Exploratory, Conversational) with density ceilings per §7 and canonical structures per §6. The intent shapes below govern *response anatomy* (slots and refinement); the text-response taxonomy governs *prose density and structure* inside those slots. Both are normative.
 
 All user intents map to one of five canonical shapes. Response patterns vary by shape, not by domain.
 
@@ -349,7 +353,154 @@ Autonomy levels are defined in the Interaction Model. Response behaviour adjusts
 
 Autonomy reduces what must be shown, never what must be confirmed for an irreversible action. A Level 3 response still respects COMMITMENT_REQUIRED for any irreversible step that was not pre-authorised.
 
-# 15. Canonical Worked Examples
+# 15. Voice Result Disclosure
+
+This section defines how JioBharatIQ discloses results in voice-led output states — particularly at PARTIAL_RESULT_SHOWN — without overwhelming the user. It applies to voice-only surfaces (voice speaker, IVR) and voice-led surfaces (mobile app with voice primary). Commitment confirmation, visual rendering, memory retrieval, and brand voice remain governed by their respective models (see Section 20).
+
+## 15.1 Core Principle
+
+In voice, JioBharatIQ discloses the shape of the result, not the list.
+
+Screen output can render five options in parallel; the user scans and picks. Voice output is serial. Reading the same five options aloud forces the user to hold them in working memory and compare mentally — this is the dominant cause of voice abandonment.
+
+Instead, voice output must render:
+
+- A count and outcome signal.
+- One anchor — the result that best matches the user's stated or inferred priority, disclosed in full.
+- The shape of the rest — collapsed into a range, a pattern, or a count.
+- A pivot — a handoff to the next action.
+
+The full result set may only be read aloud serially when the user explicitly requests it, and even then only up to the ceilings in Section 15.4.
+
+## 15.2 Voice Disclosure Invariants
+
+- Voice must not enumerate more than one option unprompted.
+- Voice must anchor on the user's stated priority, not on the result's ranking position.
+- Voice disclosure must end with a pivot. Ending on data is prohibited.
+- Where a visual surface is present and the result set is greater than one item, voice must name the visual handoff explicitly.
+- Voice must not recap the user's intent before answering.
+- Voice must not exceed the density ceilings defined in Section 15.4.
+- Voice disclosure at PARTIAL_RESULT_SHOWN must not use commitment language ("confirm?", "proceed?", "shall I go ahead?"). Commitment is a separate state.
+
+## 15.3 The Four-Beat Pattern
+
+All voice result disclosure follows the same four-beat structure. The beats must appear in this order.
+
+| Beat | Purpose | Example |
+| --- | --- | --- |
+| 1. Outcome | Signal that results exist and how many. | "Found 3 morning flights." |
+| 2. Anchor | Disclose one result in full, aligned to the user's priority. | "Cheapest is 6:15 AM at ₹2,850." |
+| 3. Shape | Collapse the rest into a range, pattern, or count. Never enumerate. | "The others are a bit later, around the same price." |
+| 4. Pivot | Hand off to the next action. Never end on data. | "Want to book this one, or hear the others?" |
+
+Combined example: "Found 3 morning flights. Cheapest is 6:15 AM at ₹2,850. The others are a bit later, around the same price. Want to book this one, or hear the others?"
+
+Total: 30 words. Approximate audio: 10 seconds.
+
+## 15.4 Density Ceilings
+
+Disclosure that exceeds these ceilings must be shortened, offloaded to a visual surface, or split across pulls.
+
+| Dimension | Ceiling | Rationale |
+| --- | --- | --- |
+| Words per disclosure (before pivot) | ≤ 40 | Fits within ~12–15 seconds of audio; threshold at which auditory retention drops. |
+| Attributes per anchor spoken aloud | ≤ 3 | Auditory working memory limit for parallel attribute retention. |
+| Items read aloud, unprompted | 1 | Beyond one, the user cannot compare across items in memory. |
+| Items read aloud, on explicit request | ≤ 3 | Hard ceiling. After the third, pivot to refinement. |
+| Preamble words before anchor | 0 | "So I found…" is noise. Lead with the answer. |
+| Price precision (INR) | Rounded rupees | Paise-level precision is cognitive overhead and rarely decision-relevant. |
+
+## 15.5 Anchor Selection
+
+The anchor is the single result disclosed in full. Selection follows this priority order:
+
+1. If the user stated an explicit priority ("cheapest", "earliest", "nearest", "highest rated"), anchor on that dimension.
+2. If priority is inferable from memory at medium confidence or higher (e.g., the user always picks the ₹299 plan, always flies IndiGo), anchor on the memory-inferred priority.
+3. If no priority signal exists, anchor on the canonical default for the domain — earliest for travel, nearest for location, lowest price for generic commerce, next-due for bills.
+
+Never anchor on ranking position alone. "Option 1" is UI grammar and prohibited in voice.
+
+When anchor selection is ambiguous and the consequence is high, the system must clarify before disclosing rather than disclose and hope.
+
+## 15.6 Screen Offload (Voice + UI Contract)
+
+When a visual surface is available, voice anchors and the screen carries detail. This is the voice + UI contract implied by the Integrated Modal Experience Model (§9.1) and by the edge affordance rules in Section 9 of this document.
+
+Visual surface present, result set > 1:
+
+- Voice discloses outcome, anchor, and shape.
+- Voice explicitly names the visual handoff: "I've put them on screen."
+- Voice offers both paths in the pivot: "Pick one, or ask me to read them out."
+- Voice anchor must match the visually rendered primary result. Mismatch is a cross-modal desync and must be flagged (see Integrated Modal §8).
+
+No visual surface (voice speaker, IVR):
+
+- Voice discloses outcome and anchor only.
+- Pivot offers pull for next item or refinement: "Want to hear the next one, or change something?"
+- After the third item on explicit request, voice must pivot to refinement rather than continue reading: "Want me to narrow these down?"
+
+## 15.7 Language & Code-Switching in Voice
+
+The four-beat pattern is language-independent. Anchor-first, shape-next, pivot-last applies across all 22 scheduled languages and in mixed-language (Hinglish, Tanglish, etc.) disclosure.
+
+Disclosure language matches the language of the user's most recent intent utterance. A mid-flow code-switch by the user must not trigger a language reset for subsequent disclosure.
+
+Examples:
+
+Grocery restock (Hinglish). Intent: "Ghar ka saman khatam ho gaya."
+
+Voice: "BigBasket pe ₹847 ka cart ready hai. Atta aur dal hain. Screen pe dikhaya hai — confirm karein ya badlaav chahiye?"
+
+Flight search (Hinglish). Intent: "Kal subah Mumbai ka flight dhoondo sasta wala."
+
+Voice: "3 flights mile. Sabse sasta 6:15 AM ko, ₹2,850. Baaki thoda baad mein, same price ke around. Yeh book karein, ya aur options sunein?"
+
+## 15.8 Voice Anti-Patterns
+
+Voice disclosures containing any of the following must be flagged in review.
+
+| Anti-Pattern | Why Prohibited | Correction |
+| --- | --- | --- |
+| List enumeration ("Option 1… Option 2… Option 3…") | UI grammar in voice; overwhelms. | Use outcome + anchor + shape + pivot. |
+| Reading every attribute of the anchor | Exceeds auditory memory and forces repetition. | Pick 3 attributes that match the user's priority. |
+| Query recap ("You asked about flights to Mumbai…") | User already knows what they asked. | Lead with the outcome. |
+| Ending on data ("…and that's ₹2,850.") | No handoff; user must invent the next step. | End with a pivot. |
+| "Is there anything else I can help with?" | Conversation Director anti-pattern (Product Architecture). | Offer a concrete next-best action. |
+| Using the word "results" | Transactional, not conversational. | Use the domain noun: "options", "flights", "plans", "stores". |
+| Over-specified numbers ("two thousand eight hundred and fifty rupees") | Numeric overhead; slow; easy to mishear. | Spoken shorthand: "₹2,850" → "twenty-eight fifty rupees". |
+| Commitment language at PARTIAL_RESULT_SHOWN ("Confirm?", "Proceed?") | Conflates disclosure with commitment state. | Use a refinement pivot, not a confirmation. |
+| Silent truncation (reading 3 of 12 without saying so) | Hides the shape of the result. | Always signal count: "Found 12 — cheapest is…" |
+
+## 15.9 Degraded Mode Behaviour
+
+When the Memory Model signals degraded confidence, or result retrieval is partial, voice disclosure adapts:
+
+- Voice must verbalise uncertainty before the anchor: "I'm not fully confident, but…" or "Based on what I can see right now…"
+- Voice must not suppress the count when results are incomplete: "I found at least 3 — might be more when we're back online."
+- Voice must not apply Level 2 or higher autonomy defaults at PARTIAL_RESULT_SHOWN under degraded mode. The pivot must escalate to explicit confirmation.
+- Voice must not pre-commit to the anchor (e.g., "I've gone ahead and…") under degraded mode, regardless of autonomy level.
+
+## 15.10 Acceptance Criteria
+
+A voice disclosure passes review only if all of the following hold:
+
+- Word count is ≤ 40 before the pivot.
+- Exactly one option is disclosed in full (the anchor).
+- The anchor matches the user's stated or strongly-inferred priority.
+- Disclosure ends with a pivot, not with data.
+- No query recap, no list enumeration, no preamble.
+- Where a visual surface is present, voice explicitly names the handoff and the anchor matches the UI primary result.
+- Under degraded mode, uncertainty is verbalised before the anchor.
+- No commitment language is used at PARTIAL_RESULT_SHOWN.
+
+## 15.11 Open Questions
+
+- How does this pattern adapt for comparison-heavy domains (e.g., insurance quotes, loan offers) where the shape is genuinely complex and a single anchor may misrepresent the set?
+- Should the pattern flex for proactive voice output (Proactive Flows, Interaction Model §3) where no intent has been captured yet?
+- What is the correct pattern for empty-result states ("I couldn't find any…")? Does the four-beat model still apply, or does it collapse to a single beat?
+- How does disclosure behave when the user has explicitly opted into verbose mode (accessibility, elder-friendly profile)? Do the ceilings relax, or is the pattern preserved and pacing changed instead?
+
+# 16. Canonical Worked Examples
 
 The following examples illustrate the rules in this document. They do not override the rules.
 
@@ -511,7 +662,7 @@ Filters: [Under ₹1,500] [Under ₹3,000] [Silk] [Cotton] [More]
 
 Note: the single clarification chip ("Men's or women's?") is permitted because gender is high-impact and cannot be inferred. Results still render — the clarification does not block them.
 
-# 16. Prohibited Patterns
+# 17. Prohibited Patterns
 
 The following patterns are prohibited in all JioBharatIQ responses. Each represents a structural violation of this model. Automated QA should detect these.
 
@@ -536,7 +687,7 @@ The following patterns are prohibited in all JioBharatIQ responses. Each represe
 | Hidden assumption | Inferring a material attribute without surfacing it in the response |
 | Performative memory | "I remember you love cotton!" — reference to memory without purpose |
 
-# 17. Metrics
+# 18. Metrics
 
 How we know the model is working. Metrics must be instrumented per response, aggregated by intent shape, and reviewed quarterly.
 
@@ -561,7 +712,7 @@ How we know the model is working. Metrics must be instrumented per response, agg
 
 If it cannot be measured, it cannot be governed.
 
-# 18. Testing Requirements
+# 19. Testing Requirements
 
 Every release must pass the following tests before ship:
 
@@ -574,7 +725,7 @@ Every release must pass the following tests before ship:
 - Clarification restraint test: low-confidence intents produce a broad result set, not a question
 - Prohibited-pattern regression suite run on every model update
 
-# 19. Relationship to Other Models
+# 20. Relationship to Other Models
 
 This document operates inside the JioBharatIQ governance hierarchy.
 
@@ -610,7 +761,7 @@ This document operates inside the JioBharatIQ governance hierarchy.
 - Memory mutation (owned by Conversation History Model)
 - Cross-surface orchestration (owned by Integrated Modal Experience Model)
 
-# 20. Enforcement
+# 21. Enforcement
 
 This model must be referenced in:
 
@@ -635,7 +786,7 @@ This model must be referenced in:
 
 All exceptions are documented and revisited quarterly.
 
-# 21. Versioning & Governance
+# 22. Versioning & Governance
 
 - Changes require version increments
 - Breaking changes require migration notes and cross-team communication
@@ -670,7 +821,7 @@ A quick-reference flow for classifying an intent and choosing the correct respon
 - Check confidence level and apply the matrix in Section 13
 - Check autonomy level and apply the mapping in Section 14
 - Verify language match (Section 12)
-- Verify the response does not match any prohibited pattern in Section 16
+- Verify the response does not match any prohibited pattern in Section 17
 
 # Appendix B — Quick Reference: Chip vs Question
 
