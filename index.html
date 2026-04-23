@@ -458,10 +458,18 @@
       font-family: var(--font-family);
     }
     .home-voice-btn {
-      width: 42px; height: 42px; background: #6d17ce; border-radius: var(--shape-pill);
-      display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0;
+      height: 42px; padding: 0 16px;              /* JDS Spacing/M */
+      background: #6d17ce; border-radius: var(--shape-pill);
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; /* JDS Spacing/XS */
+      border: none; cursor: pointer; flex-shrink: 0;
     }
-    .home-voice-btn svg { width: 26px; height: 26px; }
+    .home-voice-btn svg { width: 26px; height: 26px; flex-shrink: 0; }
+    .home-voice-btn .home-voice-label {
+      font-family: var(--font-family);            /* JioType */
+      font-size: 14px; font-weight: 700;          /* JDS Label S High */
+      line-height: 1.2; letter-spacing: 0;
+      color: #ffffff;                             /* Icon [isolated]/[On Bold] High Tinted */
+    }
     .home-voice-btn svg rect:nth-child(1) {
       animation: voiceBar1 1.2s ease-in-out infinite;
       transform-origin: center;
@@ -803,12 +811,103 @@
       line-height: 1.3;
       text-align: center;
       opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 600ms cubic-bezier(0.22, 0.61, 0.36, 1),
+                  transform 600ms cubic-bezier(0.22, 0.61, 0.36, 1);
     }
-    .voice-status.visible { opacity: 1; }
-
     .voice-status.visible {
       opacity: 1;
+      transform: translateY(0);
     }
+
+    /* Muted state — orb stays fully saturated; mic-action button becomes the
+       state indicator (filled purple + white mic-slash). Copy swaps to
+       two-line "Mic off." / "You are muted". Animations halt. */
+    .voice-overlay.muted .voice-bot-dots .voice-bot-dot {
+      animation: none !important;
+    }
+    /* Privacy: when muted, everything inside the overlay goes still.
+       Pauses bg-circle drift, agent-speaking TTS pulses, any residual
+       keyframe animations. Transitions (220ms fade) are unaffected. */
+    .voice-overlay.muted .voice-bg-circle,
+    .voice-overlay.muted .voice-bg-circles {
+      animation-play-state: paused !important;
+    }
+
+    .voice-action-btn .mic-off-icon,
+    .input-mic-btn .mic-off-icon { display: none; }
+    .voice-overlay.muted .voice-action-btn.is-mic,
+    .voice-overlay.muted .input-mic-btn {
+      background: #6D17CE;
+      transition: background 220ms ease;
+    }
+    .voice-overlay.muted .voice-action-btn.is-mic:hover,
+    .voice-overlay.muted .input-mic-btn:hover { background: #5a12b0; }
+    .voice-overlay.muted .voice-action-btn.is-mic .mic-on-icon,
+    .voice-overlay.muted .input-mic-btn .mic-on-icon { display: none; }
+    .voice-overlay.muted .voice-action-btn.is-mic .mic-off-icon,
+    .voice-overlay.muted .input-mic-btn .mic-off-icon { display: block; }
+
+    .voice-overlay.muted .voice-status {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+      transition: opacity 220ms ease;
+    }
+    .muted-title {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--text-high);
+    }
+    .muted-body {
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.3;
+      color: var(--text-high);
+    }
+
+    /* Listening hint — appears ~2s after listening starts in chat-active mode,
+       so the user knows the agent is still listening after it finishes speaking. */
+    .voice-listening-hint {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 96px;
+      text-align: center;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.3;
+      color: var(--text-high);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms ease;
+      z-index: 4;
+    }
+    .voice-overlay.show-listening-hint .voice-listening-hint { opacity: 1; }
+
+    /* Muted hint — shown when muted during an active conversation, since the
+       center "Mic off. / You are muted" splash is suppressed in chat-active mode
+       (.voice-overlay.chat-active .voice-status { display: none }). */
+    .voice-muted-hint {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 96px;
+      text-align: center;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.3;
+      color: var(--text-high);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms ease;
+      z-index: 4;
+    }
+    .voice-overlay.muted.chat-active .voice-muted-hint { opacity: 1; }
 
     /* Voice bottom actions */
     .voice-actions {
@@ -1689,11 +1788,45 @@
     .text-send-btn {
       width: 32px; height: 32px; background: var(--surface-bold); border-radius: var(--shape-pill);
       display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0;
+      /* Default = hidden-but-present so it can animate in on .is-visible */
+      opacity: 0;
+      transform: scale(0.6);
+      width: 0;
+      pointer-events: none;
+      overflow: hidden;
+      transition: opacity 220ms ease,
+                  transform 260ms cubic-bezier(0.22, 0.61, 0.36, 1),
+                  width 260ms cubic-bezier(0.22, 0.61, 0.36, 1),
+                  margin 260ms cubic-bezier(0.22, 0.61, 0.36, 1);
     }
-    .text-send-btn svg { width: 20px; height: 20px; }
+    .text-send-btn.is-visible {
+      opacity: 1;
+      transform: scale(1);
+      width: 32px;
+      pointer-events: auto;
+    }
+    .text-send-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
 
-    /* When typing: hide voice btn, show send btn */
-    .voice-overlay.text-mode.text-typing #textVoiceBtn { display: none; }
+    /* Speak button smoothly collapses when the user types, instead of display:none */
+    #textVoiceBtn {
+      overflow: hidden;
+      white-space: nowrap;
+      transition: max-width 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
+                  opacity 200ms ease,
+                  transform 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
+                  padding 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
+                  margin-left 300ms cubic-bezier(0.22, 0.61, 0.36, 1);
+      max-width: 200px;
+    }
+    .voice-overlay.text-mode.text-typing #textVoiceBtn {
+      max-width: 0;
+      opacity: 0;
+      transform: scale(0.85);
+      padding-left: 0;
+      padding-right: 0;
+      margin-left: -6px; /* collapse the .text-input-row gap so .text-pill gets the space */
+      pointer-events: none;
+    }
 
     /* Greeting message */
     .greeting-msg {
@@ -2392,12 +2525,13 @@
     <div class="home-input-pill" onclick="openTypingMode()">
       <span>Ask anything</span>
     </div>
-    <button class="home-voice-btn" aria-label="Voice" onclick="openVoiceMode()">
-      <svg viewBox="0 0 26 26" fill="none">
+    <button class="home-voice-btn" aria-label="Speak" onclick="openVoiceMode()">
+      <svg viewBox="0 0 26 26" fill="none" aria-hidden="true">
         <rect x="6" y="9" width="2.5" height="8" rx="1.25" fill="white"/>
         <rect x="11.75" y="5" width="2.5" height="16" rx="1.25" fill="white"/>
         <rect x="17.5" y="7" width="2.5" height="12" rx="1.25" fill="white"/>
       </svg>
+      <span class="home-voice-label">Speak</span>
     </button>
   </div>
 
@@ -2468,19 +2602,24 @@
       </div>
     </div>
 
-    <!-- Avatar + Say something (floats above action buttons) -->
+    <!-- Say something (floats above action buttons). Avatar removed per design. -->
     <div class="voice-avatar-area" id="voiceAvatarArea">
       <span class="voice-avatar-label" id="voiceAvatarLabel">Say something...</span>
-      <video class="avatar-idle" id="avatarIdle" src="avatar-idle.mp4" muted playsinline loop></video>
     </div>
+
+    <!-- Listening hint (shown after ~2s of quiet listening in chat-active mode) -->
+    <div class="voice-listening-hint" id="voiceListeningHint" aria-live="polite">Listening...</div>
+    <!-- Muted hint (shown when muted mid-conversation; center splash is suppressed in chat-active mode) -->
+    <div class="voice-muted-hint" id="voiceMutedHint" aria-live="polite">Muted</div>
 
     <!-- Bottom Actions -->
     <div class="voice-actions">
       <button class="voice-action-btn" aria-label="Add">
         <svg viewBox="0 0 24 24" fill="none" width="24" height="24"><path d="M12 5v14M5 12h14" stroke="#6D17CE" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
-      <button class="voice-action-btn" aria-label="Microphone">
-        <svg viewBox="0 0 24 24" fill="none" width="24" height="24"><path d="M12 15a3 3 0 003-3V5a3 3 0 00-6 0v7a3 3 0 003 3zm6-5a1 1 0 00-1 1v1a5 5 0 11-10 0v-1a1 1 0 10-2 0v1a7 7 0 1014 0v-1a1 1 0 00-1-1zm-3 10H9a1 1 0 000 2h6a1 1 0 000-2z" fill="#6D17CE"/></svg>
+      <button class="voice-action-btn is-mic" id="voiceMicActionBtn" aria-label="Microphone" onclick="toggleMute()">
+        <svg class="mic-on-icon" viewBox="0 0 24 24" fill="none" width="24" height="24"><path d="M12 15a3 3 0 003-3V5a3 3 0 00-6 0v7a3 3 0 003 3zm6-5a1 1 0 00-1 1v1a5 5 0 11-10 0v-1a1 1 0 10-2 0v1a7 7 0 1014 0v-1a1 1 0 00-1-1zm-3 10H9a1 1 0 000 2h6a1 1 0 000-2z" fill="#6D17CE"/></svg>
+        <svg class="mic-off-icon" viewBox="0 0 24 24" fill="none" width="24" height="24"><path d="M12 15a3 3 0 003-3V5a3 3 0 00-6 0v7a3 3 0 003 3zm6-5a1 1 0 00-1 1v1a5 5 0 11-10 0v-1a1 1 0 10-2 0v1a7 7 0 1014 0v-1a1 1 0 00-1-1zm-3 10H9a1 1 0 000 2h6a1 1 0 000-2z" fill="#ffffff"/><path d="M3 3l18 18" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
       <button class="voice-action-btn" aria-label="Keyboard" onclick="openKeyboardMode()">
         <svg viewBox="0 0 24 24" fill="none" width="24" height="24"><rect x="2" y="5" width="20" height="14" rx="3" stroke="#6D17CE" stroke-width="1.5"/><circle cx="7" cy="10" r="1" fill="#6D17CE"/><circle cx="12" cy="10" r="1" fill="#6D17CE"/><circle cx="17" cy="10" r="1" fill="#6D17CE"/><rect x="7" y="14" width="10" height="1.5" rx=".75" fill="#6D17CE"/></svg>
@@ -2507,8 +2646,9 @@
             <input type="text" class="input-field" id="chatInput" placeholder="Ask anything" autocomplete="off">
           </div>
           <div class="input-end-btns">
-            <button class="input-mic-btn" aria-label="Microphone">
-              <svg viewBox="0 0 26 26" fill="none"><rect x="9" y="3" width="8" height="13" rx="4" fill="#6d17ce"/><path d="M6 12a7 7 0 0014 0" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/><path d="M13 22v-3" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/></svg>
+            <button class="input-mic-btn" id="kbMicBtn" aria-label="Microphone" onclick="toggleMute()">
+              <svg class="mic-on-icon" viewBox="0 0 26 26" fill="none"><rect x="9" y="3" width="8" height="13" rx="4" fill="#6d17ce"/><path d="M6 12a7 7 0 0014 0" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/><path d="M13 22v-3" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/></svg>
+              <svg class="mic-off-icon" viewBox="0 0 26 26" fill="none"><rect x="9" y="3" width="8" height="13" rx="4" fill="#ffffff"/><path d="M6 12a7 7 0 0014 0" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/><path d="M13 22v-3" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/><path d="M3 3l20 20" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/></svg>
             </button>
             <button class="input-close-btn" aria-label="Close" onclick="closeKeyboardMode()">
               <svg viewBox="0 0 26 26" fill="none"><path d="M8 8l10 10M18 8L8 18" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
@@ -2538,16 +2678,17 @@
         <!-- Unified pill: textarea always inside, grows when typing -->
         <div class="text-pill" id="textPill">
           <textarea id="textModeInput" placeholder="Ask anything" rows="1" autocomplete="off"></textarea>
-          <button class="text-send-btn" id="textSendBtn" aria-label="Send" onclick="textModeSend()" style="display:none;">
+          <button class="text-send-btn" id="textSendBtn" aria-label="Send" onclick="textModeSend()">
             <svg viewBox="0 0 20 20" fill="none"><path d="M10 16V4m0 0l5 5m-5-5L5 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
-        <button class="home-voice-btn" id="textVoiceBtn" aria-label="Voice" onclick="switchToVoiceFromText()">
-          <svg viewBox="0 0 26 26" fill="none">
+        <button class="home-voice-btn" id="textVoiceBtn" aria-label="Speak" onclick="switchToVoiceFromText()">
+          <svg viewBox="0 0 26 26" fill="none" aria-hidden="true">
             <rect x="6" y="9" width="2.5" height="8" rx="1.25" fill="white"/>
             <rect x="11.75" y="5" width="2.5" height="16" rx="1.25" fill="white"/>
             <rect x="17.5" y="7" width="2.5" height="12" rx="1.25" fill="white"/>
           </svg>
+          <span class="home-voice-label">Speak</span>
         </button>
       </div>
       <!-- Keyboard (reuse fake keyboard) -->
@@ -2864,7 +3005,9 @@
   const kbBotMini = document.getElementById('kbBotMini');
   let conversationHistory = []; // [{role: 'user', content}, {role: 'assistant', content}]
   const kbBotMiniVideo = document.getElementById('kbBotMiniVideo');
-  const avatarIdle = document.getElementById('avatarIdle');
+  // Avatar removed from markup; keep a no-op stub so existing .classList/play/pause
+  // call sites don't need to be individually null-guarded.
+  const avatarIdle = { classList: { add: () => {}, remove: () => {}, contains: () => false }, play: () => Promise.resolve(), pause: () => {} };
   const voiceAvatarArea = document.getElementById('voiceAvatarArea');
   const chatInput = document.getElementById('chatInput');
   const chatInputExpanded = document.getElementById('chatInputExpanded');
@@ -2891,6 +3034,8 @@
   const messageSentSound = new Audio('message-sent.mp3');
   const paySuccessSound = new Audio('pay_success.mp3');
   const infoWarningSound = new Audio('info_warning.mp3');
+  const micOnSound = new Audio('VA_mic_on.mp3');
+  const micOffSound = new Audio('VA_mic_off.mp3');
 
   function clearKbTimeouts() { kbTimeouts.forEach(t => clearTimeout(t)); kbTimeouts = []; }
 
@@ -2921,7 +3066,8 @@
     avatarIdle.classList.remove('visible');
     avatarIdle.pause();
 
-    // When connecting video ends, show avatar + "Say something..."
+    // When connecting video ends, show avatar BUT hold the "Say something..."
+    // label until the welcome audio finishes (see welcomeSound.onended below).
     spinner.onended = () => {
       spinner.classList.remove('visible');
       spinner.pause();
@@ -2930,37 +3076,43 @@
       avatarCenter.classList.add('visible');
       avatarCenter.currentTime = 0;
       avatarCenter.play().catch(() => {});
-      statusText.textContent = 'Say something...';
-      statusText.classList.add('visible');
+      statusText.classList.remove('visible'); // hide until welcome ends
     };
 
-    // Start listening after welcome audio ends, or fallback after delays
+    // Start listening + reveal "Say something..." after welcome audio ends.
     welcomeSound.onended = () => {
       console.log('Welcome ended, starting listening');
+      statusText.textContent = 'Say something...';
+      statusText.classList.add('visible');
       if (!isListening) startListening();
     };
 
-    // Fallback 1: if video doesn't fire onended, show UI after 3s
+    // Fallback 1: if video doesn't fire onended, show the avatar (but not the
+    // label — that still waits on welcomeSound.onended, or fallback 2 below).
     setTimeout(() => {
       spinner.classList.remove('visible');
       spinner.pause();
       overlay.classList.add('glow');
       avatarCenter.classList.add('visible');
       avatarCenter.play().catch(() => {});
-      statusText.textContent = 'Say something...';
-      statusText.classList.add('visible');
     }, 3000);
 
-    // Fallback 2: always start listening after 5s no matter what
+    // Fallback 2: always start listening + reveal label after 5s no matter what
+    // (covers welcome audio failing to load / fire onended).
     setTimeout(() => {
       console.log('Fallback: starting listening after 5s');
+      if (!statusText.classList.contains('visible')) {
+        statusText.textContent = 'Say something...';
+        statusText.classList.add('visible');
+      }
       if (!isListening) startListening();
     }, 5000);
   }
 
   function newConversation() {
     resetKeyboardMode(true);
-    overlay.classList.remove('chat-active', 'kb-mode', 'kb-hidden', 'text-mode', 'text-typing', 'listening-mode', 'user-speaking');
+    isMuted = false;
+    overlay.classList.remove('chat-active', 'kb-mode', 'kb-hidden', 'text-mode', 'text-typing', 'listening-mode', 'user-speaking', 'muted');
     avatarCenter.classList.add('visible');
     avatarCenter.currentTime = 0;
     avatarCenter.play().catch(() => {});
@@ -2987,12 +3139,52 @@
     avatarIdle.classList.remove('visible');
     avatarIdle.pause();
     // Reset state
-    overlay.classList.remove('active', 'glow', 'listening-mode', 'kb-mode', 'chat-active', 'has-text', 'kb-hidden', 'text-mode', 'text-typing', 'user-speaking', 'agent-speaking');
+    overlay.classList.remove('active', 'glow', 'listening-mode', 'kb-mode', 'chat-active', 'has-text', 'kb-hidden', 'text-mode', 'text-typing', 'user-speaking', 'agent-speaking', 'muted', 'show-listening-hint');
     clearTimeout(voiceTimeout1);
     clearTimeout(voiceTimeout2);
     clearKbTimeouts();
+    clearListeningHint();
     isProcessingResponse = false;
+    isMuted = false;
     resetKeyboardMode();
+  }
+
+  function toggleMute() {
+    // Meaningful any time voice overlay is open (voice-mode or kb-mode).
+    const active = overlay.classList.contains('active');
+    if (!isMuted && !active) return;
+
+    if (!isMuted) {
+      isMuted = true;
+      try { micOffSound.currentTime = 0; micOffSound.play().catch(() => {}); } catch (_) {}
+      overlay.classList.add('muted');
+      clearListeningHint();
+      statusText.innerHTML = '<span class="muted-title">Mic off.</span><span class="muted-body">You are muted</span>';
+      statusText.classList.add('visible');
+      try { if (activeRec) activeRec.stop(); } catch (_) {}
+      // Kill the voice-reactive mic stream so circles stop pulsing and the
+      // getUserMedia tracks are actually released.
+      try { stopVoiceReactive(); } catch (_) {}
+      // Pause any playing avatar/spinner videos so the orb is visibly still.
+      try { avatarCenter.pause(); } catch (_) {}
+      try { document.getElementById('voiceSpinner').pause(); } catch (_) {}
+    } else {
+      isMuted = false;
+      try { micOnSound.currentTime = 0; micOnSound.play().catch(() => {}); } catch (_) {}
+      overlay.classList.remove('muted');
+      // Resume the orb video if it was visible before muting.
+      if (avatarCenter.classList.contains('visible')) {
+        try { avatarCenter.play().catch(() => {}); } catch (_) {}
+      }
+      if (overlay.classList.contains('text-mode')) {
+        // Text mode never listens — just clear the muted copy.
+        statusText.classList.remove('visible');
+      } else {
+        statusText.textContent = overlay.classList.contains('listening-mode') ? 'Listening...' : '';
+        if (!overlay.classList.contains('listening-mode')) statusText.classList.remove('visible');
+        startListening();
+      }
+    }
   }
 
   // === Keyboard Mode ===
@@ -3029,7 +3221,7 @@
     voiceTitle.textContent = 'New chat';
     textModeInput.value = '';
     textModeInput.style.height = 'auto';
-    textSendBtn.style.display = 'none';
+    textSendBtn.classList.remove('is-visible');
     textModeInput.focus();
   }
 
@@ -3037,7 +3229,7 @@
     overlay.classList.remove('kb-hidden');
     textModeInput.value = '';
     textModeInput.style.height = 'auto';
-    textSendBtn.style.display = 'none';
+    textSendBtn.classList.remove('is-visible');
     textModeInput.focus();
   }
 
@@ -3046,7 +3238,7 @@
     if (!text) return;
     textModeInput.value = '';
     textModeInput.style.height = 'auto';
-    textSendBtn.style.display = 'none';
+    textSendBtn.classList.remove('is-visible');
     overlay.classList.remove('text-typing');
     showResponse(text);
   }
@@ -3062,10 +3254,10 @@
     const hasText = textModeInput.value.trim().length > 0;
     if (hasText) {
       overlay.classList.add('text-typing');
-      textSendBtn.style.display = 'flex';
+      textSendBtn.classList.add('is-visible');
     } else {
       overlay.classList.remove('text-typing');
-      textSendBtn.style.display = 'none';
+      textSendBtn.classList.remove('is-visible');
     }
   }
 
@@ -4257,6 +4449,7 @@
   // Fallback to the browser's built-in SpeechSynthesis so the prototype still
   // speaks when /api/tts is unavailable (e.g. ElevenLabs quota exhausted).
   function playBrowserTTS(text) {
+    clearListeningHint();
     return new Promise(resolve => {
       if (!('speechSynthesis' in window)) { resolve(); return; }
       try {
@@ -4286,6 +4479,7 @@
     // Guarantee the mic is not listening while TTS plays — otherwise Chrome's
     // SpeechRecognition picks up the assistant's own voice and transcribes it
     // back as a user bubble (causes echo/double-input).
+    clearListeningHint();
     isProcessingResponse = true;
     if (activeRec) {
       try { activeRec.abort(); } catch(e) {}
@@ -4373,6 +4567,29 @@
   let isProcessingResponse = false;
   let liveBubble = null;
   let activeRec = null; // Track current recognition instance
+  let isMuted = false;
+  let listeningHintTimer = null;
+
+  function scheduleListeningHint() {
+    clearListeningHint();
+    // Only meaningful in chat-active voice listening (post-first-response quiet).
+    // Skip in kb-mode, text-mode, muted, or when agent is about to / still speaking.
+    listeningHintTimer = setTimeout(() => {
+      if (!overlay.classList.contains('active')) return;
+      if (!overlay.classList.contains('chat-active')) return;
+      if (overlay.classList.contains('kb-mode')) return;
+      if (overlay.classList.contains('text-mode')) return;
+      if (overlay.classList.contains('agent-speaking')) return;
+      if (overlay.classList.contains('user-speaking')) return;
+      if (isMuted || isProcessingResponse) return;
+      overlay.classList.add('show-listening-hint');
+    }, 2000);
+  }
+
+  function clearListeningHint() {
+    if (listeningHintTimer) { clearTimeout(listeningHintTimer); listeningHintTimer = null; }
+    overlay.classList.remove('show-listening-hint');
+  }
 
   // Trigger the mic permission prompt early, then release the stream so it
   // doesn't block SpeechRecognition from acquiring the mic. Holding the stream
@@ -4396,6 +4613,7 @@
 
   function startListening() {
     if (!SpeechRecognition) return;
+    if (isMuted) return; // Privacy contract: no capture while muted, regardless of caller.
 
     // Force stop any existing instance
     if (activeRec) {
@@ -4414,18 +4632,33 @@
     rec.onstart = () => {
       isListening = true;
       startVoiceReactive();
+      scheduleListeningHint();
     };
 
     let lastProcessedIndex = 0;
 
-    rec.onspeechstart = () => {
-      if (isProcessingResponse) return; // Don't create bubble while processing
+    // Sensitivity gate — SpeechRecognition has no threshold knob, so we sample
+    // the analyser (already running for the voice-reactive circles) and use
+    // simple spectral VAD to reject breathing, blowing, HVAC, keyboard clicks.
+    // With fftSize=256, sampleRate ≈44.1kHz, each bin ≈172Hz.
+    //   bins 0-3   ≈   0–700Hz   → rumble / breathing / wind / blowing
+    //   bins 4-25  ≈ 700Hz–4.3kHz → speech formants
+    // Strategy: require the speech band to be (a) above a floor AND
+    // (b) not overwhelmed by the rumble band AND (c) sustained across multiple
+    // frames (rejects single-frame plosives like coughs / mic pops).
+    const SPEECH_BAND_MIN_AVG = 22;       // speech-band bin average (0-255)
+    const RUMBLE_DOMINANCE = 1.15;        // speech band must be > rumble band × this
+    const SUSTAINED_FRAMES = 4;           // ~66ms at 60fps
+    const SPEECH_GATE_WINDOW_MS = 400;
+    const SPEECH_MIN_CHARS = 2;
+
+    function activateSpeakingUI() {
+      if (overlay.classList.contains('user-speaking')) return;
+      clearListeningHint();
       overlay.classList.remove('glow');
-      overlay.classList.add('listening-mode', 'user-speaking');
+      overlay.classList.add('listening-mode', 'user-speaking', 'chat-active');
       statusText.textContent = 'Listening...';
       statusText.classList.add('visible');
-
-      overlay.classList.add('chat-active');
       if (!liveBubble) {
         liveBubble = document.createElement('div');
         liveBubble.className = 'user-bubble is-voice';
@@ -4434,6 +4667,42 @@
         chatMessages.appendChild(liveBubble);
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
+    }
+
+    function gateSpeechByVolume() {
+      if (overlay.classList.contains('user-speaking')) return;
+      // No analyser (e.g. mic permission not granted for reactive stream) — fall
+      // back to immediate activation so the UI isn't stuck behind a dead gate.
+      if (!analyser) { activateSpeakingUI(); return; }
+      const buf = new Uint8Array(analyser.frequencyBinCount);
+      const deadline = performance.now() + SPEECH_GATE_WINDOW_MS;
+      let sustained = 0;
+      (function sampleTick() {
+        if (isProcessingResponse || !analyser) return;
+        if (overlay.classList.contains('user-speaking')) return;
+        analyser.getByteFrequencyData(buf);
+        // Energy in rumble band (bins 0-3) vs. speech band (bins 4-25).
+        let rumble = 0, speech = 0;
+        for (let i = 0; i < 4 && i < buf.length; i++) rumble += buf[i];
+        for (let i = 4; i < 26 && i < buf.length; i++) speech += buf[i];
+        const rumbleAvg = rumble / 4;
+        const speechAvg = speech / 22;
+        const speechOk = speechAvg >= SPEECH_BAND_MIN_AVG
+                      && speechAvg > rumbleAvg * RUMBLE_DOMINANCE;
+        if (speechOk) {
+          sustained++;
+          if (sustained >= SUSTAINED_FRAMES) { activateSpeakingUI(); return; }
+        } else {
+          sustained = 0; // single-frame spike → reset (rejects coughs, pops)
+        }
+        if (performance.now() >= deadline) return; // window expired → ignore
+        requestAnimationFrame(sampleTick);
+      })();
+    }
+
+    rec.onspeechstart = () => {
+      if (isProcessingResponse) return; // Don't create bubble while processing
+      gateSpeechByVolume(); // defers UI until we confirm non-breath volume
     };
 
     rec.onresult = (event) => {
@@ -4451,12 +4720,27 @@
         }
       }
 
+      // If the volume gate rejected onspeechstart but we later got real transcript
+      // content, treat that as proof of real speech and activate the UI now.
+      const interimLen = interimText.trim().length;
+      const finalLen = finalText.trim().length;
+      if ((interimLen >= SPEECH_MIN_CHARS || finalLen >= SPEECH_MIN_CHARS)
+          && !overlay.classList.contains('user-speaking')) {
+        activateSpeakingUI();
+      }
+
       if (liveBubble && !finalText) {
         liveBubble.textContent = interimText || '...';
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
 
       if (finalText.trim()) {
+        // Discard sub-threshold transcripts (e.g. single-letter "a" from a cough).
+        if (finalLen < SPEECH_MIN_CHARS) {
+          if (liveBubble) { liveBubble.remove(); liveBubble = null; }
+          overlay.classList.remove('user-speaking');
+          return;
+        }
         if (liveBubble) { liveBubble.remove(); liveBubble = null; }
         overlay.classList.remove('user-speaking');
 
@@ -4501,6 +4785,7 @@
       isListening = false;
       overlay.classList.remove('user-speaking');
       if (liveBubble) { liveBubble.remove(); liveBubble = null; }
+      if (isMuted) return;
       if (!isProcessingResponse && overlay.classList.contains('active') && !overlay.classList.contains('text-mode')) {
         setTimeout(() => startListening(), 500);
       }
@@ -4549,6 +4834,11 @@
   function stopVoiceReactive() {
     if (animFrameId) cancelAnimationFrame(animFrameId);
     animFrameId = null;
+    // Release the getUserMedia tracks so the mic actually disengages
+    // (audioContext.close() alone leaves tracks live, holding the mic LED on).
+    if (micSource && micSource.mediaStream) {
+      try { micSource.mediaStream.getTracks().forEach(t => t.stop()); } catch (_) {}
+    }
     if (audioContext) {
       audioContext.close().catch(() => {});
       audioContext = null;
