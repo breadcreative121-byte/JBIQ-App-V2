@@ -822,6 +822,12 @@ function renderEdgeAffordance(edge) {
 }
 
 function appendEdgeAffordance(container, view) {
+  // Suppress the standalone edge pill when SuggestedPrompts is present —
+  // the prompts row already includes the edge_affordance as one of its
+  // three pills (per the "1 deepen + 1 pivot + 1 defer" heuristic), so
+  // rendering both produces a redundant top pill above the prompts caption.
+  // Legacy views (no suggested_prompts) keep their single pill.
+  if (Array.isArray(view.suggested_prompts) && view.suggested_prompts.length > 0) return;
   if (view.edge_affordance) {
     container.appendChild(renderEdgeAffordance(view.edge_affordance));
   }

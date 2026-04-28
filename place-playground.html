@@ -4630,7 +4630,6 @@
       {
         group: 'Place',
         items: [
-          { key: 'restaurants',         label: 'Restaurants nearby',                view: MOCK_RESTAURANTS },
           { key: 'biryani_hyderabad',   label: 'Best biryani in Hyderabad',         view: MOCK_BIRYANI_HYDERABAD },
           { key: 'doctors',             label: 'Doctors near me for fever',         view: MOCK_DOCTORS },
           { key: 'plumbers',            label: 'Plumber in my area',                view: MOCK_PLUMBERS },
@@ -4814,7 +4813,8 @@
     }
 
     function mountPlayground(rootEl) {
-      let activeKey = 'restaurants';
+      let activeKey = 'biryani_hyderabad';
+      let activeHomeState = 'new-user';
 
       const header = el('div', {}, [
         el('h1', { class: 'page__title', text: 'JBIQ Discovery Playground' }),
@@ -4822,6 +4822,20 @@
           class: 'page__subtitle',
           text: 'Live experience replica · pick a dataset to drive the real chat surface',
         }),
+      ]);
+
+      const homeStateSelect = el('select', { class: 'dataset-select__control' });
+      for (const opt of [
+        { value: 'new-user',    label: 'New user' },
+        { value: 'return-user', label: 'Return user' },
+      ]) {
+        const o = el('option', { value: opt.value, text: opt.label });
+        if (opt.value === activeHomeState) o.setAttribute('selected', 'selected');
+        homeStateSelect.appendChild(o);
+      }
+      const homeStateSelector = el('div', { class: 'dataset-select' }, [
+        el('label', { class: 'dataset-select__label', text: 'Home page state:' }),
+        homeStateSelect,
       ]);
 
       const select = el('select', { class: 'dataset-select__control' });
@@ -4846,7 +4860,7 @@
       // panel uses inside the host app.
       const liveFrame = el('iframe', {
         class: 'live-frame',
-        src: '/index.html',
+        src: '/index.html?home=' + activeHomeState,
         style: {
           width: '380px',
           height: '780px',
@@ -4871,6 +4885,8 @@
         );
       };
 
+      const homeStateSrc = () => '/index.html?home=' + activeHomeState;
+
       // Dispatch the active dataset's sample utterance into the iframe. Reload
       // the iframe each time so the chat surface starts fresh (no accumulated
       // history from previous picks). Wait for load before calling the host's
@@ -4890,8 +4906,14 @@
           }
         };
         liveFrame.addEventListener('load', onLoad);
-        liveFrame.src = '/index.html';
+        liveFrame.src = homeStateSrc();
       };
+
+      homeStateSelect.addEventListener('change', (e) => {
+        activeHomeState = e.target.value;
+        liveFrame.src = homeStateSrc();
+        console.log('home-state.change.' + activeHomeState);
+      });
 
       select.addEventListener('change', (e) => {
         activeKey = e.target.value;
@@ -4900,7 +4922,7 @@
         console.log(`dataset.change.${activeKey}`);
       });
 
-      const page = el('div', { class: 'page' }, [header, selector, liveFrame, validatorSlot]);
+      const page = el('div', { class: 'page' }, [header, homeStateSelector, selector, liveFrame, validatorSlot]);
       rootEl.appendChild(page);
 
       updateValidator();

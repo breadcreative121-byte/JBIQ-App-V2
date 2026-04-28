@@ -164,6 +164,31 @@
       line-height: 1;
     }
 
+    .section-title--with-action {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Home greeting (new-user variant) — Figma "Headline L" */
+    .home-greeting {
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--text-high);
+      margin: 0;
+      padding: 12px 18px;
+      display: none;
+    }
+
+    .tools-title-new { display: none; }
+
+    body[data-home-state="new-user"] .home-greeting { display: block; }
+    body[data-home-state="new-user"] .updates-section { display: none; }
+    body[data-home-state="new-user"] .tools-title-default { display: none; }
+    body[data-home-state="new-user"] .tools-title-new { display: block; }
+    body[data-home-state="return-user"] .section-title--with-action .view-all-btn { display: none; }
+
     /* Assistants */
     .assistants-scroll {
       display: flex;
@@ -1027,6 +1052,21 @@
       flex: 1;
       padding: 8px 0;
     }
+
+    /* Each user→assistant exchange is wrapped in a .chat-turn. The active
+       turn gets min-height = visible scroll viewport (set in JS) so its
+       user bubble pins to the top of the screen and the response renders
+       below; older turns collapse to natural content height. */
+    .chat-turn {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .chat-turn.is-active {
+      min-height: 100%;
+    }
     .voice-overlay.chat-active .voice-bot-dots { display: none; }
     .voice-overlay.chat-active .voice-status { display: none; }
     .voice-overlay.chat-active .voice-avatar-area { display: none !important; }
@@ -1047,6 +1087,8 @@
     .user-bubble.is-voice {
       font-style: italic;
     }
+    .user-bubble.is-voice::before { content: "\201C"; }
+    .user-bubble.is-voice::after  { content: "\201D"; }
     @keyframes bubbleIn {
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
@@ -1704,6 +1746,43 @@
     }
     .order-confirmed-receipt-btn:hover { opacity: 0.9; }
     .order-confirmed-receipt-btn:active { transform: scale(0.98); }
+    /* Booking-only — small subtext under the heading naming the assigned pro
+       (or "Assigning a professional…" while the system finds one). Does not
+       render for commerce flows (no DOM created). */
+    .order-confirmed-status {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-medium);
+      line-height: 1.3;
+      margin-top: -2px;
+    }
+    /* Booking-only — View receipt + Add to calendar as small secondary text
+       links below the primary CTA (Track booking). */
+    .order-confirmed-secondary-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding-top: 4px;
+    }
+    .order-confirmed-link {
+      background: none;
+      border: none;
+      padding: 4px 6px;
+      font-family: var(--font-family);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-medium);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+    }
+    .order-confirmed-link:hover { color: var(--text-high); }
+    .order-confirmed-link-sep {
+      color: var(--text-medium);
+      opacity: 0.5;
+      font-size: 13px;
+    }
 
     /* State C — voice-only confirm warning */
     .shopping-warning {
@@ -2401,8 +2480,10 @@
   <div class="content">
     <!-- Your Assistants -->
     <div>
-      <div class="section-title">
+      <h1 class="home-greeting">How can I help you this afternoon?</h1>
+      <div class="section-title section-title--with-action">
         <h2>Your Assistants</h2>
+        <button class="view-all-btn" type="button">View all</button>
       </div>
       <div class="assistants-scroll">
         <!-- Astrology -->
@@ -2490,8 +2571,10 @@
 
     <!-- Tools -->
     <div>
-      <div class="section-title">
-        <h2>Tools</h2>
+      <div class="section-title section-title--with-action">
+        <h2 class="tools-title-default">Tools</h2>
+        <h2 class="tools-title-new">Try these</h2>
+        <button class="view-all-btn" type="button">View all</button>
       </div>
       <div class="tools-container">
         <div class="tools-row">
@@ -2538,7 +2621,7 @@
     </div>
 
     <!-- Updates -->
-    <div>
+    <div class="updates-section">
       <div class="updates-header">
         <h2>Updates</h2>
         <button class="view-all-btn">View all</button>
@@ -3094,6 +3177,14 @@
   if (!localStorage.getItem('jbiq_user_city')) localStorage.setItem('jbiq_user_city', USER_PROFILE.city);
   if (!localStorage.getItem('jbiq_user_country')) localStorage.setItem('jbiq_user_country', USER_PROFILE.country);
 
+  // Home page state — driven by ?home=new-user|return-user (set by the
+  // Discovery Playground). Default to new-user so standalone opens show the
+  // current Figma layout.
+  (function applyHomeState(){
+    const p = new URLSearchParams(location.search).get('home');
+    document.body.dataset.homeState = p === 'return-user' ? 'return-user' : 'new-user';
+  })();
+
   // First-launch tooltip pointing at the home Speak button. Dismissed via the
   // × close button or the first tap of the Speak button itself. Console reset:
   //   localStorage.removeItem('jbiq_seen_speak_tooltip')
@@ -3108,12 +3199,17 @@
     }
   }
   function maybeShowSpeakTooltip() {
-    if (localStorage.getItem(SPEAK_TOOLTIP_KEY)) return;
+    // In new-user state the tooltip is part of the onboarding showcase, so we
+    // skip the localStorage gate — it comes back on every reload.
+    const isNewUser = document.body.dataset.homeState === 'new-user';
+    if (!isNewUser && localStorage.getItem(SPEAK_TOOLTIP_KEY)) return;
     const tip = document.getElementById('homeSpeakTooltip');
     if (!tip) return;
-    tip.hidden = false;
     tip.querySelector('.home-tooltip__close')?.addEventListener('click', dismissSpeakTooltip);
     document.querySelector('.home-voice-btn')?.addEventListener('click', dismissSpeakTooltip, { once: true });
+    // Delay reveal so the user sees the homepage settle before the tooltip
+    // springs in. The CSS keyframe animation kicks in once `hidden` flips.
+    setTimeout(() => { tip.hidden = false; }, 900);
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', maybeShowSpeakTooltip);
@@ -3473,7 +3569,11 @@
   }
 
   // === Typewriter effect ===
-  function typeWriter(el, text, scrollContainer) {
+  // The previous version auto-scrolled the container to the bottom on every
+  // character, which fights the pin-to-top pattern (it would yank the user's
+  // bubble off-screen as the response streams in). The third arg is kept for
+  // compatibility with existing call sites but is intentionally ignored.
+  function typeWriter(el, text, _scrollContainer) {
     return new Promise(resolve => {
       let i = 0;
       const speed = 18; // ms per character
@@ -3481,7 +3581,6 @@
         if (i < text.length) {
           el.textContent += text.charAt(i);
           i++;
-          if (scrollContainer) scrollContainer.scrollTop = scrollContainer.scrollHeight;
           setTimeout(type, speed);
         } else {
           resolve();
@@ -3978,6 +4077,41 @@
     return null;
   }
 
+  // §14 Booking intent matchers — explicit "book X" / "X book karo" forms.
+  // Must beat the discovery patterns (which would otherwise pick up "tailor"
+  // / "plumber" / "doctor" first). Order within: Indore-qualified plumber
+  // before generic plumber so the city wins. Provider-named forms before
+  // generic so "book Urban Company" beats "book a plumber".
+  const BOOKING_QUERY_PATTERNS = [
+    // Tailors
+    { re: /\bsona\s*tailors?\b.{0,30}\bbook\b/i,                                                    view: 'book_sona_tailors' },
+    { re: /\bbook\b.{0,30}\b(?:sona\s*tailors?|tailor|silaai|silwana|blouse)\b/i,                  view: 'book_sona_tailors' },
+
+    // Plumbers — Indore qualifier wins
+    { re: /\b(?:book|booking)\b.{0,40}\b(?:plumber|nal|urban\s*company)\b.{0,40}\bindore\b/i,      view: 'book_urban_company_indore' },
+    { re: /\bindore\b.{0,40}\b(?:plumber|nal|urban\s*company)\b.{0,40}\b(?:book|booking)\b/i,      view: 'book_urban_company_indore' },
+    { re: /\b(?:urban\s*company|plumber)\b.{0,30}\bbook\b/i,                                        view: 'book_urban_company_andheri' },
+    { re: /\bbook\b.{0,30}\b(?:urban\s*company|plumber|nal\s*theek|nal\s*kharab)\b/i,              view: 'book_urban_company_andheri' },
+
+    // Doctors
+    { re: /\b(?:dr\.?\s*anand\s*rao)\b.{0,30}\bbook\b/i,                                            view: 'book_dr_anand_rao' },
+    { re: /\bbook\b.{0,30}\b(?:dr\.?\s*anand|doctor|appointment)\b/i,                              view: 'book_dr_anand_rao' },
+    { re: /\bappointment\s+book\s+karo/i,                                                          view: 'book_dr_anand_rao' },
+
+    // Tutors
+    { re: /\b(?:aakash(\s*verma)?|maths\s*sir)\b.{0,30}\bbook\b/i,                                  view: 'book_aakash_verma' },
+    { re: /\b(?:aakash\s*sir|maths\s*sir)\s+(?:ko|ke\s+liye)\s*book/i,                              view: 'book_aakash_verma' },
+    { re: /\bbook\b.{0,30}\b(?:aakash|tutor|maths\s*sir|maths\s*tutor)\b/i,                        view: 'book_aakash_verma' },
+  ];
+
+  function matchBookingIntent(text) {
+    const t = (text || '').toLowerCase();
+    for (const p of BOOKING_QUERY_PATTERNS) {
+      if (p.re.test(t)) return p.view;
+    }
+    return null;
+  }
+
   function matchDiscoveryQuery(text) {
     const t = (text || '').toLowerCase();
     for (const p of DISCOVERY_QUERY_PATTERNS) {
@@ -4044,75 +4178,138 @@
     },
   };
 
-  // §14 Service booking flows — Place views (plumber, doctor, tutor, tailor)
-  // that need an on-screen Confirm Booking surface. Same shape as
-  // TRANSACTIONAL_VIEW_PRODUCTS so renderShoppingCard + handleConfirmAndPay
-  // can be reused; ctaLabel / confirmedHeading / confirmedLine swap the
-  // commerce-flavoured copy ("Confirm & Pay" / "Order ho gaya...") for
-  // booking-flavoured copy. The DiscoveryView carousel still renders so the
-  // user can compare options — the booking widget commits the anchor result.
-  // Pediatricians_open_now is intentionally NOT in this map: per spec §4.4
-  // its primary CTA is a tel: link (call the clinic), not a booking flow.
-  const BOOKING_VIEW_SERVICES = {
-    plumbers: {
-      brand: 'Urban Company',
-      storefront: 'Urban Company',
-      name: 'Plumber visit · Andheri',
-      qty: '30-min ETA · 4.8★ (9,432) · 0.4 km',
-      price: 349,
-      eta: '30-min ETA',
-      img: 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=400&h=400&fit=crop',
-      ctaLabel: 'Confirm Booking',
-      confirmedHeading: 'Booking confirmed',
-      confirmedLine: 'Plumber book ho gaya. Aapko 30 minute mein call aayega.',
+  // §14 Service booking intents — explicit "book X" utterances commit a
+  // specific provider on a single Confirm Booking surface. Distinct from the
+  // Place discovery flows (plumbers / doctors / tutors / tailors carousels)
+  // which only browse options. Routed by matchBookingIntent (BOOKING_QUERY_
+  // PATTERNS) so the widget appears only on "book Sona Tailors" / "Urban
+  // Company book karo", never as a default companion to a discovery turn.
+  // Pediatricians intentionally NOT here — spec §4.4 is a tel: flow.
+  const BOOKING_INTENTS = {
+    book_urban_company_andheri: {
+      subject: { title: 'Urban Company', subtitle: 'Andheri · Plumber visit' },
+      voice_disclosure: "Urban Company plumber confirm karne ke liye taiyaar — ₹349 per visit, 30-min ETA, 4.8 stars. On screen — Confirm Booking tap karein.",
+      service: {
+        kind: 'booking',
+        brand: 'Urban Company',
+        storefront: 'Urban Company',
+        name: 'Plumber visit · Andheri',
+        qty: '30-min ETA · 4.8★ (9,432) · 0.4 km',
+        price: 349,
+        eta: '30-min ETA',
+        img: 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=400&h=400&fit=crop',
+        ctaLabel: 'Confirm Booking',
+        confirmedHeading: 'Booking confirmed',
+        confirmedLine: 'Plumber book ho gaya. Aapko 30 minute mein call aayega.',
+        scheduledStartIso: '2026-04-28T15:00:00',
+        scheduledEndIso: '2026-04-28T16:00:00',
+        scheduledLabel: 'Today, 3:00–4:00 PM',
+        proName: 'Rajesh',
+        arrivalVerb: 'arrive',
+        arrivalLabel: 'today between 3:00–4:00 PM',
+        paymentStatus: 'paid',
+        serviceAddress: 'Andheri West, Mumbai',
+      },
     },
-    plumbers_indore: {
-      brand: 'Urban Company',
-      storefront: 'Urban Company',
-      name: 'Plumber visit · Vijay Nagar, Indore',
-      qty: '45-min ETA · 4.7★ (1,820) · 0.6 km',
-      price: 349,
-      eta: '45-min ETA',
-      img: 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=400&h=400&fit=crop',
-      ctaLabel: 'Confirm Booking',
-      confirmedHeading: 'Booking confirmed',
-      confirmedLine: 'Plumber book ho gaya. Aapko 45 minute mein call aayega.',
+    book_urban_company_indore: {
+      subject: { title: 'Urban Company', subtitle: 'Vijay Nagar, Indore · Plumber visit' },
+      voice_disclosure: "Urban Company plumber Indore mein confirm karne ke liye taiyaar — ₹349 per visit, 45-min ETA, 4.7 stars. On screen — Confirm Booking tap karein.",
+      service: {
+        kind: 'booking',
+        brand: 'Urban Company',
+        storefront: 'Urban Company',
+        name: 'Plumber visit · Vijay Nagar, Indore',
+        qty: '45-min ETA · 4.7★ (1,820) · 0.6 km',
+        price: 349,
+        eta: '45-min ETA',
+        img: 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=400&h=400&fit=crop',
+        ctaLabel: 'Confirm Booking',
+        confirmedHeading: 'Booking confirmed',
+        confirmedLine: 'Plumber book ho gaya. Aapko 45 minute mein call aayega.',
+        scheduledStartIso: '2026-04-28T15:30:00',
+        scheduledEndIso: '2026-04-28T16:30:00',
+        scheduledLabel: 'Today, 3:30–4:30 PM',
+        proName: 'Suresh',
+        arrivalVerb: 'arrive',
+        arrivalLabel: 'today between 3:30–4:30 PM',
+        paymentStatus: 'paid',
+        serviceAddress: 'Vijay Nagar, Indore',
+      },
     },
-    doctors: {
-      brand: 'Dr. Anand Rao',
-      storefront: 'Dr. Anand Rao',
-      name: 'General consult · Senior',
-      qty: 'Walk-in today · 4.8★ · 1.5 km',
-      price: 600,
-      eta: 'Today',
-      img: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop',
-      ctaLabel: 'Confirm Booking',
-      confirmedHeading: 'Booking confirmed',
-      confirmedLine: 'Appointment book ho gaya. Clinic se confirmation aayegi.',
+    book_dr_anand_rao: {
+      subject: { title: 'Dr. Anand Rao', subtitle: 'General consult · Senior' },
+      voice_disclosure: "Dr. Anand Rao ka appointment confirm karne ke liye taiyaar — walk-in today, ₹600, 4.8 stars. On screen — Confirm Booking tap karein.",
+      service: {
+        kind: 'booking',
+        brand: 'Dr. Anand Rao',
+        storefront: 'Dr. Anand Rao',
+        name: 'General consult · Senior',
+        qty: 'Walk-in today · 4.8★ · 1.5 km',
+        price: 600,
+        eta: 'Today',
+        img: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop',
+        ctaLabel: 'Confirm Booking',
+        confirmedHeading: 'Booking confirmed',
+        confirmedLine: 'Appointment book ho gaya. Clinic se confirmation aayegi.',
+        scheduledStartIso: '2026-04-28T18:00:00',
+        scheduledEndIso: '2026-04-28T18:30:00',
+        scheduledLabel: 'Today, 6:00–6:30 PM',
+        proName: 'Dr. Anand Rao',
+        arrivalVerb: 'see you',
+        arrivalLabel: 'today between 6:00–6:30 PM',
+        paymentStatus: 'paid',
+        serviceAddress: 'Apollo Clinic, Mumbai',
+      },
     },
-    tutors_maths_class10: {
-      brand: 'Aakash Verma',
-      storefront: 'Aakash Verma',
-      name: 'Class 10 Maths · 1-hour session',
-      qty: 'First class free · 4.9★ · 0.5 km',
-      price: 0,
-      eta: 'First class free',
-      img: 'https://images.unsplash.com/photo-1581726707445-75cbe4efc586?w=400&h=400&fit=crop',
-      ctaLabel: 'Confirm Booking',
-      confirmedHeading: 'Booking confirmed',
-      confirmedLine: 'Tutor book ho gaya. Aakash sir aapko WhatsApp pe details bhejenge.',
+    book_aakash_verma: {
+      subject: { title: 'Aakash Verma', subtitle: 'Class 10 Maths · 1-hour session' },
+      voice_disclosure: "Aakash sir ki demo class confirm karne ke liye taiyaar — pehli class free, ₹450/hr after that, 4.9 stars. On screen — Confirm Booking tap karein.",
+      service: {
+        kind: 'booking',
+        brand: 'Aakash Verma',
+        storefront: 'Aakash Verma',
+        name: 'Class 10 Maths · 1-hour session',
+        qty: 'First class free · 4.9★ · 0.5 km',
+        price: 0,
+        eta: 'First class free',
+        img: 'https://images.unsplash.com/photo-1581726707445-75cbe4efc586?w=400&h=400&fit=crop',
+        ctaLabel: 'Confirm Booking',
+        confirmedHeading: 'Booking confirmed',
+        confirmedLine: 'Tutor book ho gaya. Aakash sir aapko WhatsApp pe details bhejenge.',
+        scheduledStartIso: '2026-04-30T17:00:00',
+        scheduledEndIso: '2026-04-30T18:00:00',
+        scheduledLabel: 'Wed 30 Apr, 5:00–6:00 PM',
+        proName: 'Aakash Verma',
+        arrivalVerb: 'join you online',
+        arrivalLabel: 'on Wed 30 Apr between 5:00–6:00 PM',
+        paymentStatus: 'free',
+        serviceAddress: 'Online · Vedantu Pro',
+      },
     },
-    tailors_diwali: {
-      brand: 'Sona Tailors',
-      storefront: 'Sona Tailors',
-      name: 'Blouse stitching · Same-day',
-      qty: 'Same-day delivery · 4.6★ · 0.4 km',
-      price: 350,
-      eta: 'Same-day',
-      img: 'https://images.unsplash.com/photo-1581338834647-b0fb40704e21?w=400&h=400&fit=crop',
-      ctaLabel: 'Confirm Booking',
-      confirmedHeading: 'Booking confirmed',
-      confirmedLine: 'Tailor book ho gaya. Sona Tailors aapko measurements ke liye call karenge.',
+    book_sona_tailors: {
+      subject: { title: 'Sona Tailors', subtitle: 'Karol Bagh · Same-day blouse stitching' },
+      voice_disclosure: "Sona Tailors confirm karne ke liye taiyaar — ₹350 per blouse, same-day delivery, 0.4 km. On screen — Confirm Booking tap karein.",
+      service: {
+        kind: 'booking',
+        brand: 'Sona Tailors',
+        storefront: 'Sona Tailors',
+        name: 'Blouse stitching · Same-day',
+        qty: 'Same-day delivery · 4.6★ · 0.4 km',
+        price: 350,
+        eta: 'Same-day',
+        img: 'https://images.unsplash.com/photo-1581338834647-b0fb40704e21?w=400&h=400&fit=crop',
+        ctaLabel: 'Confirm Booking',
+        confirmedHeading: 'Booking confirmed',
+        confirmedLine: 'Tailor book ho gaya. Sona Tailors aapko measurements ke liye call karenge.',
+        scheduledStartIso: '2026-04-28T11:00:00',
+        scheduledEndIso: '2026-04-28T11:30:00',
+        scheduledLabel: 'Today, 11:00–11:30 AM',
+        proName: 'Meena',
+        arrivalVerb: 'arrive',
+        arrivalLabel: 'today between 11:00–11:30 AM',
+        paymentStatus: 'paid',
+        serviceAddress: 'Karol Bagh, Delhi',
+      },
     },
   };
 
@@ -4244,12 +4441,11 @@
     if (activeOrder.cardEl && activeOrder.cardEl.parentNode) {
       activeOrder.cardEl.parentNode.insertBefore(warn, activeOrder.cardEl);
     } else {
-      chatMessages.appendChild(warn);
+      turnContainer().appendChild(warn);
     }
     if (activeOrder.payBtn) activeOrder.payBtn.classList.add('is-hinted');
     activeOrder.warningEl = warn;
     activeOrder.warningVisible = true;
-    chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
   function dismissShoppingWarning() {
@@ -4260,6 +4456,53 @@
     }
     if (activeOrder && activeOrder.payBtn) {
       activeOrder.payBtn.classList.remove('is-hinted');
+    }
+  }
+
+  // §14 booking — generate a downloadable .ics for the Add-to-calendar link.
+  // Floating local time (no Z on DTSTART/DTEND) so the calendar app reads
+  // the event in the user's local zone — fine for a prototype.
+  function generateIcsBlob({ title, startIso, endIso, address, description }) {
+    const fmtFloating = iso => iso.replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const fmtUtc = iso => iso.replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const escape = s => String(s || '').replace(/[\\,;]/g, m => '\\' + m).replace(/\n/g, '\\n');
+    const lines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//JBIQ//Booking//EN',
+      'CALSCALE:GREGORIAN',
+      'BEGIN:VEVENT',
+      `UID:jbiq-${Date.now()}@jbiq.local`,
+      `DTSTAMP:${fmtUtc(new Date().toISOString())}`,
+      `DTSTART:${fmtFloating(startIso)}`,
+      `DTEND:${fmtFloating(endIso)}`,
+      `SUMMARY:${escape(title)}`,
+      address ? `LOCATION:${escape(address)}` : '',
+      description ? `DESCRIPTION:${escape(description)}` : '',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].filter(Boolean);
+    return new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+  }
+
+  function downloadIcs(filename, blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+  }
+
+  // Stub — opens a placeholder booking-tracker view. The real screen is a
+  // future engineering task; for the prototype we just acknowledge the tap
+  // so the CTA isn't a dead end.
+  function openBookingTracker(product) {
+    const note = `Track booking: ${product.name} · ${product.scheduledLabel || ''}`;
+    console.log('[booking-tracker stub]', note);
+    if (typeof showResponse === 'function') {
+      showResponse('Mera booking tracker dikhao');
     }
   }
 
@@ -4289,9 +4532,29 @@
     const aiEl = document.createElement('div');
     aiEl.className = 'ai-response';
     aiEl.textContent = confirmLine;
-    chatMessages.appendChild(aiEl);
+    turnContainer().appendChild(aiEl);
 
-    // Confirmation card
+    // Confirmation card. Branches on product.kind === 'booking' so service
+    // bookings get booking-flavoured copy (Confirmed/On the way/Completed,
+    // time slot, "{pro} will arrive…" subtext, "₹X · Paid" suffix, Track
+    // booking primary CTA + View receipt / Add to calendar secondary
+    // links). Commerce flows keep the original e-commerce copy unchanged.
+    const isBooking = product.kind === 'booking';
+    const stages = isBooking
+      ? ['Confirmed', 'On the way', 'Completed']
+      : ['Processing', 'Shipped', 'Delivered'];
+    const slotOrQty = isBooking && product.scheduledLabel
+      ? product.scheduledLabel
+      : 'Quality: 1';
+    const paidSuffix = (product.paymentStatus === 'paid') ? ' · Paid' : '';
+    const priceText = (product.priceLabel || `₹${product.price}`) + paidSuffix;
+    const statusSubtext = isBooking
+      ? (product.proName
+          ? `${product.proName} will ${product.arrivalVerb || 'arrive'} ${product.arrivalLabel || ''}`.trim()
+          : 'Assigning a professional…')
+      : '';
+    const primaryCtaLabel = isBooking ? 'Track booking' : 'Download Receipt';
+
     const card = document.createElement('div');
     card.className = 'order-confirmed';
     card.innerHTML = `
@@ -4305,31 +4568,71 @@
         <img class="order-confirmed-img" src="${product.img}" alt="" loading="lazy">
         <div class="order-confirmed-product-info">
           <div class="order-confirmed-product-name"></div>
-          <div class="order-confirmed-product-qty">Quality: 1</div>
-          <div class="order-confirmed-product-price">₹${product.price}</div>
+          <div class="order-confirmed-product-qty"></div>
+          <div class="order-confirmed-product-price"></div>
         </div>
       </div>
       <div class="order-confirmed-heading">${product.confirmedHeading || 'Your order is confirmed'}</div>
+      ${statusSubtext ? `<div class="order-confirmed-status"></div>` : ''}
       <div class="order-confirmed-progress">
         <div class="order-confirmed-progress-fill"></div>
       </div>
       <div class="order-confirmed-stages">
-        <span class="is-active">Processing</span>
-        <span>Shipped</span>
-        <span>Delivered</span>
+        <span class="is-active"></span>
+        <span></span>
+        <span></span>
       </div>
-      <button class="order-confirmed-receipt-btn" type="button">Download Receipt</button>
+      <button class="order-confirmed-receipt-btn" type="button">${primaryCtaLabel}</button>
+      ${isBooking ? `
+        <div class="order-confirmed-secondary-actions">
+          <button class="order-confirmed-link" type="button" data-action="view-receipt">View receipt</button>
+          <span class="order-confirmed-link-sep" aria-hidden="true">·</span>
+          <button class="order-confirmed-link" type="button" data-action="add-to-calendar">Add to calendar</button>
+        </div>
+      ` : ''}
     `;
     card.querySelector('.order-confirmed-product-name').textContent = product.name;
+    card.querySelector('.order-confirmed-product-qty').textContent = slotOrQty;
+    card.querySelector('.order-confirmed-product-price').textContent = priceText;
+    if (statusSubtext) {
+      card.querySelector('.order-confirmed-status').textContent = statusSubtext;
+    }
+    const stageEls = card.querySelectorAll('.order-confirmed-stages span');
+    stages.forEach((label, i) => { if (stageEls[i]) stageEls[i].textContent = label; });
+
+    // Primary CTA — Track booking (booking) or Download Receipt (commerce stub).
     card.querySelector('.order-confirmed-receipt-btn').addEventListener('click', () => {
-      // Stub — receipt download is not wired in this prototype
+      if (isBooking) {
+        openBookingTracker(product);
+      }
+      // Commerce path stays a stub — receipt download is not wired in the prototype.
     });
-    chatMessages.appendChild(card);
+
+    // Secondary actions (booking only): View receipt stub + Add to calendar.
+    if (isBooking) {
+      card.querySelector('[data-action="view-receipt"]')?.addEventListener('click', () => {
+        // Stub — receipt download is not wired in this prototype.
+        console.log('[receipt stub]', product.name);
+      });
+      card.querySelector('[data-action="add-to-calendar"]')?.addEventListener('click', () => {
+        if (!product.scheduledStartIso || !product.scheduledEndIso) return;
+        const blob = generateIcsBlob({
+          title: `${product.brand} — ${product.name}`,
+          startIso: product.scheduledStartIso,
+          endIso: product.scheduledEndIso,
+          address: product.serviceAddress,
+          description: product.confirmedLine || '',
+        });
+        const safeName = (product.brand || 'booking').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        downloadIcs(`${safeName}-booking.ics`, blob);
+      });
+    }
+
+    turnContainer().appendChild(card);
 
     // Feedback icons (match the rest of the chat pattern)
     const feedbackEl = createFeedbackIcons();
-    chatMessages.appendChild(feedbackEl);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    turnContainer().appendChild(feedbackEl);
 
     // TTS the Hinglish confirmation line in voice mode
     let ttsPromise = Promise.resolve();
@@ -4361,8 +4664,7 @@
   async function showRestaurantFocus(r) {
     // Brief thinking indicator for continuity
     const thinkingEl = createThinkingEl();
-    chatMessages.appendChild(thinkingEl);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    turnContainer().appendChild(thinkingEl);
 
     await new Promise(res => setTimeout(res, 1200));
     thinkingEl.remove();
@@ -4373,14 +4675,14 @@
     const summaryText = `${r.name} — ${r.cuisine}, ${r.distance} away, rated ${r.rating}. ${r.summary}`;
     const aiEl = document.createElement('div');
     aiEl.className = 'ai-response';
-    chatMessages.appendChild(aiEl);
+    turnContainer().appendChild(aiEl);
 
     const isTextMode = overlay.classList.contains('text-mode');
     let ttsPromise = Promise.resolve();
     if (!isTextMode) {
       ttsPromise = playTTS(summaryText);
     }
-    await typeWriter(aiEl, summaryText, chatMessages);
+    await typeWriter(aiEl, summaryText, null);
 
     // Focus card
     const focus = document.createElement('div');
@@ -4396,18 +4698,17 @@
     focus.querySelector('.restaurant-focus-name').textContent = r.name;
     focus.querySelector('.restaurant-focus-cuisine').textContent = r.cuisine;
     focus.querySelector('.restaurant-focus-meta').textContent = `${r.rating} • ${r.distance.replace('ki', 'kilometre')}`;
-    chatMessages.appendChild(focus);
+    turnContainer().appendChild(focus);
 
     // Directions button
     const dirBtn = document.createElement('button');
     dirBtn.className = 'directions-btn';
     dirBtn.textContent = 'Directions';
-    chatMessages.appendChild(dirBtn);
+    turnContainer().appendChild(dirBtn);
 
     // Feedback icons
     const feedbackEl = createFeedbackIcons();
-    chatMessages.appendChild(feedbackEl);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    turnContainer().appendChild(feedbackEl);
 
     // Log the tap in conversation history so follow-up API calls have context
     conversationHistory.push({ role: 'user', content: `Tell me more about ${r.name}` });
@@ -4427,8 +4728,70 @@
     }
   }
 
+  // === Turn management (Gemini/ChatGPT pin-to-top pattern) ===
+  // Each user→assistant exchange is wrapped in a .chat-turn. The active turn
+  // gets min-height = scroll-viewport height so when we scrollIntoView, the
+  // user bubble lands at the top of the screen and there's room below it for
+  // the response to render. Older turns collapse to natural height.
+  let currentTurnEl = null;
+
+  function startTurn() {
+    if (currentTurnEl) {
+      currentTurnEl.classList.remove('is-active');
+      // Clear the inline min-height so the now-inactive turn collapses to
+      // natural height — otherwise it keeps the viewport-height reservation
+      // from when it was active, leaving a large empty gap before this turn.
+      currentTurnEl.style.minHeight = '';
+    }
+    const turn = document.createElement('div');
+    turn.className = 'chat-turn is-active';
+    const scrollContainer = chatMessages.closest('.voice-container');
+    if (scrollContainer) {
+      turn.style.minHeight = scrollContainer.clientHeight + 'px';
+    }
+    chatMessages.appendChild(turn);
+    currentTurnEl = turn;
+    return turn;
+  }
+
+  function pinActiveTurnToTop() {
+    if (!currentTurnEl) return;
+    const scrollContainer = chatMessages.closest('.voice-container');
+    if (!scrollContainer) return;
+    // bounding-rect deltas are required because .chat-turn's offsetParent
+    // isn't the scroll container, so offsetTop arithmetic gives the wrong
+    // target. Two RAFs let layout settle (esp. when the previous turn is
+    // still streaming via typewriter) before we measure. Use direct
+    // scrollTop assignment — scrollTo({behavior:'smooth'}) is unreliable
+    // here (it's silently dropped while a typewriter on a sibling turn is
+    // mutating textContent). The snap-to-top is the load-bearing UX; the
+    // brief animation on the .chat-turn entry covers the visual handoff.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (!currentTurnEl) return;
+      const cRect = scrollContainer.getBoundingClientRect();
+      const tRect = currentTurnEl.getBoundingClientRect();
+      const target = scrollContainer.scrollTop + (tRect.top - cRect.top);
+      scrollContainer.scrollTop = target;
+    }));
+  }
+
+  function turnContainer() {
+    return currentTurnEl || chatMessages;
+  }
+
+  // If the active turn was started for a voice utterance that never resolved
+  // (sub-threshold transcript, recognition error, mic switched off, etc.) the
+  // live bubble has just been removed and the turn is now empty. Drop it so
+  // a stale empty .chat-turn doesn't sit at the top of the chat.
+  function clearEmptyActiveTurn() {
+    if (currentTurnEl && !currentTurnEl.children.length) {
+      currentTurnEl.remove();
+      currentTurnEl = null;
+    }
+  }
+
   // === Shared response flow (real API) ===
-  async function showResponse(text) {
+  async function showResponse(text, opts = {}) {
     clearKbTimeouts();
 
     const isTextMode = overlay.classList.contains('text-mode');
@@ -4444,8 +4807,15 @@
       userEl.className = 'user-bubble';
       if (!isTextMode) userEl.classList.add('is-voice');
       userEl.textContent = text;
-      chatMessages.appendChild(userEl);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      const reuse = opts.reuseTurn && opts.reuseTurn.isConnected ? opts.reuseTurn : null;
+      if (reuse) {
+        currentTurnEl = reuse;
+        currentTurnEl.classList.add('is-active');
+        currentTurnEl.appendChild(userEl);
+      } else {
+        startTurn().appendChild(userEl);
+      }
+      pinActiveTurnToTop();
 
       showTapToConfirmWarning();
 
@@ -4480,19 +4850,29 @@
       ? lookupTextResponseFixture(text, 'advisory') : null;
     // §10.1 Informational — match BEFORE DiscoveryView so PM-Kisan / ration
     // queries route to the prose-card path. Both registries live in discovery.js.
-    const informationalKey = (!isRestaurantQuery && !isShoppingQuery && !advisoryFixture) ? matchInformationalQuery(text) : null;
+    // §14 Booking intent — explicit "book X" / "X book karo" beats every
+    // discovery / informational match so the booking widget appears only on
+    // explicit commit utterance, never as an auto-companion to a Place
+    // discovery turn.
+    const bookingKey = (!isRestaurantQuery && !isShoppingQuery && !advisoryFixture) ? matchBookingIntent(text) : null;
+    const bookingIntent = (bookingKey && BOOKING_INTENTS[bookingKey]) ? BOOKING_INTENTS[bookingKey] : null;
+    const informationalKey = (!isRestaurantQuery && !isShoppingQuery && !advisoryFixture && !bookingIntent) ? matchInformationalQuery(text) : null;
     const informationalEntry = (informationalKey && window.INFORMATIONAL_RESPONSES) ? window.INFORMATIONAL_RESPONSES[informationalKey] : null;
     const informationalView = informationalEntry ? informationalEntry.view : null;
-    const discoveryKey = (!isRestaurantQuery && !isShoppingQuery && !advisoryFixture && !informationalView) ? matchDiscoveryQuery(text) : null;
+    const discoveryKey = (!isRestaurantQuery && !isShoppingQuery && !advisoryFixture && !informationalView && !bookingIntent) ? matchDiscoveryQuery(text) : null;
     const discoveryDs = (discoveryKey && window.DATASETS) ? window.DATASETS[discoveryKey] : null;
     // Other text-response types run only when no richer journey matched.
     // Unknown types (or fixtureless matches) fall through to /api/chat.
-    const textType = (!isRestaurantQuery && !isShoppingQuery && !discoveryDs && !informationalView)
+    const textType = (!isRestaurantQuery && !isShoppingQuery && !discoveryDs && !informationalView && !bookingIntent)
       ? (advisoryFixture ? 'advisory' : classifyTextResponseType(text)) : null;
     const textFixture = advisoryFixture || (textType ? lookupTextResponseFixture(text, textType) : null);
     voiceTitle.textContent = isRestaurantQuery
       ? 'Top restaurants'
-      : (isShoppingQuery ? `Order ${shoppingItemText}` : (discoveryDs ? discoveryDs.view.subject.title : (informationalView ? informationalView.subject.title : extractTitle(text))));
+      : (isShoppingQuery ? `Order ${shoppingItemText}`
+        : (bookingIntent ? bookingIntent.subject.title
+          : (discoveryDs ? discoveryDs.view.subject.title
+            : (informationalView ? informationalView.subject.title
+              : extractTitle(text)))));
 
     if (isTextMode) {
       kbBotMini.classList.remove('visible');
@@ -4505,13 +4885,21 @@
       kbBotMini.classList.remove('visible');
     }
 
-    // 1. Add user bubble
+    // 1. Add user bubble — start a new turn (or reuse one handed off from
+    // the voice live-bubble path so the bubble doesn't flicker top→none→top).
     const userEl = document.createElement('div');
     userEl.className = 'user-bubble';
     if (!isTextMode) userEl.classList.add('is-voice');
     userEl.textContent = text;
-    chatMessages.appendChild(userEl);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    const reuse = opts.reuseTurn && opts.reuseTurn.isConnected ? opts.reuseTurn : null;
+    if (reuse) {
+      currentTurnEl = reuse;
+      currentTurnEl.classList.add('is-active');
+      currentTurnEl.appendChild(userEl);
+    } else {
+      startTurn().appendChild(userEl);
+    }
+    pinActiveTurnToTop();
 
     // 2. Add to conversation history
     conversationHistory.push({ role: 'user', content: text });
@@ -4520,8 +4908,7 @@
     understoodSound.currentTime = 0;
     understoodSound.play().catch(() => {});
     let thinkingEl = createThinkingEl();
-    chatMessages.appendChild(thinkingEl);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    currentTurnEl.appendChild(thinkingEl);
 
     // 3b. For restaurant journey, swap Thinking... -> Searching for places... after 1.2s
     if (isRestaurantQuery) {
@@ -4534,7 +4921,6 @@
           const searchingEl = createSearchingEl();
           thinkingEl.replaceWith(searchingEl);
           thinkingEl = searchingEl;
-          chatMessages.scrollTop = chatMessages.scrollHeight;
         }, 250);
       }, 1200);
     }
@@ -4550,7 +4936,6 @@
           const searchingEl = createSearchingJioMartEl();
           thinkingEl.replaceWith(searchingEl);
           thinkingEl = searchingEl;
-          chatMessages.scrollTop = chatMessages.scrollHeight;
         }, 250);
       }, 1200);
     }
@@ -4573,6 +4958,12 @@
       // §10.1 Informational — same prose contract as DiscoveryView. Pivot
       // stripped in text mode; full disclosure speaks in voice mode.
       const vd = informationalView.voice_disclosure;
+      responseText = (isTextMode && vd) ? stripVoicePivot(vd) : '';
+    } else if (bookingIntent) {
+      // §14 Booking intent — same §15 prose contract. Pivot stripped in
+      // text mode; full disclosure speaks in voice mode. The shopping-card
+      // commit surface lands below.
+      const vd = bookingIntent.voice_disclosure;
       responseText = (isTextMode && vd) ? stripVoicePivot(vd) : '';
     } else if (textFixture) {
       // Text Response Patterns §6 — prose text comes from the fixture's
@@ -4607,6 +4998,8 @@
       spokenText = discoveryDs.view.voice_disclosure;
     } else if (informationalView && informationalView.voice_disclosure) {
       spokenText = informationalView.voice_disclosure;
+    } else if (bookingIntent && bookingIntent.voice_disclosure) {
+      spokenText = bookingIntent.voice_disclosure;
     } else if (!responseText && discoveryDs && discoveryDs.view.subject) {
       const s = discoveryDs.view.subject;
       spokenText = s.subtitle
@@ -4614,6 +5007,11 @@
         : s.title;
     } else if (!responseText && informationalView && informationalView.subject) {
       const s = informationalView.subject;
+      spokenText = s.subtitle
+        ? `${s.title} — ${s.subtitle.replace(/\s*·\s*/g, ', ')}`
+        : s.title;
+    } else if (!responseText && bookingIntent && bookingIntent.subject) {
+      const s = bookingIntent.subject;
       spokenText = s.subtitle
         ? `${s.title} — ${s.subtitle.replace(/\s*·\s*/g, ', ')}`
         : s.title;
@@ -4637,10 +5035,10 @@
     let aiEl = null;
     if (textFixture) {
       let rendered = null;
-      if (textFixture.type === 'info_simple')         rendered = renderInfoSimple(chatMessages, textFixture);
-      else if (textFixture.type === 'info_complex')   rendered = renderInfoComplex(chatMessages, textFixture);
-      else if (textFixture.type === 'advisory')       rendered = renderAdvisory(chatMessages, textFixture);
-      else if (textFixture.type === 'conversational') rendered = renderConversational(chatMessages, textFixture);
+      if (textFixture.type === 'info_simple')         rendered = renderInfoSimple(currentTurnEl, textFixture);
+      else if (textFixture.type === 'info_complex')   rendered = renderInfoComplex(currentTurnEl, textFixture);
+      else if (textFixture.type === 'advisory')       rendered = renderAdvisory(currentTurnEl, textFixture);
+      else if (textFixture.type === 'conversational') rendered = renderConversational(currentTurnEl, textFixture);
       if (rendered) {
         aiEl = rendered.el;
         responseText = rendered.proseText || '';
@@ -4648,7 +5046,7 @@
     } else if (responseText) {
       aiEl = document.createElement('div');
       aiEl.className = 'ai-response';
-      chatMessages.appendChild(aiEl);
+      currentTurnEl.appendChild(aiEl);
     }
 
     // 7. Start TTS and typewriter simultaneously in voice mode. TTS speaks
@@ -4661,20 +5059,18 @@
 
     // Typewriter only runs when there is prose to type.
     if (aiEl) {
-      await typeWriter(aiEl, responseText, chatMessages);
+      await typeWriter(aiEl, responseText, null);
     }
 
     // 7b. Render restaurant carousel for matching queries
     if (isRestaurantQuery) {
-      renderRestaurantCarousel(chatMessages);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      renderRestaurantCarousel(currentTurnEl);
     }
 
     // 7c. Render shopping product card for matching queries
     if (isShoppingQuery && shoppingProduct) {
       const cardEl = renderShoppingCard(shoppingProduct);
-      chatMessages.appendChild(cardEl);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      currentTurnEl.appendChild(cardEl);
     }
 
     // 7d. Render DiscoveryView (Place / Catalog / Compare) for matching queries.
@@ -4685,16 +5081,14 @@
     // DiscoveryView card too would be a redundant double widget.
     const isTransactional = !!(discoveryDs && TRANSACTIONAL_VIEW_PRODUCTS[discoveryKey]);
     if (discoveryDs && window.renderDiscoveryView && !isTransactional) {
-      chatMessages.appendChild(window.renderDiscoveryView(discoveryDs.view));
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      currentTurnEl.appendChild(window.renderDiscoveryView(discoveryDs.view));
     }
 
     // 7e. Render Informational response (§10.1) — single-status answers with
     // no card collection. Same .jbiq-discovery wrapper so the delegated edge
     // handler picks up the affordance click and seeds the next utterance.
     if (informationalView && window.renderInformationalResponse) {
-      chatMessages.appendChild(window.renderInformationalResponse(informationalView));
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      currentTurnEl.appendChild(window.renderInformationalResponse(informationalView));
     }
 
     // 7f. Render the on-screen Confirm & Pay surface for transactional flows
@@ -4705,30 +5099,23 @@
     if (discoveryDs && TRANSACTIONAL_VIEW_PRODUCTS[discoveryKey]) {
       const product = TRANSACTIONAL_VIEW_PRODUCTS[discoveryKey];
       const cardEl = renderShoppingCard(product);
-      chatMessages.appendChild(cardEl);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      currentTurnEl.appendChild(cardEl);
     }
 
-    // 7f-bis. Render the on-screen Confirm Booking surface for service flows
-    // (plumbers, plumbers_indore, doctors, tutors_maths_class10,
-    // tailors_diwali). Same §14 contract as transactional — on-screen tap is
-    // the only commit signal, voice "haan" cannot commit. Sits BELOW the
-    // carousel so the user can compare options before locking in the anchor
-    // result. CTA / heading / confirm line are parameterised on the service
-    // object so renderShoppingCard reads "Confirm Booking" instead of
-    // "Confirm & Pay".
-    const isBooking = !!(discoveryDs && BOOKING_VIEW_SERVICES[discoveryKey]);
-    if (isBooking) {
-      const service = BOOKING_VIEW_SERVICES[discoveryKey];
-      const cardEl = renderShoppingCard(service);
-      chatMessages.appendChild(cardEl);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+    // 7f-bis. Confirm Booking — explicit "book X" intent. Renders ONLY the
+    // shopping-card commit surface (no carousel, no double widget) so the
+    // booking widget appears strictly after the user has indicated they
+    // want to book a specific provider, never as a default companion to a
+    // discovery turn. Same §14 commit contract as transactional flows: voice
+    // "haan" cannot commit, only the on-screen tap.
+    if (bookingIntent) {
+      const cardEl = renderShoppingCard(bookingIntent.service);
+      currentTurnEl.appendChild(cardEl);
     }
 
     // 8. Add feedback icons
     const feedbackEl = createFeedbackIcons();
-    chatMessages.appendChild(feedbackEl);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    currentTurnEl.appendChild(feedbackEl);
 
     // 8b. Transactional flows: SuggestedPrompts go BELOW feedback icons so
     // the §14 commit gate (Confirm & Pay) stays the focal action above. The
@@ -4739,8 +5126,7 @@
     if (isTransactional && discoveryDs.view.suggested_prompts && window.renderSuggestedPrompts) {
       const promptsEl = window.renderSuggestedPrompts(discoveryDs.view.suggested_prompts, discoveryDs.view.suggested_prompts_label);
       if (promptsEl) {
-        chatMessages.appendChild(promptsEl);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        currentTurnEl.appendChild(promptsEl);
         promptsEl.addEventListener('click', (e) => {
           const btn = e.target.closest('[data-query]');
           if (!btn || isProcessingResponse) return;
@@ -4812,6 +5198,7 @@
     isListening = false;
     overlay.classList.remove('user-speaking');
     if (liveBubble) { liveBubble.remove(); liveBubble = null; }
+    clearEmptyActiveTurn();
 
     try {
       const res = await fetch('/api/tts', {
@@ -4988,8 +5375,13 @@
         liveBubble.className = 'user-bubble is-voice';
         liveBubble.style.opacity = '0.6';
         liveBubble.textContent = '...';
-        chatMessages.appendChild(liveBubble);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        // Start a fresh turn so the live bubble pins to the top of the
+        // viewport while the user is speaking — the previous turn is pushed
+        // off-screen as soon as transcription begins. The same turn is then
+        // handed to showResponse() via opts.reuseTurn so there's no flicker
+        // when the live bubble swaps out for the finalized one.
+        startTurn().appendChild(liveBubble);
+        pinActiveTurnToTop();
       }
     }
 
@@ -5055,16 +5447,19 @@
 
       if (liveBubble && !finalText) {
         liveBubble.textContent = interimText || '...';
-        chatMessages.scrollTop = chatMessages.scrollHeight;
       }
 
       if (finalText.trim()) {
         // Discard sub-threshold transcripts (e.g. single-letter "a" from a cough).
         if (finalLen < SPEECH_MIN_CHARS) {
           if (liveBubble) { liveBubble.remove(); liveBubble = null; }
+          clearEmptyActiveTurn();
           overlay.classList.remove('user-speaking');
           return;
         }
+        // Hand the live-bubble turn to showResponse so the finalized user
+        // bubble lands inside the same already-pinned turn (no flicker).
+        const reuseTurn = currentTurnEl;
         if (liveBubble) { liveBubble.remove(); liveBubble = null; }
         overlay.classList.remove('user-speaking');
 
@@ -5083,7 +5478,7 @@
         isProcessingResponse = true;
         isListening = false;
         try { rec.abort(); } catch(e) {}
-        showResponse(finalText.trim());
+        showResponse(finalText.trim(), { reuseTurn });
       }
     };
 
@@ -5092,6 +5487,7 @@
       if (e.error === 'no-speech' || e.error === 'aborted') return;
       isListening = false;
       if (liveBubble) { liveBubble.remove(); liveBubble = null; }
+      clearEmptyActiveTurn();
       overlay.classList.remove('user-speaking', 'listening-mode');
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
         statusText.textContent = 'Mic permission needed';
@@ -5109,6 +5505,7 @@
       isListening = false;
       overlay.classList.remove('user-speaking');
       if (liveBubble) { liveBubble.remove(); liveBubble = null; }
+      clearEmptyActiveTurn();
       if (isMuted) return;
       if (!isProcessingResponse && overlay.classList.contains('active') && !overlay.classList.contains('text-mode')) {
         setTimeout(() => startListening(), 500);
