@@ -463,6 +463,56 @@
       display: inline-flex; align-items: center; justify-content: center; gap: 2px; /* tightened per design tweak */
       border: none; cursor: pointer; flex-shrink: 0;
     }
+    /* First-launch tooltip pointing at the Speak button. Sits as an absolute
+       child of .home-input-bar so the bar's slide transform carries it. */
+    .home-tooltip {
+      position: absolute;
+      right: 0;
+      bottom: calc(100% + 10px);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: 260px;
+      padding: 10px 8px 10px 14px;
+      background: #0c0d10;
+      color: #ffffff;
+      border-radius: 14px;
+      font-family: var(--font-family);
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.3;
+      box-shadow: 0 6px 18px rgba(12,13,16,0.18);
+      z-index: 10;
+      animation: home-tooltip-in 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    .home-tooltip[hidden] { display: none; }
+    .home-tooltip::after {
+      content: '';
+      position: absolute;
+      right: 38px;
+      bottom: -5px;
+      width: 12px; height: 12px;
+      background: inherit;
+      transform: rotate(45deg);
+      border-bottom-right-radius: 3px;
+    }
+    .home-tooltip__text { flex: 1 1 auto; }
+    .home-tooltip__close {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.14);
+      border: none;
+      color: #ffffff;
+      cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0; padding: 0;
+    }
+    .home-tooltip__close svg { width: 14px; height: 14px; }
+    .home-tooltip__close:hover { background: rgba(255,255,255,0.22); }
+    @keyframes home-tooltip-in {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
     .home-voice-btn svg { width: 26px; height: 26px; flex-shrink: 0; }
     .home-voice-btn .home-voice-label {
       font-family: var(--font-family);            /* JioType */
@@ -2531,6 +2581,18 @@
       </svg>
       <span class="home-voice-label">Speak</span>
     </button>
+    <!-- First-launch tooltip pointing at the Speak button. Lives inside
+         .home-input-bar so it inherits the bar's slide-out transform when
+         the side menu opens. Hidden by default; revealed by JS only when
+         localStorage 'jbiq_seen_speak_tooltip' is unset. -->
+    <div class="home-tooltip" id="homeSpeakTooltip" role="status" aria-live="polite" hidden>
+      <span class="home-tooltip__text">Tap here to speak with JBIQ</span>
+      <button class="home-tooltip__close" type="button" aria-label="Dismiss tooltip">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <!-- Voice Mode Overlay -->
@@ -3031,6 +3093,33 @@
   // Seed localStorage on first run so the value is visible in DevTools.
   if (!localStorage.getItem('jbiq_user_city')) localStorage.setItem('jbiq_user_city', USER_PROFILE.city);
   if (!localStorage.getItem('jbiq_user_country')) localStorage.setItem('jbiq_user_country', USER_PROFILE.country);
+
+  // First-launch tooltip pointing at the home Speak button. Dismissed via the
+  // × close button or the first tap of the Speak button itself. Console reset:
+  //   localStorage.removeItem('jbiq_seen_speak_tooltip')
+  const SPEAK_TOOLTIP_KEY = 'jbiq_seen_speak_tooltip';
+  function dismissSpeakTooltip() {
+    localStorage.setItem(SPEAK_TOOLTIP_KEY, '1');
+    const tip = document.getElementById('homeSpeakTooltip');
+    if (tip && !tip.hidden) {
+      tip.style.transition = 'opacity 160ms ease';
+      tip.style.opacity = '0';
+      setTimeout(() => { tip.hidden = true; tip.style.opacity = ''; }, 180);
+    }
+  }
+  function maybeShowSpeakTooltip() {
+    if (localStorage.getItem(SPEAK_TOOLTIP_KEY)) return;
+    const tip = document.getElementById('homeSpeakTooltip');
+    if (!tip) return;
+    tip.hidden = false;
+    tip.querySelector('.home-tooltip__close')?.addEventListener('click', dismissSpeakTooltip);
+    document.querySelector('.home-voice-btn')?.addEventListener('click', dismissSpeakTooltip, { once: true });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', maybeShowSpeakTooltip);
+  } else {
+    maybeShowSpeakTooltip();
+  }
 
   const wakeupSound = new Audio('wakeup.mp3');
   const welcomeSound = new Audio('welcome.mp3');
