@@ -460,7 +460,7 @@
     .home-voice-btn {
       height: 42px; padding: 0 16px;              /* JDS Spacing/M */
       background: #6d17ce; border-radius: var(--shape-pill);
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px; /* JDS Spacing/XS */
+      display: inline-flex; align-items: center; justify-content: center; gap: 2px; /* tightened per design tweak */
       border: none; cursor: pointer; flex-shrink: 0;
     }
     .home-voice-btn svg { width: 26px; height: 26px; flex-shrink: 0; }
@@ -1749,10 +1749,8 @@
       right: 0;
       z-index: 11;
       padding-bottom: 24px;
-      transform: translateY(100%);
-      transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
     }
-    .voice-overlay.text-mode .text-bottom-bar { display: flex; transform: translateY(0); }
+    .voice-overlay.text-mode .text-bottom-bar { display: flex; }
     .voice-overlay.text-mode .voice-actions { opacity: 0; pointer-events: none; }
     .voice-overlay.text-mode .kb-bottom { display: none !important; }
     .voice-overlay.text-mode .kb-bot-mini { display: none !important; }
@@ -2948,6 +2946,7 @@
     // send that utterance through the classifier; legacy items send the label.
     const allGroups = [
       ...(window.DATASET_GROUPS || []),
+      ...(window.PILLAR_GROUPS || []),
       ...(window.TEXT_RESPONSE_PROTOTYPES || []),
       ...(window.TRANSACTIONAL_PROTOTYPES || []),
     ];
@@ -2974,17 +2973,22 @@
     showResponse(text);
   }
 
-  // §9 Edge Affordance — when a user taps the ancillary action below a
-  // DiscoveryView (e.g. "Compare top 3", "See more", "Remind me later"),
-  // seed the next turn with the author-authored follow-up query. The chat
-  // is already in chat-active state, so we go straight to showResponse().
+  // §9 Edge Affordance + SuggestedPrompts — both seed the next turn with an
+  // author-authored follow-up query. SuggestedPrompts buttons carry the query
+  // in detail.query (forwarded by discovery.js's click delegation from the
+  // button's data-query attribute); the legacy edge_affordance falls back to
+  // the wrapper's stashed view. Either way: showResponse runs the next turn.
   window.addEventListener('jbiq-discovery-event', (e) => {
     const detail = e.detail || {};
-    if (!detail.name || !detail.name.startsWith('edge.')) return;
-    const view = detail.wrapper && detail.wrapper.__jbiqView;
-    const edge = view && view.edge_affordance;
-    if (edge && edge.query && !isProcessingResponse) {
-      showResponse(edge.query);
+    if (!detail.name) return;
+    let query = detail.query || null;
+    if (!query && detail.name.startsWith('edge.')) {
+      const view = detail.wrapper && detail.wrapper.__jbiqView;
+      const edge = view && view.edge_affordance;
+      query = edge && edge.query;
+    }
+    if (query && !isProcessingResponse) {
+      showResponse(query);
     }
   });
 
@@ -3222,7 +3226,9 @@
     textModeInput.value = '';
     textModeInput.style.height = 'auto';
     textSendBtn.classList.remove('is-visible');
-    textModeInput.focus();
+    // Defer focus one frame so the overlay has painted before the focus lands —
+    // avoids a sub-frame jump as visibility flips from hidden → visible.
+    requestAnimationFrame(() => textModeInput.focus());
   }
 
   function activateTextInput() {
@@ -3824,6 +3830,25 @@
   // in discovery.js (restaurants stays on the existing carousel journey).
   // First match wins — more specific patterns first.
   const DISCOVERY_QUERY_PATTERNS = [
+    // Voice-first use cases — specific patterns must come BEFORE the generic
+    // ones below. Pediatrician (child fever) beats the generic doctor regex;
+    // priced single-plan recharge beats the compare-table recharge.
+    { re: /\b(pediatrician|bachch\w*\s*(?:ka|ke)?\s*doctor|child.{0,15}doctor)/i,         view: 'pediatricians_open_now' },
+    { re: /\bbukhar\b|\b(?:child|bachch\w*)\b.{0,15}\bfever\b/i,                          view: 'pediatricians_open_now' },
+    { re: /\b(?:₹|rs\.?)?\s*(?:99|149|199|249|299|349|399|499|699)\s*(?:wala|ka|plan)?\s*(?:recharge|lagao|karo)/i, view: 'recharge_299_single' },
+    { re: /\brecharge\b.{0,20}\b(?:99|149|199|249|299|349|399|499|699)\b/i,               view: 'recharge_299_single' },
+    { re: /\b(cylinder|gas\s*refill|indane|hp\s*gas|bharat\s*gas)/i,                      view: 'gas_refill' },
+    { re: /\bscholarship|chhatravriti|wazifa/i,                                           view: 'scholarships_12th_sc' },
+    { re: /\b(?:tutor|tuition|coaching)\b.{0,40}\b(?:class\s*10|maths|board)\b/i,         view: 'tutors_maths_class10' },
+    { re: /\b(?:class\s*10|maths|board)\b.{0,40}\b(?:tutor|tuition|coaching)\b/i,         view: 'tutors_maths_class10' },
+    // Indore-qualified plumber routes to the T2-city Indore variant. Must sit
+    // above the generic plumber regex so the city wins.
+    { re: /\b(?:plumber|nal\s*theek|nal\s*kharab|leak)\b.{0,40}\bindore\b/i,               view: 'plumbers_indore' },
+    { re: /\bindore\b.{0,40}\b(?:plumber|nal\s*theek|nal\s*kharab|leak)\b/i,               view: 'plumbers_indore' },
+    { re: /\b(tailor|silwana|blouse|stitching)/i,                                         view: 'tailors_diwali' },
+    { re: /\b(maggi|haldi|atta|chini|reorder|kirana|raashan)/i,                           view: 'kirana_reorder' },
+    { re: /\bdoodh|milk.{0,15}(subscrip|delivery|kal\s*se)/i,                             view: 'milk_subscription_edit' },
+
     // Compare (7)
     { re: /\bhome\s*loan/i,                                      view: 'home_loans' },
     { re: /\bhealth\s*insurance/i,                               view: 'health_insurance' },
@@ -3835,7 +3860,7 @@
     // Place (5) — restaurants intentionally omitted; handled by carousel
     { re: /\bbiryani\b/i,                                        view: 'biryani_hyderabad' },
     { re: /\b(doctor|fever|consult)/i,                           view: 'doctors' },
-    { re: /\bplumber/i,                                          view: 'plumbers' },
+    { re: /\b(plumber|nal\s*theek|nal\s*kharab|leak)/i,          view: 'plumbers' },
     { re: /\bschool/i,                                           view: 'schools_bandra' },
     { re: /\b(apartment|flat|2\s*bhk|\brent\b)/i,                view: 'apartments' },
     // Catalog (7)
@@ -3847,6 +3872,22 @@
     { re: /\bipl\b/i,                                            view: 'ipl_today' },
     { re: /\b(scheme|farmer|subsidy)/i,                          view: 'schemes_farmers' },
   ];
+
+  // §10.1 Informational responses — single-status answers with no card
+  // collection. Matched BEFORE DiscoveryView in the chat handler so PM-Kisan
+  // and ration-card queries take the prose-card path, not the carousel.
+  const INFORMATIONAL_QUERY_PATTERNS = [
+    { re: /\bpm\s*kisan|kisan\s*samman\s*nidhi|kisan\s*ka\s*paisa/i, view: 'pm_kisan_status' },
+    { re: /\bration\s*card|fps\s*shop|\brashan\b/i,                   view: 'ration_status'   },
+  ];
+
+  function matchInformationalQuery(text) {
+    const t = (text || '').toLowerCase();
+    for (const p of INFORMATIONAL_QUERY_PATTERNS) {
+      if (p.re.test(t)) return p.view;
+    }
+    return null;
+  }
 
   function matchDiscoveryQuery(text) {
     const t = (text || '').toLowerCase();
@@ -3869,6 +3910,50 @@
     const raw = m && m[1] ? m[1].trim() : 'item';
     return raw || 'item';
   }
+
+  // §14 Transactional flows — discovery view keys that need an on-screen
+  // Confirm & Pay surface. Each entry mirrors the SHOPPING_CATALOG product
+  // shape so renderShoppingCard + handleConfirmAndPay can be reused without
+  // duplication. The DiscoveryView card on its own is just display; the tap
+  // commitment lives on the shopping-card pay button.
+  const TRANSACTIONAL_VIEW_PRODUCTS = {
+    recharge_299_single: {
+      brand: 'Jio',
+      storefront: 'Jio',
+      name: '₹299 prepaid plan · 28 days',
+      qty: '2 GB/day · Unlimited calls · JioCinema Premium',
+      price: 299,
+      eta: 'Activates in 1 min',
+      img: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=400&h=400&fit=crop',
+    },
+    gas_refill: {
+      brand: 'Indane',
+      storefront: 'Indane',
+      name: 'LPG cylinder refill · 14.2 kg',
+      qty: 'Connection ****1284 · Coimbatore',
+      price: 903,
+      eta: 'Friday delivery slot',
+      img: 'https://images.unsplash.com/photo-1604761773800-3a4d2c1cc7a4?w=400&h=400&fit=crop',
+    },
+    kirana_reorder: {
+      brand: 'JioMart',
+      storefront: 'JioMart',
+      name: 'Kirana cart · 6 items',
+      qty: 'Maggi 5 packs · Haldi 200g · 4 more',
+      price: 285,
+      eta: 'Today, 30 min',
+      img: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=400&fit=crop',
+    },
+    milk_subscription_edit: {
+      brand: 'Country Delight',
+      storefront: 'Country Delight',
+      name: 'Doodh subscription update',
+      qty: '500 ml/day → 1 L/day · from tomorrow',
+      price: 15,
+      eta: '+₹15/day · ~₹450/month',
+      img: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&h=400&fit=crop',
+    },
+  };
 
   // Lightweight catalog — matches on substring of parsed item
   const SHOPPING_CATALOG = [
@@ -3926,7 +4011,7 @@
           <div class="shopping-card-qty"></div>
           <div class="shopping-card-source">
             <span class="shopping-card-source-logo">JM</span>
-            <span>JioMart • ${product.eta}</span>
+            <span>${product.storefront || 'JioMart'} • ${product.eta}</span>
           </div>
         </div>
       </div>
@@ -4052,7 +4137,7 @@
         <span class="order-confirmed-merchant-logo">
           <svg viewBox="0 0 24 24" fill="none"><path d="M6 8h12l-1 10.5a1.5 1.5 0 01-1.5 1.3h-9A1.5 1.5 0 015 18.5L4 8h2z" fill="white"/><path d="M9 8V6a3 3 0 016 0v2" stroke="white" stroke-width="1.6" stroke-linecap="round"/></svg>
         </span>
-        <span>JioMart</span>
+        <span>${product.storefront || 'JioMart'}</span>
       </div>
       <div class="order-confirmed-product">
         <img class="order-confirmed-img" src="${product.img}" alt="" loading="lazy">
@@ -4231,16 +4316,21 @@
     // etc. as Exploratory (browse) when the user actually wants a recommendation.
     const advisoryFixture = (!isRestaurantQuery && !isShoppingQuery && classifyTextResponseType(text) === 'advisory')
       ? lookupTextResponseFixture(text, 'advisory') : null;
-    const discoveryKey = (!isRestaurantQuery && !isShoppingQuery && !advisoryFixture) ? matchDiscoveryQuery(text) : null;
+    // §10.1 Informational — match BEFORE DiscoveryView so PM-Kisan / ration
+    // queries route to the prose-card path. Both registries live in discovery.js.
+    const informationalKey = (!isRestaurantQuery && !isShoppingQuery && !advisoryFixture) ? matchInformationalQuery(text) : null;
+    const informationalEntry = (informationalKey && window.INFORMATIONAL_RESPONSES) ? window.INFORMATIONAL_RESPONSES[informationalKey] : null;
+    const informationalView = informationalEntry ? informationalEntry.view : null;
+    const discoveryKey = (!isRestaurantQuery && !isShoppingQuery && !advisoryFixture && !informationalView) ? matchDiscoveryQuery(text) : null;
     const discoveryDs = (discoveryKey && window.DATASETS) ? window.DATASETS[discoveryKey] : null;
     // Other text-response types run only when no richer journey matched.
     // Unknown types (or fixtureless matches) fall through to /api/chat.
-    const textType = (!isRestaurantQuery && !isShoppingQuery && !discoveryDs)
+    const textType = (!isRestaurantQuery && !isShoppingQuery && !discoveryDs && !informationalView)
       ? (advisoryFixture ? 'advisory' : classifyTextResponseType(text)) : null;
     const textFixture = advisoryFixture || (textType ? lookupTextResponseFixture(text, textType) : null);
     voiceTitle.textContent = isRestaurantQuery
       ? 'Top restaurants'
-      : (isShoppingQuery ? `Order ${shoppingItemText}` : (discoveryDs ? discoveryDs.view.subject.title : extractTitle(text)));
+      : (isShoppingQuery ? `Order ${shoppingItemText}` : (discoveryDs ? discoveryDs.view.subject.title : (informationalView ? informationalView.subject.title : extractTitle(text))));
 
     if (isTextMode) {
       kbBotMini.classList.remove('visible');
@@ -4317,6 +4407,11 @@
       // TTS carries the full voice_disclosure via spokenText below.
       const vd = discoveryDs.view.voice_disclosure;
       responseText = (isTextMode && vd) ? stripVoicePivot(vd) : '';
+    } else if (informationalView) {
+      // §10.1 Informational — same prose contract as DiscoveryView. Pivot
+      // stripped in text mode; full disclosure speaks in voice mode.
+      const vd = informationalView.voice_disclosure;
+      responseText = (isTextMode && vd) ? stripVoicePivot(vd) : '';
     } else if (textFixture) {
       // Text Response Patterns §6 — prose text comes from the fixture's
       // headline (Info-Complex / Advisory) or body (Info-Simple / Conversational).
@@ -4348,8 +4443,15 @@
     let spokenText = responseText;
     if (discoveryDs && discoveryDs.view.voice_disclosure) {
       spokenText = discoveryDs.view.voice_disclosure;
+    } else if (informationalView && informationalView.voice_disclosure) {
+      spokenText = informationalView.voice_disclosure;
     } else if (!responseText && discoveryDs && discoveryDs.view.subject) {
       const s = discoveryDs.view.subject;
+      spokenText = s.subtitle
+        ? `${s.title} — ${s.subtitle.replace(/\s*·\s*/g, ', ')}`
+        : s.title;
+    } else if (!responseText && informationalView && informationalView.subject) {
+      const s = informationalView.subject;
       spokenText = s.subtitle
         ? `${s.title} — ${s.subtitle.replace(/\s*·\s*/g, ', ')}`
         : s.title;
@@ -4416,8 +4518,32 @@
     // 7d. Render DiscoveryView (Place / Catalog / Compare) for matching queries.
     // Primitives come from discovery.js; styling from discovery.css. The
     // element is wrapped in .jbiq-discovery so scoping applies.
-    if (discoveryDs && window.renderDiscoveryView) {
+    // Transactional flows skip this render — the shopping card below carries
+    // all the plan/cart detail and the §14 commit surface, so showing the
+    // DiscoveryView card too would be a redundant double widget.
+    const isTransactional = !!(discoveryDs && TRANSACTIONAL_VIEW_PRODUCTS[discoveryKey]);
+    if (discoveryDs && window.renderDiscoveryView && !isTransactional) {
       chatMessages.appendChild(window.renderDiscoveryView(discoveryDs.view));
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // 7e. Render Informational response (§10.1) — single-status answers with
+    // no card collection. Same .jbiq-discovery wrapper so the delegated edge
+    // handler picks up the affordance click and seeds the next utterance.
+    if (informationalView && window.renderInformationalResponse) {
+      chatMessages.appendChild(window.renderInformationalResponse(informationalView));
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // 7f. Render the on-screen Confirm & Pay surface for transactional flows
+    // (recharge_299_single, gas_refill, kirana_reorder, milk_subscription_edit).
+    // §14: voice "haan"/"yes" never commits. Reuses renderShoppingCard +
+    // handleConfirmAndPay so the safety contract (warning + tap) is enforced
+    // identically to the existing shopping path.
+    if (discoveryDs && TRANSACTIONAL_VIEW_PRODUCTS[discoveryKey]) {
+      const product = TRANSACTIONAL_VIEW_PRODUCTS[discoveryKey];
+      const cardEl = renderShoppingCard(product);
+      chatMessages.appendChild(cardEl);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
@@ -4425,6 +4551,26 @@
     const feedbackEl = createFeedbackIcons();
     chatMessages.appendChild(feedbackEl);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // 8b. Transactional flows: SuggestedPrompts go BELOW feedback icons so
+    // the §14 commit gate (Confirm & Pay) stays the focal action above. The
+    // prompts live as plain chatMessages siblings — outside any
+    // .jbiq-discovery wrapper — so taps need a local handler that calls
+    // showResponse directly (the delegated jbiq-discovery handler only fires
+    // for buttons inside the wrapper).
+    if (isTransactional && discoveryDs.view.suggested_prompts && window.renderSuggestedPrompts) {
+      const promptsEl = window.renderSuggestedPrompts(discoveryDs.view.suggested_prompts, discoveryDs.view.suggested_prompts_label);
+      if (promptsEl) {
+        chatMessages.appendChild(promptsEl);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        promptsEl.addEventListener('click', (e) => {
+          const btn = e.target.closest('[data-query]');
+          if (!btn || isProcessingResponse) return;
+          const q = btn.getAttribute('data-query');
+          if (q) showResponse(q);
+        });
+      }
+    }
 
     // 9. Push to history — use spokenText so DiscoveryView turns still leave a
     // trace in the conversation (empty assistant turns would confuse Claude).

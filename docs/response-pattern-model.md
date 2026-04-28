@@ -25,6 +25,8 @@ This document is normative, not aspirational.
 
 Any JioBharatIQ response — human-designed or AI-generated — that violates this model must be flagged, justified, and corrected or rejected.
 
+Worked examples for the four-pillar implementation (Government & civic, Local Services, Recharge & Bills, Order & Buy) live in [voice-first-use-cases.md](voice-first-use-cases.md). Use them as canonical references when extending §10 (Informational, Transactional Single-Path, Transactional Multi-Option) and §15 (four-beat voice disclosure).
+
 # 1. Scope & Non-Goals
 
 ## In scope

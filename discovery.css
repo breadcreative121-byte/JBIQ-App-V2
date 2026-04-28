@@ -268,6 +268,7 @@
 
 .collection-container--carousel {
   display: flex;
+  align-items: flex-start;
   gap: var(--space-sm);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
@@ -662,6 +663,49 @@
 }
 .edge-affordance__btn:hover { background: rgba(116, 66, 228, 0.06); }
 .edge-affordance__btn:active { background: rgba(116, 66, 228, 0.12); }
+
+/* ----------------------------------------------------------------------------
+   SUGGESTED PROMPTS — a 3-pill follow-up row sitting below the edge
+   affordance. Reuses the .edge-affordance__btn primitive with a --suggested
+   modifier so the user-driven prompts read lighter than the system's filled
+   primary edge pill. Heuristic per use case: 1 deepen, 1 pivot, 1 defer.
+   ---------------------------------------------------------------------------- */
+.suggested-prompts {
+  padding: var(--space-sm) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+.suggested-prompts__label {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-tertiary);
+  margin: 0;
+  letter-spacing: var(--font-tracking-small, normal);
+}
+.suggested-prompts__row {
+  display: flex;
+  gap: var(--space-sm);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.suggested-prompts__row::-webkit-scrollbar { display: none; }
+
+.edge-affordance__btn--suggested {
+  background: var(--color-surface-primary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-strong, rgba(12,13,16,0.12));
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+.edge-affordance__btn--suggested:hover {
+  background: var(--color-surface-secondary);
+  border-color: var(--color-text-primary);
+}
+.edge-affordance__btn--suggested:active {
+  background: rgba(12, 13, 16, 0.06);
+}
 
 /* ----------------------------------------------------------------------------
    VALIDATOR BANNER — only surfaces if a malformed view is passed to

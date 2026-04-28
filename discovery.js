@@ -827,6 +827,52 @@ function appendEdgeAffordance(container, view) {
   }
 }
 
+/**
+ * SuggestedPrompts — a 3-pill follow-up row appended after the edge affordance.
+ * Distinct from EdgeAffordance: that is one system-recommended action; this is
+ * conversational scaffolding suggesting what the user might say next. Heuristic
+ * per use case: one continuation + one pivot + one defer.
+ *
+ * Tap path: each button carries `data-query`, picked up by the delegated click
+ * handler (which forwards via jbiqEmit detail.query) and routed through the
+ * host's runPrototypeQuery / showResponse pipeline. No dependency on the view
+ * schema at click-time — the query travels with the button.
+ *
+ * @param {Array<{ label: string, query: string, kind?: string }>} prompts
+ * @param {string} [labelText='Yeh bhi puchh sakte hain:']
+ */
+function renderSuggestedPrompts(prompts, labelText = 'Yeh bhi puchh sakte hain:') {
+  if (!Array.isArray(prompts) || prompts.length === 0) return null;
+  const container = el('div', {
+    class: 'suggested-prompts',
+    role: 'group',
+    'aria-label': 'Suggested follow-ups',
+  });
+  if (labelText) {
+    container.appendChild(el('p', { class: 'suggested-prompts__label', text: labelText }));
+  }
+  const row = el('div', { class: 'suggested-prompts__row' });
+  for (const p of prompts) {
+    const slug = String(p.label || '').replace(/\s+/g, '_').toLowerCase().slice(0, 40);
+    row.appendChild(el('button', {
+      class: 'edge-affordance__btn edge-affordance__btn--suggested',
+      type: 'button',
+      'data-event': `prompt.${p.kind || 'see_more'}.${slug}`,
+      'data-query': p.query,
+      text: p.label,
+    }));
+  }
+  container.appendChild(row);
+  return container;
+}
+
+function appendSuggestedPrompts(container, view) {
+  if (Array.isArray(view.suggested_prompts) && view.suggested_prompts.length > 0) {
+    const node = renderSuggestedPrompts(view.suggested_prompts, view.suggested_prompts_label);
+    if (node) container.appendChild(node);
+  }
+}
+
 /** @param {PlaceDiscoveryView} view */
 function renderPlaceBody(view) {
   const container = el('div', { class: 'discovery-view' });
@@ -836,14 +882,12 @@ function renderPlaceBody(view) {
     changeEvent: view.location_context.change_event,
   }));
   appendFiltersAndSort(container, view);
-  container.appendChild(renderMapPanel({
-    center: view.map.center,
-    zoom: view.map.zoom,
-    userLocation: view.map.user_location,
-    markers: view.map.markers,
-  }));
+  // Map panel suppressed for now — keep view.map data intact (validator still
+  // checks marker/card consistency) but skip the render. Restore by wiring
+  // renderMapPanel back in when the map UX returns.
   appendCollectionOrEmpty(container, view, 'carousel', renderPlaceResultCard);
   appendEdgeAffordance(container, view);
+  appendSuggestedPrompts(container, view);
   return container;
 }
 
@@ -854,6 +898,7 @@ function renderCatalogBody(view) {
   appendFiltersAndSort(container, view);
   appendCollectionOrEmpty(container, view, view.collection.layout, renderCatalogResultCard);
   appendEdgeAffordance(container, view);
+  appendSuggestedPrompts(container, view);
   return container;
 }
 
@@ -868,6 +913,7 @@ function renderCompareBody(view) {
     rows: view.collection.rows,
   }));
   appendEdgeAffordance(container, view);
+  appendSuggestedPrompts(container, view);
   return container;
 }
 
@@ -917,6 +963,67 @@ function rerenderDiscoveryView(wrapper) {
   if (!view) return;
   const newBody = renderDiscoveryBody(deriveDisplayView(view));
   wrapper.replaceChildren(newBody);
+}
+
+/**
+ * §10.1 Informational — single-status answer with no card collection.
+ * Renders subject header + label/value rows + optional edge affordance.
+ * Uses the .jbiq-discovery wrapper so the existing delegated click + edge
+ * handlers (location.change, edge.*) continue to work uniformly.
+ * @param {{ kind: 'informational_response', subject: { title: string, subtitle?: string }, body_text: Array<{ label: string, value: string }>, voice_disclosure: string, edge_affordance?: EdgeAffordance }} view
+ */
+function renderInformationalResponse(view) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'jbiq-discovery';
+  wrapper.__jbiqView = view;
+
+  const container = el('div', { class: 'discovery-view' });
+  container.appendChild(renderSubjectHeader(view.subject));
+
+  const list = el('div', {
+    class: 'info-list',
+    style: {
+      display: 'flex', flexDirection: 'column', gap: '8px',
+      padding: '12px 16px', background: '#fff',
+      border: '1px solid rgba(12,13,16,0.08)', borderRadius: '12px',
+      marginTop: '8px',
+    },
+  });
+  for (const row of (view.body_text || [])) {
+    const rowEl = el('div', {
+      class: 'info-row',
+      style: {
+        display: 'flex', flexDirection: 'column', gap: '2px',
+        paddingBottom: '8px',
+        borderBottom: '1px solid rgba(12,13,16,0.06)',
+      },
+    }, [
+      el('span', {
+        class: 'info-row__label',
+        style: { fontSize: '12px', color: 'rgba(12,13,16,0.65)' },
+        text: row.label,
+      }),
+      el('span', {
+        class: 'info-row__value',
+        style: { fontSize: '14px', color: '#0c0d10', fontWeight: '500' },
+        text: row.value,
+      }),
+    ]);
+    list.appendChild(rowEl);
+  }
+  if (list.lastElementChild) {
+    list.lastElementChild.style.borderBottom = 'none';
+    list.lastElementChild.style.paddingBottom = '0';
+  }
+  container.appendChild(list);
+
+  if (view.edge_affordance) {
+    container.appendChild(renderEdgeAffordance(view.edge_affordance));
+  }
+  appendSuggestedPrompts(container, view);
+
+  wrapper.appendChild(container);
+  return wrapper;
 }
 
 /**
@@ -1564,7 +1671,12 @@ const MOCK_PLUMBERS = {
     kind: 'remind_later',
     query: 'Remind me to book a plumber tomorrow morning',
   },
-  voice_disclosure: "4 plumbers free now in Andheri. Urban Company is closest — ₹349, 30-min ETA, 4.8 stars. Mr Handy and LocalPros are also available; QuickFix is busy. On screen — tap Urban Company, or hear the others?",
+  voice_disclosure: "4 plumbers free now in Andheri. Urban Company sabse paas — ₹349, 30-min ETA, 4.8 stars. Mr Handy aur LocalPros bhi available; QuickFix busy hai. On screen — Urban Company tap karein, ya doosre suniyega?",
+  suggested_prompts: [
+    { label: 'Kal subah ke liye yaad dilao', kind: 'remind_later',  query: 'Kal subah plumber book karne ki yaad dilana' },
+    { label: 'Inhe compare karo',            kind: 'compare',       query: 'In plumbers ka comparison dikhao — price, ratings, ETA' },
+    { label: 'Electrician bhi chahiye?',     kind: 'context_shift', query: 'Paas mein electrician kaun available hai' },
+  ],
   meta: {
     intent: 'discover',
     query: 'Plumber in my area',
@@ -3136,6 +3248,815 @@ const MOCK_EMI_FRIDGE = {
 };
 
 /* ============================================================================
+   Voice-first use cases (Path A) — eleven new mocks across the four pillars
+   defined in docs/voice-first-use-cases.md. All flows are mock-only; no real
+   backend integrations. Order in this file is by spec section.
+   ============================================================================ */
+
+/* ---- §4.2 Plumbers — Indore variant for Track-B T2 city script ---- */
+/** @type {PlaceDiscoveryView} */
+const MOCK_PLUMBERS_INDORE = {
+  kind: 'discovery_view',
+  sub_pattern: 'place',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: { title: 'Plumbers in your area', subtitle: '3 available now · Vijay Nagar, Indore' },
+  location_context: { area: 'Vijay Nagar, Indore', change_event: 'location.change.indore' },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'available_now', label: 'Available now', value: 'avail', selected: true },
+      { id: 'under_400',     label: 'Under ₹400',    value: 400,     selected: false },
+      { id: 'verified',      label: 'Verified',       value: 'ok',   selected: false },
+    ],
+  },
+  sort: {
+    options: [
+      { id: 'availability', label: 'Availability' },
+      { id: 'distance',     label: 'Distance' },
+      { id: 'rating',       label: 'Rating' },
+    ],
+    selected_id: 'availability',
+  },
+  map: {
+    center: { lat: 22.7531, lng: 75.8937 },
+    zoom: 14,
+    user_location: { lat: 22.7531, lng: 75.8937 },
+    markers: [
+      { id: 'urban_co_indore', lat: 22.7548, lng: 75.8956 },
+      { id: 'shree_plumbing',  lat: 22.7517, lng: 75.8918 },
+      { id: 'apna_plumber',    lat: 22.7558, lng: 75.8929 },
+    ],
+  },
+  collection: {
+    layout: 'carousel',
+    cards: [
+      {
+        variant: 'place',
+        id: 'urban_co_indore',
+        title: 'Urban Company',
+        media: { alt: 'Urban Company technician', fallback_color: '#8FB4D6' },
+        rating: { value: 4.7, count: 1820 },
+        distance_km: 0.6,
+        price_label: '₹349/visit',
+        tags: ['Verified', '45-min ETA'],
+        status: { kind: 'open', label: 'Available now' },
+        filter_ids: ['available_now', 'under_400', 'verified'],
+        primary_event: 'place.plumber_indore.urban_co.open',
+      },
+      {
+        variant: 'place',
+        id: 'shree_plumbing',
+        title: 'Shree Plumbing Works',
+        media: { alt: 'Shree Plumbing van', fallback_color: '#A5BFD3' },
+        rating: { value: 4.4, count: 218 },
+        distance_km: 1.2,
+        price_label: '₹250/visit',
+        tags: ['Local', 'Same-day'],
+        status: { kind: 'open', label: 'Available now' },
+        filter_ids: ['available_now', 'under_400'],
+        primary_event: 'place.plumber_indore.shree.open',
+      },
+      {
+        variant: 'place',
+        id: 'apna_plumber',
+        title: 'Apna Plumber',
+        media: { alt: 'Apna Plumber team', fallback_color: '#B6CBDC' },
+        rating: { value: 4.2, count: 96 },
+        distance_km: 0.9,
+        price_label: '₹299/visit',
+        tags: ['Verified'],
+        status: { kind: 'open', label: 'Available now' },
+        filter_ids: ['available_now', 'under_400', 'verified'],
+        primary_event: 'place.plumber_indore.apna.open',
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Kal subah ke liye yaad dilao',
+    event: 'edge.plumbers_indore.remind_later',
+    kind: 'remind_later',
+    query: 'Mujhe kal subah plumber book karne ke liye yaad dilana',
+  },
+  voice_disclosure: "3 plumbers free now in Vijay Nagar. Urban Company sabse paas — ₹349, 45-min ETA, 4.7 stars. Shree Plumbing aur Apna Plumber bhi available hain. On screen — Urban Company tap karein, ya doosre suniyega?",
+  suggested_prompts: [
+    { label: 'Kal subah ke liye yaad dilao', kind: 'remind_later',  query: 'Kal subah plumber book karne ki yaad dilana' },
+    { label: 'Inhe compare karo',            kind: 'compare',       query: 'Indore ke plumbers ka comparison dikhao — price, ratings, ETA' },
+    { label: 'Electrician bhi chahiye?',     kind: 'context_shift', query: 'Indore mein electrician kaun available hai' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Plumber in Indore',
+    total_count: 3,
+    trace_id: 'trace-plumbers-indore-001',
+  },
+};
+
+/* ---- §4.3 ₹299 single-plan recharge — Transactional Single-Path ---- */
+/** @type {CatalogDiscoveryView} */
+const MOCK_RECHARGE_299_SINGLE = {
+  kind: 'discovery_view',
+  sub_pattern: 'catalog',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: { title: '₹299 plan ready to confirm', subtitle: 'Jio prepaid · Activates in 1 min' },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'twenty_eight', label: '28-day', value: 28, selected: true },
+    ],
+  },
+  sort: {
+    options: [
+      { id: 'recommended', label: 'Recommended' },
+    ],
+    selected_id: 'recommended',
+  },
+  collection: {
+    layout: 'list',
+    cards: [
+      {
+        variant: 'catalog',
+        id: 'jio_299',
+        title: 'Jio ₹299 · 28 days',
+        subtitle: 'Recommended for your number',
+        media: { alt: 'Jio recharge plan', fallback_color: '#B7E0F4' },
+        price_label: '₹299',
+        temporal_label: '28 days · 2GB/day · Unlimited calls',
+        status_label: 'JioCinema Premium included',
+        badge: 'Best value',
+        tags: ['2GB/day', 'Unlimited', 'JioCinema'],
+        specs: ['100 SMS/day', '5G included', 'Auto-pay optional'],
+        primary_event: 'catalog.recharge_299_single.confirm_pay',
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Doosre plans dikhao',
+    event: 'edge.recharge_299_single.compare',
+    kind: 'compare',
+    query: 'Doosre ₹299 plans bhi dikhao',
+  },
+  voice_disclosure: "₹299 plan mil gaya — 28 din validity, 2GB rozaana, unlimited calls, JioCinema premium. Confirm karein? On screen — Confirm & Pay tap karein.",
+  suggested_prompts: [
+    { label: 'Doosre plans dikhao',          kind: 'compare',       query: 'Doosre Jio recharge plans dikhao' },
+    { label: 'Mera plan kab khatam hoga',    kind: 'see_more',      query: 'Mera current Jio plan kab expire ho raha hai' },
+    { label: 'Family ke liye bhi karo',      kind: 'context_shift', query: 'Mere doosre Jio numbers bhi recharge karo' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: '₹299 wala recharge lagao',
+    total_count: 1,
+    trace_id: 'trace-recharge-single-001',
+  },
+};
+
+/* ---- §4.4 Pediatricians at 2 a.m. — Local services emergency mode ---- */
+/** @type {PlaceDiscoveryView} */
+const MOCK_PEDIATRICIANS_OPEN_NOW = {
+  kind: 'discovery_view',
+  sub_pattern: 'place',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: { title: 'Pediatricians open now', subtitle: '3 clinics within 5 km · child fever' },
+  location_context: { area: 'Gomti Nagar, Lucknow', change_event: 'location.change.lucknow' },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'open_now',    label: 'Open now',    value: 'open',  selected: true },
+      { id: 'teleconsult', label: 'Tele-consult', value: 'tele', selected: false },
+      { id: 'within_5km',  label: 'Within 5 km', value: 5,       selected: false },
+      { id: 'pediatric',   label: 'Pediatric',    value: 'paed', selected: true },
+    ],
+  },
+  sort: {
+    options: [
+      { id: 'distance',  label: 'Distance' },
+      { id: 'rating',    label: 'Rating' },
+      { id: 'eta',       label: 'Tele-consult ETA' },
+    ],
+    selected_id: 'distance',
+  },
+  map: {
+    center: { lat: 26.8540, lng: 80.9956 },
+    zoom: 13,
+    user_location: { lat: 26.8540, lng: 80.9956 },
+    markers: [
+      { id: 'apollo_24x7', lat: 26.8517, lng: 80.9985 },
+      { id: 'cloudnine',   lat: 26.8568, lng: 80.9924 },
+      { id: 'rainbow',     lat: 26.8579, lng: 81.0012 },
+    ],
+  },
+  collection: {
+    layout: 'carousel',
+    cards: [
+      {
+        variant: 'place',
+        id: 'apollo_24x7',
+        title: 'Apollo 24×7 Pediatrics',
+        media: { alt: 'Apollo clinic exterior', fallback_color: '#A8C5DA' },
+        rating: { value: 4.6, count: 1842 },
+        distance_km: 2.3,
+        price_label: 'Tele-consult ₹399',
+        tags: ['24/7', 'Tele-consult', 'Pediatric'],
+        status: { kind: 'open', label: 'Open · 24/7' },
+        filter_ids: ['open_now', 'teleconsult', 'within_5km', 'pediatric'],
+        primary_event: 'place.pediatrician.apollo_24x7.call',
+      },
+      {
+        variant: 'place',
+        id: 'cloudnine',
+        title: 'Cloudnine Hospital',
+        media: { alt: 'Cloudnine pediatric ward', fallback_color: '#B3D6E2' },
+        rating: { value: 4.8, count: 924 },
+        distance_km: 3.1,
+        price_label: 'Walk-in ₹600',
+        tags: ['Open now', 'Pediatric', 'NICU'],
+        status: { kind: 'open', label: 'Open · 24/7' },
+        filter_ids: ['open_now', 'within_5km', 'pediatric'],
+        primary_event: 'place.pediatrician.cloudnine.call',
+      },
+      {
+        variant: 'place',
+        id: 'rainbow',
+        title: 'Rainbow Children\u2019s Hospital',
+        media: { alt: 'Rainbow Children Hospital', fallback_color: '#C8DCC4' },
+        rating: { value: 4.5, count: 1240 },
+        distance_km: 4.6,
+        price_label: 'Tele-consult ₹450',
+        tags: ['Tele-consult', 'Pediatric'],
+        status: { kind: 'open', label: 'Open · 24/7' },
+        filter_ids: ['open_now', 'teleconsult', 'within_5km', 'pediatric'],
+        primary_event: 'place.pediatrician.rainbow.call',
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'First aid tips bhi suniyega?',
+    event: 'edge.pediatricians.first_aid',
+    kind: 'context_shift',
+    query: 'Bukhar 102 mein bachche ko kya kare ghar pe',
+  },
+  voice_disclosure: "3 pediatric clinics khule hain abhi. Apollo 24×7 sabse paas — 2.3 km, tele-consult ₹399, 4.6 stars. Cloudnine aur Rainbow bhi open hain. On screen — Apollo ko abhi call karein?",
+  suggested_prompts: [
+    { label: 'First aid tips bhi suniyega?', kind: 'context_shift', query: 'Bukhar 102 mein bachche ko kya kare ghar pe' },
+    { label: 'Aur pediatricians dikhao',     kind: 'see_more',      query: '5 km ke andar saare khule pediatricians dikhao' },
+    { label: 'Apollo ka number save karo',   kind: 'save_later',    query: 'Apollo 24x7 ka number mere contacts mein save karo' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Pediatrician open now child fever',
+    total_count: 3,
+    trace_id: 'trace-pediatricians-001',
+  },
+};
+
+/* ---- §4.5 Cooking gas refill — Recharge & Bills (single-path) ---- */
+/** @type {CatalogDiscoveryView} */
+const MOCK_GAS_REFILL = {
+  kind: 'discovery_view',
+  sub_pattern: 'catalog',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: { title: 'Cylinder refill ready to book', subtitle: 'Indane · Friday delivery available' },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'this_week', label: 'This week', value: 'week', selected: true },
+    ],
+  },
+  sort: {
+    options: [
+      { id: 'soonest', label: 'Soonest' },
+    ],
+    selected_id: 'soonest',
+  },
+  collection: {
+    layout: 'list',
+    cards: [
+      {
+        variant: 'catalog',
+        id: 'indane_14kg',
+        title: 'Indane 14.2 kg cylinder',
+        subtitle: 'Connection #****1284 · Coimbatore',
+        media: { alt: 'Indane LPG cylinder', fallback_color: '#F4C893' },
+        price_label: '₹903',
+        temporal_label: 'Friday delivery slot',
+        status_label: 'Distributor: Sri Bhagwathi Gas',
+        tags: ['LPG', 'Same-week'],
+        specs: ['Last refill: 12 March 2026', '2 cylinders on register', 'Cash on delivery available'],
+        primary_event: 'catalog.gas_refill.confirm_pay',
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Auto-book next month bhi',
+    event: 'edge.gas_refill.auto_book',
+    kind: 'remind_later',
+    query: 'Har mahine apne aap cylinder book kar do',
+  },
+  voice_disclosure: "Indane connection mil gaya — Friday delivery available. ₹903. Confirm karein? On screen — Confirm & Pay tap karein.",
+  // TODO: regional-language pass — Tamil disclosure for Track B T2 testing.
+  voice_disclosure_tamil_future: "Indane connection kandupidikkapattadhu — Friday delivery kidaikkum. ₹903. Confirm pannattuma? Screen-la Confirm & Pay press pannunga.",
+  suggested_prompts: [
+    { label: 'Auto-book next month bhi',       kind: 'remind_later', query: 'Har mahine apne aap cylinder book kar do' },
+    { label: 'Delivery track karo',            kind: 'see_more',     query: 'Mera cylinder order status kya hai' },
+    { label: 'Pichli delivery kab aayi thi',   kind: 'see_more',     query: 'Meri last gas cylinder delivery kab aayi thi' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Cylinder book karo this week',
+    total_count: 1,
+    trace_id: 'trace-gas-refill-001',
+  },
+};
+
+/* ---- §5.2 Scholarship lookup — Government & civic (compare) ---- */
+/** @type {CompareDiscoveryView} */
+const MOCK_SCHOLARSHIPS_12TH_SC = {
+  kind: 'discovery_view',
+  sub_pattern: 'compare',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: { title: 'Scholarships for Class 12 (SC category)', subtitle: '3 active schemes · deadlines this quarter' },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'open_now',    label: 'Open now',     value: 'open', selected: true },
+      { id: 'merit_based', label: 'Merit-based',  value: 'merit', selected: false },
+    ],
+  },
+  sort: {
+    options: [
+      { id: 'deadline', label: 'Deadline' },
+      { id: 'amount',   label: 'Amount' },
+    ],
+    selected_id: 'deadline',
+  },
+  collection: {
+    layout: 'table',
+    header: { label_column: 'Detail', recommended_id: 'pmms' },
+    options: [
+      {
+        id: 'pmms',
+        title: 'Post-Matric (Centre)',
+        subtitle: 'Ministry of Social Justice',
+        badge: 'Highest payout',
+        primary_event: 'compare.scholarship.pmms.open',
+      },
+      {
+        id: 'state_sc',
+        title: 'State SC scheme',
+        subtitle: 'Maharashtra DSWO',
+        primary_event: 'compare.scholarship.state_sc.open',
+      },
+      {
+        id: 'nsp_top',
+        title: 'NSP Top-class',
+        subtitle: 'NSP Portal',
+        primary_event: 'compare.scholarship.nsp_top.open',
+      },
+    ],
+    rows: [
+      {
+        id: 'eligibility', label: 'Eligibility',
+        values: [
+          { option_id: 'pmms',     display: 'SC, family ≤₹2.5L' },
+          { option_id: 'state_sc', display: 'SC, MH domicile' },
+          { option_id: 'nsp_top',  display: 'Top 20% Class 12, SC' },
+        ],
+      },
+      {
+        id: 'amount', label: 'Amount/year',
+        values: [
+          { option_id: 'pmms',     display: '₹13,500', emphasis: 'best' },
+          { option_id: 'state_sc', display: '₹8,000' },
+          { option_id: 'nsp_top',  display: '₹12,000' },
+        ],
+      },
+      {
+        id: 'deadline', label: 'Deadline',
+        values: [
+          { option_id: 'pmms',     display: '30 June 2026' },
+          { option_id: 'state_sc', display: '15 July 2026' },
+          { option_id: 'nsp_top',  display: '31 May 2026', emphasis: 'worst' },
+        ],
+      },
+      {
+        id: 'recipients', label: 'Last year',
+        values: [
+          { option_id: 'pmms',     display: '4.2 lakh' },
+          { option_id: 'state_sc', display: '82,000' },
+          { option_id: 'nsp_top',  display: '1,000' },
+        ],
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Deadline ke pehle yaad dilao',
+    event: 'edge.scholarships.save_later',
+    kind: 'save_later',
+    query: 'Mujhe deadline ke pehle yaad dilana scholarships ke baare mein',
+  },
+  voice_disclosure: "3 scholarships beti ke liye open hain. Post-Matric Centre highest hai — ₹13,500 per saal, deadline 30 June. State SC aur NSP Top-class bhi available hain. On screen — comparison dekhein, ya pehle apply karein?",
+  suggested_prompts: [
+    { label: 'Deadline ke pehle yaad dilao', kind: 'remind_later',  query: 'Scholarship deadline se pehle mujhe remind karo' },
+    { label: 'Eligibility check karein',     kind: 'see_more',      query: 'Meri beti SC category Class 12 ke liye kaunsi scholarship eligible hai' },
+    { label: 'Apply kaise karein',           kind: 'context_shift', query: 'NSP portal pe scholarship apply karne ka tarika batao' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Scholarships for daughter Class 12',
+    total_count: 3,
+    trace_id: 'trace-scholarships-001',
+  },
+};
+
+/* ---- §5.3 Maths tutor for Class 10 — Local services (place) ---- */
+/** @type {PlaceDiscoveryView} */
+const MOCK_TUTORS_MATHS_CLASS10 = {
+  kind: 'discovery_view',
+  sub_pattern: 'place',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: { title: 'Class 10 maths tutors near you', subtitle: '4 tutors · within 3 km' },
+  location_context: { area: 'Sector 18, Noida', change_event: 'location.change.noida' },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'under_500', label: 'Under ₹500/hr',  value: 500,    selected: true },
+      { id: 'home',      label: 'Home tuition',    value: 'home', selected: false },
+      { id: 'online',    label: 'Online',          value: 'online', selected: false },
+      { id: 'weekend',   label: 'Weekend only',    value: 'wknd', selected: false },
+    ],
+  },
+  sort: {
+    options: [
+      { id: 'rating',    label: 'Rating' },
+      { id: 'distance',  label: 'Distance' },
+      { id: 'price_asc', label: 'Price: low to high' },
+    ],
+    selected_id: 'rating',
+  },
+  map: {
+    center: { lat: 28.5708, lng: 77.3260 },
+    zoom: 14,
+    user_location: { lat: 28.5708, lng: 77.3260 },
+    markers: [
+      { id: 'aakash_sir',    lat: 28.5719, lng: 77.3285 },
+      { id: 'meena_madam',   lat: 28.5694, lng: 77.3239 },
+      { id: 'fiitjee_local', lat: 28.5733, lng: 77.3221 },
+      { id: 'vedantu_pro',   lat: 28.5708, lng: 77.3260 },
+    ],
+  },
+  collection: {
+    layout: 'carousel',
+    cards: [
+      {
+        variant: 'place',
+        id: 'aakash_sir',
+        title: 'Aakash Verma',
+        media: { alt: 'Tutor portrait', fallback_color: '#C8D5E8' },
+        rating: { value: 4.9, count: 218 },
+        distance_km: 0.5,
+        price_label: '₹450/hr',
+        tags: ['First class free', 'Maths', 'Class 10'],
+        status: { kind: 'open', label: 'Available' },
+        filter_ids: ['under_500', 'home'],
+        primary_event: 'place.tutor.aakash_sir.open',
+      },
+      {
+        variant: 'place',
+        id: 'meena_madam',
+        title: 'Meena Sharma',
+        media: { alt: 'Tutor portrait', fallback_color: '#D5E0CB' },
+        rating: { value: 4.7, count: 142 },
+        distance_km: 1.2,
+        price_label: '₹400/hr',
+        tags: ['Home tuition', 'Weekend'],
+        status: { kind: 'open', label: 'Weekend only' },
+        filter_ids: ['under_500', 'home', 'weekend'],
+        primary_event: 'place.tutor.meena_madam.open',
+      },
+      {
+        variant: 'place',
+        id: 'fiitjee_local',
+        title: 'FIITJEE Class 10 Maths',
+        media: { alt: 'Coaching centre', fallback_color: '#E1D2BB' },
+        rating: { value: 4.5, count: 612 },
+        distance_km: 2.1,
+        price_label: '₹600/hr',
+        tags: ['Coaching', 'Group'],
+        status: { kind: 'open', label: 'Open' },
+        filter_ids: [],
+        primary_event: 'place.tutor.fiitjee_local.open',
+      },
+      {
+        variant: 'place',
+        id: 'vedantu_pro',
+        title: 'Vedantu Pro 1-on-1',
+        media: { alt: 'Online tutoring', fallback_color: '#C9C9E2' },
+        rating: { value: 4.6, count: 4820 },
+        distance_km: 0,
+        distance_label: 'online',
+        price_label: '₹350/hr',
+        tags: ['Online', 'First class free'],
+        status: { kind: 'open', label: 'Available' },
+        filter_ids: ['under_500', 'online'],
+        primary_event: 'place.tutor.vedantu_pro.open',
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Top 3 ka comparison',
+    event: 'edge.tutors.compare',
+    kind: 'compare',
+    query: 'Top 3 maths tutors compare kar do',
+  },
+  voice_disclosure: "4 maths tutors mil gaye Class 10 ke liye. Aakash Verma sabse paas — 0.5 km, ₹450/hr, 4.9 stars, pehli class free. Meena Madam aur Vedantu Pro bhi affordable hain. On screen — Aakash sir tap karein, ya doosre suniyega?",
+  suggested_prompts: [
+    { label: 'Top 3 ka comparison',     kind: 'compare',       query: 'In top 3 tutors ka comparison dikhao — fees, ratings, distance' },
+    { label: 'Free trial book karo',    kind: 'context_shift', query: 'Aakash sir ke saath ek free demo class schedule karo' },
+    { label: 'Home tuition wale dikhao', kind: 'see_more',     query: 'Sirf home tuition karne wale maths tutors dikhao' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Maths tutor Class 10',
+    total_count: 4,
+    trace_id: 'trace-tutors-001',
+  },
+};
+
+/* ---- §5.4 Diwali blouse tailoring — Local services (place) ---- */
+/** @type {PlaceDiscoveryView} */
+const MOCK_TAILORS_DIWALI = {
+  kind: 'discovery_view',
+  sub_pattern: 'place',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: { title: 'Tailors for Diwali', subtitle: '3 tailors · same-day options' },
+  location_context: { area: 'Karol Bagh, Delhi', change_event: 'location.change.karol_bagh' },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'same_day',    label: 'Same-day',     value: 'sd',  selected: false },
+      { id: 'under_500',   label: 'Under ₹500',    value: 500,   selected: false },
+      { id: 'designer',    label: 'Designer',      value: 'des', selected: false },
+    ],
+  },
+  sort: {
+    options: [
+      { id: 'eta',      label: 'Delivery ETA' },
+      { id: 'distance', label: 'Distance' },
+      { id: 'rating',   label: 'Rating' },
+    ],
+    selected_id: 'eta',
+  },
+  map: {
+    center: { lat: 28.6519, lng: 77.1909 },
+    zoom: 14,
+    user_location: { lat: 28.6519, lng: 77.1909 },
+    markers: [
+      { id: 'sona_tailor',     lat: 28.6532, lng: 77.1924 },
+      { id: 'singh_designer',  lat: 28.6501, lng: 77.1893 },
+      { id: 'bhavna_blouses',  lat: 28.6541, lng: 77.1885 },
+    ],
+  },
+  collection: {
+    layout: 'carousel',
+    cards: [
+      {
+        variant: 'place',
+        id: 'sona_tailor',
+        title: 'Sona Tailors',
+        media: { alt: 'Sona Tailors shopfront', fallback_color: '#E8C7A0' },
+        rating: { value: 4.6, count: 412 },
+        distance_km: 0.4,
+        price_label: '₹350/blouse',
+        tags: ['Same-day', 'Blouse', 'Saree fall'],
+        status: { kind: 'open', label: 'Open' },
+        filter_ids: ['same_day', 'under_500'],
+        primary_event: 'place.tailor.sona.open',
+      },
+      {
+        variant: 'place',
+        id: 'singh_designer',
+        title: 'Singh Designer Studio',
+        media: { alt: 'Singh Designer Studio interior', fallback_color: '#D8B3D0' },
+        rating: { value: 4.8, count: 286 },
+        distance_km: 0.8,
+        price_label: '₹950/blouse',
+        tags: ['Designer', 'Bridal'],
+        status: { kind: 'open', label: 'Open' },
+        filter_ids: ['designer'],
+        primary_event: 'place.tailor.singh.open',
+      },
+      {
+        variant: 'place',
+        id: 'bhavna_blouses',
+        title: 'Bhavna Blouses',
+        media: { alt: 'Bhavna Blouses workshop', fallback_color: '#C9D8B5' },
+        rating: { value: 4.4, count: 168 },
+        distance_km: 0.6,
+        price_label: '₹450/blouse',
+        tags: ['Same-day', 'Blouse'],
+        status: { kind: 'open', label: 'Open' },
+        filter_ids: ['same_day', 'under_500'],
+        primary_event: 'place.tailor.bhavna.open',
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Top 3 ka comparison',
+    event: 'edge.tailors.compare',
+    kind: 'compare',
+    query: 'Top 3 tailors compare karo Diwali ke liye',
+  },
+  voice_disclosure: "3 tailors mil gaye Karol Bagh mein. Sona Tailors sabse paas — 0.4 km, ₹350 per blouse, same-day delivery. Singh Designer aur Bhavna Blouses bhi available hain. On screen — Sona Tailors tap karein, ya designer option dekhein?",
+  suggested_prompts: [
+    { label: 'Top 3 ka comparison',          kind: 'compare',  query: 'In top 3 tailors ka comparison dikhao' },
+    { label: 'Diwali se pehle delivery?',    kind: 'see_more', query: 'Konsa tailor Diwali se pehle blouse deliver kar sakta hai' },
+    { label: 'Same-day stitching wale',      kind: 'see_more', query: 'Sirf same-day delivery wale tailors dikhao' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Tailor for Diwali blouse',
+    total_count: 3,
+    trace_id: 'trace-tailors-001',
+  },
+};
+
+/* ---- §5.5 Kirana reorder — Order & Buy (transactional cart) ---- */
+/** @type {CatalogDiscoveryView} */
+const MOCK_KIRANA_REORDER = {
+  kind: 'discovery_view',
+  sub_pattern: 'catalog',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: { title: 'Aapki kirana cart', subtitle: '6 items · Today, 30 min delivery' },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'all_items', label: 'All items', value: 'all', selected: true },
+    ],
+  },
+  sort: {
+    options: [
+      { id: 'as_added', label: 'As added' },
+    ],
+    selected_id: 'as_added',
+  },
+  collection: {
+    layout: 'list',
+    cards: [
+      {
+        variant: 'catalog',
+        id: 'kirana_cart',
+        title: 'Kirana cart · ₹285',
+        subtitle: 'Maggi 5 packets · Haldi 1 dabba · 4 more',
+        media: { alt: 'Kirana cart preview', fallback_color: '#F0DCB7' },
+        price_label: '₹285',
+        temporal_label: 'Today, 30 min',
+        status_label: 'JioMart · Free delivery',
+        tags: ['6 items', 'Cash or UPI'],
+        specs: [
+          'Maggi 2-min noodles · 5 packs · ₹70',
+          'Haldi powder · 200g · ₹45',
+          'Atta · 5kg · ₹240 → ₹0 (already in pantry)',
+          'Chini · 1kg · ₹50',
+          'Tea · 500g · ₹120',
+          'Total before discount: ₹285',
+        ],
+        primary_event: 'catalog.kirana_reorder.confirm_pay',
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Saari list dikhao',
+    event: 'edge.kirana.full_list',
+    kind: 'context_shift',
+    query: 'Meri full kirana list batao',
+  },
+  voice_disclosure: "Cart ready hai — Maggi 5 packets aur haldi 1 dabba, plus 4 aur saamaan. Total ₹285, 30 minute mein aa jayega. Confirm karein? On screen — Confirm & Pay tap karein.",
+  suggested_prompts: [
+    { label: 'Saari list dikhao',         kind: 'context_shift', query: 'Meri full kirana list batao' },
+    { label: 'Atta bhi add karo',         kind: 'context_shift', query: 'Cart mein ek kilo atta aur add karo' },
+    { label: 'Kal delivery ka reminder',  kind: 'remind_later',  query: 'Kal delivery ke liye reminder lagao' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Kirana reorder Maggi haldi',
+    total_count: 1,
+    trace_id: 'trace-kirana-001',
+  },
+};
+
+/* ---- §5.6 Milk subscription edit — Order & Buy (transactional sub-mod) ---- */
+/** @type {CatalogDiscoveryView} */
+const MOCK_MILK_SUBSCRIPTION_EDIT = {
+  kind: 'discovery_view',
+  sub_pattern: 'catalog',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: { title: 'Doodh subscription update', subtitle: 'Country Delight · effective tomorrow' },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'effective_tomorrow', label: 'From tomorrow', value: 'tmrw', selected: true },
+    ],
+  },
+  sort: {
+    options: [
+      { id: 'recommended', label: 'Recommended' },
+    ],
+    selected_id: 'recommended',
+  },
+  collection: {
+    layout: 'list',
+    cards: [
+      {
+        variant: 'catalog',
+        id: 'milk_500_to_1l',
+        title: 'Doodh: 500 ml → 1 L per day',
+        subtitle: 'Country Delight · A2 cow milk',
+        media: { alt: 'Milk subscription card', fallback_color: '#EFE8D2' },
+        price_label: '+₹15/day',
+        temporal_label: 'From tomorrow morning',
+        status_label: 'Auto-charge: Friday',
+        tags: ['Subscription mod', 'Daily'],
+        specs: [
+          'Current: 500 ml/day · ₹35/day',
+          'New: 1 L/day · ₹50/day',
+          'Difference: ₹15/day · ~₹450/month',
+          'Pause anytime from app',
+        ],
+        primary_event: 'catalog.milk_subscription_edit.confirm_pay',
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Schedule check karo',
+    event: 'edge.milk.schedule',
+    kind: 'context_shift',
+    query: 'Mera milk subscription schedule dikhao',
+  },
+  voice_disclosure: "Doodh kal se 1 litre ho jayega — ₹15 zyada per day, around ₹450 a month. Confirm karein? On screen — Confirm & Pay tap karein.",
+  suggested_prompts: [
+    { label: 'Schedule check karo',       kind: 'context_shift', query: 'Mera doodh delivery schedule kya hai' },
+    { label: 'Is mahine ka bill dikhao',  kind: 'see_more',      query: 'Is mahine ka doodh subscription ka total kya hoga' },
+    { label: 'Kal delivery skip karo',    kind: 'context_shift', query: 'Kal ki doodh delivery skip kar do' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Doodh kal se 1 litre kar do',
+    total_count: 1,
+    trace_id: 'trace-milk-sub-001',
+  },
+};
+
+/* ---- §10.1 Informational responses — single-status answer (no card collection) ---- */
+const INFO_PM_KISAN_STATUS = {
+  kind: 'informational_response',
+  subject: { title: 'PM Kisan installment status', subtitle: 'Aadhaar-linked account · Bank of Baroda ****4521' },
+  body_text: [
+    { label: 'Next installment', value: '₹2,000 · expected by 18 May 2026' },
+    { label: 'Last installment', value: '₹2,000 · received 14 February 2026' },
+    { label: 'Eligibility',      value: 'Active (12th installment claimed)' },
+  ],
+  voice_disclosure: "Aapki agli PM Kisan kisht ₹2,000 hai, 18 May tak Bank of Baroda account mein aa jayegi. Pichli kisht 14 February ko aayi thi. On screen — full status dekhein, ya alert lagaayein jab paisa aa jaaye?",
+  edge_affordance: {
+    label: 'Alert lagaayein jab paisa aaye',
+    event: 'edge.pm_kisan.alert_on_disbursal',
+    kind: 'remind_later',
+    query: 'Mujhe alert kar dena jab PM Kisan ka paisa aa jaaye',
+  },
+  suggested_prompts: [
+    { label: 'Alert lagaayein jab paisa aaye', kind: 'remind_later',  query: 'Mujhe alert kar dena jab PM Kisan ka paisa aa jaaye' },
+    { label: 'Eligibility check karein',       kind: 'see_more',      query: 'Meri PM Kisan eligibility ka full status dikhao' },
+    { label: 'Pichli saari kistein dikhao',    kind: 'see_more',      query: 'PM Kisan ki pichli saari kistein dikhao' },
+  ],
+};
+
+const INFO_RATION_STATUS = {
+  kind: 'informational_response',
+  subject: { title: 'Ration card status', subtitle: 'BPL · 5 dependents · Yavatmal' },
+  body_text: [
+    { label: 'Card status',  value: 'Active · valid through 31 March 2030' },
+    { label: 'Category',     value: 'BPL (Below Poverty Line)' },
+    { label: 'Dependents',   value: 'Sunita, Rohan, Priya, Aarav, Naina' },
+    { label: 'Nearest FPS',  value: 'Shri Ganesh Kirana, 1.2 km · stock available' },
+  ],
+  voice_disclosure: "Aapka ration card active hai — BPL category, 5 dependents listed. Shri Ganesh FPS shop 1.2 km duur hai aur abhi stock available hai. On screen — full details dekhein, ya FPS shop ka location chahiye?",
+  edge_affordance: {
+    label: 'FPS shop ka rasta',
+    event: 'edge.ration.fps_directions',
+    kind: 'context_shift',
+    query: 'FPS shop tak ka rasta dikhao',
+  },
+  suggested_prompts: [
+    { label: 'FPS shop ka rasta',           kind: 'context_shift', query: 'Shri Ganesh Kirana FPS shop kaise pahunchen' },
+    { label: 'Is mahine ka allotment',      kind: 'see_more',      query: 'Is mahine mere ration card ka allotment kya hai' },
+    { label: 'Naam update karna hai',       kind: 'context_shift', query: 'Ration card mein naam kaise add karein' },
+  ],
+};
+
+const INFORMATIONAL_RESPONSES = {
+  pm_kisan_status: { key: 'pm_kisan_status', label: 'PM Kisan installment status', view: INFO_PM_KISAN_STATUS },
+  ration_status:   { key: 'ration_status',   label: 'Ration card status',          view: INFO_RATION_STATUS },
+};
+
+/* ============================================================================
    DATASET_GROUPS + DATASETS — the 20-query registry.
    Lifted verbatim from the playground shell. The playground mount, mobile
    frame, and validator panel are intentionally NOT included here — they
@@ -3182,19 +4103,86 @@ const DATASET_GROUPS = [
   },
 ];
 
-// Flat lookup: key -> { label, view }.
-const DATASETS = Object.fromEntries(
-  DATASET_GROUPS.flatMap((g) => g.items.map((it) => [it.key, it])),
-);
+/**
+ * Voice-first use cases (Path A) — registry of new DiscoveryView mocks. Kept
+ * separate from DATASET_GROUPS so the existing prototype-panel grouping (Place
+ * / Catalog / Compare) stays unchanged. These keys must resolve via the flat
+ * DATASETS lookup, so we merge them in below.
+ */
+const PILLAR_DATASET_ENTRIES = [
+  { key: 'plumbers_indore',          label: 'Plumber (Indore variant)',                  view: MOCK_PLUMBERS_INDORE },
+  { key: 'recharge_299_single',      label: '₹299 plan — single-path confirm',           view: MOCK_RECHARGE_299_SINGLE },
+  { key: 'pediatricians_open_now',   label: 'Pediatrician — child fever 2 a.m.',         view: MOCK_PEDIATRICIANS_OPEN_NOW },
+  { key: 'gas_refill',               label: 'Cooking gas refill',                        view: MOCK_GAS_REFILL },
+  { key: 'scholarships_12th_sc',     label: 'Scholarships for daughter (Class 12)',      view: MOCK_SCHOLARSHIPS_12TH_SC },
+  { key: 'tutors_maths_class10',     label: 'Maths tutor for Class 10',                  view: MOCK_TUTORS_MATHS_CLASS10 },
+  { key: 'tailors_diwali',           label: 'Diwali blouse tailoring',                   view: MOCK_TAILORS_DIWALI },
+  { key: 'kirana_reorder',           label: 'Kirana reorder',                            view: MOCK_KIRANA_REORDER },
+  { key: 'milk_subscription_edit',   label: 'Milk subscription edit',                    view: MOCK_MILK_SUBSCRIPTION_EDIT },
+];
+
+// Flat lookup: key -> { label, view }. Includes the 20 legacy mocks plus the
+// new pillar-keyed DiscoveryView mocks. Informational responses live in their
+// own registry (INFORMATIONAL_RESPONSES) — keep that lookup separate so the
+// chat handler can route by intent shape.
+const DATASETS = Object.fromEntries([
+  ...DATASET_GROUPS.flatMap((g) => g.items.map((it) => [it.key, it])),
+  ...PILLAR_DATASET_ENTRIES.map((it) => [it.key, it]),
+]);
+
+/**
+ * Prototype-panel grouping by the four transactional pillars defined in
+ * docs/voice-first-use-cases.md. Items use `query` (a sample utterance) so the
+ * burger panel routes through the live matchers — exercising the same matcher
+ * + render path the user gets via voice / typing. Keep DATASET_GROUPS untouched
+ * for non-regression of the existing 20 mocks.
+ */
+const PILLAR_GROUPS = [
+  {
+    group: 'Government & civic',
+    items: [
+      { key: 'pm_kisan_status',       label: 'PM Kisan installment status',                query: 'PM Kisan ka paisa kab aayega mere account mein' },
+      { key: 'ration_status',         label: 'Ration card status',                          query: 'Mera ration card ka status check karo' },
+      { key: 'scholarships_12th_sc',  label: 'Scholarships for daughter (Class 12)',        query: 'Beti ke liye scholarship batao 12th class' },
+    ],
+  },
+  {
+    group: 'Local Services',
+    items: [
+      { key: 'plumbers_indore',         label: 'Plumber (Indore variant)',                  query: 'Indore mein plumber chahiye, nal kharab hai' },
+      { key: 'pediatricians_open_now',  label: 'Pediatrician — child fever 2 a.m.',         query: 'Bachche ko bukhar hai, abhi koi pediatrician available hai paas mein' },
+      { key: 'tutors_maths_class10',    label: 'Maths tutor for Class 10',                  query: 'Class 10 ke liye maths tutor chahiye' },
+      { key: 'tailors_diwali',          label: 'Diwali blouse tailoring',                   query: 'Diwali ke liye blouse silwana hai' },
+    ],
+  },
+  {
+    group: 'Recharge & Bills',
+    items: [
+      { key: 'recharge_299_single',  label: '₹299 plan — single-path confirm',              query: 'Mera recharge khatam ho raha hai, ₹299 wala lagao' },
+      { key: 'gas_refill',           label: 'Cooking gas refill',                           query: 'Cylinder book karo, is hafte delivery' },
+    ],
+  },
+  {
+    group: 'Order & Buy',
+    items: [
+      { key: 'kirana_reorder',          label: 'Kirana reorder',                            query: 'Maggi 5 packets aur ek dabba haldi mangwao' },
+      { key: 'milk_subscription_edit',  label: 'Milk subscription edit',                    query: 'Doodh kal se 1 litre kar do' },
+    ],
+  },
+];
 
 /* ============================================================================
    Globals — make the integration points reachable from index.html's inline
    script. Only exposing what host pages actually need.
    ============================================================================ */
 window.renderDiscoveryView = renderDiscoveryView;
+window.renderInformationalResponse = renderInformationalResponse;
+window.renderSuggestedPrompts = renderSuggestedPrompts;
 window.validateDiscoveryView = validateDiscoveryView;
 window.DATASETS = DATASETS;
 window.DATASET_GROUPS = DATASET_GROUPS;
+window.PILLAR_GROUPS = PILLAR_GROUPS;
+window.INFORMATIONAL_RESPONSES = INFORMATIONAL_RESPONSES;
 
 // Mocks — attached so a host page can build a view from a mock key without
 // needing its own registry.
@@ -3218,6 +4206,18 @@ window.MOCK_PHONES_20K = MOCK_PHONES_20K;
 window.MOCK_TRAINS_TATKAL = MOCK_TRAINS_TATKAL;
 window.MOCK_HEALTH_INSURANCE = MOCK_HEALTH_INSURANCE;
 window.MOCK_EMI_FRIDGE = MOCK_EMI_FRIDGE;
+// Pillar mocks (voice-first use cases)
+window.MOCK_PLUMBERS_INDORE = MOCK_PLUMBERS_INDORE;
+window.MOCK_RECHARGE_299_SINGLE = MOCK_RECHARGE_299_SINGLE;
+window.MOCK_PEDIATRICIANS_OPEN_NOW = MOCK_PEDIATRICIANS_OPEN_NOW;
+window.MOCK_GAS_REFILL = MOCK_GAS_REFILL;
+window.MOCK_SCHOLARSHIPS_12TH_SC = MOCK_SCHOLARSHIPS_12TH_SC;
+window.MOCK_TUTORS_MATHS_CLASS10 = MOCK_TUTORS_MATHS_CLASS10;
+window.MOCK_TAILORS_DIWALI = MOCK_TAILORS_DIWALI;
+window.MOCK_KIRANA_REORDER = MOCK_KIRANA_REORDER;
+window.MOCK_MILK_SUBSCRIPTION_EDIT = MOCK_MILK_SUBSCRIPTION_EDIT;
+window.INFO_PM_KISAN_STATUS = INFO_PM_KISAN_STATUS;
+window.INFO_RATION_STATUS = INFO_RATION_STATUS;
 
 /* ============================================================================
    Delegated event plumbing — every interactive primitive carries
@@ -3266,7 +4266,11 @@ document.addEventListener('click', (e) => {
 
   // Any other click is a host-observable event (card tap, location change,
   // secondary action). Re-dispatch as a CustomEvent for the host to handle.
-  jbiqEmit(wrapper, name, {});
+  // SuggestedPrompts buttons also carry `data-query` — forward it in the
+  // detail so the host can fire the next utterance without needing to look
+  // up via the view schema (data travels with the click).
+  const query = target.getAttribute('data-query') || null;
+  jbiqEmit(wrapper, name, { query });
 });
 
 document.addEventListener('change', (e) => {
