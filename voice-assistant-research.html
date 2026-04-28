@@ -1,0 +1,1037 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Voice UI — research & directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FFFFFF;
+    --paper-2:#F5F5F5;
+    --paper-3:#EDE7FF;       /* purple-tinted surface */
+    --ink:#0C0D10;
+    --ink-2:#191B1E;
+    --ink-3:#6F7178;
+    --rule:#EEEEEF;
+    --rule-2:#E2E3E6;
+    --accent:#6D17CE;        /* JBIQ deep purple */
+    --accent-deep:#310064;   /* purple hover / shadow */
+    --accent-2:#0D2DA0;      /* Jio blue */
+    --accent-3:#E11894;      /* hot pink */
+    --accent-4:#00AD8B;      /* teal */
+    --serif:'JioType','JioTypeVar','Manrope', system-ui, sans-serif;
+    --sans:'JioType','JioTypeVar','Manrope', system-ui, sans-serif;
+    --mono:'JetBrains Mono', ui-monospace, monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-weight:400;line-height:1.55;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--accent);color:var(--paper)}
+  a{color:inherit}
+
+  /* layout */
+  .page{max-width:1240px;margin:0 auto;padding:64px 56px 120px}
+  @media (max-width:760px){ .page{padding:32px 20px 80px} }
+
+  /* masthead */
+  .mast{display:grid;grid-template-columns:1fr auto;align-items:end;gap:32px;padding-bottom:24px;border-bottom:1px solid var(--rule)}
+  .mast .meta{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+  .mast h1{font-family:var(--sans);font-weight:800;font-size:clamp(48px,7.5vw,96px);line-height:.98;letter-spacing:-.035em;margin:14px 0 0;color:var(--ink)}
+  .mast h1 em{font-style:normal;color:var(--accent);font-weight:800}
+  .mast .stamp{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);text-align:right;line-height:1.5}
+
+  /* deck / lede */
+  .lede{display:grid;grid-template-columns:1.2fr 1fr;gap:64px;margin:48px 0 88px;align-items:start}
+  @media (max-width:860px){ .lede{grid-template-columns:1fr;gap:24px} }
+  .lede p{font-family:var(--sans);font-weight:500;font-size:24px;line-height:1.35;letter-spacing:-.012em;margin:0;color:var(--ink-2)}
+  .lede p em{color:var(--accent);font-style:normal;font-weight:700}
+  .lede aside{font-size:13.5px;line-height:1.65;color:var(--ink-2);border-left:1px solid var(--rule);padding-left:20px}
+  .lede aside h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px;font-weight:500}
+
+  /* section heads */
+  section{margin-top:96px}
+  .sect-head{display:grid;grid-template-columns:120px 1fr;gap:32px;align-items:baseline;padding-bottom:18px;border-bottom:1px solid var(--rule);margin-bottom:48px}
+  .sect-head .num{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--ink-3);text-transform:uppercase;padding-top:14px}
+  .sect-head h2{font-family:var(--sans);font-weight:800;font-size:clamp(36px,4.5vw,56px);line-height:1.02;margin:0;letter-spacing:-.03em;color:var(--ink)}
+  .sect-head h2 em{font-style:normal;color:var(--accent);font-weight:800}
+  .sect-head p{grid-column:2;font-size:15px;color:var(--ink-2);margin:14px 0 0;max-width:62ch}
+
+  /* states strip */
+  .states-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--rule);background:var(--paper-2);margin-bottom:56px;border-radius:16px;overflow:hidden}
+  .states-strip .state{padding:18px 16px;border-right:1px solid var(--rule);text-align:center}
+  .states-strip .state:last-child{border-right:0}
+  .states-strip .k{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+  .states-strip .v{font-family:var(--sans);font-weight:700;font-size:22px;color:var(--ink);margin-top:4px;letter-spacing:-.02em}
+
+  /* app grid */
+  .apps{display:grid;grid-template-columns:repeat(2,1fr);gap:48px 56px}
+  @media (max-width:860px){ .apps{grid-template-columns:1fr} }
+  .app{display:grid;grid-template-columns:170px 1fr;gap:24px;align-items:start;padding-bottom:40px;border-bottom:1px dashed var(--rule)}
+  .app .frame-wrap{display:flex;justify-content:center}
+  .app h3{font-family:var(--sans);font-weight:700;font-size:24px;letter-spacing:-.02em;margin:0 0 4px;line-height:1.1;color:var(--ink)}
+  .app .tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px}
+  .app p{font-size:13.5px;line-height:1.55;color:var(--ink-2);margin:6px 0 10px}
+  .app .specs{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:12px;font-family:var(--mono);color:var(--ink-3)}
+  .app .specs span:nth-child(odd){color:var(--ink-3)}
+  .app .specs span:nth-child(even){color:var(--ink-2);font-family:var(--sans)}
+
+  /* phone frame */
+  .phone{width:170px;height:340px;border-radius:28px;background:#0E0D0C;padding:8px;box-shadow:0 18px 30px -16px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04)}
+  .phone .screen{width:100%;height:100%;border-radius:22px;overflow:hidden;position:relative;background:#000}
+  .phone.lite .screen{background:#fff}
+  .phone .notch{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:46px;height:14px;background:#0E0D0C;border-radius:10px;z-index:5}
+
+  /* dominant patterns table */
+  .patterns{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--rule);margin-top:24px}
+  .patterns > div{padding:22px 22px 26px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+  .patterns > div:nth-child(3n){border-right:0}
+  .patterns > div:nth-last-child(-n+3){border-bottom:0}
+  @media (max-width:760px){ .patterns{grid-template-columns:1fr} .patterns > div{border-right:0;border-bottom:1px solid var(--rule)!important} .patterns > div:last-child{border-bottom:0!important}}
+  .patterns h4{font-family:var(--sans);font-size:22px;font-weight:700;margin:0 0 6px;letter-spacing:-.02em;color:var(--ink)}
+  .patterns .when{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  .patterns p{font-size:13px;color:var(--ink-2);margin:0;line-height:1.5}
+
+  /* directions */
+  .direction{padding:64px 0;border-top:1px solid var(--rule)}
+  .direction:first-of-type{border-top:0}
+  .direction .head{display:grid;grid-template-columns:120px 1fr auto;gap:32px;align-items:baseline;margin-bottom:40px}
+  .direction .num{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase}
+  .direction h3{font-family:var(--sans);font-weight:800;font-size:clamp(32px,4vw,46px);line-height:1.05;margin:0;letter-spacing:-.03em;color:var(--ink)}
+  .direction h3 em{font-style:normal;color:var(--accent);font-weight:800}
+  .direction .pull{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);text-align:right;line-height:1.5;max-width:200px}
+
+  .dir-body{display:grid;grid-template-columns:1fr 2fr;gap:48px;align-items:start}
+  @media (max-width:860px){ .dir-body{grid-template-columns:1fr} }
+  .dir-body .copy p{font-size:14.5px;line-height:1.6;color:var(--ink-2);margin:0 0 14px}
+  .dir-body .copy h5{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin:18px 0 6px;font-weight:500}
+  .dir-body .copy ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-2);line-height:1.55}
+  .dir-body .copy li{margin-bottom:4px}
+
+  .state-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .state-cell{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .state-cell .label{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+  .state-cell .label em{color:var(--accent);font-style:normal}
+
+  /* footer */
+  .foot{margin-top:120px;padding-top:24px;border-top:1px solid var(--rule);display:grid;grid-template-columns:1fr 1fr;gap:32px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+  .foot a{text-decoration:none;border-bottom:1px solid var(--rule)}
+
+  /* ============ ANIMATIONS ============ */
+  @keyframes breathe { 0%,100%{transform:scale(1);opacity:.85} 50%{transform:scale(1.08);opacity:1} }
+  @keyframes breathe-slow { 0%,100%{transform:scale(1);opacity:.7} 50%{transform:scale(1.04);opacity:.95} }
+  @keyframes pulse-ring { 0%{transform:scale(.6);opacity:.7} 100%{transform:scale(2.1);opacity:0} }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  @keyframes drift { 0%,100%{transform:translate(0,0) rotate(0)} 33%{transform:translate(2px,-3px) rotate(3deg)} 66%{transform:translate(-3px,2px) rotate(-2deg)} }
+  @keyframes wave { 0%,100%{transform:scaleY(.3)} 50%{transform:scaleY(1)} }
+  @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+  @keyframes flow { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+  @keyframes type-dot { 0%,80%,100%{transform:translateY(0);opacity:.4} 40%{transform:translateY(-4px);opacity:1} }
+  @keyframes morph { 0%,100%{border-radius:50% 40% 60% 50% / 60% 50% 50% 40%} 33%{border-radius:40% 60% 50% 60% / 50% 60% 40% 50%} 66%{border-radius:60% 50% 40% 50% / 40% 50% 60% 60%} }
+  @keyframes orbit { from{transform:rotate(0deg) translateX(22px) rotate(0deg)} to{transform:rotate(360deg) translateX(22px) rotate(-360deg)} }
+  @keyframes rise-line { 0%{transform:scaleY(.2)} 50%{transform:scaleY(1)} 100%{transform:scaleY(.4)} }
+  @keyframes glide { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+
+  /* ============ APP-SPECIFIC ATOMS (research section) ============ */
+  /* ChatGPT orb */
+  .chatgpt-orb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:78px;height:78px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #6FB3FF 0%, #2A6FE8 38%, #0B2A6B 100%);
+    box-shadow:0 0 36px 6px rgba(46,118,232,.55), inset -8px -10px 22px rgba(0,0,0,.45), inset 6px 6px 14px rgba(255,255,255,.35);
+    animation:breathe 3.6s ease-in-out infinite}
+  .chatgpt-screen{background:radial-gradient(circle at 50% 60%, #11203c 0%, #000 70%)}
+  .chatgpt-screen .caption{position:absolute;bottom:12px;left:0;right:0;text-align:center;color:#9bb3d6;font-size:8px;font-family:var(--mono);letter-spacing:.14em;text-transform:uppercase;opacity:.7}
+
+  /* Siri edge glow */
+  .siri-screen{background:#0a0a0a;position:relative;overflow:hidden}
+  .siri-screen::before{content:"";position:absolute;inset:0;border-radius:22px;padding:3px;
+    background:conic-gradient(from 180deg at 50% 50%, #FF3B7F, #B14CFF, #4C8AFF, #4CC8FF, #4CFFB1, #FFD24C, #FF6B4C, #FF3B7F);
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude;
+    filter:blur(6px);
+    animation:spin 6s linear infinite}
+  .siri-screen::after{content:"";position:absolute;inset:8px;border-radius:18px;background:#0a0a0a}
+  .siri-screen .ctr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--serif);font-size:12px;z-index:2;opacity:.75}
+
+  /* Gemini blob */
+  .gemini-screen{background:#fff;position:relative;overflow:hidden}
+  .gemini-blob{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:90px;height:90px;
+    background:conic-gradient(from 90deg, #4285F4 0%, #9B72CB 25%, #D96570 55%, #F9AB00 75%, #4285F4 100%);
+    filter:blur(2px);
+    animation:morph 5s ease-in-out infinite, drift 7s ease-in-out infinite}
+  .gemini-screen .caption{position:absolute;bottom:14px;left:12px;right:12px;text-align:center;color:#5f6368;font-size:9px;font-family:var(--sans)}
+
+  /* Google Assistant 4 dots */
+  .gass-screen{background:#fff;position:relative}
+  .gass-dots{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:6px}
+  .gass-dots span{width:11px;height:11px;border-radius:50%;animation:type-dot 1.4s ease-in-out infinite}
+  .gass-dots span:nth-child(1){background:#4285F4;animation-delay:0s}
+  .gass-dots span:nth-child(2){background:#EA4335;animation-delay:.15s}
+  .gass-dots span:nth-child(3){background:#FBBC04;animation-delay:.3s}
+  .gass-dots span:nth-child(4){background:#34A853;animation-delay:.45s}
+
+  /* Alexa light bar */
+  .alexa-screen{background:#0b1220;position:relative}
+  .alexa-bar{position:absolute;left:14px;right:14px;bottom:18px;height:5px;border-radius:3px;overflow:hidden;background:#0b2549}
+  .alexa-bar::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg, #00A8E1 0%, #00CAFF 50%, #00A8E1 100%);background-size:200% 100%;animation:flow 1.6s linear infinite}
+  .alexa-screen .label{position:absolute;left:0;right:0;top:48%;text-align:center;color:#7CC9FF;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase}
+
+  /* Perplexity mic chip */
+  .perplex-screen{background:#fff;position:relative;padding:14px 12px}
+  .perplex-screen .bubble{background:#F4F2EE;border-radius:14px;padding:10px;font-size:9px;line-height:1.4;color:#5a5550;height:64%;overflow:hidden}
+  .perplex-screen .input{position:absolute;left:10px;right:10px;bottom:10px;background:#F4F2EE;border-radius:18px;display:flex;align-items:center;padding:8px 10px;gap:8px;font-size:9px;color:#9c9690}
+  .perplex-screen .mic{width:22px;height:22px;border-radius:50%;background:#20B2AA;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;flex-shrink:0;animation:breathe 2.2s ease-in-out infinite;margin-left:auto}
+
+  /* Grok minimal */
+  .grok-screen{background:#000;position:relative}
+  .grok-spin{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;border:2px solid rgba(255,255,255,.12);border-top-color:#fff;animation:spin 1s linear infinite}
+  .grok-screen .lbl{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:#666;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase}
+
+  /* Pi */
+  .pi-screen{background:linear-gradient(180deg, #FFF8F0 0%, #FFEFD9 100%);position:relative}
+  .pi-screen .orb{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:84px;height:84px;border-radius:50%;
+    background:radial-gradient(circle at 40% 35%, #fff 0%, #FFD4A8 50%, #E89B5F 100%);
+    box-shadow:0 0 24px rgba(232,155,95,.4), inset -6px -6px 14px rgba(180,90,40,.25);
+    animation:breathe-slow 4s ease-in-out infinite}
+  .pi-screen .name{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:#A86B3F;font-family:var(--serif);font-size:14px;font-style:italic}
+
+  /* Otter waveform */
+  .otter-screen{background:#fff;position:relative}
+  .otter-screen .head{position:absolute;top:14px;left:14px;right:14px;font-size:8px;color:#888;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase}
+  .otter-screen .wave{position:absolute;left:14px;right:14px;top:48%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;gap:3px;height:60px}
+  .otter-screen .wave span{width:3px;background:#5B7FFF;border-radius:2px;animation:wave 1.1s ease-in-out infinite}
+  .otter-screen .wave span:nth-child(1){height:30%;animation-delay:.0s}
+  .otter-screen .wave span:nth-child(2){height:55%;animation-delay:.05s}
+  .otter-screen .wave span:nth-child(3){height:85%;animation-delay:.10s}
+  .otter-screen .wave span:nth-child(4){height:65%;animation-delay:.15s}
+  .otter-screen .wave span:nth-child(5){height:90%;animation-delay:.20s}
+  .otter-screen .wave span:nth-child(6){height:40%;animation-delay:.25s}
+  .otter-screen .wave span:nth-child(7){height:70%;animation-delay:.30s}
+  .otter-screen .wave span:nth-child(8){height:100%;animation-delay:.35s}
+  .otter-screen .wave span:nth-child(9){height:55%;animation-delay:.40s}
+  .otter-screen .wave span:nth-child(10){height:35%;animation-delay:.45s}
+  .otter-screen .wave span:nth-child(11){height:75%;animation-delay:.50s}
+  .otter-screen .wave span:nth-child(12){height:50%;animation-delay:.55s}
+  .otter-screen .transcript{position:absolute;bottom:14px;left:14px;right:14px;font-size:8.5px;color:#444;line-height:1.4}
+
+  /* Meta AI */
+  .meta-screen{background:#fff;position:relative}
+  .meta-screen .chat{padding:14px;font-size:9px;color:#1c1e21;line-height:1.4}
+  .meta-screen .me{background:#0084FF;color:#fff;padding:6px 10px;border-radius:14px 14px 4px 14px;display:inline-block;margin-bottom:8px;max-width:80%;float:right;clear:both}
+  .meta-screen .ai{background:#F0F2F5;padding:6px 10px;border-radius:14px 14px 14px 4px;display:inline-block;max-width:80%;clear:both}
+  .meta-screen .listening{position:absolute;bottom:12px;left:12px;right:12px;background:#0084FF;border-radius:18px;padding:8px 12px;display:flex;align-items:center;gap:8px;color:#fff;font-size:9px}
+  .meta-screen .listening .dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:breathe 1s ease-in-out infinite}
+
+  /* Rabbit R1 - hardware feel */
+  .rabbit-screen{background:#FF5400;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+  .rabbit-screen .face{font-size:42px;line-height:1;margin-bottom:8px;animation:blink 2s ease-in-out infinite}
+  .rabbit-screen .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase}
+
+  /* Humane Pin */
+  .humane-screen{background:#000;position:relative;display:flex;align-items:center;justify-content:center}
+  .humane-screen .laser{color:#7DEFA1;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-align:center;line-height:1.6;text-shadow:0 0 8px rgba(125,239,161,.6)}
+
+  /* ============ DIRECTION-SPECIFIC ATOMS ============ */
+  /* Direction A — Quiet Chip */
+  .phone .screen.da-screen{background:#FFFFFF;position:relative;padding:14px 12px;color:#0c0d10}
+  .da-screen .nav{font-family:var(--sans);font-weight:600;font-size:9px;letter-spacing:.02em;color:#6f7178;margin-bottom:10px}
+  .da-screen .body{font-size:10px;line-height:1.5;color:#191b1e;height:62%;overflow:hidden}
+  .da-screen .body strong{color:#0c0d10;font-weight:700}
+  .da-screen .chip{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:#0c0d10;color:#FFFFFF;padding:8px 14px;border-radius:999px;display:flex;align-items:center;gap:8px;font-size:9.5px;font-weight:600;font-family:var(--sans)}
+  .da-screen .chip .ico{width:14px;height:14px;border-radius:50%;background:#6D17CE;flex-shrink:0}
+  .da-screen.listen .chip .ico{animation:breathe 1.4s ease-in-out infinite}
+  .da-screen.think .chip .ico{background:transparent;border:1.5px solid #FFFFFF;border-top-color:transparent;animation:spin .8s linear infinite}
+  .da-screen.speak .chip{background:#6D17CE;color:#fff}
+  .da-screen.speak .chip .ico{background:#fff;animation:breathe-slow 1.8s ease-in-out infinite}
+  .da-screen.idle .chip{background:transparent;color:#0c0d10;border:1px solid #E2E3E6}
+  .da-screen.idle .chip .ico{background:#0c0d10}
+
+  /* Direction B — Breathing Orb (takeover) */
+  .phone .screen.db-screen{background:radial-gradient(ellipse at 50% 30%, #1a0f33 0%, #050009 75%);position:relative}
+  .db-orb{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:96px;height:96px;border-radius:50%;
+    background:radial-gradient(circle at 36% 32%, #EDE7FF 0%, #6D17CE 45%, #310064 100%);
+    box-shadow:0 0 50px 6px rgba(109,23,206,.55), inset -10px -12px 28px rgba(0,0,0,.5)}
+  .db-screen.idle .db-orb{filter:saturate(.4) brightness(.55);box-shadow:0 0 18px 3px rgba(109,23,206,.18), inset -10px -12px 28px rgba(0,0,0,.5)}
+  .db-screen.listen .db-orb{animation:breathe 2.2s ease-in-out infinite}
+  .db-screen.think .db-orb{animation:morph 3s ease-in-out infinite, breathe-slow 2s ease-in-out infinite}
+  .db-screen.speak .db-orb{animation:breathe 1.1s ease-in-out infinite;box-shadow:0 0 70px 10px rgba(225,24,148,.55), inset -10px -12px 28px rgba(0,0,0,.5)}
+  .db-screen .cap{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:#d6c8f5;font-family:var(--sans);font-weight:500;font-size:12px;letter-spacing:-.005em;opacity:.9}
+  .db-screen.idle .cap{color:#6a5e80}
+
+  /* Direction C — Edge Glow */
+  .phone .screen.dc-screen{background:#FFFFFF;position:relative;overflow:hidden}
+  .dc-screen .content{padding:14px;font-size:9.5px;color:#191b1e;line-height:1.5}
+  .dc-screen .content h6{font-family:var(--sans);font-size:13px;font-weight:700;margin:0 0 8px;color:#0c0d10;letter-spacing:-.02em}
+  .dc-screen .glow{position:absolute;inset:0;border-radius:22px;pointer-events:none;padding:4px;
+    background:conic-gradient(from 220deg at 50% 50%, #6D17CE, #E11894, #0D2DA0, #6D17CE);
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude;
+    filter:blur(8px);opacity:0;transition:opacity .4s}
+  .dc-screen.listen .glow{opacity:.95;animation:spin 4s linear infinite}
+  .dc-screen.think .glow{opacity:.6;animation:spin 1.5s linear infinite}
+  .dc-screen.speak .glow{opacity:.85;animation:spin 6s linear infinite reverse}
+  .dc-screen .pill{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(12,13,16,.92);color:#fff;padding:5px 10px;border-radius:999px;font-family:var(--sans);font-weight:600;font-size:8.5px;letter-spacing:.02em;display:flex;align-items:center;gap:6px;backdrop-filter:blur(8px);opacity:0;transition:opacity .3s}
+  .dc-screen.listen .pill,.dc-screen.think .pill,.dc-screen.speak .pill{opacity:1}
+  .dc-screen .pill .pulse{width:6px;height:6px;border-radius:50%;background:#6D17CE;animation:breathe 1s ease-in-out infinite}
+
+  /* Direction D — Audio-Reactive Waveform */
+  .phone .screen.dd-screen{background:#0C0D10;position:relative;color:#FFFFFF}
+  .dd-screen .top{padding:14px 14px 8px;font-family:var(--sans);font-weight:600;font-size:9px;color:#8B8D94;letter-spacing:.04em}
+  .dd-screen .transcript{padding:0 14px;font-family:var(--sans);font-weight:500;font-size:13px;line-height:1.35;color:#FFFFFF;height:42%;overflow:hidden;letter-spacing:-.015em}
+  .dd-screen .transcript em{color:#E11894;font-style:normal;font-weight:600;font-size:11px}
+  .dd-screen .wave{position:absolute;bottom:24px;left:14px;right:14px;height:54px;display:flex;align-items:center;justify-content:center;gap:2.5px}
+  .dd-screen .wave span{width:3px;background:linear-gradient(180deg,#6D17CE,#E11894);border-radius:2px;display:block;transform-origin:center}
+  .dd-screen.listen .wave span{animation:rise-line 1.1s ease-in-out infinite}
+  .dd-screen.think .wave span{height:6px!important;background:#3a3a45;animation:none}
+  .dd-screen.speak .wave span{animation:rise-line .7s ease-in-out infinite}
+  .dd-screen.idle .wave span{height:6px!important;background:#22232A;animation:none}
+
+  /* Direction E — Morphing Blob */
+  .phone .screen.de-screen{background:linear-gradient(180deg,#FFFFFF 0%,#EDE7FF 100%);position:relative}
+  .de-blob{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:100px;height:100px;
+    background:linear-gradient(135deg,#6D17CE 0%,#E11894 50%,#0D2DA0 100%);
+    filter:blur(1px);
+    border-radius:50% 40% 60% 50% / 60% 50% 50% 40%}
+  .de-screen.idle .de-blob{filter:blur(8px) saturate(.6);opacity:.45;transform:translate(-50%,-50%) scale(.7)}
+  .de-screen.listen .de-blob{animation:morph 4s ease-in-out infinite, drift 5s ease-in-out infinite}
+  .de-screen.think .de-blob{animation:morph 1.4s ease-in-out infinite}
+  .de-screen.speak .de-blob{animation:morph 2.5s ease-in-out infinite;box-shadow:0 0 40px rgba(109,23,206,.4)}
+  .de-screen .cap{position:absolute;bottom:20px;left:0;right:0;text-align:center;font-family:var(--sans);font-weight:600;font-size:13px;color:#191b1e;letter-spacing:-.015em}
+
+  /* Direction F — Bottom-Sheet Halo */
+  .phone .screen.df-screen{background:#F5F5F5;position:relative}
+  .df-screen .stack{padding:12px;font-size:9.5px;color:#191b1e;line-height:1.4;font-family:var(--sans);font-weight:500}
+  .df-screen .stack .line{padding:8px 10px;background:#fff;border-radius:10px;margin-bottom:6px}
+  .df-sheet{position:absolute;bottom:0;left:0;right:0;background:#0c0d10;border-radius:20px 20px 0 0;padding:14px 14px 18px;color:#FFFFFF}
+  .df-sheet .grip{width:28px;height:3px;background:#3A3A45;border-radius:2px;margin:0 auto 10px}
+  .df-sheet .halo{width:50px;height:50px;border-radius:50%;margin:0 auto 8px;position:relative;
+    background:radial-gradient(circle at 35% 30%, #EDE7FF 0%, #6D17CE 60%, #310064 100%);
+    box-shadow:0 0 20px rgba(109,23,206,.5)}
+  .df-screen.listen .df-sheet .halo{animation:breathe 1.4s ease-in-out infinite}
+  .df-screen.listen .df-sheet .halo::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:1.5px solid rgba(109,23,206,.45);animation:pulse-ring 1.6s ease-out infinite}
+  .df-screen.think .df-sheet .halo{background:conic-gradient(from 0deg, #6D17CE, #E11894, #6D17CE);animation:spin 1.4s linear infinite}
+  .df-screen.speak .df-sheet .halo{box-shadow:0 0 30px rgba(225,24,148,.7);animation:breathe .8s ease-in-out infinite}
+  .df-screen.idle .df-sheet .halo{filter:saturate(.4) brightness(.5);box-shadow:none}
+  .df-sheet .lbl{text-align:center;font-family:var(--sans);font-weight:600;font-size:9.5px;letter-spacing:.01em;color:#8B8D94}
+
+  /* hover lift on direction frames */
+  .state-cell .phone{transition:transform .25s ease}
+  .state-cell:hover .phone{transform:translateY(-3px)}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ====================== MASTHEAD ====================== -->
+  <header class="mast">
+    <div>
+      <div class="meta" style="display:flex;align-items:center;gap:10px">
+        <svg width="24" height="24" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-label="JBIQ"><circle cx="16" cy="16" r="16" fill="#6D17CE"/><text x="16" y="21" text-anchor="middle" font-family="Manrope, system-ui, sans-serif" font-weight="800" font-size="13" letter-spacing="-.5" fill="#fff">JQ</text></svg>
+        <span>JBIQ · Design research · Voice UI</span>
+      </div>
+      <h1>Voice, made <em>visible</em>.</h1>
+    </div>
+    <div class="stamp">No. 01<br/>Apr 2026<br/>26 frames</div>
+  </header>
+
+  <!-- ====================== LEDE ====================== -->
+  <div class="lede">
+    <p>How a voice assistant <em>looks</em> while it listens, thinks and speaks is doing as much work as the words it says — and the market has converged on a small set of patterns. This is a tour, then a wardrobe of options for retro-fitting voice into an existing product.</p>
+    <aside>
+      <h4>How to read this</h4>
+      Section 01 surveys the market — what the leading mobile voice apps actually look like in each state. Section 02 distils the patterns. Section 03 is the wardrobe: six concrete directions, each shown in all four states (idle, listening, thinking, speaking) so you can pick a silhouette to take into Figma.
+    </aside>
+  </div>
+
+  <!-- ====================== SECTION 01 — REFERENCES ====================== -->
+  <section>
+    <div class="sect-head">
+      <div class="num">01 · Field guide</div>
+      <h2>What the <em>market</em> actually does.</h2>
+      <p>Faithful renderings of each app's voice mode rather than blurry stock screenshots — every motion, colour and shape is on, so you can compare like-for-like. Hover any frame.</p>
+    </div>
+
+    <div class="states-strip">
+      <div class="state"><div class="k">State 01</div><div class="v">Idle</div></div>
+      <div class="state"><div class="k">State 02</div><div class="v">Listening</div></div>
+      <div class="state"><div class="k">State 03</div><div class="v">Thinking</div></div>
+      <div class="state"><div class="k">State 04</div><div class="v">Speaking</div></div>
+    </div>
+
+    <div class="apps">
+
+      <!-- ChatGPT -->
+      <div class="app">
+        <div class="frame-wrap">
+          <div class="phone"><div class="screen chatgpt-screen"><div class="notch"></div>
+            <div class="chatgpt-orb"></div>
+            <div class="caption">Tap to interrupt</div>
+          </div></div>
+        </div>
+        <div>
+          <h3>ChatGPT — Voice mode</h3>
+          <div class="tag">OpenAI · iOS / Android · "the blue orb"</div>
+          <p>The defining silhouette of the LLM era. A glassy spherical orb that breathes, brightens on listen, swirls on think and pulses on speak. Originally a fullscreen takeover; recently dissolved into the chat.</p>
+          <div class="specs">
+            <span>Form</span><span>3D-shaded sphere</span>
+            <span>Colour</span><span>Cobalt → indigo radial</span>
+            <span>Motion</span><span>Breath cycle, ~3.6s</span>
+            <span>Layout</span><span>Centred, was fullscreen</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Siri -->
+      <div class="app">
+        <div class="frame-wrap">
+          <div class="phone"><div class="screen siri-screen"><div class="notch"></div>
+            <div class="ctr">Listening…</div>
+          </div></div>
+        </div>
+        <div>
+          <h3>Siri — iOS 18 +</h3>
+          <div class="tag">Apple · system-level · edge glow</div>
+          <p>Apple stopped putting Siri at the centre of the screen entirely. Voice now lives as a multi-hue conic gradient running around the edge of the display, leaving the underlying app fully usable.</p>
+          <div class="specs">
+            <span>Form</span><span>Bezel-hugging halo</span>
+            <span>Colour</span><span>Spectrum conic</span>
+            <span>Motion</span><span>Slow rotation, soft blur</span>
+            <span>Layout</span><span>Peripheral / ambient</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gemini Live -->
+      <div class="app">
+        <div class="frame-wrap">
+          <div class="phone lite"><div class="screen gemini-screen"><div class="notch"></div>
+            <div class="gemini-blob"></div>
+            <div class="caption">Gemini is listening</div>
+          </div></div>
+        </div>
+        <div>
+          <h3>Gemini Live</h3>
+          <div class="tag">Google · Android · soft blob</div>
+          <p>A heavily-blurred, morphing blob in Google's brand quad-colour. Soft edges and slow drift give an "organic intelligence" feel that's deliberately less mechanical than a sphere.</p>
+          <div class="specs">
+            <span>Form</span><span>Amorphous gradient blob</span>
+            <span>Colour</span><span>Blue → purple → red → amber</span>
+            <span>Motion</span><span>Morph + drift</span>
+            <span>Layout</span><span>Centred fullscreen</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Google Assistant -->
+      <div class="app">
+        <div class="frame-wrap">
+          <div class="phone lite"><div class="screen gass-screen"><div class="notch"></div>
+            <div class="gass-dots"><span></span><span></span><span></span><span></span></div>
+          </div></div>
+        </div>
+        <div>
+          <h3>Google Assistant</h3>
+          <div class="tag">Google · cross-platform · four dots</div>
+          <p>The pre-Gemini classic. Four brand-colour dots typewriter-bounce when listening, then morph into vertical lines that ride the audio amplitude. Brand-as-affordance.</p>
+          <div class="specs">
+            <span>Form</span><span>Four discrete dots</span>
+            <span>Colour</span><span>RYGB (Google quad)</span>
+            <span>Motion</span><span>Stagger + morph to bars</span>
+            <span>Layout</span><span>Centred</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alexa -->
+      <div class="app">
+        <div class="frame-wrap">
+          <div class="phone"><div class="screen alexa-screen"><div class="notch"></div>
+            <div class="label">Listening</div>
+            <div class="alexa-bar"></div>
+          </div></div>
+        </div>
+        <div>
+          <h3>Alexa app</h3>
+          <div class="tag">Amazon · iOS / Android · light-bar metaphor</div>
+          <p>Mirrors the physical Echo: a horizontal bar of cyan light at the bottom of the screen, with "Alexicons" — small expressive animations — riding along it during conversation.</p>
+          <div class="specs">
+            <span>Form</span><span>Horizontal LED bar</span>
+            <span>Colour</span><span>Alexa cyan / blue</span>
+            <span>Motion</span><span>Flowing gradient pulse</span>
+            <span>Layout</span><span>Bottom edge</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Perplexity -->
+      <div class="app">
+        <div class="frame-wrap">
+          <div class="phone lite"><div class="screen perplex-screen"><div class="notch"></div>
+            <div class="bubble"><b>You</b> — what's the weather like in Margate this weekend?<br/><br/><span style="color:#999">Searching the web…</span></div>
+            <div class="input">Ask anything <span class="mic">●</span></div>
+          </div></div>
+        </div>
+        <div>
+          <h3>Perplexity</h3>
+          <div class="tag">Perplexity · iOS · quiet chip</div>
+          <p>The opposite end of the spectrum. Voice is just a teal mic dot inside the regular input bar; activation pulses it gently. No takeover, no orb. Voice is a peer to text, not a mode.</p>
+          <div class="specs">
+            <span>Form</span><span>Inline mic chip</span>
+            <span>Colour</span><span>Brand teal</span>
+            <span>Motion</span><span>Gentle pulse</span>
+            <span>Layout</span><span>Inline / inputbar</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grok -->
+      <div class="app">
+        <div class="frame-wrap">
+          <div class="phone"><div class="screen grok-screen"><div class="notch"></div>
+            <div class="grok-spin"></div>
+            <div class="lbl">Thinking…</div>
+          </div></div>
+        </div>
+        <div>
+          <h3>Grok</h3>
+          <div class="tag">xAI · iOS · minimal spinner</div>
+          <p>Anti-orb. Black background, single hairline spinner. Speed and minimalism over personality — closer to a dev tool than a companion.</p>
+          <div class="specs">
+            <span>Form</span><span>Hairline ring</span>
+            <span>Colour</span><span>White on black</span>
+            <span>Motion</span><span>Fast linear spin</span>
+            <span>Layout</span><span>Centred minimal</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pi -->
+      <div class="app">
+        <div class="frame-wrap">
+          <div class="phone lite"><div class="screen pi-screen"><div class="notch"></div>
+            <div class="orb"></div>
+            <div class="name">Pi</div>
+          </div></div>
+        </div>
+        <div>
+          <h3>Pi (Inflection)</h3>
+          <div class="tag">Inflection · iOS / Web · warm orb</div>
+          <p>A softer take on the orb — peach gradient on a cream background, slow-breathing. Sets a friend-like, conversational tone vs. ChatGPT's clinical cobalt.</p>
+          <div class="specs">
+            <span>Form</span><span>Cream-warm sphere</span>
+            <span>Colour</span><span>Peach / amber</span>
+            <span>Motion</span><span>Slow breath</span>
+            <span>Layout</span><span>Centred</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Otter -->
+      <div class="app">
+        <div class="frame-wrap">
+          <div class="phone lite"><div class="screen otter-screen"><div class="notch"></div>
+            <div class="head">REC · 00:42</div>
+            <div class="wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            <div class="transcript">"…and the brief is to redesign the onboarding so that it works for first-time users without prior context."</div>
+          </div></div>
+        </div>
+        <div>
+          <h3>Otter / Granola</h3>
+          <div class="tag">Productivity voice · transcription-first</div>
+          <p>Voice is in service of the text artefact. Real audio-reactive waveform reads as "I'm definitely capturing this", live transcript is the centrepiece. No avatar; the doc is the avatar.</p>
+          <div class="specs">
+            <span>Form</span><span>Audio-reactive bars</span>
+            <span>Colour</span><span>Single brand hue</span>
+            <span>Motion</span><span>Reads input amplitude</span>
+            <span>Layout</span><span>Bottom of doc</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meta AI -->
+      <div class="app">
+        <div class="frame-wrap">
+          <div class="phone lite"><div class="screen meta-screen"><div class="notch"></div>
+            <div class="chat">
+              <div class="me">play me something cosy</div>
+              <div class="ai" style="margin-top:18px">Sure — how about some Nick Drake?</div>
+            </div>
+            <div class="listening"><span class="dot"></span> Meta AI is listening…</div>
+          </div></div>
+        </div>
+        <div>
+          <h3>Meta AI · WhatsApp</h3>
+          <div class="tag">Meta · in-thread floating banner</div>
+          <p>Voice slots into the existing chat. A persistent "is listening" banner floats above the keyboard; replies appear inline as bubbles. Zero ceremony.</p>
+          <div class="specs">
+            <span>Form</span><span>Floating banner</span>
+            <span>Colour</span><span>Meta blue</span>
+            <span>Motion</span><span>Single dot pulse</span>
+            <span>Layout</span><span>Above keyboard</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rabbit R1 -->
+      <div class="app">
+        <div class="frame-wrap">
+          <div class="phone"><div class="screen rabbit-screen"><div class="notch"></div>
+            <div class="face">●ᴥ●</div>
+            <div class="lbl">Listening</div>
+          </div></div>
+        </div>
+        <div>
+          <h3>Rabbit R1</h3>
+          <div class="tag">Hardware-software · push-to-talk · expressive face</div>
+          <p>Voice as character. The screen shows a literal pixel-rabbit face that emotes during conversation — a deliberate move away from abstract orbs toward an "agent has a body" feeling.</p>
+          <div class="specs">
+            <span>Form</span><span>Animated face / mascot</span>
+            <span>Colour</span><span>Signature orange</span>
+            <span>Motion</span><span>Blink / expression</span>
+            <span>Layout</span><span>Fullscreen on small device</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Humane -->
+      <div class="app">
+        <div class="frame-wrap">
+          <div class="phone"><div class="screen humane-screen"><div class="notch"></div>
+            <div class="laser">▶ LISTENING<br/>—————<br/>0.42s</div>
+          </div></div>
+        </div>
+        <div>
+          <h3>Humane Pin</h3>
+          <div class="tag">Screenless · laser projection on palm</div>
+          <p>The visual UI runs as monochrome green "laser ink" projected onto the user's palm. Voice has no orb at all — feedback is haptic plus a few characters of text.</p>
+          <div class="specs">
+            <span>Form</span><span>Mono terminal text</span>
+            <span>Colour</span><span>Single laser green</span>
+            <span>Motion</span><span>Almost none — text only</span>
+            <span>Layout</span><span>Projected, line-based</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ====================== SECTION 02 — PATTERNS ====================== -->
+  <section>
+    <div class="sect-head">
+      <div class="num">02 · Pattern map</div>
+      <h2>Three <em>archetypes</em> the market has converged on.</h2>
+      <p>Every app above sits somewhere on a spectrum from <em>takeover</em> (voice owns the screen) to <em>ambient</em> (voice runs in the periphery). For an app retro-fitting voice, the question isn't "what should our orb look like" — it's "where on this spectrum do we want to live."</p>
+    </div>
+
+    <div class="patterns">
+      <div>
+        <div class="when">Takeover</div>
+        <h4>Centred orb / blob</h4>
+        <p>Big, animated, fullscreen. Voice is treated as a destination. Best for dedicated assistants where the conversation <em>is</em> the product. <br/><br/><b>Examples:</b> ChatGPT, Pi, Gemini Live, Google Assistant.</p>
+      </div>
+      <div>
+        <div class="when">Hybrid</div>
+        <h4>Bottom sheet / chip</h4>
+        <p>Voice gets its own UI region but sits on top of the existing screen. The user keeps their bearings. Best for apps where voice is one input among many. <br/><br/><b>Examples:</b> Meta AI banner, Alexa light bar, Perplexity chip.</p>
+      </div>
+      <div>
+        <div class="when">Ambient</div>
+        <h4>Edge glow / inline</h4>
+        <p>Voice barely visible — a halo, a coloured outline, a tiny pulsing dot. Designed to disappear so the underlying app keeps working. <br/><br/><b>Examples:</b> Siri iOS 18, Otter waveform, Humane Pin.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:48px;display:grid;grid-template-columns:1fr 1fr;gap:48px;font-size:14px;line-height:1.6;color:var(--ink-2)">
+      <div>
+        <h4 style="font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 10px;font-weight:500">Cross-cutting moves</h4>
+        <p><b>Live transcription is now non-negotiable.</b> Even ambient designs show the user what the system "heard." It's the single biggest lever on user trust.</p>
+        <p><b>Breath beats spin.</b> A 2–4s breath cycle reads as alive; a hard spinner reads as machine. ChatGPT, Pi and Siri all breathe; Grok span — and feels colder for it.</p>
+        <p><b>Interruptibility is a visual contract.</b> If the orb only swells, users assume turn-based. If it always shows a "tap to interrupt" affordance, they speak over it.</p>
+      </div>
+      <div>
+        <h4 style="font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 10px;font-weight:500">For a retro-fit specifically</h4>
+        <p><b>Don't build a fullscreen orb.</b> The market is moving the other way — even OpenAI dropped the takeover. A new takeover screen will feel dated by the time it ships.</p>
+        <p><b>Pick a silhouette that already exists in your design system.</b> If your brand has rounded chips, use a chip. If it has a strong colour, use a glow in that colour. Voice should look like your app, not like ChatGPT.</p>
+        <p><b>Design the four states as one family.</b> The biggest mistake is designing "the listening screen" — design the transitions and the family resemblance instead.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== SECTION 03 — DIRECTIONS ====================== -->
+  <section>
+    <div class="sect-head">
+      <div class="num">03 · Wardrobe</div>
+      <h2>Six <em>directions</em> for your product.</h2>
+      <p>Each direction is shown in all four states (idle · listening · thinking · speaking). They run from quietest to loudest. Pick the silhouette that sits most easily on top of what you've already built — or steal across rows.</p>
+    </div>
+
+    <!-- DIRECTION A -->
+    <div class="direction">
+      <div class="head">
+        <div class="num">Direction A</div>
+        <h3>Quiet <em>chip</em></h3>
+        <div class="pull">Lowest risk · lives inside existing UI · zero takeover</div>
+      </div>
+      <div class="dir-body">
+        <div class="copy">
+          <p>A single pill at the bottom of any screen. It's just a button when idle, breathes when listening, spins when thinking, fills with brand colour when speaking. Your app stays fully visible behind it the whole time.</p>
+          <h5>Best for</h5>
+          <ul><li>Adding voice as a peer to text input</li><li>Apps where the existing screen is the value</li><li>Productivity / utility products</li></ul>
+          <h5>References</h5>
+          <ul><li>Perplexity inline mic</li><li>Meta AI floating banner</li></ul>
+          <h5>Risks</h5>
+          <ul><li>Can feel under-designed if your brand is playful</li><li>Less "wow" in marketing screenshots</li></ul>
+        </div>
+        <div class="state-row">
+          <div class="state-cell">
+            <div class="phone"><div class="screen da-screen idle"><div class="notch"></div>
+              <div class="nav">Settings · Voice</div>
+              <div class="body">Tap to ask anything — your voice stays on-device until you speak.</div>
+              <div class="chip"><span class="ico"></span>Hold to speak</div>
+            </div></div>
+            <div class="label">Idle</div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen da-screen listen"><div class="notch"></div>
+              <div class="nav">Listening</div>
+              <div class="body"><strong>"Move tomorrow's"</strong> standup to two o'clock"</div>
+              <div class="chip"><span class="ico"></span>Listening…</div>
+            </div></div>
+            <div class="label"><em>Listening</em></div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen da-screen think"><div class="notch"></div>
+              <div class="nav">Working</div>
+              <div class="body">Move tomorrow's standup to two o'clock.</div>
+              <div class="chip"><span class="ico"></span>One sec…</div>
+            </div></div>
+            <div class="label">Thinking</div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen da-screen speak"><div class="notch"></div>
+              <div class="nav">Reply</div>
+              <div class="body"><strong>Done.</strong> Standup is at 2 pm tomorrow — I sent the update to the team.</div>
+              <div class="chip"><span class="ico"></span>Speaking</div>
+            </div></div>
+            <div class="label">Speaking</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIRECTION B -->
+    <div class="direction">
+      <div class="head">
+        <div class="num">Direction B</div>
+        <h3>Breathing <em>orb</em></h3>
+        <div class="pull">Classic AI-companion · fullscreen takeover · highest presence</div>
+      </div>
+      <div class="dir-body">
+        <div class="copy">
+          <p>The ChatGPT / Pi pattern, in your colours. A tactile spherical orb on a dark backdrop. Dim and saturated when idle, breathing on listen, morphing on think, brightening on speak. Reads as "a being."</p>
+          <h5>Best for</h5>
+          <ul><li>Companion / coach products</li><li>When voice is the marquee feature</li><li>Brand needs an iconic asset</li></ul>
+          <h5>References</h5>
+          <ul><li>ChatGPT advanced voice</li><li>Pi by Inflection</li></ul>
+          <h5>Risks</h5>
+          <ul><li>Becoming "another AI orb" — needs strong colour to differentiate</li><li>Takeover breaks context</li></ul>
+        </div>
+        <div class="state-row">
+          <div class="state-cell">
+            <div class="phone"><div class="screen db-screen idle"><div class="notch"></div>
+              <div class="db-orb"></div>
+              <div class="cap">Tap to begin</div>
+            </div></div>
+            <div class="label">Idle</div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen db-screen listen"><div class="notch"></div>
+              <div class="db-orb"></div>
+              <div class="cap">Listening</div>
+            </div></div>
+            <div class="label"><em>Listening</em></div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen db-screen think"><div class="notch"></div>
+              <div class="db-orb"></div>
+              <div class="cap">Thinking</div>
+            </div></div>
+            <div class="label">Thinking</div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen db-screen speak"><div class="notch"></div>
+              <div class="db-orb"></div>
+              <div class="cap">"Of course — let's start there."</div>
+            </div></div>
+            <div class="label">Speaking</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIRECTION C -->
+    <div class="direction">
+      <div class="head">
+        <div class="num">Direction C</div>
+        <h3>Edge <em>glow</em></h3>
+        <div class="pull">Apple iOS 18 lineage · ambient · the app keeps working</div>
+      </div>
+      <div class="dir-body">
+        <div class="copy">
+          <p>A multi-hue gradient runs around the inside of the screen edge. A small status pill near the top tells the user which state they're in. The underlying screen is fully usable — they can scroll, tap, switch tabs while still in conversation.</p>
+          <h5>Best for</h5>
+          <ul><li>Apps where reading / browsing happens during voice</li><li>Always-on ambient assistants</li><li>Brands with a strong neutral palette</li></ul>
+          <h5>References</h5>
+          <ul><li>Siri on iOS 18 +</li><li>Notion AI hover halo</li></ul>
+          <h5>Risks</h5>
+          <ul><li>Easy to miss if user isn't watching</li><li>Conic gradient must be tasteful — easy to look "AI-ish"</li></ul>
+        </div>
+        <div class="state-row">
+          <div class="state-cell">
+            <div class="phone"><div class="screen dc-screen idle"><div class="notch"></div>
+              <div class="content"><h6>Inbox</h6>Three new messages.<br/>Ben — design review notes.<br/>Sarah — invoice Q1.<br/>James — coffee Friday?</div>
+              <div class="glow"></div>
+            </div></div>
+            <div class="label">Idle</div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen dc-screen listen"><div class="notch"></div>
+              <div class="content"><h6>Inbox</h6>Three new messages.<br/>Ben — design review notes.<br/>Sarah — invoice Q1.<br/>James — coffee Friday?</div>
+              <div class="pill"><span class="pulse"></span>Listening</div>
+              <div class="glow"></div>
+            </div></div>
+            <div class="label"><em>Listening</em></div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen dc-screen think"><div class="notch"></div>
+              <div class="content"><h6>Inbox</h6>Three new messages.<br/>Ben — design review notes.<br/>Sarah — invoice Q1.<br/>James — coffee Friday?</div>
+              <div class="pill"><span class="pulse"></span>Thinking</div>
+              <div class="glow"></div>
+            </div></div>
+            <div class="label">Thinking</div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen dc-screen speak"><div class="notch"></div>
+              <div class="content"><h6>Inbox</h6>Three new messages.<br/>Ben — design review notes.<br/>Sarah — invoice Q1.<br/>James — coffee Friday?</div>
+              <div class="pill"><span class="pulse"></span>Replying</div>
+              <div class="glow"></div>
+            </div></div>
+            <div class="label">Speaking</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIRECTION D -->
+    <div class="direction">
+      <div class="head">
+        <div class="num">Direction D</div>
+        <h3>Audio-reactive <em>waveform</em></h3>
+        <div class="pull">Otter / Granola lineage · transcript-first · technical confidence</div>
+      </div>
+      <div class="dir-body">
+        <div class="copy">
+          <p>Bars at the bottom of the screen ride the actual mic amplitude on listen, flatten on think, and ride the TTS output on speak. The transcript is the centrepiece, not an afterthought. Reads as serious / professional.</p>
+          <h5>Best for</h5>
+          <ul><li>Note-taking, dictation, meeting tools</li><li>When the artefact (text) is the value</li><li>Power users who want to see the system working</li></ul>
+          <h5>References</h5>
+          <ul><li>Otter.ai recording UI</li><li>Granola, Superhuman dictation</li></ul>
+          <h5>Risks</h5>
+          <ul><li>Engineering cost (real audio analysis on-device)</li><li>Less warmth — feels like a tool, not a friend</li></ul>
+        </div>
+        <div class="state-row">
+          <div class="state-cell">
+            <div class="phone"><div class="screen dd-screen idle"><div class="notch"></div>
+              <div class="top">— Idle</div>
+              <div class="transcript"><em>Press to start dictating.</em></div>
+              <div class="wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            </div></div>
+            <div class="label">Idle</div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen dd-screen listen"><div class="notch"></div>
+              <div class="top">REC · 00:03</div>
+              <div class="transcript">"…and add a section on retention metrics for the second slide—"</div>
+              <div class="wave"><span style="height:30%"></span><span style="height:55%"></span><span style="height:75%"></span><span style="height:60%"></span><span style="height:90%"></span><span style="height:45%"></span><span style="height:80%"></span><span style="height:65%"></span><span style="height:95%"></span><span style="height:50%"></span><span style="height:70%"></span><span style="height:40%"></span><span style="height:85%"></span><span style="height:55%"></span><span style="height:75%"></span><span style="height:60%"></span><span style="height:35%"></span><span style="height:50%"></span></div>
+            </div></div>
+            <div class="label"><em>Listening</em></div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen dd-screen think"><div class="notch"></div>
+              <div class="top">— Processing</div>
+              <div class="transcript">"…retention metrics for the second slide."<br/><em>Drafting reply…</em></div>
+              <div class="wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            </div></div>
+            <div class="label">Thinking</div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen dd-screen speak"><div class="notch"></div>
+              <div class="top">— Replying</div>
+              <div class="transcript">"Added a retention section to slide two — week-over-week and monthly cohorts."</div>
+              <div class="wave"><span style="height:55%"></span><span style="height:80%"></span><span style="height:60%"></span><span style="height:90%"></span><span style="height:45%"></span><span style="height:70%"></span><span style="height:55%"></span><span style="height:85%"></span><span style="height:65%"></span><span style="height:50%"></span><span style="height:75%"></span><span style="height:60%"></span><span style="height:90%"></span><span style="height:55%"></span><span style="height:70%"></span><span style="height:45%"></span><span style="height:80%"></span><span style="height:60%"></span></div>
+            </div></div>
+            <div class="label">Speaking</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIRECTION E -->
+    <div class="direction">
+      <div class="head">
+        <div class="num">Direction E</div>
+        <h3>Morphing <em>blob</em></h3>
+        <div class="pull">Gemini lineage · soft / organic · brandable colour story</div>
+      </div>
+      <div class="dir-body">
+        <div class="copy">
+          <p>An amorphous, slow-morphing gradient blob in two or three brand colours. Less mechanical than an orb — feels closer to "thought" than "machine." Particularly good if your product wants to feel warm or human.</p>
+          <h5>Best for</h5>
+          <ul><li>Wellness, coaching, lifestyle products</li><li>Brands with a multi-colour palette</li><li>When you want to look unlike OpenAI</li></ul>
+          <h5>References</h5>
+          <ul><li>Gemini Live</li><li>Apple Intelligence "Writing Tools" gradient</li></ul>
+          <h5>Risks</h5>
+          <ul><li>Easy to look generic-AI if motion isn't well-tuned</li><li>State changes can be hard to read at a glance</li></ul>
+        </div>
+        <div class="state-row">
+          <div class="state-cell">
+            <div class="phone"><div class="screen de-screen idle"><div class="notch"></div>
+              <div class="de-blob"></div>
+              <div class="cap">tap to talk</div>
+            </div></div>
+            <div class="label">Idle</div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen de-screen listen"><div class="notch"></div>
+              <div class="de-blob"></div>
+              <div class="cap">listening</div>
+            </div></div>
+            <div class="label"><em>Listening</em></div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen de-screen think"><div class="notch"></div>
+              <div class="de-blob"></div>
+              <div class="cap">thinking</div>
+            </div></div>
+            <div class="label">Thinking</div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen de-screen speak"><div class="notch"></div>
+              <div class="de-blob"></div>
+              <div class="cap">"here's what I'd try…"</div>
+            </div></div>
+            <div class="label">Speaking</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIRECTION F -->
+    <div class="direction">
+      <div class="head">
+        <div class="num">Direction F</div>
+        <h3>Bottom-sheet <em>halo</em></h3>
+        <div class="pull">Hybrid · best of takeover + ambient · most flexible</div>
+      </div>
+      <div class="dir-body">
+        <div class="copy">
+          <p>A drawer rises from the bottom holding a smaller orb with a pulse-ring on listen and a conic spinner on think. The top half of the screen — your existing app — stays visible and tappable. Easy to drag down or dismiss.</p>
+          <h5>Best for</h5>
+          <ul><li>The "I want presence but not takeover" middle ground</li><li>Apps with strong existing screens worth preserving</li><li>iOS-native feel</li></ul>
+          <h5>References</h5>
+          <ul><li>Apple Music "Now Playing" sheet</li><li>Arc Search voice mode</li></ul>
+          <h5>Risks</h5>
+          <ul><li>Sheets can feel heavy on small phones</li><li>One more layer of stack to reason about</li></ul>
+        </div>
+        <div class="state-row">
+          <div class="state-cell">
+            <div class="phone"><div class="screen df-screen idle"><div class="notch"></div>
+              <div class="stack">
+                <div class="line">09:14 — Standup notes</div>
+                <div class="line">09:42 — Refactor auth</div>
+                <div class="line">10:30 — Design review</div>
+                <div class="line">11:15 — Lunch with Anna</div>
+              </div>
+              <div class="df-sheet"><div class="grip"></div><div class="halo"></div><div class="lbl">Hold to talk</div></div>
+            </div></div>
+            <div class="label">Idle</div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen df-screen listen"><div class="notch"></div>
+              <div class="stack">
+                <div class="line">09:14 — Standup notes</div>
+                <div class="line">09:42 — Refactor auth</div>
+                <div class="line">10:30 — Design review</div>
+                <div class="line">11:15 — Lunch with Anna</div>
+              </div>
+              <div class="df-sheet"><div class="grip"></div><div class="halo"></div><div class="lbl">Listening…</div></div>
+            </div></div>
+            <div class="label"><em>Listening</em></div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen df-screen think"><div class="notch"></div>
+              <div class="stack">
+                <div class="line">09:14 — Standup notes</div>
+                <div class="line">09:42 — Refactor auth</div>
+                <div class="line">10:30 — Design review</div>
+                <div class="line">11:15 — Lunch with Anna</div>
+              </div>
+              <div class="df-sheet"><div class="grip"></div><div class="halo"></div><div class="lbl">Thinking</div></div>
+            </div></div>
+            <div class="label">Thinking</div>
+          </div>
+          <div class="state-cell">
+            <div class="phone"><div class="screen df-screen speak"><div class="notch"></div>
+              <div class="stack">
+                <div class="line">09:14 — Standup notes</div>
+                <div class="line">09:42 — Refactor auth</div>
+                <div class="line">10:30 — Design review</div>
+                <div class="line">11:15 — Lunch with Anna</div>
+              </div>
+              <div class="df-sheet"><div class="grip"></div><div class="halo"></div><div class="lbl">"Moved to 2pm"</div></div>
+            </div></div>
+            <div class="label">Speaking</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ====================== SECTION 04 — RECOMMENDATION ====================== -->
+  <section>
+    <div class="sect-head">
+      <div class="num">04 · Recommendation</div>
+      <h2>If forced to <em>pick one</em>.</h2>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start">
+      <div>
+        <p style="font-family:var(--sans);font-weight:600;font-size:24px;line-height:1.35;letter-spacing:-.02em;margin:0 0 16px">For JBIQ retro-fitting voice into the existing assistant, the safe-but-sharp pick is <em style="color:var(--accent);font-style:normal;font-weight:700">Direction F — Bottom-sheet halo</em>.</p>
+        <p style="font-size:14.5px;color:var(--ink-2);line-height:1.6;margin:0 0 14px">It gives you a single, brandable purple orb (so voice <em style="color:var(--accent);font-style:normal;font-weight:600">has</em> a face) without the cost of a fullscreen takeover. The user's existing screen — search results, JioMart, recharge flows — stays in view, which preserves all the work you've already done in the rest of the product.</p>
+        <p style="font-size:14.5px;color:var(--ink-2);line-height:1.6;margin:0">If voice becomes a destination — a coach, a personal helper — push to <em style="color:var(--accent);font-style:normal;font-weight:600">Direction B</em>. If voice should disappear into the chrome — just another way to type a query — push to <em style="color:var(--accent);font-style:normal;font-weight:600">Direction A</em>.</p>
+      </div>
+      <div style="font-size:13px;line-height:1.6;color:var(--ink-2);background:var(--paper-3);padding:24px;border-radius:16px">
+        <h4 style="font-family:var(--sans);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);margin:0 0 12px;font-weight:700">Next, in Figma</h4>
+        <ol style="margin:0;padding-left:18px">
+          <li style="margin-bottom:8px">Pick a direction (or two to bake-off internally).</li>
+          <li style="margin-bottom:8px">Lock the four states as a single component with variants — don't draw them as separate screens.</li>
+          <li style="margin-bottom:8px">Define the breath cycle (recommend 2.4s) and use it everywhere — listening, speaking, idle hover.</li>
+          <li style="margin-bottom:8px">Add live transcript regardless of direction. It's the single highest-trust feature.</li>
+          <li>Prototype the <em>transitions</em>, not the states. That's where this design lives or dies.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== FOOT ====================== -->
+  <footer class="foot">
+    <div>Voice UI research · prepared for Matt · April 2026</div>
+    <div style="text-align:right">12 references · 6 directions · 24 mockups</div>
+  </footer>
+
+</div>
+</body>
+</html>
