@@ -4044,6 +4044,78 @@
     },
   };
 
+  // §14 Service booking flows — Place views (plumber, doctor, tutor, tailor)
+  // that need an on-screen Confirm Booking surface. Same shape as
+  // TRANSACTIONAL_VIEW_PRODUCTS so renderShoppingCard + handleConfirmAndPay
+  // can be reused; ctaLabel / confirmedHeading / confirmedLine swap the
+  // commerce-flavoured copy ("Confirm & Pay" / "Order ho gaya...") for
+  // booking-flavoured copy. The DiscoveryView carousel still renders so the
+  // user can compare options — the booking widget commits the anchor result.
+  // Pediatricians_open_now is intentionally NOT in this map: per spec §4.4
+  // its primary CTA is a tel: link (call the clinic), not a booking flow.
+  const BOOKING_VIEW_SERVICES = {
+    plumbers: {
+      brand: 'Urban Company',
+      storefront: 'Urban Company',
+      name: 'Plumber visit · Andheri',
+      qty: '30-min ETA · 4.8★ (9,432) · 0.4 km',
+      price: 349,
+      eta: '30-min ETA',
+      img: 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=400&h=400&fit=crop',
+      ctaLabel: 'Confirm Booking',
+      confirmedHeading: 'Booking confirmed',
+      confirmedLine: 'Plumber book ho gaya. Aapko 30 minute mein call aayega.',
+    },
+    plumbers_indore: {
+      brand: 'Urban Company',
+      storefront: 'Urban Company',
+      name: 'Plumber visit · Vijay Nagar, Indore',
+      qty: '45-min ETA · 4.7★ (1,820) · 0.6 km',
+      price: 349,
+      eta: '45-min ETA',
+      img: 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=400&h=400&fit=crop',
+      ctaLabel: 'Confirm Booking',
+      confirmedHeading: 'Booking confirmed',
+      confirmedLine: 'Plumber book ho gaya. Aapko 45 minute mein call aayega.',
+    },
+    doctors: {
+      brand: 'Dr. Anand Rao',
+      storefront: 'Dr. Anand Rao',
+      name: 'General consult · Senior',
+      qty: 'Walk-in today · 4.8★ · 1.5 km',
+      price: 600,
+      eta: 'Today',
+      img: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=400&fit=crop',
+      ctaLabel: 'Confirm Booking',
+      confirmedHeading: 'Booking confirmed',
+      confirmedLine: 'Appointment book ho gaya. Clinic se confirmation aayegi.',
+    },
+    tutors_maths_class10: {
+      brand: 'Aakash Verma',
+      storefront: 'Aakash Verma',
+      name: 'Class 10 Maths · 1-hour session',
+      qty: 'First class free · 4.9★ · 0.5 km',
+      price: 0,
+      eta: 'First class free',
+      img: 'https://images.unsplash.com/photo-1581726707445-75cbe4efc586?w=400&h=400&fit=crop',
+      ctaLabel: 'Confirm Booking',
+      confirmedHeading: 'Booking confirmed',
+      confirmedLine: 'Tutor book ho gaya. Aakash sir aapko WhatsApp pe details bhejenge.',
+    },
+    tailors_diwali: {
+      brand: 'Sona Tailors',
+      storefront: 'Sona Tailors',
+      name: 'Blouse stitching · Same-day',
+      qty: 'Same-day delivery · 4.6★ · 0.4 km',
+      price: 350,
+      eta: 'Same-day',
+      img: 'https://images.unsplash.com/photo-1581338834647-b0fb40704e21?w=400&h=400&fit=crop',
+      ctaLabel: 'Confirm Booking',
+      confirmedHeading: 'Booking confirmed',
+      confirmedLine: 'Tailor book ho gaya. Sona Tailors aapko measurements ke liye call karenge.',
+    },
+  };
+
   // Lightweight catalog — matches on substring of parsed item
   const SHOPPING_CATALOG = [
     { keys: ['coffee'],        name: 'Bru Instant Coffee', brand: 'Bru',        qty: '100 g jar',  price: 249, eta: 'Today, 30 min', img: 'https://images.unsplash.com/photo-1559525839-8f75b3e99cdb?w=400&h=400&fit=crop' },
@@ -4110,7 +4182,7 @@
       </div>
       <div class="shopping-actions">
         <button class="shopping-cancel-btn" type="button">Cancel</button>
-        <button class="shopping-pay-btn" type="button">Confirm &amp; Pay</button>
+        <button class="shopping-pay-btn" type="button">${product.ctaLabel || 'Confirm & Pay'}</button>
       </div>
     `;
     card.querySelector('.shopping-card-brand').textContent = product.brand;
@@ -4211,8 +4283,9 @@
       setTimeout(() => { if (cardEl.isConnected) cardEl.remove(); }, 260);
     }
 
-    // Assistant line (Hinglish, matches Figma 22751:42192)
-    const confirmLine = 'Order ho gaya. 20 minute mein aayega';
+    // Assistant line (Hinglish, matches Figma 22751:42192). Booking flows
+    // override via product.confirmedLine; default stays the commerce wording.
+    const confirmLine = product.confirmedLine || 'Order ho gaya. 20 minute mein aayega';
     const aiEl = document.createElement('div');
     aiEl.className = 'ai-response';
     aiEl.textContent = confirmLine;
@@ -4236,7 +4309,7 @@
           <div class="order-confirmed-product-price">₹${product.price}</div>
         </div>
       </div>
-      <div class="order-confirmed-heading">Your order is confirmed</div>
+      <div class="order-confirmed-heading">${product.confirmedHeading || 'Your order is confirmed'}</div>
       <div class="order-confirmed-progress">
         <div class="order-confirmed-progress-fill"></div>
       </div>
@@ -4632,6 +4705,22 @@
     if (discoveryDs && TRANSACTIONAL_VIEW_PRODUCTS[discoveryKey]) {
       const product = TRANSACTIONAL_VIEW_PRODUCTS[discoveryKey];
       const cardEl = renderShoppingCard(product);
+      chatMessages.appendChild(cardEl);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // 7f-bis. Render the on-screen Confirm Booking surface for service flows
+    // (plumbers, plumbers_indore, doctors, tutors_maths_class10,
+    // tailors_diwali). Same §14 contract as transactional — on-screen tap is
+    // the only commit signal, voice "haan" cannot commit. Sits BELOW the
+    // carousel so the user can compare options before locking in the anchor
+    // result. CTA / heading / confirm line are parameterised on the service
+    // object so renderShoppingCard reads "Confirm Booking" instead of
+    // "Confirm & Pay".
+    const isBooking = !!(discoveryDs && BOOKING_VIEW_SERVICES[discoveryKey]);
+    if (isBooking) {
+      const service = BOOKING_VIEW_SERVICES[discoveryKey];
+      const cardEl = renderShoppingCard(service);
       chatMessages.appendChild(cardEl);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
