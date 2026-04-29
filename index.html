@@ -597,6 +597,9 @@
       border-radius: 45px;
     }
     .voice-overlay.text-mode .voice-bg-circles { display: none; }
+    /* Voice background circles temporarily hidden — remove this line to restore.
+       Markup, keyframes, and pulseCircles() JS are preserved intentionally. */
+    .voice-bg-circles { display: none !important; }
 
     .voice-bg-circle {
       position: absolute;
@@ -1104,6 +1107,23 @@
       align-self: flex-start;
     }
     .thinking-row.visible { display: flex; }
+    .thinking-avatar {
+      position: relative;
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .thinking-avatar video {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 25px;
+      height: 25px;
+      object-fit: cover;
+      pointer-events: none;
+    }
     .thinking-icon {
       width: 20px; height: 20px; opacity: 0.5;
       animation: thinkSpin 1.5s linear infinite;
@@ -1782,6 +1802,177 @@
       color: var(--text-medium);
       opacity: 0.5;
       font-size: 13px;
+    }
+
+    /* Booking detail / receipt bottom sheet. Shown when the user taps Track
+       booking or View receipt on the order-confirmed card. Surfaces only the
+       data we already hold on `product` — no fake live status, no fake API. */
+    .booking-sheet-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(12, 13, 16, 0.45);
+      z-index: 110;
+      opacity: 0;
+      animation: bookingSheetBackdropIn 0.2s ease forwards;
+    }
+    .booking-sheet-backdrop.is-closing { animation: bookingSheetBackdropOut 0.2s ease forwards; }
+    @keyframes bookingSheetBackdropIn { to { opacity: 1; } }
+    @keyframes bookingSheetBackdropOut { to { opacity: 0; } }
+    .booking-sheet {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      background: #fff;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      padding: 8px 20px 28px;
+      z-index: 111;
+      max-height: 80%;
+      overflow-y: auto;
+      transform: translateY(100%);
+      animation: bookingSheetIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    .booking-sheet.is-closing { animation: bookingSheetOut 0.22s ease forwards; }
+    @keyframes bookingSheetIn { to { transform: translateY(0); } }
+    @keyframes bookingSheetOut { to { transform: translateY(100%); } }
+    .booking-sheet-grabber {
+      width: 36px; height: 4px;
+      border-radius: 999px;
+      background: rgba(12, 13, 16, 0.18);
+      margin: 6px auto 14px;
+    }
+    .booking-sheet-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-high);
+      line-height: 1.2;
+      margin-bottom: 2px;
+    }
+    .booking-sheet-ref {
+      font-size: 12px;
+      color: var(--text-medium);
+      letter-spacing: 0.04em;
+      margin-bottom: 16px;
+    }
+    .booking-sheet-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px 0;
+      border-top: 1px solid rgba(12, 13, 16, 0.08);
+      border-bottom: 1px solid rgba(12, 13, 16, 0.08);
+    }
+    .booking-sheet-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      font-size: 14px;
+    }
+    .booking-sheet-row-label {
+      color: var(--text-medium);
+      flex-shrink: 0;
+    }
+    .booking-sheet-row-value {
+      color: var(--text-high);
+      font-weight: 600;
+      text-align: right;
+    }
+    .booking-sheet-total {
+      font-weight: 800;
+      font-size: 16px;
+      padding-top: 4px;
+    }
+    .booking-sheet-note {
+      font-size: 13px;
+      color: var(--text-medium);
+      line-height: 1.4;
+      padding: 14px 0 4px;
+    }
+    .booking-sheet-close {
+      width: 100%;
+      padding: 14px 20px;
+      margin-top: 12px;
+      background: var(--surface-subtle);
+      color: var(--text-high-tinted);
+      border: none;
+      border-radius: var(--shape-pill);
+      font-family: var(--font-family);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .booking-sheet-close:active { transform: scale(0.98); }
+    .booking-sheet-close--primary {
+      background: var(--surface-bold);
+      color: white;
+      margin-top: 16px;
+      margin-bottom: 4px;
+    }
+    .booking-sheet-close--primary:hover { opacity: 0.92; }
+
+    /* Repair dialog — rendered when no matcher catches the user's utterance.
+       Gives a fast tap-out via three suggestion chips + a Try again affordance.
+       Sits above any model fallback so the user can recover before reading
+       freeform output. */
+    .repair-dialog {
+      width: 100%;
+      background: #fff7e6;
+      border: 1px solid #f5b544;
+      border-radius: var(--shape-3xl, 16px);
+      padding: 14px 16px 12px;
+      margin: 8px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: repairDialogIn 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @keyframes repairDialogIn {
+      0% { opacity: 0; transform: translateY(6px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .repair-dialog-header {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-high);
+      line-height: 1.3;
+    }
+    .repair-dialog-sub {
+      font-size: 12px;
+      color: var(--text-medium);
+      line-height: 1.3;
+      margin-top: -6px;
+    }
+    .repair-dialog-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .repair-chip {
+      background: #fff;
+      border: 1px solid rgba(12, 13, 16, 0.12);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-family: var(--font-family);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-high);
+      cursor: pointer;
+      line-height: 1;
+    }
+    .repair-chip:hover { border-color: rgba(12, 13, 16, 0.28); }
+    .repair-chip:active { transform: scale(0.98); }
+    .repair-chip:focus-visible { outline: 2px solid var(--surface-bold); outline-offset: 2px; }
+    .repair-dialog-retry {
+      align-self: flex-start;
+      background: none;
+      border: none;
+      padding: 4px 0;
+      font-family: var(--font-family);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-high);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
     }
 
     /* State C — voice-only confirm warning */
@@ -3126,6 +3317,21 @@
   window.addEventListener('jbiq-discovery-event', (e) => {
     const detail = e.detail || {};
     if (!detail.name) return;
+
+    // Catalog card tap (G5) — open a detail sheet with the card's data and a
+    // Buy now CTA that routes through SHOPPING_CATALOG. Only handles catalog
+    // views for now; place / compare cards still no-op.
+    if (/^catalog\.[^.]+\.[^.]+\.open$/.test(detail.name) && detail.wrapper) {
+      const view = detail.wrapper.__jbiqView;
+      const card = view && view.collection && Array.isArray(view.collection.cards)
+        ? view.collection.cards.find(c => c.primary_event === detail.name)
+        : null;
+      if (card && typeof showCatalogDetailSheet === 'function') {
+        showCatalogDetailSheet(card);
+        return;
+      }
+    }
+
     let query = detail.query || null;
     if (!query && detail.name.startsWith('edge.')) {
       const view = detail.wrapper && detail.wrapper.__jbiqView;
@@ -3536,7 +3742,7 @@
   function createThinkingEl() {
     const el = document.createElement('div');
     el.className = 'thinking-row visible';
-    el.innerHTML = '<span class="thinking-text">Thinking...</span>';
+    el.innerHTML = '<span class="thinking-avatar" aria-hidden="true"><video src="assets/thinking-avatar.mp4" autoplay loop muted playsinline></video></span><span class="thinking-text">Thinking...</span>';
     return el;
   }
 
@@ -4031,8 +4237,8 @@
     { re: /\b(?:class\s*10|maths|board)\b.{0,40}\b(?:tutor|tuition|coaching)\b/i,         view: 'tutors_maths_class10' },
     // Indore-qualified plumber routes to the T2-city Indore variant. Must sit
     // above the generic plumber regex so the city wins.
-    { re: /\b(?:plumber|nal\s*theek|nal\s*kharab|leak)\b.{0,40}\bindore\b/i,               view: 'plumbers_indore' },
-    { re: /\bindore\b.{0,40}\b(?:plumber|nal\s*theek|nal\s*kharab|leak)\b/i,               view: 'plumbers_indore' },
+    { re: /\b(?:plumber|nal\s*theek|nal\s*kharab|leak|paani\s*(?:tapak|leak|gir)|flush.{0,10}(?:nahi|kharab|toot)|pipe.{0,10}(?:leak|kharab|toot)|nal\s*se\s*paani)\b.{0,40}\bindore\b/i, view: 'plumbers_indore' },
+    { re: /\bindore\b.{0,40}\b(?:plumber|nal\s*theek|nal\s*kharab|leak|paani\s*(?:tapak|leak|gir)|flush.{0,10}(?:nahi|kharab|toot)|pipe.{0,10}(?:leak|kharab|toot)|nal\s*se\s*paani)\b/i, view: 'plumbers_indore' },
     { re: /\b(tailor|silwana|blouse|stitching)/i,                                         view: 'tailors_diwali' },
     { re: /\b(maggi|haldi|atta|chini|reorder|kirana|raashan)/i,                           view: 'kirana_reorder' },
     { re: /\bdoodh|milk.{0,15}(subscrip|delivery|kal\s*se)/i,                             view: 'milk_subscription_edit' },
@@ -4048,11 +4254,11 @@
     // Place (5) — restaurants intentionally omitted; handled by carousel
     { re: /\bbiryani\b/i,                                        view: 'biryani_hyderabad' },
     { re: /\b(doctor|fever|consult)/i,                           view: 'doctors' },
-    { re: /\b(plumber|nal\s*theek|nal\s*kharab|leak)/i,          view: 'plumbers' },
+    { re: /\b(plumber|nal\s*theek|nal\s*kharab|leak|paani\s*(?:tapak|leak|gir)|flush.{0,10}(?:nahi|kharab|toot)|pipe.{0,10}(?:leak|kharab|toot)|nal\s*se\s*paani)/i, view: 'plumbers' },
     { re: /\bschool/i,                                           view: 'schools_bandra' },
     { re: /\b(apartment|flat|2\s*bhk|\brent\b)/i,                view: 'apartments' },
     // Catalog (7)
-    { re: /\bkurta/i,                                            view: 'kurta_diwali' },
+    { re: /\b(kurta|kurti|sherwani|anarkali|lehenga|ethnic\s*wear|(?:festive|diwali)\s*(?:ke\s*liye)?\s*(?:kapde|wear|outfit))/i, view: 'kurta_diwali' },
     { re: /\bgift/i,                                             view: 'gifts_wedding' },
     { re: /\bmovie/i,                                            view: 'movies_weekend' },
     { re: /\bdevotional/i,                                       view: 'devotional_morning' },
@@ -4322,6 +4528,14 @@
     { keys: ['biscuits', 'biscuit', '50-50', 'parle'], name: 'Parle 50-50 Biscuits', brand: 'Parle', qty: '300 g pack', price: 60, eta: 'Today, 30 min', img: 'https://images.unsplash.com/photo-1548365328-9f547fb09530?w=400&h=400&fit=crop' },
     { keys: ['water'],         name: 'Bisleri Water',      brand: 'Bisleri',    qty: '1 L bottle', price: 20,  eta: 'Today, 20 min', img: 'https://images.unsplash.com/photo-1560847468-5eef0b4824e2?w=400&h=400&fit=crop' },
     { keys: ['rice'],          name: 'India Gate Basmati', brand: 'India Gate', qty: '5 kg bag',   price: 640, eta: 'Today, 45 min', img: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=400&fit=crop' },
+    // Kurta SKUs — mirror the cards in MOCK_KURTA_DIWALI (discovery.js:1815) so
+    // an explicit "buy the FabIndia silk kurta" reaches §14 with real brand /
+    // price / fabric data instead of the fallback JioMart Pick (G6).
+    { keys: ['fabindia silk', 'fabindia kurta', 'silk nehru', 'silk blend nehru'], name: 'Silk blend Nehru kurta', brand: 'FabIndia',     qty: 'Silk · Men · M',          price: 1499, eta: 'Delivery by Nov 10', img: 'https://images.unsplash.com/photo-1622260614153-03223fb72052?w=400&h=400&fit=crop' },
+    { keys: ['manyavar', 'dhoti kurta', 'dhoti set'],                              name: 'Dhoti kurta set — Ivory', brand: 'Manyavar',     qty: 'Silk blend · Men · M',    price: 3299, eta: 'Delivery by Nov 10', img: 'https://images.unsplash.com/photo-1622445275576-721325763afe?w=400&h=400&fit=crop' },
+    { keys: ['biba anarkali', 'biba kurta', 'block-printed anarkali', 'block printed anarkali', 'anarkali'], name: 'Block-printed Anarkali', brand: 'Biba', qty: 'Cotton · Women · M', price: 2199, eta: 'Delivery by Nov 10', img: 'https://images.unsplash.com/photo-1610030469668-8e9d4f4d3a17?w=400&h=400&fit=crop' },
+    { keys: ['soch palazzo', 'soch kurta', 'kurta palazzo', 'embroidered palazzo'], name: 'Embroidered kurta palazzo', brand: 'Soch',       qty: 'Rayon · Women · M',       price: 1899, eta: 'Delivery by Nov 10', img: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=400&h=400&fit=crop' },
+    { keys: ['jaipur kurti', 'jaipur kurta', 'handblock kurta', 'jaipur cotton'], name: 'Handblock cotton kurta',   brand: 'Jaipur Kurti', qty: 'Cotton · Women · M',      price: 899,  eta: 'Delivery by Nov 10', img: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&h=400&fit=crop' },
   ];
 
   function resolveShoppingProduct(itemText) {
@@ -4495,20 +4709,230 @@
     setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
   }
 
-  // Stub — opens a placeholder booking-tracker view. The real screen is a
-  // future engineering task; for the prototype we just acknowledge the tap
-  // so the CTA isn't a dead end.
-  function openBookingTracker(product) {
-    const note = `Track booking: ${product.name} · ${product.scheduledLabel || ''}`;
-    console.log('[booking-tracker stub]', note);
-    if (typeof showResponse === 'function') {
-      showResponse('Mera booking tracker dikhao');
+  function generateBookingRef() {
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    let s = '';
+    for (let i = 0; i < 5; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    return `JBQ-${s}`;
+  }
+
+  // Bottom sheet for booking details / receipt. Surfaces only data already on
+  // `product` — no fake live tracking, no fake payment metadata. mode is
+  // 'track' (status + arrival window + address + reassurance) or 'receipt'
+  // (line items + total + payment + booking ref).
+  function showBookingSheet(product, mode) {
+    if (!product.bookingRef) product.bookingRef = generateBookingRef();
+    if (!product.bookingPlacedAt) product.bookingPlacedAt = new Date();
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'booking-sheet-backdrop';
+    const sheet = document.createElement('div');
+    sheet.className = 'booking-sheet';
+    sheet.setAttribute('role', 'dialog');
+    sheet.setAttribute('aria-modal', 'true');
+
+    const placedAt = product.bookingPlacedAt;
+    const placedLabel = placedAt.toLocaleString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric',
+      hour: 'numeric', minute: '2-digit', hour12: true,
+    });
+    const priceText = product.priceLabel || `₹${product.price}`;
+    const paid = product.paymentStatus === 'paid';
+
+    let title, rowsHtml, footerHtml;
+    if (mode === 'receipt') {
+      title = 'Receipt';
+      rowsHtml = `
+        <div class="booking-sheet-row"><span class="booking-sheet-row-label">Placed</span><span class="booking-sheet-row-value">${placedLabel}</span></div>
+        <div class="booking-sheet-row"><span class="booking-sheet-row-label">${product.brand || 'Service'} — ${product.name}</span><span class="booking-sheet-row-value">${priceText}</span></div>
+        ${product.serviceAddress ? `<div class="booking-sheet-row"><span class="booking-sheet-row-label">For</span><span class="booking-sheet-row-value">${product.serviceAddress}</span></div>` : ''}
+        <div class="booking-sheet-row"><span class="booking-sheet-row-label">Payment</span><span class="booking-sheet-row-value">${paid ? 'Paid' : 'Pending'}</span></div>
+        <div class="booking-sheet-row booking-sheet-total"><span class="booking-sheet-row-label">Total</span><span class="booking-sheet-row-value">${priceText}</span></div>
+      `;
+      footerHtml = `<div class="booking-sheet-note">A copy will be emailed once email is added to your account.</div>`;
+    } else {
+      title = 'Booking details';
+      const proLine = product.proName
+        ? `${product.proName} will ${product.arrivalVerb || 'arrive'} ${product.arrivalLabel || ''}`.trim()
+        : 'A professional will be assigned shortly';
+      rowsHtml = `
+        <div class="booking-sheet-row"><span class="booking-sheet-row-label">Status</span><span class="booking-sheet-row-value">Confirmed</span></div>
+        <div class="booking-sheet-row"><span class="booking-sheet-row-label">Service</span><span class="booking-sheet-row-value">${product.brand || ''} — ${product.name}</span></div>
+        ${product.scheduledLabel ? `<div class="booking-sheet-row"><span class="booking-sheet-row-label">When</span><span class="booking-sheet-row-value">${product.scheduledLabel}</span></div>` : ''}
+        ${product.serviceAddress ? `<div class="booking-sheet-row"><span class="booking-sheet-row-label">Where</span><span class="booking-sheet-row-value">${product.serviceAddress}</span></div>` : ''}
+        <div class="booking-sheet-row"><span class="booking-sheet-row-label">Payment</span><span class="booking-sheet-row-value">${priceText}${paid ? ' · Paid' : ''}</span></div>
+      `;
+      footerHtml = `<div class="booking-sheet-note">${proLine}. We'll send an SMS with live updates once that integration is live.</div>`;
     }
+
+    sheet.innerHTML = `
+      <div class="booking-sheet-grabber"></div>
+      <div class="booking-sheet-title">${title}</div>
+      <div class="booking-sheet-ref">Ref · ${product.bookingRef}</div>
+      <div class="booking-sheet-rows">${rowsHtml}</div>
+      ${footerHtml}
+      <button class="booking-sheet-close" type="button">Close</button>
+    `;
+
+    function close() {
+      if (sheet.classList.contains('is-closing')) return;
+      sheet.classList.add('is-closing');
+      backdrop.classList.add('is-closing');
+      document.removeEventListener('keydown', onKey);
+      setTimeout(() => {
+        if (sheet.isConnected) sheet.remove();
+        if (backdrop.isConnected) backdrop.remove();
+      }, 240);
+    }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+
+    backdrop.addEventListener('click', close);
+    sheet.querySelector('.booking-sheet-close').addEventListener('click', close);
+    document.addEventListener('keydown', onKey);
+
+    const frame = document.querySelector('.phone-frame');
+    frame.appendChild(backdrop);
+    frame.appendChild(sheet);
+  }
+
+  function openBookingTracker(product) {
+    showBookingSheet(product, 'track');
+  }
+
+  // Catalog card detail sheet (G5) — when the user taps a catalog card, surface
+  // the card's data in a bottom sheet with a Buy now CTA that drops them into
+  // the §14 SHOPPING_CATALOG flow. Reuses the .booking-sheet CSS for visual
+  // consistency. The buy phrase is "Order the {brand} {title}" so the existing
+  // shopping resolver picks the right SKU.
+  function showCatalogDetailSheet(card) {
+    if (!card) return;
+    const buyQuery = `Order the ${card.subtitle || ''} ${card.title || ''}`.trim();
+    const ratingText = card.rating ? `${card.rating.value}\u2605 (${card.rating.count.toLocaleString('en-IN')})` : '';
+    const tagsText = (card.tags || []).join(' \u00b7 ');
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'booking-sheet-backdrop';
+    const sheet = document.createElement('div');
+    sheet.className = 'booking-sheet';
+    sheet.setAttribute('role', 'dialog');
+    sheet.setAttribute('aria-modal', 'true');
+
+    const rowsHtml = [
+      card.price_label && `<div class="booking-sheet-row"><span class="booking-sheet-row-label">Price</span><span class="booking-sheet-row-value">${card.price_label}</span></div>`,
+      ratingText && `<div class="booking-sheet-row"><span class="booking-sheet-row-label">Rating</span><span class="booking-sheet-row-value">${ratingText}</span></div>`,
+      tagsText && `<div class="booking-sheet-row"><span class="booking-sheet-row-label">Details</span><span class="booking-sheet-row-value">${tagsText}</span></div>`,
+      card.badge && `<div class="booking-sheet-row"><span class="booking-sheet-row-label">Badge</span><span class="booking-sheet-row-value">${card.badge}</span></div>`,
+    ].filter(Boolean).join('');
+
+    sheet.innerHTML = `
+      <div class="booking-sheet-grabber"></div>
+      <div class="booking-sheet-title">${card.title || ''}</div>
+      <div class="booking-sheet-ref">${card.subtitle || ''}</div>
+      <div class="booking-sheet-rows">${rowsHtml}</div>
+      <div class="booking-sheet-note">More photos, fit notes and reviews are TODO. For now, tap Buy now to commit.</div>
+      <button class="booking-sheet-close booking-sheet-close--primary" type="button" data-action="buy">Buy now</button>
+      <button class="booking-sheet-close" type="button" data-action="close">Close</button>
+    `;
+
+    function close() {
+      if (sheet.classList.contains('is-closing')) return;
+      sheet.classList.add('is-closing');
+      backdrop.classList.add('is-closing');
+      document.removeEventListener('keydown', onKey);
+      setTimeout(() => {
+        if (sheet.isConnected) sheet.remove();
+        if (backdrop.isConnected) backdrop.remove();
+      }, 240);
+    }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+
+    backdrop.addEventListener('click', close);
+    sheet.querySelector('[data-action="close"]').addEventListener('click', close);
+    sheet.querySelector('[data-action="buy"]').addEventListener('click', () => {
+      close();
+      setTimeout(() => {
+        if (typeof showResponse === 'function' && buyQuery) {
+          showResponse(buyQuery);
+        }
+      }, 280);
+    });
+    document.addEventListener('keydown', onKey);
+
+    const frame = document.querySelector('.phone-frame');
+    frame.appendChild(backdrop);
+    frame.appendChild(sheet);
+  }
+
+  // V4 — minimal voice repair dialog. Renders when no matcher caught the
+  // user's utterance (Round 2 P0). Three suggestion chips seed a known-good
+  // utterance via `data-query`; "Try again" reopens mic in voice mode or
+  // focuses the input in text mode. Lives in the chat turn so it scrolls
+  // with the rest of the conversation.
+  const REPAIR_DEFAULT_SUGGESTIONS = [
+    { label: 'Check PM Kisan status', query: 'Check my PM Kisan status' },
+    { label: 'Recharge \u20b9299',       query: 'Recharge my Jio plan for \u20b9299' },
+    { label: 'Book a plumber',         query: 'Mujhe plumber chahiye' },
+  ];
+  function renderRepairDialog({ reason = 'no_match', suggestions } = {}) {
+    const list = (Array.isArray(suggestions) && suggestions.length) ? suggestions : REPAIR_DEFAULT_SUGGESTIONS;
+    const wrap = document.createElement('div');
+    wrap.className = 'repair-dialog';
+    wrap.setAttribute('role', 'status');
+    wrap.setAttribute('aria-live', 'polite');
+    wrap.dataset.reason = reason;
+
+    const header = document.createElement('div');
+    header.className = 'repair-dialog-header';
+    header.textContent = "Sorry, I didn't catch that";
+    wrap.appendChild(header);
+
+    const sub = document.createElement('div');
+    sub.className = 'repair-dialog-sub';
+    sub.textContent = 'Did you mean one of these?';
+    wrap.appendChild(sub);
+
+    const chipsRow = document.createElement('div');
+    chipsRow.className = 'repair-dialog-chips';
+    list.forEach((s) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'repair-chip';
+      chip.textContent = s.label;
+      chip.setAttribute('data-query', s.query);
+      chip.addEventListener('click', () => {
+        if (isProcessingResponse) return;
+        if (typeof showResponse === 'function') showResponse(s.query);
+      });
+      chipsRow.appendChild(chip);
+    });
+    wrap.appendChild(chipsRow);
+
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.className = 'repair-dialog-retry';
+    retry.textContent = 'Try again';
+    retry.addEventListener('click', () => {
+      const isTextMode = overlay.classList.contains('text-mode');
+      if (isTextMode) {
+        const input = document.querySelector('.kb-input, input[type="text"], textarea');
+        if (input) input.focus();
+      } else if (typeof startListening === 'function') {
+        overlay.classList.add('listening-mode');
+        startListening();
+      }
+    });
+    wrap.appendChild(retry);
+
+    return wrap;
   }
 
   async function handleConfirmAndPay() {
     if (!activeOrder || activeOrder.completed) return;
     activeOrder.completed = true;
+    if (activeOrder.product) {
+      activeOrder.product.bookingRef = generateBookingRef();
+      activeOrder.product.bookingPlacedAt = new Date();
+    }
 
     // Play success chime
     try { paySuccessSound.currentTime = 0; paySuccessSound.play().catch(() => {}); } catch(e) {}
@@ -4545,7 +4969,7 @@
       : ['Processing', 'Shipped', 'Delivered'];
     const slotOrQty = isBooking && product.scheduledLabel
       ? product.scheduledLabel
-      : 'Quality: 1';
+      : (product.qty || 'Quantity: 1');
     const paidSuffix = (product.paymentStatus === 'paid') ? ' · Paid' : '';
     const priceText = (product.priceLabel || `₹${product.price}`) + paidSuffix;
     const statusSubtext = isBooking
@@ -4611,8 +5035,7 @@
     // Secondary actions (booking only): View receipt stub + Add to calendar.
     if (isBooking) {
       card.querySelector('[data-action="view-receipt"]')?.addEventListener('click', () => {
-        // Stub — receipt download is not wired in this prototype.
-        console.log('[receipt stub]', product.name);
+        showBookingSheet(product, 'receipt');
       });
       card.querySelector('[data-action="add-to-calendar"]')?.addEventListener('click', () => {
         if (!product.scheduledStartIso || !product.scheduledEndIso) return;
@@ -5027,6 +5450,15 @@
     thinkingEl.remove();
     messageSentSound.currentTime = 0;
     messageSentSound.play().catch(() => {});
+
+    // 5b. Repair dialog (V4) — when no matcher caught the utterance, surface
+    // three on-pillar suggestions before the model fallback prose so the user
+    // has a fast tap-out. The model response still lands below it.
+    const noMatch = !isRestaurantQuery && !isShoppingQuery && !discoveryDs
+      && !informationalView && !bookingIntent && !textFixture;
+    if (noMatch) {
+      currentTurnEl.appendChild(renderRepairDialog({ reason: 'no_match' }));
+    }
 
     // 6. Add AI response element only if there's prose to show. DiscoveryView
     // queries suppress this — the sub-pattern header is the Context Line.
