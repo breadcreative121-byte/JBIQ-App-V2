@@ -924,6 +924,9 @@
       opacity: 1;
       transform: translateY(0);
     }
+    /* Text mode never connects/listens — suppress the voice-status line
+       so the default "Connecting..." text doesn't leak onto the home screen. */
+    .voice-overlay.text-mode .voice-status { display: none; }
 
     /* Muted state — orb stays fully saturated; mic-action button becomes the
        state indicator (filled purple + white mic-slash). Copy swaps to
@@ -1230,14 +1233,17 @@
       padding: 8px 0;
       animation: bubbleIn 0.3s ease;
     }
+    /* JDS Chat-Feedback (Figma 22816:46723): 16px icons, 12px gap, 4px vert pad */
     .ai-feedback {
       display: flex; gap: 12px; padding: 4px 0; align-items: center;
     }
     .ai-feedback button {
       width: 16px; height: 16px; background: none; border: none; cursor: pointer; opacity: 0.6; padding: 0;
+      display: flex; align-items: center; justify-content: center;
     }
     .ai-feedback button:hover { opacity: 1; }
-    .ai-feedback svg { width: 16px; height: 16px; }
+    .ai-feedback img,
+    .ai-feedback svg { width: 16px; height: 16px; display: block; }
 
     /* ------------------------------------------------------------------------
        JBIQ Text Response Patterns v0.1 — canonical shapes per §6.
@@ -3715,14 +3721,28 @@
 
 
   // === Helper: create feedback icons HTML ===
+  // JDS Chat-Feedback row (Figma node 22816:46723): like / dislike / copy /
+  // share / voice — 16px icons, 12px gap, 4px vertical padding.
+  // Inlined as SVG (rather than <img src=jds-cdn>) because raw.githubusercontent
+  // serves SVGs as text/plain and Chrome's ORB blocks several of them; inlining
+  // also guarantees the DS color token (#0c0d10) on every icon.
   function createFeedbackIcons() {
     const div = document.createElement('div');
     div.className = 'ai-feedback';
+    // Dislike + Voice paths are taken verbatim from JDS ic_dislike.svg /
+    // ic_voice.svg. Like is the dislike path rotated 180°. Copy and Share are
+    // matched silhouettes (the JDS repo is missing those source files today).
+    const C = '#0c0d10';
+    const DISLIKE_PATH = 'M3.56821 6.67L3.01821 11.67C2.97182 12.0891 3.01431 12.5133 3.14289 12.9148C3.27147 13.3164 3.48327 13.6864 3.76445 14.0006C4.04564 14.3148 4.3899 14.5662 4.77479 14.7384C5.15968 14.9106 5.57655 14.9997 5.99821 15H9.99821V18.92C9.98205 19.3083 10.0794 19.6929 10.2783 20.0268C10.4772 20.3606 10.769 20.6293 11.1182 20.8C11.3865 20.9311 11.6808 21.0004 11.9794 21.0028C12.278 21.0053 12.5734 20.9409 12.8438 20.8143C13.1143 20.6877 13.353 20.5021 13.5423 20.2712C13.7317 20.0404 13.867 19.77 13.9382 19.48L14.9382 15.48C14.9776 15.323 14.9977 15.1618 14.9982 15V4H6.54821C5.81 4.00044 5.09788 4.27304 4.54808 4.76565C3.99828 5.25826 3.64941 5.93628 3.56821 6.67ZM18.9982 4H16.9982V15H18.9982C19.5286 15 20.0373 14.7893 20.4124 14.4142C20.7875 14.0391 20.9982 13.5304 20.9982 13V6C20.9982 5.46957 20.7875 4.96086 20.4124 4.58579C20.0373 4.21071 19.5286 4 18.9982 4Z';
+    const VOICE_PATH = 'M12 2C11.7348 2 11.4804 2.10536 11.2929 2.29289C11.1054 2.48043 11 2.73478 11 3V21C11 21.2652 11.1054 21.5196 11.2929 21.7071C11.4804 21.8946 11.7348 22 12 22C12.2652 22 12.5196 21.8946 12.7071 21.7071C12.8946 21.5196 13 21.2652 13 21V3C13 2.73478 12.8946 2.48043 12.7071 2.29289C12.5196 2.10536 12.2652 2 12 2ZM4 9C3.73478 9 3.48043 9.10536 3.29289 9.29289C3.10536 9.48043 3 9.73478 3 10V14C3 14.2652 3.10536 14.5196 3.29289 14.7071C3.48043 14.8946 3.73478 15 4 15C4.26522 15 4.51957 14.8946 4.70711 14.7071C4.89464 14.5196 5 14.2652 5 14V10C5 9.73478 4.89464 9.48043 4.70711 9.29289C4.51957 9.10536 4.26522 9 4 9ZM8 6C7.73478 6 7.48043 6.10536 7.29289 6.29289C7.10536 6.48043 7 6.73478 7 7V17C7 17.2652 7.10536 17.5196 7.29289 17.7071C7.48043 17.8946 7.73478 18 8 18C8.26522 18 8.51957 17.8946 8.70711 17.7071C8.89464 17.5196 9 17.2652 9 17V7C9 6.73478 8.89464 6.48043 8.70711 6.29289C8.51957 6.10536 8.26522 6 8 6ZM20 9C19.7348 9 19.4804 9.10536 19.2929 9.29289C19.1054 9.48043 19 9.73478 19 10V14C19 14.2652 19.1054 14.5196 19.2929 14.7071C19.4804 14.8946 19.7348 15 20 15C20.2652 15 20.5196 14.8946 20.7071 14.7071C20.8946 14.5196 21 14.2652 21 14V10C21 9.73478 20.8946 9.48043 20.7071 9.29289C20.5196 9.10536 20.2652 9 20 9ZM16 6C15.7348 6 15.4804 6.10536 15.2929 6.29289C15.1054 6.48043 15 6.73478 15 7V17C15 17.2652 15.1054 17.5196 15.2929 17.7071C15.4804 17.8946 15.7348 18 16 18C16.2652 18 16.5196 17.8946 16.7071 17.7071C16.8946 17.5196 17 17.2652 17 17V7C17 6.73478 16.8946 6.48043 16.7071 6.29289C16.5196 6.10536 16.2652 6 16 6Z';
+    const COPY_PATH = 'M9 3C7.34315 3 6 4.34315 6 6V14C6 15.6569 7.34315 17 9 17H15C16.6569 17 18 15.6569 18 14V6C18 4.34315 16.6569 3 15 3H9ZM8 6C8 5.44772 8.44772 5 9 5H15C15.5523 5 16 5.44772 16 6V14C16 14.5523 15.5523 15 15 15H9C8.44772 15 8 14.5523 8 14V6ZM3 10C3 8.69378 3.83481 7.58254 5 7.17071V14.5C5 16.9853 7.01472 19 9.5 19H16.8293C16.4175 20.1652 15.3062 21 14 21H9.5C5.91015 21 3 18.0899 3 14.5V10Z';
+    const SHARE_PATH = 'M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 5.21841 15.0234 5.43135 15.0677 5.63643L8.97318 9.13779C8.42938 8.43723 7.5775 8 6.66667 8C5.00982 8 3.66667 9.34315 3.66667 11C3.66667 12.6569 5.00982 14 6.66667 14C7.5775 14 8.42938 13.5628 8.97318 12.8622L15.0677 16.3636C15.0234 16.5687 15 16.7816 15 17C15 18.6569 16.3431 20 18 20C19.6569 20 21 18.6569 21 17C21 15.3431 19.6569 14 18 14C17.0892 14 16.2373 14.4372 15.6935 15.1378L9.59895 11.6364C9.64323 11.4313 9.66667 11.2184 9.66667 11C9.66667 10.7816 9.64323 10.5687 9.59895 10.3636L15.6935 6.86221C16.2373 7.56277 17.0892 8 18 8Z';
     div.innerHTML = `
-      <button aria-label="Like"><svg viewBox="0 0 16 16" fill="none"><path d="M4.5 7v6.5m0-6.5L7 2c.8 0 1.5.7 1.5 1.5V6h4c.8 0 1.4.7 1.3 1.5l-.8 5.5c-.1.6-.6 1-1.2 1H4.5m0-7H2.5c-.6 0-1 .4-1 1v5.5c0 .6.4 1 1 1h2" stroke="#191b1e" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      <button aria-label="Dislike"><svg viewBox="0 0 16 16" fill="none"><path d="M11.5 9V2.5m0 6.5L9 14c-.8 0-1.5-.7-1.5-1.5V10h-4c-.8 0-1.4-.7-1.3-1.5l.8-5.5c.1-.6.6-1 1.2-1h7.3m0 6.5h2c.6 0 1-.4 1-1V3c0-.6-.4-1-1-1h-2" stroke="#191b1e" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      <button aria-label="Copy"><svg viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="2" stroke="#191b1e"/><path d="M11 5V3a2 2 0 00-2-2H3a2 2 0 00-2 2v6a2 2 0 002 2h2" stroke="#191b1e"/></svg></button>
-      <button aria-label="Share"><svg viewBox="0 0 16 16" fill="none"><circle cx="12" cy="3" r="2" stroke="#191b1e"/><circle cx="4" cy="8" r="2" stroke="#191b1e"/><circle cx="12" cy="13" r="2" stroke="#191b1e"/><path d="M6 9l4 3M6 7l4-3" stroke="#191b1e"/></svg></button>`;
+      <button aria-label="Like"><svg viewBox="0 0 24 24" fill="${C}" xmlns="http://www.w3.org/2000/svg"><g transform="rotate(180 12 12)"><path d="${DISLIKE_PATH}"/></g></svg></button>
+      <button aria-label="Dislike"><svg viewBox="0 0 24 24" fill="${C}" xmlns="http://www.w3.org/2000/svg"><path d="${DISLIKE_PATH}"/></svg></button>
+      <button aria-label="Copy"><svg viewBox="0 0 24 24" fill="${C}" xmlns="http://www.w3.org/2000/svg"><path d="${COPY_PATH}"/></svg></button>
+      <button aria-label="Share"><svg viewBox="0 0 24 24" fill="${C}" xmlns="http://www.w3.org/2000/svg"><path d="${SHARE_PATH}"/></svg></button>
+      <button aria-label="Read aloud"><svg viewBox="0 0 24 24" fill="${C}" xmlns="http://www.w3.org/2000/svg"><path d="${VOICE_PATH}"/></svg></button>`;
     return div;
   }
 
