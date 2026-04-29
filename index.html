@@ -810,9 +810,6 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: width 0.4s cubic-bezier(0.32, 0.72, 0, 1),
-                  height 0.4s cubic-bezier(0.32, 0.72, 0, 1),
-                  gap 0.4s cubic-bezier(0.32, 0.72, 0, 1);
     }
 
     .voice-bot-dots.visible {
@@ -824,21 +821,6 @@
       height: 48px;
       border-radius: 50%;
       background: var(--surface-bold);
-      transition: width 0.4s cubic-bezier(0.32, 0.72, 0, 1),
-                  height 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-    }
-
-    .voice-bot-dots.listening .voice-bot-dot {
-      animation: listenPulse 1.8s ease-in-out infinite;
-    }
-
-    .voice-bot-dots.listening .voice-bot-dot:nth-child(2) { animation-delay: 0.2s; }
-    .voice-bot-dots.listening .voice-bot-dot:nth-child(3) { animation-delay: 0.4s; }
-    .voice-bot-dots.listening .voice-bot-dot:nth-child(4) { animation-delay: 0.6s; }
-
-    @keyframes listenPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.08); }
     }
 
     /* Avatar area — floats above voice action buttons */
@@ -859,6 +841,12 @@
       color: var(--text-high);
       line-height: 1.3;
       text-align: center;
+      background: linear-gradient(90deg, var(--text-low) 25%, #999 50%, var(--text-low) 75%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmerText 2s ease-in-out infinite;
     }
     .avatar-idle {
       width: 58px;
@@ -869,6 +857,29 @@
       flex-shrink: 0;
     }
     .avatar-idle.visible { display: block; }
+
+    /* Speaking avatar — visible only while assistant TTS is playing */
+    .voice-speaking-avatar {
+      display: none;
+      align-self: center;
+      width: 64px;
+      height: 64px;
+      flex-shrink: 0;
+      margin: 0 auto -8px;
+      position: relative;
+      z-index: 5;
+    }
+    .voice-speaking-avatar video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .voice-overlay.agent-speaking .voice-speaking-avatar { display: block; }
+    /* While speaking, suppress the "Say something..." / listening-hint shimmer
+       so the avatar is the single clear state indicator. */
+    .voice-overlay.agent-speaking .voice-avatar-area,
+    .voice-overlay.agent-speaking .voice-listening-hint { opacity: 0; }
 
     /* Centered avatar in voice-container (welcome/listening) */
     .avatar-center {
@@ -888,10 +899,12 @@
       color: var(--text-high);
       line-height: 1.3;
       text-align: center;
-      opacity: 0;
-      transform: translateY(4px);
-      transition: opacity 600ms cubic-bezier(0.22, 0.61, 0.36, 1),
-                  transform 600ms cubic-bezier(0.22, 0.61, 0.36, 1);
+      background: linear-gradient(90deg, var(--text-low) 25%, #999 50%, var(--text-low) 75%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmerText 2s ease-in-out infinite;
     }
     .voice-status.visible {
       opacity: 1;
@@ -952,7 +965,7 @@
       position: absolute;
       left: 0;
       right: 0;
-      bottom: 96px;
+      bottom: 82px;
       text-align: center;
       font-family: inherit;
       font-size: 16px;
@@ -965,6 +978,14 @@
       z-index: 4;
     }
     .voice-overlay.show-listening-hint .voice-listening-hint { opacity: 1; }
+    .voice-listening-hint span {
+      background: linear-gradient(90deg, var(--text-low) 25%, #999 50%, var(--text-low) 75%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmerText 2s ease-in-out infinite;
+    }
 
     /* Muted hint — shown when muted during an active conversation, since the
        center "Mic off. / You are muted" splash is suppressed in chat-active mode
@@ -1034,7 +1055,6 @@
       padding-bottom: 130px;
     }
     .voice-overlay.kb-mode .voice-bot-dots { display: none; }
-    .voice-overlay.kb-mode .avatar-center { width: 66px; height: 66px; }
     .voice-overlay.kb-mode .voice-status { font-size: 16px; }
     .voice-overlay.kb-mode .voice-spinner { display: none; }
     .voice-overlay.kb-mode .greeting-msg { display: none; }
@@ -1908,72 +1928,6 @@
       margin-bottom: 4px;
     }
     .booking-sheet-close--primary:hover { opacity: 0.92; }
-
-    /* Repair dialog — rendered when no matcher catches the user's utterance.
-       Gives a fast tap-out via three suggestion chips + a Try again affordance.
-       Sits above any model fallback so the user can recover before reading
-       freeform output. */
-    .repair-dialog {
-      width: 100%;
-      background: #fff7e6;
-      border: 1px solid #f5b544;
-      border-radius: var(--shape-3xl, 16px);
-      padding: 14px 16px 12px;
-      margin: 8px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      animation: repairDialogIn 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-    @keyframes repairDialogIn {
-      0% { opacity: 0; transform: translateY(6px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-    .repair-dialog-header {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text-high);
-      line-height: 1.3;
-    }
-    .repair-dialog-sub {
-      font-size: 12px;
-      color: var(--text-medium);
-      line-height: 1.3;
-      margin-top: -6px;
-    }
-    .repair-dialog-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .repair-chip {
-      background: #fff;
-      border: 1px solid rgba(12, 13, 16, 0.12);
-      border-radius: 999px;
-      padding: 8px 14px;
-      font-family: var(--font-family);
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-high);
-      cursor: pointer;
-      line-height: 1;
-    }
-    .repair-chip:hover { border-color: rgba(12, 13, 16, 0.28); }
-    .repair-chip:active { transform: scale(0.98); }
-    .repair-chip:focus-visible { outline: 2px solid var(--surface-bold); outline-offset: 2px; }
-    .repair-dialog-retry {
-      align-self: flex-start;
-      background: none;
-      border: none;
-      padding: 4px 0;
-      font-family: var(--font-family);
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-high);
-      text-decoration: underline;
-      text-underline-offset: 3px;
-      cursor: pointer;
-    }
 
     /* State C — voice-only confirm warning */
     .shopping-warning {
@@ -2941,8 +2895,13 @@
       <span class="voice-avatar-label" id="voiceAvatarLabel">Say something...</span>
     </div>
 
+    <!-- Speaking avatar (visible only while assistant TTS is playing) -->
+    <div class="voice-speaking-avatar" id="voiceSpeakingAvatar" aria-hidden="true">
+      <video id="voiceSpeakingAvatarVideo" src="assets/speaking-avatar.mp4" muted playsinline loop preload="auto"></video>
+    </div>
+
     <!-- Listening hint (shown after ~2s of quiet listening in chat-active mode) -->
-    <div class="voice-listening-hint" id="voiceListeningHint" aria-live="polite">Listening...</div>
+    <div class="voice-listening-hint" id="voiceListeningHint" aria-live="polite"><span>Listening...</span></div>
     <!-- Muted hint (shown when muted mid-conversation; center splash is suppressed in chat-active mode) -->
     <div class="voice-muted-hint" id="voiceMutedHint" aria-live="polite">Muted</div>
 
@@ -3517,6 +3476,20 @@
     startListening();
   }
 
+  // Toggle the speaking-avatar video in lockstep with the agent-speaking class
+  // so it doesn't tick off-screen.
+  function setSpeakingAvatarPlaying(playing) {
+    const v = document.getElementById('voiceSpeakingAvatarVideo');
+    if (!v) return;
+    if (playing) {
+      try { v.currentTime = 0; } catch (_) {}
+      v.play().catch(() => {});
+    } else {
+      v.pause();
+      try { v.currentTime = 0; } catch (_) {}
+    }
+  }
+
   function closeVoiceMode() {
     stopListening();
     // Stop all audio
@@ -3533,6 +3506,7 @@
     voiceAvatarArea.classList.remove('visible');
     avatarIdle.classList.remove('visible');
     avatarIdle.pause();
+    setSpeakingAvatarPlaying(false);
     // Reset state
     overlay.classList.remove('active', 'glow', 'listening-mode', 'kb-mode', 'chat-active', 'has-text', 'kb-hidden', 'text-mode', 'text-typing', 'user-speaking', 'agent-speaking', 'muted', 'show-listening-hint');
     clearTimeout(voiceTimeout1);
@@ -4863,69 +4837,6 @@
     frame.appendChild(sheet);
   }
 
-  // V4 — minimal voice repair dialog. Renders when no matcher caught the
-  // user's utterance (Round 2 P0). Three suggestion chips seed a known-good
-  // utterance via `data-query`; "Try again" reopens mic in voice mode or
-  // focuses the input in text mode. Lives in the chat turn so it scrolls
-  // with the rest of the conversation.
-  const REPAIR_DEFAULT_SUGGESTIONS = [
-    { label: 'Check PM Kisan status', query: 'Check my PM Kisan status' },
-    { label: 'Recharge \u20b9299',       query: 'Recharge my Jio plan for \u20b9299' },
-    { label: 'Book a plumber',         query: 'Mujhe plumber chahiye' },
-  ];
-  function renderRepairDialog({ reason = 'no_match', suggestions } = {}) {
-    const list = (Array.isArray(suggestions) && suggestions.length) ? suggestions : REPAIR_DEFAULT_SUGGESTIONS;
-    const wrap = document.createElement('div');
-    wrap.className = 'repair-dialog';
-    wrap.setAttribute('role', 'status');
-    wrap.setAttribute('aria-live', 'polite');
-    wrap.dataset.reason = reason;
-
-    const header = document.createElement('div');
-    header.className = 'repair-dialog-header';
-    header.textContent = "Sorry, I didn't catch that";
-    wrap.appendChild(header);
-
-    const sub = document.createElement('div');
-    sub.className = 'repair-dialog-sub';
-    sub.textContent = 'Did you mean one of these?';
-    wrap.appendChild(sub);
-
-    const chipsRow = document.createElement('div');
-    chipsRow.className = 'repair-dialog-chips';
-    list.forEach((s) => {
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'repair-chip';
-      chip.textContent = s.label;
-      chip.setAttribute('data-query', s.query);
-      chip.addEventListener('click', () => {
-        if (isProcessingResponse) return;
-        if (typeof showResponse === 'function') showResponse(s.query);
-      });
-      chipsRow.appendChild(chip);
-    });
-    wrap.appendChild(chipsRow);
-
-    const retry = document.createElement('button');
-    retry.type = 'button';
-    retry.className = 'repair-dialog-retry';
-    retry.textContent = 'Try again';
-    retry.addEventListener('click', () => {
-      const isTextMode = overlay.classList.contains('text-mode');
-      if (isTextMode) {
-        const input = document.querySelector('.kb-input, input[type="text"], textarea');
-        if (input) input.focus();
-      } else if (typeof startListening === 'function') {
-        overlay.classList.add('listening-mode');
-        startListening();
-      }
-    });
-    wrap.appendChild(retry);
-
-    return wrap;
-  }
-
   async function handleConfirmAndPay() {
     if (!activeOrder || activeOrder.completed) return;
     activeOrder.completed = true;
@@ -5451,15 +5362,6 @@
     messageSentSound.currentTime = 0;
     messageSentSound.play().catch(() => {});
 
-    // 5b. Repair dialog (V4) — when no matcher caught the utterance, surface
-    // three on-pillar suggestions before the model fallback prose so the user
-    // has a fast tap-out. The model response still lands below it.
-    const noMatch = !isRestaurantQuery && !isShoppingQuery && !discoveryDs
-      && !informationalView && !bookingIntent && !textFixture;
-    if (noMatch) {
-      currentTurnEl.appendChild(renderRepairDialog({ reason: 'no_match' }));
-    }
-
     // 6. Add AI response element only if there's prose to show. DiscoveryView
     // queries suppress this — the sub-pattern header is the Context Line.
     // Text-response fixtures delegate DOM construction to the type-specific
@@ -5606,12 +5508,14 @@
                        || voices.find(v => /en/i.test(v.lang));
         if (preferred) u.voice = preferred;
         overlay.classList.add('agent-speaking');
-        u.onend = () => { overlay.classList.remove('agent-speaking'); resolve(); };
-        u.onerror = () => { overlay.classList.remove('agent-speaking'); resolve(); };
+        setSpeakingAvatarPlaying(true);
+        u.onend = () => { overlay.classList.remove('agent-speaking'); setSpeakingAvatarPlaying(false); resolve(); };
+        u.onerror = () => { overlay.classList.remove('agent-speaking'); setSpeakingAvatarPlaying(false); resolve(); };
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(u);
       } catch (e) {
         overlay.classList.remove('agent-speaking');
+        setSpeakingAvatarPlaying(false);
         resolve();
       }
     });
@@ -5657,9 +5561,11 @@
 
         currentTTSAudio.onplay = () => {
           overlay.classList.add('agent-speaking');
+          setSpeakingAvatarPlaying(true);
         };
         currentTTSAudio.onended = () => {
           overlay.classList.remove('agent-speaking');
+          setSpeakingAvatarPlaying(false);
           URL.revokeObjectURL(url);
           currentTTSAudio = null;
           resolve();
@@ -5667,6 +5573,7 @@
         currentTTSAudio.onerror = () => {
           console.warn('TTS audio element error:', currentTTSAudio && currentTTSAudio.error);
           overlay.classList.remove('agent-speaking');
+          setSpeakingAvatarPlaying(false);
           URL.revokeObjectURL(url);
           currentTTSAudio = null;
           resolve();
@@ -5674,6 +5581,7 @@
         currentTTSAudio.play().catch((e) => {
           console.warn('TTS audio play() rejected:', e && (e.name + ': ' + e.message));
           overlay.classList.remove('agent-speaking');
+          setSpeakingAvatarPlaying(false);
           URL.revokeObjectURL(url);
           currentTTSAudio = null;
           resolve();
@@ -5715,18 +5623,17 @@
 
   function scheduleListeningHint() {
     clearListeningHint();
-    // Only meaningful in chat-active voice listening (post-first-response quiet).
-    // Skip in kb-mode, text-mode, muted, or when agent is about to / still speaking.
+    // Only meaningful in chat-active listening (post-first-response quiet).
+    // Skip in text-mode, muted, or when agent/user is mid-utterance.
     listeningHintTimer = setTimeout(() => {
       if (!overlay.classList.contains('active')) return;
       if (!overlay.classList.contains('chat-active')) return;
-      if (overlay.classList.contains('kb-mode')) return;
       if (overlay.classList.contains('text-mode')) return;
       if (overlay.classList.contains('agent-speaking')) return;
       if (overlay.classList.contains('user-speaking')) return;
       if (isMuted || isProcessingResponse) return;
       overlay.classList.add('show-listening-hint');
-    }, 2000);
+    }, 600);
   }
 
   function clearListeningHint() {
