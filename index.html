@@ -538,6 +538,82 @@
       from { opacity: 0; transform: translateY(4px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+
+    /* Resume strip — sits above the home input bar when an in-flight
+       session is detected. Mirrors the tooltip's positioning so it
+       inherits the bar's slide-out transform. Constrained to ~72px so
+       the Speak CTA stays above the fold on a 360×640 viewport. */
+    .resume-strip {
+      position: absolute;
+      left: 0; right: 0;
+      bottom: calc(100% + 10px);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px 14px 12px;
+      background: #ffffff;
+      border: 1px solid rgba(12,13,16,0.08);
+      border-radius: 16px;
+      box-shadow: 0 6px 18px rgba(12,13,16,0.10);
+      font-family: var(--font-family);
+      z-index: 10;
+      animation: home-tooltip-in 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    .resume-strip[hidden] { display: none; }
+    .resume-strip__copy { min-width: 0; }
+    .resume-strip__header {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #0c0d10;
+    }
+    .resume-strip__summary {
+      margin-top: 2px;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.3;
+      color: rgba(12,13,16,0.65);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .resume-strip__summary > #resumeSummary {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+    .resume-strip__summary > #resumeAge { flex-shrink: 0; }
+    .resume-strip__sep { opacity: 0.6; flex-shrink: 0; }
+    .resume-strip__actions {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+    .resume-strip__btn {
+      height: 32px;
+      padding: 0 14px;
+      border-radius: var(--shape-pill);
+      font-family: var(--font-family);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
+      border: none;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .resume-strip__btn--primary {
+      background: #6d17ce;
+      color: #ffffff;
+    }
+    .resume-strip__btn--primary:active { background: #5a13ab; }
+    .resume-strip__btn--secondary {
+      background: transparent;
+      color: #6d17ce;
+    }
+    .resume-strip__btn--secondary:active { background: rgba(109,23,206,0.08); }
     .home-voice-btn svg { width: 26px; height: 26px; flex-shrink: 0; }
     .home-voice-btn .home-voice-label {
       font-family: var(--font-family);            /* JioType */
@@ -1107,6 +1183,19 @@
     .chat-turn.is-active {
       min-height: 100%;
     }
+    /* Resume recap line — passive system text appended above the listening
+       hint after a Resume tap. Not a real chat bubble; not in conversationHistory. */
+    .chat-recap {
+      align-self: center;
+      max-width: 88%;
+      margin: 8px 0 4px;
+      font-family: var(--font-family);
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.35;
+      color: rgba(12,13,16,0.55);
+      text-align: center;
+    }
     .voice-overlay.chat-active .voice-bot-dots { display: none; }
     .voice-overlay.chat-active .voice-status { display: none; }
     .voice-overlay.chat-active .voice-avatar-area { display: none !important; }
@@ -1236,6 +1325,7 @@
     /* JDS Chat-Feedback (Figma 22816:46723): 16px icons, 12px gap, 4px vert pad */
     .ai-feedback {
       display: flex; gap: 12px; padding: 4px 0; align-items: center;
+      align-self: flex-start;
     }
     .ai-feedback button {
       width: 16px; height: 16px; background: none; border: none; cursor: pointer; opacity: 0.6; padding: 0;
@@ -3044,10 +3134,10 @@
     <button class="home-add-btn" aria-label="Add">
       <svg viewBox="0 0 26 26" fill="none"><path d="M13 6v14M6 13h14" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/></svg>
     </button>
-    <div class="home-input-pill" onclick="openTypingMode()">
+    <div class="home-input-pill" onclick="maybeArchiveBeforeNew(); openTypingMode();">
       <span>Ask anything</span>
     </div>
-    <button class="home-voice-btn" aria-label="Speak" onclick="openVoiceMode()">
+    <button class="home-voice-btn" aria-label="Speak" onclick="maybeArchiveBeforeNew(); openVoiceMode();">
       <svg viewBox="0 0 26 26" fill="none" aria-hidden="true">
         <rect x="6" y="9" width="2.5" height="8" rx="1.25" fill="white"/>
         <rect x="11.75" y="5" width="2.5" height="16" rx="1.25" fill="white"/>
@@ -3066,6 +3156,24 @@
           <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
         </svg>
       </button>
+    </div>
+    <!-- Resume strip — surfaces when an in-flight session record exists.
+         Sits inside .home-input-bar so it slides out with the bar when the
+         side menu opens. Hidden by default; populated + revealed by
+         refreshResumeStrip(). -->
+    <div class="resume-strip" id="resumeStrip" role="status" aria-live="polite" hidden>
+      <div class="resume-strip__copy">
+        <div class="resume-strip__header">Pick up where you left off</div>
+        <div class="resume-strip__summary">
+          <span id="resumeSummary"></span>
+          <span class="resume-strip__sep" aria-hidden="true">·</span>
+          <span id="resumeAge"></span>
+        </div>
+      </div>
+      <div class="resume-strip__actions">
+        <button class="resume-strip__btn resume-strip__btn--primary" id="resumeBtn" type="button">Resume</button>
+        <button class="resume-strip__btn resume-strip__btn--secondary" id="discardBtn" type="button">Discard</button>
+      </div>
     </div>
   </div>
 
@@ -3624,6 +3732,214 @@
     return 'https://jbiq-proxy.WORKER-SUBDOMAIN.workers.dev';
   })();
 
+  // === Session persistence (Resumption & Repair — Phase A) ===
+  // One in-flight session record per device, plus a small archive of recent
+  // discarded/completed sessions. All client-side; no server persistence.
+  // Wipe with: localStorage.removeItem('jbiq_session_state'); localStorage.removeItem('jbiq_session_history');
+  const JBIQ_SESSION_KEY = 'jbiq_session_state';
+  const JBIQ_SESSION_HISTORY_KEY = 'jbiq_session_history';
+  const SESSION_VERSION = 1;
+  const SESSION_EXPIRY_MS = 24 * 60 * 60 * 1000;
+  const SESSION_SIZE_CAP_BYTES = 200 * 1024;
+  const SESSION_HISTORY_CAP = 5;
+  const SESSION_MIN_TURNS = 20;
+  const SAVE_DEBOUNCE_MS = 250;
+  const JBIQ_TOTAL_STORAGE_CAP_BYTES = 1024 * 1024;
+
+  function jbiqTelemetry(event, payload) {
+    try { console.info('[jbiq.telemetry]', event, payload || {}); } catch (_) {}
+  }
+
+  function _readSessionRaw() {
+    try {
+      const raw = localStorage.getItem(JBIQ_SESSION_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      return parsed;
+    } catch (_) { return null; }
+  }
+
+  function _readSessionHistory() {
+    try {
+      const raw = localStorage.getItem(JBIQ_SESSION_HISTORY_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_) { return []; }
+  }
+
+  function _writeSessionHistory(arr) {
+    try { localStorage.setItem(JBIQ_SESSION_HISTORY_KEY, JSON.stringify(arr)); } catch (_) {}
+  }
+
+  function _enforceTotalStorageCap() {
+    let total = 0;
+    try {
+      total = (localStorage.getItem(JBIQ_SESSION_KEY) || '').length
+            + (localStorage.getItem(JBIQ_SESSION_HISTORY_KEY) || '').length;
+    } catch (_) { return; }
+    if (total <= JBIQ_TOTAL_STORAGE_CAP_BYTES) return;
+    const hist = _readSessionHistory();
+    while (hist.length && total > JBIQ_TOTAL_STORAGE_CAP_BYTES) {
+      hist.shift();
+      _writeSessionHistory(hist);
+      total = (localStorage.getItem(JBIQ_SESSION_KEY) || '').length
+            + (localStorage.getItem(JBIQ_SESSION_HISTORY_KEY) || '').length;
+    }
+  }
+
+  // Generate a one-line summary from the most recent user turn (≤ 50 chars).
+  // Hindi/regional passes through verbatim. Pending payment overrides.
+  function deriveSessionSummary(record) {
+    if (record && record.pendingPayment) {
+      const p = record.pendingPayment;
+      return `₹${p.amountInr} ${p.label} — payment pending`;
+    }
+    const history = (record && record.conversationHistory) || [];
+    let lastUser = null;
+    for (let i = history.length - 1; i >= 0; i--) {
+      if (history[i] && history[i].role === 'user') { lastUser = history[i]; break; }
+    }
+    if (!lastUser) return 'New conversation';
+    let s = String(lastUser.content || '').trim();
+    s = s.replace(/^(find me a |find me an |tell me about |show me |i want |i need |can you |please |get me a |get me an )/i, '');
+    if (s.length === 0) return 'New conversation';
+    s = s.charAt(0).toUpperCase() + s.slice(1);
+    if (s.length <= 50) return s;
+    const cut = s.slice(0, 50);
+    const lastSpace = cut.lastIndexOf(' ');
+    return (lastSpace > 30 ? cut.slice(0, lastSpace) : cut) + '…';
+  }
+
+  function loadSession() {
+    const record = _readSessionRaw();
+    if (!record) return null;
+    if (!record.updatedAt || (Date.now() - record.updatedAt) > SESSION_EXPIRY_MS) {
+      clearSession();
+      return null;
+    }
+    // Trim history archive on every load (cheap), and enforce total cap.
+    const hist = _readSessionHistory();
+    if (hist.length > SESSION_HISTORY_CAP) {
+      _writeSessionHistory(hist.slice(-SESSION_HISTORY_CAP));
+    }
+    _enforceTotalStorageCap();
+    return record;
+  }
+
+  function _emptyRecord() {
+    return {
+      version: SESSION_VERSION,
+      updatedAt: Date.now(),
+      status: 'in_flight',
+      summary: 'New conversation',
+      conversationHistory: [],
+      uiState: { discoveryView: null, selectedItemId: null, scrollPosition: 0 },
+      pendingPayment: null,
+      muted: false,
+      audioBuffer: null,
+    };
+  }
+
+  function _shallowMergeUiState(prev, next) {
+    if (!next) return prev || { discoveryView: null, selectedItemId: null, scrollPosition: 0 };
+    return Object.assign({}, prev || {}, next);
+  }
+
+  let _saveTimer = null;
+  let _pendingSavePartial = null;
+
+  function _flushSave() {
+    _saveTimer = null;
+    const partial = _pendingSavePartial || {};
+    _pendingSavePartial = null;
+    const existing = _readSessionRaw() || _emptyRecord();
+    const merged = Object.assign({}, existing, partial, { updatedAt: Date.now() });
+    if (partial.uiState) merged.uiState = _shallowMergeUiState(existing.uiState, partial.uiState);
+    if (!merged.version) merged.version = SESSION_VERSION;
+    if (!Array.isArray(merged.conversationHistory)) merged.conversationHistory = [];
+    merged.summary = partial.summary || deriveSessionSummary(merged);
+
+    // Enforce 200 KB cap by dropping oldest user/assistant pairs (never below
+    // SESSION_MIN_TURNS). One pair per iteration.
+    let serialized = '';
+    let evicted = 0;
+    try { serialized = JSON.stringify(merged); } catch (_) { return; }
+    while (serialized.length > SESSION_SIZE_CAP_BYTES && merged.conversationHistory.length > SESSION_MIN_TURNS) {
+      merged.conversationHistory.splice(0, 2);
+      evicted += 2;
+      try { serialized = JSON.stringify(merged); } catch (_) { break; }
+    }
+    if (evicted > 0) jbiqTelemetry('jbiq.session.evicted', { turnsDropped: evicted });
+
+    try {
+      localStorage.setItem(JBIQ_SESSION_KEY, serialized);
+    } catch (e) {
+      // QuotaExceeded — drop archive and retry once.
+      try {
+        localStorage.removeItem(JBIQ_SESSION_HISTORY_KEY);
+        localStorage.setItem(JBIQ_SESSION_KEY, serialized);
+      } catch (e2) {
+        jbiqTelemetry('jbiq.session.write_failed', { sizeBytes: serialized.length });
+        return;
+      }
+    }
+    _enforceTotalStorageCap();
+    jbiqTelemetry('jbiq.session.checkpoint', {
+      turnCount: merged.conversationHistory.length,
+      sizeBytes: serialized.length,
+    });
+  }
+
+  function saveSession(partial) {
+    if (!_pendingSavePartial) _pendingSavePartial = {};
+    Object.assign(_pendingSavePartial, partial || {});
+    if (partial && partial.uiState) {
+      _pendingSavePartial.uiState = _shallowMergeUiState(_pendingSavePartial.uiState, partial.uiState);
+    }
+    if (_saveTimer) return;
+    _saveTimer = setTimeout(_flushSave, SAVE_DEBOUNCE_MS);
+  }
+
+  function flushSessionNow() {
+    if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
+    if (_pendingSavePartial) _flushSave();
+  }
+
+  function clearSession() {
+    if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
+    _pendingSavePartial = null;
+    try { localStorage.removeItem(JBIQ_SESSION_KEY); } catch (_) {}
+  }
+
+  // Move current in-flight record to the history archive (FIFO, capped) and
+  // clear it. Used when the user picks "Discard" or starts a new conversation
+  // while an in-flight session exists.
+  function archiveSession() {
+    const record = _readSessionRaw();
+    if (record) {
+      const hist = _readSessionHistory();
+      hist.push(Object.assign({}, record, { archivedAt: Date.now() }));
+      while (hist.length > SESSION_HISTORY_CAP) hist.shift();
+      _writeSessionHistory(hist);
+    }
+    clearSession();
+    _enforceTotalStorageCap();
+  }
+
+  // Lightweight checkpoint helper for call sites that just want to snapshot
+  // current in-memory state (conversationHistory + muted) without thinking
+  // about the partial shape.
+  function checkpointSession(extra) {
+    const partial = Object.assign({
+      conversationHistory: conversationHistory.slice(),
+      status: 'in_flight',
+      muted: !!isMuted,
+    }, extra || {});
+    saveSession(partial);
+  }
+
   // Home page state — driven by ?home=new-user|return-user (set by the
   // Discovery Playground). Default to new-user so standalone opens show the
   // current Figma layout.
@@ -3664,6 +3980,185 @@
     maybeShowSpeakTooltip();
   }
 
+  // Resumption checkpoints — capture state at every interrupt boundary.
+  // 250ms debounce inside saveSession() coalesces rapid events.
+  // Guard: if the in-memory chat is empty (e.g. fresh tab reload), don't
+  // checkpoint — that would clobber any persisted non-empty record.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      if (!conversationHistory.length) return;
+      const scrollPosition = chatMessages ? chatMessages.scrollTop : 0;
+      checkpointSession({ uiState: { scrollPosition } });
+      flushSessionNow();
+    } else {
+      refreshResumeStrip();
+    }
+  });
+  window.addEventListener('beforeunload', () => {
+    if (!conversationHistory.length) return;
+    const scrollPosition = chatMessages ? chatMessages.scrollTop : 0;
+    checkpointSession({ uiState: { scrollPosition } });
+    flushSessionNow();
+  });
+
+  // === Resume strip (Phase B) ===
+  function formatPausedAge(ageMs) {
+    if (ageMs < 60 * 1000) return 'Paused just now';
+    if (ageMs < 60 * 60 * 1000) {
+      const m = Math.floor(ageMs / (60 * 1000));
+      return `Paused ${m} min ago`;
+    }
+    if (ageMs < SESSION_EXPIRY_MS) {
+      const h = Math.floor(ageMs / (60 * 60 * 1000));
+      return `Paused ${h} hr ago`;
+    }
+    return 'Paused yesterday';
+  }
+
+  function refreshResumeStrip() {
+    const strip = document.getElementById('resumeStrip');
+    if (!strip) return;
+    const record = loadSession();
+    if (!record || record.status !== 'in_flight' || !record.conversationHistory || !record.conversationHistory.length) {
+      strip.hidden = true;
+      return;
+    }
+    const summary = record.summary || deriveSessionSummary(record);
+    const ageMs = Date.now() - (record.updatedAt || Date.now());
+    const sumEl = document.getElementById('resumeSummary');
+    const ageEl = document.getElementById('resumeAge');
+    if (sumEl) sumEl.textContent = summary;
+    if (ageEl) ageEl.textContent = formatPausedAge(ageMs);
+    if (strip.hidden) {
+      strip.hidden = false;
+      jbiqTelemetry('jbiq.resume.surfaced', { ageMs });
+    }
+  }
+
+  function maybeArchiveBeforeNew() {
+    const record = _readSessionRaw();
+    if (record && record.status === 'in_flight') {
+      const ageMs = Date.now() - (record.updatedAt || Date.now());
+      jbiqTelemetry('jbiq.resume.ignored', { ageMs });
+      archiveSession();
+    }
+    const strip = document.getElementById('resumeStrip');
+    if (strip) strip.hidden = true;
+  }
+
+  // Append a passive "Last time: …" recap line above the listening hint.
+  // Plain text, NOT pushed to conversationHistory.
+  function appendRecapLine(text) {
+    if (!chatMessages) return;
+    const recap = document.createElement('div');
+    recap.className = 'chat-recap';
+    recap.textContent = text;
+    chatMessages.appendChild(recap);
+  }
+
+  // Rebuild the chat DOM from a persisted record. Mirrors the live render
+  // path enough to look right without re-running TTS or animations.
+  function rehydrateChatFromHistory(record) {
+    if (!chatMessages) return;
+    chatMessages.innerHTML = '';
+    currentTurnEl = null;
+    overlay.classList.add('chat-active');
+    const history = record.conversationHistory || [];
+    let pendingTurnEl = null;
+    history.forEach((msg, i) => {
+      if (msg.role === 'user') {
+        const turn = startTurn();
+        const userEl = document.createElement('div');
+        userEl.className = 'user-bubble';
+        userEl.textContent = msg.content || '';
+        userEl.dataset.historyIndex = String(i);
+        turn.appendChild(userEl);
+        if (typeof makeEditableUserBubble === 'function') {
+          try { makeEditableUserBubble(userEl); } catch (_) {}
+        }
+        pendingTurnEl = turn;
+      } else if (msg.role === 'assistant') {
+        const turn = pendingTurnEl || startTurn();
+        const aiEl = document.createElement('div');
+        aiEl.className = 'ai-response';
+        aiEl.textContent = msg.content || '';
+        turn.appendChild(aiEl);
+        // Match the live render: feedback icons trail every assistant turn.
+        if (typeof createFeedbackIcons === 'function') {
+          try { turn.appendChild(createFeedbackIcons()); } catch (_) {}
+        }
+        pendingTurnEl = null;
+      }
+    });
+    // Re-mount any open DiscoveryView in the most recent turn.
+    const dv = record.uiState && record.uiState.discoveryView;
+    if (dv && dv.view && currentTurnEl && window.renderDiscoveryView) {
+      try { currentTurnEl.appendChild(window.renderDiscoveryView(dv.view)); } catch (_) {}
+    }
+    // Drop the viewport-height reservation on the resumed last turn so the
+    // recap line that follows isn't pushed off-screen by an empty min-height.
+    if (currentTurnEl) {
+      currentTurnEl.classList.remove('is-active');
+      currentTurnEl.style.minHeight = '';
+    }
+    currentTurnEl = null;
+  }
+
+  function handleResumeClick() {
+    const record = loadSession();
+    if (!record || !record.conversationHistory) return;
+    const ageMs = Date.now() - (record.updatedAt || Date.now());
+    const strip = document.getElementById('resumeStrip');
+    if (strip) strip.hidden = true;
+    // openVoiceMode is async and calls resetKeyboardMode() which wipes
+    // chatMessages + conversationHistory. We have to restore state AFTER it
+    // resolves, otherwise the rehydrate paints into a chat that's about to be
+    // wiped on the same tick. silent:true skips wakeup/welcome chimes — we're
+    // rejoining an existing chat, not starting fresh.
+    Promise.resolve(openVoiceMode({ silent: true })).then(() => {
+      conversationHistory = record.conversationHistory.slice();
+      rehydrateChatFromHistory(record);
+      const summary = record.summary || deriveSessionSummary(record);
+      appendRecapLine(`Last time: ${summary}. Continue?`);
+      // Always scroll to the bottom on resume so the recap line is visible
+      // above the listening hint (the saved scrollPosition is from before
+      // the recap was appended, so it's slightly stale — bottom is correct).
+      requestAnimationFrame(() => {
+        if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+      });
+      if (record.muted) {
+        isMuted = true;
+        overlay.classList.add('muted');
+      }
+      jbiqTelemetry('jbiq.resume.success', {
+        ageMs,
+        turnCount: conversationHistory.length,
+      });
+    });
+  }
+
+  function handleDiscardClick() {
+    const record = _readSessionRaw();
+    const ageMs = record ? Date.now() - (record.updatedAt || Date.now()) : 0;
+    archiveSession();
+    const strip = document.getElementById('resumeStrip');
+    if (strip) strip.hidden = true;
+    jbiqTelemetry('jbiq.resume.discard', { ageMs });
+  }
+
+  function wireResumeStrip() {
+    const resumeBtn = document.getElementById('resumeBtn');
+    const discardBtn = document.getElementById('discardBtn');
+    if (resumeBtn) resumeBtn.addEventListener('click', handleResumeClick);
+    if (discardBtn) discardBtn.addEventListener('click', handleDiscardClick);
+    refreshResumeStrip();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wireResumeStrip);
+  } else {
+    wireResumeStrip();
+  }
+
   const wakeupSound = new Audio('wakeup.mp3');
   const welcomeSound = new Audio('welcome.mp3');
   const understoodSound = new Audio('va-understood.mp3');
@@ -3676,20 +4171,27 @@
   function clearKbTimeouts() { kbTimeouts.forEach(t => clearTimeout(t)); kbTimeouts = []; }
 
   // === Voice Mode ===
-  async function openVoiceMode() {
+  // opts.silent — skip the wakeup/welcome chimes and the "Connecting..."
+  // spinner sequence. Used by the Resume flow, where the user is rejoining
+  // an existing conversation and doesn't need the cold-start fanfare.
+  async function openVoiceMode(opts) {
+    opts = opts || {};
+    const silent = !!opts.silent;
     await acquireMic(); // Get mic permission once — stays cached
     resetKeyboardMode();
-    spinner.classList.add('visible');
-    spinner.currentTime = 0;
-    spinner.play().catch(() => {});
-    wakeupSound.currentTime = 0;
-    welcomeSound.currentTime = 0;
-    wakeupSound.play().catch(() => {});
-    wakeupSound.onended = () => {
-      welcomeSound.play().catch(() => {});
-    };
+    if (!silent) {
+      spinner.classList.add('visible');
+      spinner.currentTime = 0;
+      spinner.play().catch(() => {});
+      wakeupSound.currentTime = 0;
+      welcomeSound.currentTime = 0;
+      wakeupSound.play().catch(() => {});
+      wakeupSound.onended = () => {
+        welcomeSound.play().catch(() => {});
+      };
+    }
     botDots.classList.remove('visible', 'listening');
-    statusText.textContent = 'Connecting...';
+    statusText.textContent = silent ? '' : 'Connecting...';
     statusText.classList.remove('visible');
     // Only remove chat-active if starting fresh (no existing messages)
     const hasMessages = chatMessages.children.length > 0;
@@ -3701,6 +4203,17 @@
     voiceAvatarArea.classList.remove('visible');
     avatarIdle.classList.remove('visible');
     avatarIdle.pause();
+
+    if (silent) {
+      // Resume path: no spinner, no welcome chime — drop straight into the
+      // chat-active glow + listening state. The recap line carries the
+      // "where we were" cue instead of an audio prompt.
+      spinner.classList.remove('visible');
+      spinner.pause();
+      overlay.classList.add('glow');
+      if (!isListening) startListening();
+      return;
+    }
 
     // When connecting video ends, show avatar BUT hold the "Say something..."
     // label until the welcome audio finishes (see welcomeSound.onended below).
@@ -3746,6 +4259,16 @@
   }
 
   function newConversation() {
+    // If an in-flight session existed, it's now intentionally abandoned —
+    // archive it so it doesn't surface as a Resume strip on next home visit.
+    maybeArchiveBeforeNew();
+    // Stop any in-flight assistant playback so it doesn't bleed into the
+    // fresh conversation. Covers both the ElevenLabs path and the browser
+    // SpeechSynthesis fallback.
+    if (currentTTSAudio) { currentTTSAudio.pause(); currentTTSAudio = null; }
+    try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (_) {}
+    overlay.classList.remove('agent-speaking');
+    setSpeakingAvatarPlaying(false);
     resetKeyboardMode(true);
     isMuted = false;
     overlay.classList.remove('chat-active', 'kb-mode', 'kb-hidden', 'text-mode', 'text-typing', 'listening-mode', 'user-speaking', 'muted');
@@ -3776,6 +4299,10 @@
     stopListening();
     // Stop all audio
     if (currentTTSAudio) { currentTTSAudio.pause(); currentTTSAudio = null; }
+    // Browser SpeechSynthesis fallback (used when /api/tts is unavailable)
+    // doesn't go through currentTTSAudio, so it has to be cancelled separately
+    // — otherwise the assistant keeps speaking after the user exits the chat.
+    try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (_) {}
     wakeupSound.pause(); wakeupSound.currentTime = 0;
     welcomeSound.pause(); welcomeSound.currentTime = 0;
     understoodSound.pause(); understoodSound.currentTime = 0;
@@ -4897,6 +5424,7 @@
         activeOrder = null;
         conversationHistory.push({ role: 'user', content: 'Cancel that order' });
         conversationHistory.push({ role: 'assistant', content: 'Order cancelled.' });
+        checkpointSession({ pendingPayment: null });
         // Return to listening state in voice mode
         if (!overlay.classList.contains('text-mode')) {
           overlay.classList.add('listening-mode');
@@ -4906,6 +5434,16 @@
     });
 
     activeOrder = { product, cardEl: card, payBtn, warningEl: null, tapped: false, completed: false, warningVisible: false };
+    // Stamp a pending-payment marker so the Resume strip can lead with
+    // "₹X {label} — payment pending" and Phase E can later void on edit.
+    checkpointSession({
+      pendingPayment: {
+        amountInr: product.price,
+        label: product.brand || product.name,
+        issuedAt: Date.now(),
+        issuedAtTurnIndex: conversationHistory.length,
+      },
+    });
     return card;
   }
 
@@ -5282,6 +5820,9 @@
     const historySummary = `Order placed: ${product.name} (${product.qty}) for ₹${product.price} on JioMart. ETA ${product.eta}.`;
     conversationHistory.push({ role: 'user', content: 'Confirm and pay' });
     conversationHistory.push({ role: 'assistant', content: historySummary });
+    // Payment resolved — mark the session completed and clear any pending stamp
+    // so the Resume strip filters it out (it only surfaces in_flight records).
+    checkpointSession({ status: 'completed', pendingPayment: null });
 
     // Return to listening in voice mode after TTS finishes
     if (!overlay.classList.contains('text-mode')) {
@@ -5352,6 +5893,7 @@
     // Log the tap in conversation history so follow-up API calls have context
     conversationHistory.push({ role: 'user', content: `Tell me more about ${r.name}` });
     conversationHistory.push({ role: 'assistant', content: summaryText });
+    checkpointSession();
 
     // After TTS finishes, resume listening in voice mode. Without this the mic
     // would never come back after the user taps a restaurant card.
@@ -5390,6 +5932,10 @@
     }
     chatMessages.appendChild(turn);
     currentTurnEl = turn;
+    // Any previous DiscoveryView lives inside the turn we just deactivated and
+    // will be replaced by the new turn's content. Drop it from the persisted
+    // record so a Resume doesn't try to re-mount a stale view at the bottom.
+    saveSession({ uiState: { discoveryView: null } });
     return turn;
   }
 
@@ -5907,6 +6453,7 @@
 
     // 2. Add to conversation history
     conversationHistory.push({ role: 'user', content: text });
+    checkpointSession();
 
     // 3. Play understood sound + show thinking indicator
     understoodSound.currentTime = 0;
@@ -6086,6 +6633,8 @@
     const isTransactional = !!(discoveryDs && TRANSACTIONAL_VIEW_PRODUCTS[discoveryKey]);
     if (discoveryDs && window.renderDiscoveryView && !isTransactional) {
       currentTurnEl.appendChild(window.renderDiscoveryView(discoveryDs.view));
+      // Snapshot the open DiscoveryView so it can be re-mounted on Resume.
+      checkpointSession({ uiState: { discoveryView: { view: discoveryDs.view } } });
     }
 
     // 7e. Render Informational response (§10.1) — single-status answers with
@@ -6143,6 +6692,7 @@
     // 9. Push to history — use spokenText so DiscoveryView turns still leave a
     // trace in the conversation (empty assistant turns would confuse Claude).
     conversationHistory.push({ role: 'assistant', content: spokenText || responseText });
+    checkpointSession();
 
     // 10. Voice mode: wait for TTS to finish, then transition to listening
     if (!isTextMode) {
