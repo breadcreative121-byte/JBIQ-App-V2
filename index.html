@@ -3648,6 +3648,13 @@
     showResponse(text);
   }
 
+  async function runPrototypeVoiceQuery(text) {
+    closePrototypesPanel();
+    closeMenuPanel();
+    await openVoiceMode({ silent: true });
+    showResponse(text);
+  }
+
   // §9 Edge Affordance + SuggestedPrompts — both seed the next turn with an
   // author-authored follow-up query. SuggestedPrompts buttons carry the query
   // in detail.query (forwarded by discovery.js's click delegation from the
