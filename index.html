@@ -3614,6 +3614,16 @@
   if (!localStorage.getItem('jbiq_user_city')) localStorage.setItem('jbiq_user_city', USER_PROFILE.city);
   if (!localStorage.getItem('jbiq_user_country')) localStorage.setItem('jbiq_user_country', USER_PROFILE.country);
 
+  // API base — empty when served by the local Express server (relative paths
+  // hit /api/chat + /api/tts on the same origin). On a static host like
+  // GitHub Pages there is no backend, so we point at the Cloudflare Worker
+  // proxy. Replace WORKER-SUBDOMAIN after `wrangler deploy` prints the URL.
+  const API_BASE = (() => {
+    const h = location.hostname;
+    if (!h || h === 'localhost' || h === '127.0.0.1') return '';
+    return 'https://jbiq-proxy.WORKER-SUBDOMAIN.workers.dev';
+  })();
+
   // Home page state — driven by ?home=new-user|return-user (set by the
   // Discovery Playground). Default to new-user so standalone opens show the
   // current Figma layout.
@@ -5968,7 +5978,7 @@
       responseText = textFixture.headline || textFixture.body || '';
     } else {
       try {
-        const res = await fetch('/api/chat', {
+        const res = await fetch(`${API_BASE}/api/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages: conversationHistory, userProfile: USER_PROFILE }),
@@ -6197,7 +6207,7 @@
     clearEmptyActiveTurn();
 
     try {
-      const res = await fetch('/api/tts', {
+      const res = await fetch(`${API_BASE}/api/tts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
