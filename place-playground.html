@@ -4860,7 +4860,7 @@
       // panel uses inside the host app.
       const liveFrame = el('iframe', {
         class: 'live-frame',
-        src: '/index.html?home=' + activeHomeState,
+        src: 'index.html?home=' + activeHomeState,
         style: {
           width: '380px',
           height: '780px',
@@ -4885,7 +4885,7 @@
         );
       };
 
-      const homeStateSrc = () => '/index.html?home=' + activeHomeState;
+      const homeStateSrc = () => 'index.html?home=' + activeHomeState;
 
       // Dispatch the active dataset's sample utterance into the iframe. Reload
       // the iframe each time so the chat surface starts fresh (no accumulated
