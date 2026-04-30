@@ -4848,8 +4848,8 @@
     }
 
     function mountPlayground(rootEl) {
-      let activeKey = 'biryani_hyderabad';
-      let activeVoiceKey = 'biryani_hyderabad';
+      let activeKey = '';
+      let activeVoiceKey = '';
       let activeHomeState = 'new-user';
       let lastSurface = 'chat'; // 'chat' | 'voice' — which dropdown most recently fired
 
@@ -4876,11 +4876,15 @@
       ]);
 
       const select = el('select', { class: 'dataset-select__control' });
+      const chatPlaceholder = el('option', { value: '', text: 'Select experience' });
+      chatPlaceholder.setAttribute('disabled', 'disabled');
+      chatPlaceholder.setAttribute('selected', 'selected');
+      chatPlaceholder.setAttribute('hidden', 'hidden');
+      select.appendChild(chatPlaceholder);
       for (const g of DATASET_GROUPS) {
         const group = el('optgroup', { label: g.group });
         for (const it of g.items) {
           const o = el('option', { value: it.key, text: it.label });
-          if (it.key === activeKey) o.setAttribute('selected', 'selected');
           group.appendChild(o);
         }
         select.appendChild(group);
@@ -4891,11 +4895,15 @@
       ]);
 
       const voiceSelect = el('select', { class: 'dataset-select__control' });
+      const voicePlaceholder = el('option', { value: '', text: 'Select experience' });
+      voicePlaceholder.setAttribute('disabled', 'disabled');
+      voicePlaceholder.setAttribute('selected', 'selected');
+      voicePlaceholder.setAttribute('hidden', 'hidden');
+      voiceSelect.appendChild(voicePlaceholder);
       for (const g of DATASET_GROUPS) {
         const group = el('optgroup', { label: g.group });
         for (const it of g.items) {
           const o = el('option', { value: it.key, text: it.label });
-          if (it.key === activeVoiceKey) o.setAttribute('selected', 'selected');
           group.appendChild(o);
         }
         voiceSelect.appendChild(group);
