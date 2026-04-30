@@ -1949,6 +1949,137 @@
     }
     .booking-sheet-close--primary:hover { opacity: 0.92; }
 
+    /* Long-press → Edit / Copy on the most recent user bubble.
+       Reuses the booking-sheet motion tokens so the action sheet feels
+       like the same family of native modal already in the app. */
+    .user-bubble.is-pressing {
+      transform: scale(0.97);
+      box-shadow: 0 2px 14px rgba(12, 13, 16, 0.12);
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .action-sheet-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(12, 13, 16, 0.45);
+      z-index: 120;
+      opacity: 0;
+      animation: bookingSheetBackdropIn 0.2s ease forwards;
+    }
+    .action-sheet-backdrop.is-closing { animation: bookingSheetBackdropOut 0.2s ease forwards; }
+    .action-sheet {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      background: #fff;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      padding: 8px 16px 22px;
+      z-index: 121;
+      transform: translateY(100%);
+      animation: bookingSheetIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    .action-sheet.is-closing { animation: bookingSheetOut 0.22s ease forwards; }
+    .action-sheet-grabber {
+      width: 36px; height: 4px;
+      border-radius: 999px;
+      background: rgba(12, 13, 16, 0.18);
+      margin: 6px auto 10px;
+    }
+    .action-sheet-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 4px 0 6px;
+    }
+    .action-sheet-row {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 16px;
+      background: transparent;
+      border: none;
+      border-radius: 14px;
+      text-align: left;
+      font-family: var(--font-family);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-high);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .action-sheet-row:hover { background: var(--surface-subtle); }
+    .action-sheet-row:focus-visible { outline: 2px solid var(--surface-bold); outline-offset: 2px; }
+    .action-sheet-row[disabled] {
+      color: var(--text-medium);
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .action-sheet-row-icon {
+      width: 20px; height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .action-sheet-cancel {
+      width: 100%;
+      padding: 14px 20px;
+      margin-top: 8px;
+      background: var(--surface-subtle);
+      color: var(--text-high-tinted);
+      border: none;
+      border-radius: var(--shape-pill);
+      font-family: var(--font-family);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .action-sheet-cancel:active { transform: scale(0.98); }
+
+    .toast-copied {
+      position: absolute;
+      left: 50%;
+      bottom: 96px;
+      transform: translateX(-50%) translateY(8px);
+      background: rgba(12, 13, 16, 0.92);
+      color: #fff;
+      font-family: var(--font-family);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 16px;
+      border-radius: 999px;
+      z-index: 130;
+      opacity: 0;
+      pointer-events: none;
+      animation: toastIn 0.2s ease forwards, toastOut 0.3s ease 1.9s forwards;
+    }
+    @keyframes toastIn {
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    @keyframes toastOut {
+      to { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+    }
+
+    /* When the action sheet is open OR a bubble is being edited, every
+       bottom-anchored UI cluster (voice, voice+kb, text) is suppressed so
+       the user can't start a new turn behind the modal/edit state. */
+    .voice-overlay.action-sheet-open .voice-actions,
+    .voice-overlay.action-sheet-open .kb-bottom,
+    .voice-overlay.action-sheet-open .text-bottom-bar,
+    .voice-overlay.action-sheet-open .voice-listening-hint,
+    .voice-overlay.action-sheet-open .voice-muted-hint,
+    .voice-overlay.editing-active .voice-actions,
+    .voice-overlay.editing-active .kb-bottom,
+    .voice-overlay.editing-active .text-bottom-bar,
+    .voice-overlay.editing-active .voice-listening-hint,
+    .voice-overlay.editing-active .voice-muted-hint,
+    .voice-overlay.editing-active .voice-speaking-avatar,
+    .voice-overlay.editing-active #voiceSpinner,
+    .voice-overlay.editing-active .voice-bot-dots,
+    .voice-overlay.editing-active .voice-avatar-area {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
     /* State C — voice-only confirm warning */
     .shopping-warning {
       width: 100%;
@@ -2031,6 +2162,101 @@
       transform: translateY(0);
       padding-bottom: 24px;
     }
+
+    /* Edit composer — replaces the bottom bar while a user bubble is being
+       edited. Shared by text + voice modes. Mirrors Figma node 23206:50577. */
+    .edit-composer {
+      position: absolute;
+      left: 0; right: 0;
+      bottom: 0;
+      padding: 0 16px 24px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      z-index: 12;
+    }
+    .edit-composer[hidden] { display: none; }
+
+    .edit-composer-add {
+      width: 42px; height: 42px;
+      flex-shrink: 0;
+      border: none; cursor: pointer;
+      background: var(--surface-subtle);
+      border-radius: var(--shape-pill);
+      display: flex; align-items: center; justify-content: center;
+      padding: 0;
+    }
+    .edit-composer-add svg { width: 26px; height: 26px; }
+    .edit-composer-pill {
+      flex: 1; min-width: 0;
+      background: #eeeeef;
+      border-radius: 24px;
+      padding: 5px 5px 5px 8px;
+      display: flex; flex-direction: column;
+      gap: 8px;
+    }
+    .edit-composer-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 4px 4px 8px;
+      background: var(--surface-subtle);
+      border-radius: 16px;
+      min-height: 32px;
+    }
+    .edit-composer-banner-icon {
+      width: 16px; height: 16px;
+      flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      opacity: 0.8;
+    }
+    .edit-composer-banner-text {
+      flex: 1; min-width: 0;
+      font-family: var(--font-family);
+      font-size: 12px;
+      line-height: 1.3;
+      color: var(--text-high-tinted);
+    }
+    .edit-composer-cancel {
+      flex-shrink: 0;
+      width: 24px; height: 24px;
+      padding: 4px;
+      border: none; cursor: pointer;
+      background: var(--surface-subtle);
+      border-radius: var(--shape-pill);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .edit-composer-cancel:hover { background: rgba(63, 0, 127, 0.12); }
+    .edit-composer-cancel svg { width: 16px; height: 16px; }
+    .edit-composer-input {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding: 4px 0 4px 8px;
+    }
+    .edit-composer-input textarea {
+      flex: 1; min-width: 0;
+      border: none; background: transparent; outline: none;
+      font-family: var(--font-family);
+      font-size: 16px;
+      line-height: 1.3;
+      color: var(--text-high);
+      padding: 4px 0;
+      min-height: 24px; max-height: 120px;
+      resize: none; overflow-y: auto;
+    }
+    .edit-composer-send {
+      flex-shrink: 0;
+      width: 32px; height: 32px;
+      border: none; cursor: pointer;
+      background: var(--surface-bold);
+      border-radius: var(--shape-pill);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .edit-composer-send svg { width: 20px; height: 20px; }
+    .edit-composer-send:disabled { opacity: 0.45; cursor: default; }
+    .edit-composer-send:not(:disabled):active { transform: scale(0.96); }
 
     /* Text-mode: unified bottom bar [+] [Ask anything / typed text] [voice btn] */
     .text-bottom-bar {
@@ -3006,6 +3232,32 @@
       </div>
       <!-- Keyboard (reuse fake keyboard) -->
     </div>
+
+    <!-- Edit composer — replaces the bottom bar while a user bubble is being
+         edited via the long-press → Edit gesture. Shared by text and voice
+         modes. Hidden by default; toggled via JS. -->
+    <div class="edit-composer" id="editComposer" hidden>
+      <button class="edit-composer-add" type="button" aria-label="Add">
+        <svg viewBox="0 0 26 26" fill="none"><path d="M13 6v14M6 13h14" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="edit-composer-pill">
+        <div class="edit-composer-banner" role="status">
+          <span class="edit-composer-banner-icon" aria-hidden="true">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M11 2.5a1.4 1.4 0 0 1 2 2L5 12.5l-2.5.5.5-2.5L11 2.5z" stroke="#3f007f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="edit-composer-banner-text">Editing this text will restart the conversation from this point</span>
+          <button class="edit-composer-cancel" type="button" aria-label="Cancel edit">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="#3f007f" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div class="edit-composer-input">
+          <textarea id="editComposerTextarea" rows="1" aria-label="Edit message"></textarea>
+          <button class="edit-composer-send" id="editComposerSend" type="button" aria-label="Send">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M10 16V4m0 0l5 5m-5-5L5 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Menu Panel -->
@@ -3569,8 +3821,17 @@
         // Text mode never listens — just clear the muted copy.
         statusText.classList.remove('visible');
       } else {
-        statusText.textContent = overlay.classList.contains('listening-mode') ? 'Listening...' : '';
-        if (!overlay.classList.contains('listening-mode')) statusText.classList.remove('visible');
+        if (overlay.classList.contains('listening-mode')) {
+          statusText.textContent = 'Listening...';
+          statusText.classList.add('visible');
+        } else if (overlay.classList.contains('chat-active')) {
+          // chat-active uses .voice-listening-hint, re-armed by startListening → rec.onstart
+          statusText.classList.remove('visible');
+        } else {
+          // Welcome / initial voice — restore the "Say something..." prompt
+          statusText.textContent = 'Say something...';
+          statusText.classList.add('visible');
+        }
         startListening();
       }
     }
@@ -5161,6 +5422,364 @@
     }
   }
 
+  // === Long-press → Edit / Copy on the most recent user bubble ===
+  // Only the latest user-bubble in the thread responds; earlier bubbles have
+  // their gesture detached when a new turn opens. This matches the "fix the
+  // last thing I said" intent and avoids mid-thread history surgery.
+  let editableUserBubble = null;
+  let editingActive = false;
+  let suppressNextBubbleClick = false;
+  const LONG_PRESS_MS = 550;
+  const LONG_PRESS_MOVE_TOLERANCE = 10;
+  const BUBBLE_GESTURE_KEY = '__bubbleGesture';
+
+  function attachUserBubbleGesture(userEl) {
+    if (!userEl || userEl[BUBBLE_GESTURE_KEY]) return;
+    let timer = null;
+    let startX = 0, startY = 0;
+    let armed = false;
+
+    const cancel = () => {
+      if (timer) { clearTimeout(timer); timer = null; }
+      armed = false;
+      userEl.classList.remove('is-pressing');
+    };
+
+    const onPointerDown = (e) => {
+      if (editingActive) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      armed = true;
+      startX = e.clientX; startY = e.clientY;
+      userEl.classList.add('is-pressing');
+      timer = setTimeout(() => {
+        if (!armed) return;
+        userEl.classList.remove('is-pressing');
+        try { navigator.vibrate && navigator.vibrate(10); } catch (_) {}
+        suppressNextBubbleClick = true;
+        openBubbleActionSheet(userEl);
+        timer = null;
+      }, LONG_PRESS_MS);
+    };
+    const onPointerMove = (e) => {
+      if (!armed) return;
+      if (Math.abs(e.clientX - startX) + Math.abs(e.clientY - startY) > LONG_PRESS_MOVE_TOLERANCE) cancel();
+    };
+    const onPointerUpOrCancel = () => cancel();
+    const onContextMenu = (e) => {
+      if (editingActive) return;
+      e.preventDefault();
+      cancel();
+      openBubbleActionSheet(userEl);
+    };
+    const onClick = (e) => {
+      if (suppressNextBubbleClick) {
+        suppressNextBubbleClick = false;
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    const onScroll = () => cancel();
+
+    userEl.addEventListener('pointerdown', onPointerDown);
+    userEl.addEventListener('pointermove', onPointerMove);
+    userEl.addEventListener('pointerup', onPointerUpOrCancel);
+    userEl.addEventListener('pointercancel', onPointerUpOrCancel);
+    userEl.addEventListener('pointerleave', onPointerUpOrCancel);
+    userEl.addEventListener('contextmenu', onContextMenu);
+    userEl.addEventListener('click', onClick, true);
+    const scrollContainer = chatMessages.closest('.voice-container') || chatMessages.parentElement;
+    if (scrollContainer) scrollContainer.addEventListener('scroll', onScroll, { passive: true });
+    chatMessages.addEventListener('scroll', onScroll, { passive: true });
+
+    userEl[BUBBLE_GESTURE_KEY] = () => {
+      cancel();
+      userEl.removeEventListener('pointerdown', onPointerDown);
+      userEl.removeEventListener('pointermove', onPointerMove);
+      userEl.removeEventListener('pointerup', onPointerUpOrCancel);
+      userEl.removeEventListener('pointercancel', onPointerUpOrCancel);
+      userEl.removeEventListener('pointerleave', onPointerUpOrCancel);
+      userEl.removeEventListener('contextmenu', onContextMenu);
+      userEl.removeEventListener('click', onClick, true);
+      if (scrollContainer) scrollContainer.removeEventListener('scroll', onScroll);
+      chatMessages.removeEventListener('scroll', onScroll);
+      delete userEl[BUBBLE_GESTURE_KEY];
+    };
+  }
+
+  function detachUserBubbleGesture(userEl) {
+    if (userEl && typeof userEl[BUBBLE_GESTURE_KEY] === 'function') userEl[BUBBLE_GESTURE_KEY]();
+  }
+
+  function makeEditableUserBubble(userEl) {
+    if (editableUserBubble && editableUserBubble !== userEl) detachUserBubbleGesture(editableUserBubble);
+    attachUserBubbleGesture(userEl);
+    editableUserBubble = userEl;
+  }
+
+  function openBubbleActionSheet(userEl) {
+    if (document.querySelector('.action-sheet')) return;
+    const host = overlay;
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'action-sheet-backdrop';
+
+    const sheet = document.createElement('div');
+    sheet.className = 'action-sheet';
+    sheet.setAttribute('role', 'dialog');
+    sheet.setAttribute('aria-modal', 'true');
+    sheet.setAttribute('aria-label', 'Message actions');
+
+    const grabber = document.createElement('div');
+    grabber.className = 'action-sheet-grabber';
+    sheet.appendChild(grabber);
+
+    const rows = document.createElement('div');
+    rows.className = 'action-sheet-rows';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'action-sheet-row';
+    editBtn.type = 'button';
+    editBtn.innerHTML = '<span class="action-sheet-row-icon" aria-hidden="true">' +
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>' +
+      '</span>Edit';
+    if (isProcessingResponse) {
+      editBtn.disabled = true;
+      editBtn.setAttribute('aria-disabled', 'true');
+    }
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'action-sheet-row';
+    copyBtn.type = 'button';
+    copyBtn.innerHTML = '<span class="action-sheet-row-icon" aria-hidden="true">' +
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>' +
+      '</span>Copy';
+
+    rows.appendChild(editBtn);
+    rows.appendChild(copyBtn);
+    sheet.appendChild(rows);
+
+    const cancel = document.createElement('button');
+    cancel.className = 'action-sheet-cancel';
+    cancel.type = 'button';
+    cancel.textContent = 'Cancel';
+    sheet.appendChild(cancel);
+
+    let closed = false;
+    let resumeListeningOnClose = false;
+    const previousFocus = document.activeElement;
+    // Pause the recogniser in voice mode so the user's "tap edit" voice
+    // doesn't get transcribed and posted as a new turn behind the sheet.
+    if (typeof isListening !== 'undefined' && isListening &&
+        !overlay.classList.contains('text-mode')) {
+      try { activeRec && activeRec.abort && activeRec.abort(); } catch (_) {}
+      isListening = false;
+      resumeListeningOnClose = true;
+    }
+    overlay.classList.add('action-sheet-open');
+    const close = (opts = {}) => {
+      if (closed) return;
+      closed = true;
+      sheet.classList.add('is-closing');
+      backdrop.classList.add('is-closing');
+      overlay.classList.remove('action-sheet-open');
+      document.removeEventListener('keydown', onKey);
+      if (resumeListeningOnClose && !opts.handingOffToVoiceEdit) {
+        try { startListening && startListening(); } catch (_) {}
+      }
+      setTimeout(() => {
+        sheet.remove();
+        backdrop.remove();
+        if (previousFocus && previousFocus.focus && !opts.handingOffToVoiceEdit) {
+          try { previousFocus.focus(); } catch (_) {}
+        }
+      }, 220);
+    };
+    const focusables = () => [editBtn, copyBtn, cancel].filter(b => !b.disabled);
+    const onKey = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+      if (e.key === 'Tab') {
+        const list = focusables();
+        if (!list.length) return;
+        const i = list.indexOf(document.activeElement);
+        e.preventDefault();
+        const nextI = e.shiftKey
+          ? (i <= 0 ? list.length - 1 : i - 1)
+          : (i < 0 || i === list.length - 1 ? 0 : i + 1);
+        list[nextI].focus();
+      }
+    };
+    backdrop.addEventListener('click', () => close());
+    cancel.addEventListener('click', () => close());
+    document.addEventListener('keydown', onKey);
+
+    editBtn.addEventListener('click', () => {
+      if (editBtn.disabled) return;
+      const isTextMode = overlay.classList.contains('text-mode');
+      close({ handingOffToVoiceEdit: !isTextMode });
+      setTimeout(() => beginEdit(userEl), 60);
+    });
+    copyBtn.addEventListener('click', async () => {
+      const text = userEl.textContent || '';
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+          document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+        }
+        showCopiedToast();
+      } catch (_) { showCopiedToast('Copy failed'); }
+      close();
+    });
+
+    host.appendChild(backdrop);
+    host.appendChild(sheet);
+    setTimeout(() => editBtn.focus(), 0);
+  }
+
+  function showCopiedToast(label) {
+    const existing = overlay.querySelector('.toast-copied');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'toast-copied';
+    toast.setAttribute('role', 'status');
+    toast.textContent = label || 'Copied';
+    overlay.appendChild(toast);
+    setTimeout(() => toast.remove(), 2400);
+  }
+
+  function commitEdit(userEl, newText, originalText, turnEl, historyIdx) {
+    const trimmed = (newText || '').trim();
+    if (!trimmed || trimmed === (originalText || '').trim()) return false;
+    if (historyIdx >= 0 && historyIdx <= conversationHistory.length) {
+      conversationHistory.length = historyIdx;
+    }
+    if (turnEl && turnEl.isConnected) {
+      if (currentTurnEl === turnEl) currentTurnEl = null;
+      turnEl.remove();
+    }
+    editableUserBubble = null;
+    try { showResponse(trimmed); } catch (_) {}
+    return true;
+  }
+
+  // === Edit composer ===
+  // Shared by text + voice mode. The composer mirrors Figma node 23206:50577:
+  // a banner explaining the destructive consequence + textarea + send. X
+  // dismisses with no changes; Send commits via commitEdit().
+  let editComposerCtx = null;        // { userEl, originalText, wasVoice, historyIdx, turnEl, listenerWasActive }
+
+  function pauseRecogniserForEdit() {
+    const wasOn = (typeof isListening !== 'undefined' && isListening) ||
+                  (typeof activeRec !== 'undefined' && !!activeRec);
+    if (wasOn) {
+      try { activeRec && activeRec.abort && activeRec.abort(); } catch (_) {}
+      isListening = false;
+    }
+    return wasOn;
+  }
+
+  function beginEdit(userEl) {
+    if (editingActive || !userEl || !userEl.isConnected) return;
+    if (isProcessingResponse) {
+      showCopiedToast('Wait for the reply to finish');
+      return;
+    }
+    editingActive = true;
+    detachUserBubbleGesture(userEl);
+    overlay.classList.add('editing-active');
+
+    const idxAttr = userEl.dataset.historyIndex;
+    editComposerCtx = {
+      userEl,
+      originalText: userEl.textContent || '',
+      wasVoice: userEl.classList.contains('is-voice'),
+      historyIdx: idxAttr != null ? Number(idxAttr) : -1,
+      turnEl: userEl.closest('.chat-turn'),
+      listenerWasActive: pauseRecogniserForEdit(),
+    };
+    openEditComposer(editComposerCtx);
+  }
+
+  function openEditComposer(ctx) {
+    const composer = document.getElementById('editComposer');
+    const ta = document.getElementById('editComposerTextarea');
+    const sendBtn = document.getElementById('editComposerSend');
+    const cancelBtn = composer.querySelector('.edit-composer-cancel');
+    if (!composer || !ta || !sendBtn || !cancelBtn) return;
+
+    ta.value = ctx.originalText;
+    composer.hidden = false;
+
+    const autoGrow = () => {
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+    };
+    const refreshSendState = () => {
+      const v = ta.value.trim();
+      sendBtn.disabled = !v || v === ctx.originalText.trim();
+    };
+    autoGrow();
+    refreshSendState();
+    setTimeout(() => {
+      ta.focus();
+      ta.setSelectionRange(ta.value.length, ta.value.length);
+    }, 0);
+
+    const onInput = () => { autoGrow(); refreshSendState(); };
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); cancelHandler(); return; }
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commitHandler(); }
+    };
+    const cancelHandler = () => closeEditComposer({ commit: false });
+    const commitHandler = () => {
+      if (sendBtn.disabled) return;
+      closeEditComposer({ commit: true, newText: ta.value });
+    };
+    const onCancelClick = () => cancelHandler();
+    const onSendClick = () => commitHandler();
+
+    ta.addEventListener('input', onInput);
+    ta.addEventListener('keydown', onKeyDown);
+    cancelBtn.addEventListener('click', onCancelClick);
+    sendBtn.addEventListener('click', onSendClick);
+
+    composer.__editCleanup = () => {
+      ta.removeEventListener('input', onInput);
+      ta.removeEventListener('keydown', onKeyDown);
+      cancelBtn.removeEventListener('click', onCancelClick);
+      sendBtn.removeEventListener('click', onSendClick);
+    };
+  }
+
+  function closeEditComposer({ commit, newText } = {}) {
+    const composer = document.getElementById('editComposer');
+    const ctx = editComposerCtx;
+    if (!ctx || !composer) return;
+
+    if (typeof composer.__editCleanup === 'function') composer.__editCleanup();
+    delete composer.__editCleanup;
+
+    composer.hidden = true;
+
+    overlay.classList.remove('editing-active');
+    editingActive = false;
+    editComposerCtx = null;
+
+    if (commit) {
+      // Truncate + re-fire. showResponse will own listening restart.
+      commitEdit(ctx.userEl, newText, ctx.originalText, ctx.turnEl, ctx.historyIdx);
+    } else {
+      // Restore: bubble stays as-is, gesture re-attached, recogniser resumed.
+      attachUserBubbleGesture(ctx.userEl);
+      editableUserBubble = ctx.userEl;
+      if (ctx.listenerWasActive && !overlay.classList.contains('text-mode')) {
+        setTimeout(() => { try { startListening && startListening(); } catch (_) {} }, 80);
+      }
+    }
+  }
+
   // === Shared response flow (real API) ===
   async function showResponse(text, opts = {}) {
     clearKbTimeouts();
@@ -5178,6 +5797,7 @@
       userEl.className = 'user-bubble';
       if (!isTextMode) userEl.classList.add('is-voice');
       userEl.textContent = text;
+      userEl.dataset.historyIndex = String(conversationHistory.length);
       const reuse = opts.reuseTurn && opts.reuseTurn.isConnected ? opts.reuseTurn : null;
       if (reuse) {
         currentTurnEl = reuse;
@@ -5186,6 +5806,7 @@
       } else {
         startTurn().appendChild(userEl);
       }
+      makeEditableUserBubble(userEl);
       pinActiveTurnToTop();
 
       showTapToConfirmWarning();
@@ -5262,6 +5883,7 @@
     userEl.className = 'user-bubble';
     if (!isTextMode) userEl.classList.add('is-voice');
     userEl.textContent = text;
+    userEl.dataset.historyIndex = String(conversationHistory.length);
     const reuse = opts.reuseTurn && opts.reuseTurn.isConnected ? opts.reuseTurn : null;
     if (reuse) {
       currentTurnEl = reuse;
@@ -5270,6 +5892,7 @@
     } else {
       startTurn().appendChild(userEl);
     }
+    makeEditableUserBubble(userEl);
     pinActiveTurnToTop();
 
     // 2. Add to conversation history
@@ -5811,6 +6434,7 @@
           interimText += result[0].transcript;
         }
       }
+
 
       // If the volume gate rejected onspeechstart but we later got real transcript
       // content, treat that as proof of real speech and activate the UI now.
