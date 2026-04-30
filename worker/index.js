@@ -1,8 +1,8 @@
 // JBIQ proxy Worker — mirrors POST /api/chat and POST /api/tts from server.js
-// so the static GitHub Pages build can call Anthropic + ElevenLabs without
+// so the static GitHub Pages build can call Anthropic + Sarvam without
 // shipping the keys in the client bundle. Secrets come from wrangler:
 //   wrangler secret put ANTHROPIC_API_KEY
-//   wrangler secret put ELEVENLABS_API_KEY
+//   wrangler secret put SARVAM_API_KEY
 
 // System prompt is copied verbatim from server.js to keep behaviour identical.
 const SYSTEM_PROMPT = [
@@ -113,33 +113,49 @@ async function handleTts(request, env, cors) {
   } catch {
     return jsonResponse({ error: 'invalid JSON' }, 400, cors);
   }
-  const { text, voice_id } = body || {};
+  const { text, speaker, language_code } = body || {};
   if (!text) return jsonResponse({ error: 'text is required' }, 400, cors);
-  if (!env.ELEVENLABS_API_KEY) {
-    return jsonResponse({ error: 'ElevenLabs API key not configured' }, 500, cors);
+  if (!env.SARVAM_API_KEY) {
+    return jsonResponse({ error: 'Sarvam API key not configured' }, 500, cors);
   }
 
-  const voiceId = voice_id || 'cjVigY5qzO86Huf0OWal';
-  const upstream = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+  // Pick language: explicit override wins; otherwise route to hi-IN if any
+  // Devanagari is present (Hindi/Hinglish), else en-IN. Sarvam's bulbul handles
+  // code-mixed within either language code.
+  const lang = language_code || (/[\u0900-\u097F]/.test(text) ? 'hi-IN' : 'en-IN');
+
+  const upstream = await fetch('https://api.sarvam.ai/text-to-speech', {
     method: 'POST',
     headers: {
-      'xi-api-key': env.ELEVENLABS_API_KEY,
+      'api-subscription-key': env.SARVAM_API_KEY,
       'Content-Type': 'application/json',
-      'Accept': 'audio/mpeg',
     },
     body: JSON.stringify({
       text,
-      model_id: 'eleven_multilingual_v2',
-      voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+      target_language_code: lang,
+      speaker: speaker || 'priya',
+      model: 'bulbul:v3',
+      output_audio_codec: 'mp3',
+      speech_sample_rate: '22050',
     }),
   });
 
   if (!upstream.ok) {
     const errText = await upstream.text();
-    return jsonResponse({ error: `ElevenLabs ${upstream.status}: ${errText}` }, 502, cors);
+    return jsonResponse({ error: `Sarvam ${upstream.status}: ${errText}` }, 502, cors);
   }
 
-  return new Response(upstream.body, {
+  const data = await upstream.json();
+  const b64 = data && Array.isArray(data.audios) ? data.audios[0] : null;
+  if (!b64) {
+    return jsonResponse({ error: 'Sarvam returned no audio' }, 502, cors);
+  }
+
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+  return new Response(bytes, {
     status: 200,
     headers: { 'Content-Type': 'audio/mpeg', ...cors },
   });
