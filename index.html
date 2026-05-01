@@ -806,6 +806,7 @@
       align-items: center;
       gap: 4px;
       flex: 1;
+      min-width: 0;
     }
 
     .voice-back-btn {
@@ -831,6 +832,10 @@
       color: var(--text-high);
       line-height: 1.2;
       flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .voice-speaker-btn {
@@ -5486,6 +5491,7 @@
   const chatMessages = document.getElementById('chatMessages');
   const kbBotMini = document.getElementById('kbBotMini');
   let conversationHistory = []; // [{role: 'user', content}, {role: 'assistant', content}]
+  let voiceTitleLocked = false; // header title is set once from the first message and held for the conversation
   const kbBotMiniVideo = document.getElementById('kbBotMiniVideo');
   // Avatar removed from markup; keep a no-op stub so existing .classList/play/pause
   // call sites don't need to be individually null-guarded.
@@ -6200,6 +6206,7 @@
     botDots.classList.remove('visible', 'listening');
     statusText.classList.remove('visible');
     voiceTitle.textContent = 'New chat';
+    voiceTitleLocked = false;
     textModeInput.value = '';
     textModeInput.style.height = 'auto';
     textSendBtn.classList.remove('is-visible');
@@ -6283,6 +6290,7 @@
       chatMessages.innerHTML = '';
       conversationHistory = [];
       voiceTitle.textContent = 'New chat';
+      voiceTitleLocked = false;
     }
     kbBotMini.classList.remove('visible');
     chatInput.value = '';
@@ -8210,13 +8218,16 @@
     const textType = (!isRestaurantQuery && !isShoppingQuery && !discoveryDs && !informationalView && !bookingIntent)
       ? (advisoryFixture ? 'advisory' : classifyTextResponseType(text)) : null;
     const textFixture = advisoryFixture || (textType ? lookupTextResponseFixture(text, textType) : null);
-    voiceTitle.textContent = isRestaurantQuery
-      ? 'Top restaurants'
-      : (isShoppingQuery ? `Order ${shoppingItemText}`
-        : (bookingIntent ? bookingIntent.subject.title
-          : (discoveryDs ? discoveryDs.view.subject.title
-            : (informationalView ? informationalView.subject.title
-              : extractTitle(text)))));
+    if (!voiceTitleLocked) {
+      voiceTitle.textContent = isRestaurantQuery
+        ? 'Top restaurants'
+        : (isShoppingQuery ? `Order ${shoppingItemText}`
+          : (bookingIntent ? bookingIntent.subject.title
+            : (discoveryDs ? discoveryDs.view.subject.title
+              : (informationalView ? informationalView.subject.title
+                : extractTitle(text)))));
+      voiceTitleLocked = true;
+    }
 
     if (isTextMode) {
       kbBotMini.classList.remove('visible');
