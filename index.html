@@ -7,6 +7,8 @@
   <!-- Discovery playground: shared schema/primitives for in-chat DiscoveryView rendering. -->
   <link rel="stylesheet" href="discovery.css">
   <script src="discovery.js" defer></script>
+  <!-- Omni Error Language Framework — scenario copy bank. Drives runPrototypeErrorScenario(). -->
+  <script src="errors.js" defer></script>
   <style>
     :root {
       --text-high: #0c0d10;
@@ -18,6 +20,7 @@
       --surface-bold-green: #00ad8b;
       --surface-subtle: #ede7ff;
       --surface-moderate: #e3e3e4;
+      --surface-minimal: #f5f5f5;
       --stroke-subtle: #eeeeef;
       --navi-600: #0d2da0;
       --pink-1200: #e11894;
@@ -546,58 +549,47 @@
     .resume-strip {
       position: absolute;
       left: 0; right: 0;
-      bottom: calc(100% + 10px);
+      bottom: calc(100% + 18px);
       display: flex;
       flex-direction: column;
+      align-items: flex-end;
       gap: 8px;
-      padding: 10px 14px 12px;
+      padding: 16px 12px 12px 16px;
       background: #ffffff;
-      border: 1px solid rgba(12,13,16,0.08);
-      border-radius: 16px;
-      box-shadow: 0 6px 18px rgba(12,13,16,0.10);
+      border-radius: var(--shape-4xl);
+      box-shadow: 0 8px 20px rgba(12,13,16,0.08), 0 16px 48px rgba(12,13,16,0.08);
       font-family: var(--font-family);
       z-index: 10;
       animation: home-tooltip-in 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
     }
     .resume-strip[hidden] { display: none; }
-    .resume-strip__copy { min-width: 0; }
+    .resume-strip__copy { min-width: 0; width: 100%; }
     .resume-strip__header {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
-      line-height: 1.25;
-      color: #0c0d10;
+      line-height: 1.2;
+      color: var(--text-high);
     }
     .resume-strip__summary {
       margin-top: 2px;
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 400;
       line-height: 1.3;
-      color: rgba(12,13,16,0.65);
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      color: var(--text-medium);
+      opacity: 0.8;
       white-space: nowrap;
       overflow: hidden;
-    }
-    .resume-strip__summary > #resumeSummary {
-      overflow: hidden;
       text-overflow: ellipsis;
-      min-width: 0;
-      flex: 1 1 auto;
     }
-    .resume-strip__summary > #resumeAge { flex-shrink: 0; }
-    .resume-strip__sep { opacity: 0.6; flex-shrink: 0; }
     .resume-strip__actions {
       display: flex;
-      gap: 6px;
+      gap: 18px;
+      align-items: center;
       justify-content: flex-end;
     }
     .resume-strip__btn {
-      height: 32px;
-      padding: 0 14px;
-      border-radius: var(--shape-pill);
       font-family: var(--font-family);
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
       line-height: 1;
       border: none;
@@ -605,15 +597,18 @@
       flex-shrink: 0;
     }
     .resume-strip__btn--primary {
-      background: #6d17ce;
+      background: var(--surface-bold);
       color: #ffffff;
+      padding: 8px 16px;
+      border-radius: var(--shape-pill);
     }
     .resume-strip__btn--primary:active { background: #5a13ab; }
     .resume-strip__btn--secondary {
       background: transparent;
-      color: #6d17ce;
+      color: var(--surface-bold);
+      padding: 0;
     }
-    .resume-strip__btn--secondary:active { background: rgba(109,23,206,0.08); }
+    .resume-strip__btn--secondary:active { opacity: 0.7; }
     .home-voice-btn svg { width: 26px; height: 26px; flex-shrink: 0; }
     .home-voice-btn .home-voice-label {
       font-family: var(--font-family);            /* JioType */
@@ -2926,6 +2921,822 @@
       .tools-overlay { border-radius: 0; }
       .prototypes-overlay { border-radius: 0; }
     }
+
+    /* ==========================================================
+       Omni Error Language Framework — showcase visual states.
+       See errors.js + Omni_Error_Language_Framework_v0.1.md §6.
+       ========================================================== */
+
+    /* Voice overlay error sub-state — keep the existing avatar-center video
+       and shimmer-text treatment so error states match listening/thinking
+       visually. The pulsing voice-bot-dots are hidden because the system
+       isn't actively listening or processing audio.
+       (Voice-status text styling deliberately NOT overridden — inherits
+       the default shimmer animation used by Connecting / Listening.) */
+    .voice-overlay--error .voice-bot-dots {
+      display: none !important;
+    }
+
+    /* Persistent chat banner — neutral surface, dark text. A small dot
+       carries the only colour, kept subtle to act as a status indicator
+       rather than a warning shout. */
+    .chat-error-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 16px 8px;
+      padding: 10px 14px;
+      border-radius: var(--shape-4xl);
+      background: var(--stroke-subtle);
+      color: var(--text-high);
+      font-size: 13px;
+      line-height: 1.3;
+      font-weight: 500;
+    }
+    .voice-overlay > .chat-error-banner {
+      position: absolute;
+      top: 64px;
+      left: 16px;
+      right: 16px;
+      z-index: 4;
+      margin: 0;
+    }
+    .chat-error-banner__dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--surface-bold);
+      flex-shrink: 0;
+    }
+
+    /* Settings hand-off card — sits in the lower 55% of the voice overlay
+       so the framework's voice subtext stays visible above it. The card
+       represents the OS settings panel that the deep-link lands on (§6.3). */
+    .error-settings-handoff {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 5;
+      background: #fff;
+      border: 1px solid rgba(12,13,16,0.08);
+      border-radius: 24px 24px 0 0;
+      box-shadow: 0 -8px 24px rgba(12,13,16,0.10);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 8px 20px 24px;
+      transform: translateY(100%);
+      animation: settingsHandoffSheetIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    .error-settings-handoff__grabber {
+      width: 36px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(12,13,16,0.18);
+      margin: 6px auto 14px;
+    }
+    .error-settings-handoff__header {
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(12,13,16,0.55);
+      margin-bottom: 18px;
+      text-align: center;
+    }
+    .error-settings-handoff__row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(12,13,16,0.04);
+      margin-bottom: 16px;
+    }
+    .error-settings-handoff__row strong {
+      font-weight: 600;
+      color: #0c0d10;
+    }
+    .error-settings-handoff__toggle {
+      width: 42px; height: 26px; border-radius: 999px;
+      background: #6d17ce;
+      position: relative;
+    }
+    .error-settings-handoff__toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px; right: 3px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .error-settings-handoff__msg {
+      margin-top: auto;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(109, 23, 206, 0.08);
+      color: #5a12b0;
+      font-size: 15px;
+      line-height: 1.4;
+      text-align: center;
+    }
+    .error-settings-handoff__msg strong { font-weight: 600; }
+    @keyframes errorHandoffIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes settingsHandoffSheetIn {
+      to { transform: translateY(0); }
+    }
+
+    /* Watchdog three-step reveal (§6.5). Pinned in the lower portion of the
+       voice overlay so it sits clear of the avatar/dots above. Step indicator
+       dot row + restart button after step 3. */
+    .watchdog-step {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 130px;
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 0 28px;
+    }
+    /* Watchdog step copy — same shimmer treatment as Connecting / Listening
+       so the framework reveal feels native to the existing voice surface. */
+    .watchdog-step__line {
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.3;
+      text-align: center;
+      color: var(--text-high);
+      background: linear-gradient(90deg, var(--text-low) 25%, #999 50%, var(--text-low) 75%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmerText 2s ease-in-out infinite;
+    }
+    .watchdog-step__dots {
+      display: inline-flex;
+      gap: 6px;
+    }
+    .watchdog-step__dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(12,13,16,0.18);
+      transition: background 200ms ease, transform 200ms ease;
+    }
+    .watchdog-step__dot.is-active {
+      background: var(--surface-bold);
+      transform: scale(1.4);
+    }
+    .watchdog-step__dot.is-done {
+      background: rgba(109, 23, 206, 0.45);
+    }
+    .watchdog-restart-btn {
+      margin-top: 12px;
+      padding: 8px 18px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1.5px solid var(--surface-bold);
+      border-radius: var(--shape-pill);
+      background: #fff;
+      color: var(--surface-bold);
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+    .watchdog-restart-btn:hover { background: var(--surface-subtle); }
+
+    /* Voice-miss-2 (§6.7) — pulse the keyboard icon to act as the
+       "switch to typing" affordance. Pulse uses the brand purple. */
+    @keyframes kbIconPulse {
+      0%, 100% { transform: scale(1);   box-shadow: 0 0 0 0 rgba(109,23,206,0.45); }
+      50%      { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(109,23,206,0); }
+    }
+    .kb-icon-pulse {
+      animation: kbIconPulse 1.4s ease-in-out infinite;
+      border-radius: 50%;
+    }
+
+    /* TTS unavailable note (§6.10) — subtle inline annotation above the
+       assistant text. Uses the existing surface-subtle ramp so it doesn't
+       compete with the message itself. */
+    .tts-down-note {
+      margin: 6px 16px 4px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: var(--stroke-subtle);
+      color: var(--text-low);
+      font-size: 12px;
+      line-height: 1.35;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tts-down-note__icon {
+      width: 14px; height: 14px;
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
+
+    /* Transactional reassurance card (§6.11) — neutral surface with dark
+       text; the brand-purple CTA carries the only colour. Reads as part
+       of the existing chat surface, not as a warning shout. */
+    .transactional-error {
+      width: 100%;
+      align-self: flex-start;
+      margin: 8px 0;
+      padding: 12px 14px;
+      border-radius: var(--shape-4xl);
+      background: var(--stroke-subtle);
+      animation: bubbleIn 0.3s ease;
+    }
+    .transactional-error__head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+      color: var(--text-high);
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+    .transactional-error__body {
+      color: var(--text-high);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .transactional-error__retry {
+      margin-top: 10px;
+      padding: 8px 16px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      border: 0;
+      border-radius: var(--shape-pill);
+      background: var(--surface-bold);
+      color: #fff;
+      cursor: pointer;
+    }
+    .transactional-error__retry:hover { background: #5a12b0; }
+
+    /* ==========================================================
+       P2 — Mid-Conversation Connection Loss Spec v0.1
+       Showcase visual states. Source spec lives at
+       Omni_Mid_Conversation_Connection_Loss_Spec_v0.1.md.
+       Visual language deliberately reuses the §6 framework
+       treatments above — same surface tokens, same dot
+       indicators, no red, animations under 220 ms.
+       ========================================================== */
+
+    /* Sustained / permanent voice loss — softens the avatar so the
+       agent UX reads as "disconnected" without going alarming. */
+    .voice-overlay--disconnected #avatarCenter {
+      filter: grayscale(0.85) brightness(0.92);
+      opacity: 0.6;
+      transition: filter 220ms ease, opacity 220ms ease;
+    }
+
+    /* Small inline offline dot — sits next to thinking lines, agent
+       UX, or partial assistant bubbles during a dip. Grey, not red. */
+    .offline-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: rgba(12,13,16,0.32);
+      margin-left: 8px;
+      vertical-align: middle;
+      animation: offlineDotPulse 1.4s ease-in-out infinite;
+    }
+    @keyframes offlineDotPulse {
+      0%, 100% { opacity: 0.32; }
+      50%      { opacity: 0.85; }
+    }
+    /* Voice-overlay variant — pinned next to the avatar UX. */
+    .voice-overlay > .offline-dot {
+      position: absolute;
+      top: 50%;
+      right: 24px;
+      transform: translateY(-50%);
+      z-index: 4;
+      width: 10px; height: 10px;
+    }
+
+    /* Voice retry actions — two-button row inside the voice overlay
+       for §3.1 sustained ("try again" / "switch to chat"). */
+    .voice-retry-actions {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 130px;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: errorHandoffIn 220ms ease-out;
+    }
+    .voice-retry-actions__btn {
+      width: 100%;
+      padding: 12px 18px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: var(--shape-pill);
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+    .voice-retry-actions__btn--primary {
+      border: 0;
+      background: var(--surface-bold);
+      color: #fff;
+    }
+    .voice-retry-actions__btn--primary:hover { background: #5a12b0; }
+    .voice-retry-actions__btn--secondary {
+      border: 1.5px solid rgba(12,13,16,0.18);
+      background: #fff;
+      color: var(--text-high);
+    }
+    .voice-retry-actions__btn--secondary:hover { background: var(--stroke-subtle); }
+
+    /* Soft retry card — neutral chat card with body + one or two
+       buttons. Used by §3.2 and §3.3 sustained / permanent. */
+    .soft-retry-card {
+      width: 100%;
+      align-self: flex-start;
+      margin: 8px 0;
+      padding: 14px;
+      border-radius: var(--shape-4xl);
+      background: var(--surface-minimal);
+      animation: bubbleIn 0.3s ease;
+    }
+    .soft-retry-card__title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--text-high);
+    }
+    .soft-retry-card__body {
+      color: var(--text-high);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .soft-retry-card__caption {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(12,13,16,0.04);
+      color: var(--text-low);
+      font-size: 11px;
+      line-height: 1.35;
+      font-style: italic;
+    }
+    .soft-retry-card__actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .soft-retry-card__btn {
+      flex: 1;
+      padding: 9px 14px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: var(--shape-pill);
+      cursor: pointer;
+      transition: background 150ms ease;
+    }
+    .soft-retry-card__btn--primary {
+      border: 0;
+      background: var(--surface-bold);
+      color: #fff;
+    }
+    .soft-retry-card__btn--primary:hover { background: #5a12b0; }
+    .soft-retry-card__btn--secondary {
+      border: 1.5px solid rgba(12,13,16,0.18);
+      background: #fff;
+      color: var(--text-high);
+    }
+    .soft-retry-card__btn--secondary:hover { background: #fff; opacity: 0.9; }
+
+    /* Truncated assistant bubble — partial response with truncation
+       marker per PRD §7.2. Two actions on the bubble for sustained;
+       single action for permanent. */
+    /* Match the live .ai-response styling (full-width, no container) so error
+       and resumption scenarios render true-to-life rather than as sandbox pills.
+       Modifiers below (.is-in-progress, .is-truncated, truncation marker,
+       action chips) layer on top of this and still work. */
+    .assistant-bubble--p2 {
+      align-self: flex-start;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 8px 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--text-high);
+      font-size: 16px;
+      line-height: 1.3;
+      animation: bubbleIn 0.3s ease;
+    }
+    .assistant-bubble--p2.is-in-progress {
+      opacity: 0.65;
+    }
+    /* ⋯ trails the partial text inline. Attach to the first child (the text
+       div) rather than the host element so it doesn't drop below the action
+       chips when the host is full-width. */
+    .assistant-bubble--p2.is-truncated > div:first-child::after {
+      content: '⋯';
+      display: inline-block;
+      margin-left: 4px;
+      color: rgba(12,13,16,0.45);
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .assistant-bubble__truncation-marker {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(12,13,16,0.14);
+      color: var(--text-low);
+      font-size: 12px;
+      font-style: italic;
+    }
+    .assistant-bubble__bubble-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .assistant-bubble__action-btn {
+      padding: 6px 12px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid rgba(12,13,16,0.14);
+      border-radius: var(--shape-pill);
+      background: #fff;
+      color: var(--text-high);
+      cursor: pointer;
+    }
+    .assistant-bubble__action-btn--primary {
+      background: var(--surface-bold);
+      border-color: var(--surface-bold);
+      color: #fff;
+    }
+
+    /* User bubble used to seed sample threads in P2 scenarios. Mirrors the
+       live .user-bubble styling (grey, asymmetric corner) so seeded threads
+       look identical to real ones. */
+    .user-bubble--p2 {
+      align-self: flex-end;
+      max-width: 80%;
+      margin: 8px 0;
+      padding: 12px 16px;
+      border-radius: 24px 24px 0 24px;
+      background: #f5f5f5;
+      color: var(--text-high);
+      font-size: 14px;
+      line-height: 1.3;
+    }
+
+    /* Chat draft offline — shows the input bar with a disabled Send
+       and an inline note. For sustained, also a banner above the
+       thread. Mocks the input surface (we don't reuse the real one
+       because we don't want to push an actual input flow). */
+    .chat-draft-offline {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 24px;
+      z-index: 5;
+      animation: errorHandoffIn 220ms ease-out;
+    }
+    .chat-draft-offline__bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid rgba(12,13,16,0.14);
+      border-radius: var(--shape-4xl);
+      background: #fff;
+    }
+    .chat-draft-offline__draft {
+      flex: 1;
+      color: var(--text-high);
+      font-size: 14px;
+      line-height: 1.3;
+      min-height: 18px;
+    }
+    .chat-draft-offline__draft.is-empty { color: var(--text-low); }
+    .chat-draft-offline__send {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: rgba(12,13,16,0.12);
+      color: rgba(12,13,16,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: not-allowed;
+      flex-shrink: 0;
+    }
+    .chat-draft-offline__note {
+      margin-top: 8px;
+      padding: 0 4px;
+      color: var(--text-low);
+      font-size: 12px;
+      line-height: 1.35;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Rich content retry tile (§3.8) — replaces the card area with a
+       single tile when the rich content fetch fails. The voice
+       summary above stays. */
+    .rich-content-retry-tile {
+      align-self: stretch;
+      margin: 8px 0;
+      padding: 18px 16px;
+      border: 1px dashed rgba(12,13,16,0.18);
+      border-radius: var(--shape-4xl);
+      background: rgba(12,13,16,0.02);
+      text-align: center;
+      animation: bubbleIn 0.3s ease;
+    }
+    .rich-content-retry-tile__body {
+      color: var(--text-medium);
+      font-size: 13px;
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+    .rich-content-retry-tile__actions {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+    .rich-content-retry-tile__btn {
+      padding: 8px 16px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: var(--shape-pill);
+      cursor: pointer;
+    }
+    .rich-content-retry-tile__btn--primary {
+      border: 0;
+      background: var(--surface-bold);
+      color: #fff;
+    }
+    .rich-content-retry-tile__btn--secondary {
+      border: 1.5px solid rgba(12,13,16,0.18);
+      background: #fff;
+      color: var(--text-high);
+    }
+
+    /* Transactional pending / confirmed cards (§6) — reference number
+       chip is the load-bearing element; visible from second one. */
+    .txn-pending-card,
+    .txn-confirmed-card {
+      width: 100%;
+      align-self: flex-start;
+      margin: 8px 0;
+      padding: 14px;
+      border-radius: var(--shape-4xl);
+      background: var(--surface-minimal);
+      animation: bubbleIn 0.3s ease;
+    }
+    .txn-confirmed-card { background: rgba(34, 139, 90, 0.07); }
+    .txn-card__head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .txn-card__head-label {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-high);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .txn-card__amount {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text-high);
+    }
+    .txn-card__chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--shape-pill);
+      background: rgba(12,13,16,0.06);
+      color: var(--text-medium);
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .txn-card__chip--confirmed {
+      background: rgba(34, 139, 90, 0.14);
+      color: rgb(28, 110, 72);
+    }
+    .txn-card__chip-spinner {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--text-medium);
+      animation: offlineDotPulse 1.4s ease-in-out infinite;
+    }
+    .txn-card__body {
+      color: var(--text-high);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .txn-card__refrow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(12,13,16,0.04);
+    }
+    .txn-card__reflabel {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-low);
+      font-weight: 600;
+    }
+    .txn-card__refcode {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-high);
+    }
+    .txn-card__retry {
+      margin-top: 10px;
+      padding: 9px 16px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      border: 0;
+      border-radius: var(--shape-pill);
+      background: var(--surface-bold);
+      color: #fff;
+      cursor: pointer;
+    }
+
+    /* Reconnect toast (§4.8) — soft pill at top of overlay. */
+    .reconnect-toast {
+      position: absolute;
+      top: 64px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 6;
+      padding: 8px 16px;
+      border-radius: var(--shape-pill);
+      background: rgba(12,13,16,0.85);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(12,13,16,0.18);
+      animation: reconnectToastIn 280ms ease-out;
+    }
+    @keyframes reconnectToastIn {
+      from { opacity: 0; transform: translate(-50%, -8px); }
+      to   { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    /* Thread gap divider (§4.7) — thin inline divider for the chat
+       thread. Caption sits centred over a dashed line. */
+    .thread-gap-divider {
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 14px 0;
+      padding: 0 4px;
+      color: var(--text-low);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .thread-gap-divider::before,
+    .thread-gap-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(12,13,16,0.16), transparent);
+    }
+
+    /* Voice buffer overflow note (§4.2) — short transient line just
+       under the listening hint area. */
+    .voice-buffer-note {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 220px;
+      z-index: 4;
+      text-align: center;
+      color: var(--text-medium);
+      font-size: 14px;
+      line-height: 1.3;
+      padding: 0 32px;
+      animation: errorHandoffIn 220ms ease-out;
+    }
+
+    /* Pre-flight network steer (Decision 1) — replaces the home
+       Speak CTA with a steering note. Override link still available. */
+    .preflight-network-steer {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 96px;
+      z-index: 6;
+      padding: 14px 16px;
+      border-radius: var(--shape-4xl);
+      background: #fff;
+      border: 1px solid rgba(12,13,16,0.10);
+      box-shadow: 0 6px 18px rgba(12,13,16,0.08);
+      animation: errorHandoffIn 220ms ease-out;
+    }
+    .preflight-network-steer__head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-high);
+      font-size: 14px;
+      line-height: 1.35;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    .preflight-network-steer__signal {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgb(195, 130, 24);
+      flex-shrink: 0;
+    }
+    .preflight-network-steer__actions {
+      display: flex;
+      gap: 8px;
+    }
+    .preflight-network-steer__btn {
+      flex: 1;
+      padding: 9px 14px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: var(--shape-pill);
+      cursor: pointer;
+    }
+    .preflight-network-steer__btn--primary {
+      border: 0;
+      background: var(--surface-bold);
+      color: #fff;
+    }
+    .preflight-network-steer__btn--secondary {
+      border: 1.5px solid rgba(12,13,16,0.18);
+      background: #fff;
+      color: var(--text-medium);
+    }
+
+    /* About blip — meta caption explaining why the blip tier has no
+       UI. Centred in the voice overlay. */
+    .about-blip-caption {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 160px;
+      z-index: 4;
+      padding: 18px 18px;
+      border-radius: 16px;
+      background: rgba(12,13,16,0.04);
+      color: var(--text-medium);
+      font-size: 13px;
+      line-height: 1.5;
+      text-align: center;
+      animation: errorHandoffIn 220ms ease-out;
+    }
+    .about-blip-caption strong {
+      display: block;
+      color: var(--text-high);
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 6px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
   </style>
 </head>
 <body>
@@ -3163,16 +3974,14 @@
          refreshResumeStrip(). -->
     <div class="resume-strip" id="resumeStrip" role="status" aria-live="polite" hidden>
       <div class="resume-strip__copy">
-        <div class="resume-strip__header">Pick up where you left off</div>
+        <div class="resume-strip__header">Continue chat?</div>
         <div class="resume-strip__summary">
-          <span id="resumeSummary"></span>
-          <span class="resume-strip__sep" aria-hidden="true">·</span>
-          <span id="resumeAge"></span>
+          <span id="resumeSummary"></span><span class="resume-strip__sep" aria-hidden="true"> • </span><span id="resumeAge"></span>
         </div>
       </div>
       <div class="resume-strip__actions">
-        <button class="resume-strip__btn resume-strip__btn--primary" id="resumeBtn" type="button">Resume</button>
         <button class="resume-strip__btn resume-strip__btn--secondary" id="discardBtn" type="button">Discard</button>
+        <button class="resume-strip__btn resume-strip__btn--primary" id="resumeBtn" type="button">Resume</button>
       </div>
     </div>
   </div>
@@ -3655,6 +4464,978 @@
     showResponse(text);
   }
 
+  // ===========================================================================
+  // Omni Error Language Framework — showcase runtime.
+  // Driven by the Error scenarios dropdown in place-playground.html. Visual
+  // demos only — does NOT rewire real failure paths in the live app.
+  // Spec: Omni_Error_Language_Framework_v0.1.md §6.
+  // ===========================================================================
+  let __errorWatchdogTimers = [];
+
+  function __resetErrorScenarioState() {
+    // Wipe banners, hand-off cards, notes, and transactional cards.
+    // P2 (Mid-Conversation Connection Loss) DOM also cleared here.
+    document.querySelectorAll([
+      '.chat-error-banner',
+      '.error-settings-handoff',
+      '.tts-down-note',
+      '.transactional-error',
+      '.watchdog-step',
+      '.offline-dot',
+      '.voice-retry-actions',
+      '.soft-retry-card',
+      '.assistant-bubble--p2',
+      '.user-bubble--p2',
+      '.thinking-row.is-scenario-seed',
+      '.chat-draft-offline',
+      '.rich-content-retry-tile',
+      '.txn-pending-card',
+      '.txn-confirmed-card',
+      '.reconnect-toast',
+      '.thread-gap-divider',
+      '.voice-buffer-note',
+      '.preflight-network-steer',
+      '.about-blip-caption',
+    ].join(', ')).forEach(n => n.remove());
+    // Stop the keyboard-icon pulse (§6.7).
+    document.querySelectorAll('.kb-icon-pulse')
+      .forEach(n => n.classList.remove('kb-icon-pulse'));
+    // Cancel any in-flight watchdog timeline (§6.5).
+    __errorWatchdogTimers.forEach(t => clearTimeout(t));
+    __errorWatchdogTimers = [];
+    // Drop the error sub-state from the voice overlay.
+    if (overlay) {
+      overlay.classList.remove('voice-overlay--error');
+      overlay.classList.remove('voice-overlay--disconnected');
+      // Also strip surface-mode classes so a chat-mode P2 scenario doesn't
+      // leak into a subsequent voice-mode scenario (and vice-versa). The
+      // dispatch arms re-apply the right surface mode after the reset.
+      overlay.classList.remove('chat-active', 'text-mode', 'kb-mode');
+    }
+    // Clear the default voice-status line so the framework copy lands on a
+    // blank slate (no "Connecting..." bleed-through).
+    if (statusText) {
+      statusText.textContent = '';
+      statusText.classList.remove('visible');
+    }
+    // Reset listening hint copy + visibility.
+    const lh = document.getElementById('voiceListeningHint');
+    if (lh) {
+      lh.classList.remove('show');
+      const span = lh.querySelector('span');
+      if (span) span.textContent = 'Listening...';
+    }
+  }
+
+  // Bring the voice overlay onto screen for showcase scenarios — without
+  // acquiring the mic or firing speech recognition. Pure visual state.
+  function __showVoiceShell() {
+    if (typeof resetKeyboardMode === 'function') resetKeyboardMode();
+    overlay.classList.remove('text-mode', 'kb-mode', 'kb-hidden', 'has-text', 'listening-mode', 'glow');
+    overlay.classList.add('active');
+    if (spinner) {
+      spinner.classList.remove('visible');
+      try { spinner.pause(); } catch (e) {}
+    }
+    if (botDots) botDots.classList.remove('visible', 'listening');
+    if (avatarCenter) {
+      avatarCenter.classList.add('visible');
+      try { avatarCenter.play().catch(() => {}); } catch (e) {}
+    }
+    if (voiceAvatarArea) voiceAvatarArea.classList.remove('visible');
+    if (statusText) {
+      statusText.textContent = 'Say something...';
+      statusText.classList.add('visible');
+    }
+  }
+
+  function __setVoiceErrorSubtext(text) {
+    if (!statusText) return;
+    statusText.textContent = text;
+    statusText.classList.add('visible');
+  }
+
+  function __mountChatBanner(text, hostOverride) {
+    const banner = document.createElement('div');
+    banner.className = 'chat-error-banner';
+    banner.innerHTML = '<span class="chat-error-banner__dot"></span><span></span>';
+    banner.lastElementChild.textContent = text;
+    // For voice-context scenarios, append directly to the overlay so the
+    // banner is visible above the avatar/dots. For chat-mode scenarios,
+    // prepend into the visible chat thread.
+    const host = hostOverride || (overlay.classList.contains('text-mode') ? chatMessages : overlay);
+    if (host === overlay) host.appendChild(banner); else host.prepend(banner);
+  }
+
+  function __renderChatModeWithBanner(text) {
+    // Open the chat surface (text mode) so the banner has a thread to sit on.
+    if (typeof openTypingMode === 'function') openTypingMode();
+    // chat-active reveals chatMessages and hides the greeting (line 2440).
+    overlay.classList.add('chat-active');
+    if (text) __mountChatBanner(text);
+  }
+
+  function __mountTransactionalCard(body, retryLabel) {
+    const card = document.createElement('div');
+    card.className = 'transactional-error';
+    const head = document.createElement('div');
+    head.className = 'transactional-error__head';
+    head.innerHTML = '<span class="chat-error-banner__dot"></span><span></span>';
+    head.lastElementChild.textContent = 'Payment didn\'t go through';
+    const bodyEl = document.createElement('div');
+    bodyEl.className = 'transactional-error__body';
+    bodyEl.textContent = body;
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.className = 'transactional-error__retry';
+    retry.textContent = retryLabel;
+    card.appendChild(head);
+    card.appendChild(bodyEl);
+    card.appendChild(retry);
+    if (chatMessages) chatMessages.appendChild(card);
+  }
+
+  function __mountTtsDownNote(noteText, bodyText) {
+    const wrap = document.createElement('div');
+    wrap.className = 'tts-down-note';
+    wrap.innerHTML = '<span class="tts-down-note__icon">🔇</span><span></span>';
+    wrap.lastElementChild.textContent = noteText;
+    if (chatMessages) {
+      const bubble = document.createElement('div');
+      bubble.className = 'text-response';
+      const headline = document.createElement('p');
+      headline.className = 'text-response__headline';
+      headline.textContent = bodyText;
+      bubble.appendChild(headline);
+      chatMessages.appendChild(wrap);
+      chatMessages.appendChild(bubble);
+    }
+  }
+
+  function __mountSettingsHandoff(htmlText) {
+    const card = document.createElement('div');
+    card.className = 'error-settings-handoff';
+    const grabber = document.createElement('div');
+    grabber.className = 'error-settings-handoff__grabber';
+    card.appendChild(grabber);
+    const header = document.createElement('div');
+    header.className = 'error-settings-handoff__header';
+    header.textContent = 'Settings ▸ Privacy';
+    const row = document.createElement('div');
+    row.className = 'error-settings-handoff__row';
+    const label = document.createElement('strong');
+    label.textContent = 'Microphone';
+    const toggle = document.createElement('span');
+    toggle.className = 'error-settings-handoff__toggle';
+    row.appendChild(label);
+    row.appendChild(toggle);
+    const msg = document.createElement('div');
+    msg.className = 'error-settings-handoff__msg';
+    // Allow the **bold** marker from the framework copy through as <strong>.
+    const escaped = htmlText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    msg.innerHTML = escaped.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    card.appendChild(header);
+    card.appendChild(row);
+    card.appendChild(msg);
+    overlay.appendChild(card);
+  }
+
+  function __pulseKeyboardIcon() {
+    // Pulse the keyboard button in .voice-actions to draw the eye toward
+    // typing as the alternative path (§6.7).
+    const kbBtn = document.querySelector('.voice-actions .voice-action-btn[aria-label="Keyboard"]');
+    if (kbBtn) kbBtn.classList.add('kb-icon-pulse');
+  }
+
+  // ===========================================================================
+  // P2 — Mid-Conversation Connection Loss · helpers
+  // Spec: Omni_Mid_Conversation_Connection_Loss_Spec_v0.1.md
+  // Each helper renders one specific visual treatment from §3, §4, or §6.
+  // None of these wire up real network detection — they're pure showcase.
+  // ===========================================================================
+
+  function __seedSampleThread({userTurn, assistantTurn, container} = {}) {
+    // Render the chat surface and seed a tiny sample thread so cards/dividers
+    // have context to land on. Returns the host element to append further DOM.
+    if (typeof openTypingMode === 'function') openTypingMode();
+    overlay.classList.add('chat-active');
+    const host = container || chatMessages;
+    if (!host) return null;
+    if (userTurn) {
+      const u = document.createElement('div');
+      u.className = 'user-bubble--p2';
+      u.textContent = userTurn;
+      host.appendChild(u);
+    }
+    if (assistantTurn) {
+      const a = document.createElement('div');
+      a.className = 'assistant-bubble--p2';
+      a.textContent = assistantTurn;
+      host.appendChild(a);
+    }
+    return host;
+  }
+
+  function __mountOfflineDot(target) {
+    // Append a small grey "we're trying" dot to the given target. If no
+    // target is provided, pin one to the voice overlay edge.
+    const dot = document.createElement('span');
+    dot.className = 'offline-dot';
+    (target || overlay).appendChild(dot);
+    return dot;
+  }
+
+  function __setDisconnectedAvatar() {
+    if (overlay) overlay.classList.add('voice-overlay--disconnected');
+  }
+
+  function __mountVoiceRetryActions({retryLabel, switchLabel}) {
+    const wrap = document.createElement('div');
+    wrap.className = 'voice-retry-actions';
+    if (retryLabel) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'voice-retry-actions__btn voice-retry-actions__btn--primary';
+      btn.textContent = retryLabel;
+      wrap.appendChild(btn);
+    }
+    if (switchLabel) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'voice-retry-actions__btn voice-retry-actions__btn--secondary';
+      btn.textContent = switchLabel;
+      wrap.appendChild(btn);
+    }
+    overlay.appendChild(wrap);
+    return wrap;
+  }
+
+  function __mountSoftRetryCard({title, body, primaryLabel, secondaryLabel, caption}) {
+    const card = document.createElement('div');
+    card.className = 'soft-retry-card';
+    if (title) {
+      const t = document.createElement('div');
+      t.className = 'soft-retry-card__title';
+      t.innerHTML = '<span class="chat-error-banner__dot"></span><span></span>';
+      t.lastElementChild.textContent = title;
+      card.appendChild(t);
+    }
+    const b = document.createElement('div');
+    b.className = 'soft-retry-card__body';
+    b.textContent = body;
+    card.appendChild(b);
+    if (caption) {
+      const cap = document.createElement('div');
+      cap.className = 'soft-retry-card__caption';
+      cap.textContent = caption;
+      card.appendChild(cap);
+    }
+    if (primaryLabel || secondaryLabel) {
+      const actions = document.createElement('div');
+      actions.className = 'soft-retry-card__actions';
+      if (primaryLabel) {
+        const pb = document.createElement('button');
+        pb.type = 'button';
+        pb.className = 'soft-retry-card__btn soft-retry-card__btn--primary';
+        pb.textContent = primaryLabel;
+        actions.appendChild(pb);
+      }
+      if (secondaryLabel) {
+        const sb = document.createElement('button');
+        sb.type = 'button';
+        sb.className = 'soft-retry-card__btn soft-retry-card__btn--secondary';
+        sb.textContent = secondaryLabel;
+        actions.appendChild(sb);
+      }
+      card.appendChild(actions);
+    }
+    if (chatMessages) chatMessages.appendChild(card);
+    return card;
+  }
+
+  function __mountTruncatedBubble({partialText, marker, replayLabel, askAgainLabel, inProgress = false}) {
+    const bubble = document.createElement('div');
+    bubble.className = 'assistant-bubble--p2 ' + (inProgress ? 'is-in-progress' : 'is-truncated');
+    const text = document.createElement('div');
+    text.textContent = partialText;
+    bubble.appendChild(text);
+    if (marker) {
+      const m = document.createElement('div');
+      m.className = 'assistant-bubble__truncation-marker';
+      m.innerHTML = '<span class="offline-dot" style="margin:0;"></span><span></span>';
+      m.lastElementChild.textContent = marker;
+      bubble.appendChild(m);
+    }
+    if (replayLabel || askAgainLabel) {
+      const actions = document.createElement('div');
+      actions.className = 'assistant-bubble__bubble-actions';
+      if (replayLabel) {
+        const r = document.createElement('button');
+        r.type = 'button';
+        r.className = 'assistant-bubble__action-btn';
+        r.textContent = replayLabel;
+        actions.appendChild(r);
+      }
+      if (askAgainLabel) {
+        const a = document.createElement('button');
+        a.type = 'button';
+        a.className = 'assistant-bubble__action-btn assistant-bubble__action-btn--primary';
+        a.textContent = askAgainLabel;
+        actions.appendChild(a);
+      }
+      bubble.appendChild(actions);
+    }
+    if (chatMessages) chatMessages.appendChild(bubble);
+    return bubble;
+  }
+
+  function __mountChatDraftBar({draftText, inlineNote, bannerNote}) {
+    // For sustained, the spec calls for a banner above the thread as well
+    // as the disabled-Send input bar.
+    if (bannerNote) __mountChatBanner(bannerNote);
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-draft-offline';
+    const bar = document.createElement('div');
+    bar.className = 'chat-draft-offline__bar';
+    const draft = document.createElement('div');
+    draft.className = 'chat-draft-offline__draft';
+    if (draftText) draft.textContent = draftText;
+    else { draft.classList.add('is-empty'); draft.textContent = 'Type your message…'; }
+    const send = document.createElement('div');
+    send.className = 'chat-draft-offline__send';
+    send.setAttribute('aria-label', 'Send (offline)');
+    send.textContent = '↑';
+    bar.appendChild(draft);
+    bar.appendChild(send);
+    wrap.appendChild(bar);
+    if (inlineNote) {
+      const note = document.createElement('div');
+      note.className = 'chat-draft-offline__note';
+      note.innerHTML = '<span class="offline-dot" style="margin:0;"></span><span></span>';
+      note.lastElementChild.textContent = inlineNote;
+      wrap.appendChild(note);
+    }
+    overlay.appendChild(wrap);
+    return wrap;
+  }
+
+  function __mountRichContentRetryTile({body, retryLabel, askDifferentLabel}) {
+    const tile = document.createElement('div');
+    tile.className = 'rich-content-retry-tile';
+    const b = document.createElement('div');
+    b.className = 'rich-content-retry-tile__body';
+    b.textContent = body;
+    const actions = document.createElement('div');
+    actions.className = 'rich-content-retry-tile__actions';
+    if (retryLabel) {
+      const r = document.createElement('button');
+      r.type = 'button';
+      r.className = 'rich-content-retry-tile__btn rich-content-retry-tile__btn--primary';
+      r.textContent = retryLabel;
+      actions.appendChild(r);
+    }
+    if (askDifferentLabel) {
+      const a = document.createElement('button');
+      a.type = 'button';
+      a.className = 'rich-content-retry-tile__btn rich-content-retry-tile__btn--secondary';
+      a.textContent = askDifferentLabel;
+      actions.appendChild(a);
+    }
+    tile.appendChild(b);
+    tile.appendChild(actions);
+    if (chatMessages) chatMessages.appendChild(tile);
+    return tile;
+  }
+
+  function __mountTxnPendingCard({purpose, amount, refCode, statusChip, body, retryLabel, withSpinner = true}) {
+    const card = document.createElement('div');
+    card.className = 'txn-pending-card';
+    const head = document.createElement('div');
+    head.className = 'txn-card__head';
+    const headLabel = document.createElement('div');
+    headLabel.className = 'txn-card__head-label';
+    headLabel.textContent = purpose || 'Payment';
+    const amt = document.createElement('div');
+    amt.className = 'txn-card__amount';
+    amt.textContent = amount || '';
+    head.appendChild(headLabel);
+    head.appendChild(amt);
+    card.appendChild(head);
+
+    if (statusChip) {
+      const chipRow = document.createElement('div');
+      chipRow.style.marginBottom = '8px';
+      const chip = document.createElement('span');
+      chip.className = 'txn-card__chip';
+      if (withSpinner) {
+        const sp = document.createElement('span');
+        sp.className = 'txn-card__chip-spinner';
+        chip.appendChild(sp);
+      }
+      const t = document.createElement('span');
+      t.textContent = statusChip;
+      chip.appendChild(t);
+      chipRow.appendChild(chip);
+      card.appendChild(chipRow);
+    }
+
+    const b = document.createElement('div');
+    b.className = 'txn-card__body';
+    b.textContent = body;
+    card.appendChild(b);
+
+    if (refCode) {
+      const refrow = document.createElement('div');
+      refrow.className = 'txn-card__refrow';
+      const lbl = document.createElement('span');
+      lbl.className = 'txn-card__reflabel';
+      lbl.textContent = 'Reference';
+      const code = document.createElement('span');
+      code.className = 'txn-card__refcode';
+      code.textContent = refCode;
+      refrow.appendChild(lbl);
+      refrow.appendChild(code);
+      card.appendChild(refrow);
+    }
+
+    if (retryLabel) {
+      const r = document.createElement('button');
+      r.type = 'button';
+      r.className = 'txn-card__retry';
+      r.textContent = retryLabel;
+      card.appendChild(r);
+    }
+
+    if (chatMessages) chatMessages.appendChild(card);
+    return card;
+  }
+
+  function __mountTxnConfirmedCard({purpose, amount, refCode, statusChip, body}) {
+    const card = document.createElement('div');
+    card.className = 'txn-confirmed-card';
+    const head = document.createElement('div');
+    head.className = 'txn-card__head';
+    const headLabel = document.createElement('div');
+    headLabel.className = 'txn-card__head-label';
+    headLabel.textContent = purpose || 'Payment';
+    const amt = document.createElement('div');
+    amt.className = 'txn-card__amount';
+    amt.textContent = amount || '';
+    head.appendChild(headLabel);
+    head.appendChild(amt);
+    card.appendChild(head);
+
+    if (statusChip) {
+      const chipRow = document.createElement('div');
+      chipRow.style.marginBottom = '8px';
+      const chip = document.createElement('span');
+      chip.className = 'txn-card__chip txn-card__chip--confirmed';
+      const tick = document.createElement('span');
+      tick.textContent = '✓';
+      tick.style.fontWeight = '700';
+      chip.appendChild(tick);
+      const t = document.createElement('span');
+      t.textContent = statusChip;
+      chip.appendChild(t);
+      chipRow.appendChild(chip);
+      card.appendChild(chipRow);
+    }
+
+    const b = document.createElement('div');
+    b.className = 'txn-card__body';
+    b.textContent = body;
+    card.appendChild(b);
+
+    if (refCode) {
+      const refrow = document.createElement('div');
+      refrow.className = 'txn-card__refrow';
+      const lbl = document.createElement('span');
+      lbl.className = 'txn-card__reflabel';
+      lbl.textContent = 'Reference';
+      const code = document.createElement('span');
+      code.className = 'txn-card__refcode';
+      code.textContent = refCode;
+      refrow.appendChild(lbl);
+      refrow.appendChild(code);
+      card.appendChild(refrow);
+    }
+
+    if (chatMessages) chatMessages.appendChild(card);
+    return card;
+  }
+
+  function __mountReconnectToast(text) {
+    const toast = document.createElement('div');
+    toast.className = 'reconnect-toast';
+    toast.textContent = text;
+    overlay.appendChild(toast);
+    return toast;
+  }
+
+  function __mountThreadGapDivider(text) {
+    const div = document.createElement('div');
+    div.className = 'thread-gap-divider';
+    const span = document.createElement('span');
+    span.textContent = text;
+    div.appendChild(span);
+    if (chatMessages) chatMessages.appendChild(div);
+    return div;
+  }
+
+  function __mountVoiceBufferNote(text) {
+    const note = document.createElement('div');
+    note.className = 'voice-buffer-note';
+    note.textContent = text;
+    overlay.appendChild(note);
+    return note;
+  }
+
+  function __mountPreflightSteer({steerNote, primaryLabel, overrideLabel}) {
+    const card = document.createElement('div');
+    card.className = 'preflight-network-steer';
+    const head = document.createElement('div');
+    head.className = 'preflight-network-steer__head';
+    const sig = document.createElement('span');
+    sig.className = 'preflight-network-steer__signal';
+    const txt = document.createElement('span');
+    txt.textContent = steerNote;
+    head.appendChild(sig);
+    head.appendChild(txt);
+    const actions = document.createElement('div');
+    actions.className = 'preflight-network-steer__actions';
+    if (primaryLabel) {
+      const p = document.createElement('button');
+      p.type = 'button';
+      p.className = 'preflight-network-steer__btn preflight-network-steer__btn--primary';
+      p.textContent = primaryLabel;
+      actions.appendChild(p);
+    }
+    if (overrideLabel) {
+      const o = document.createElement('button');
+      o.type = 'button';
+      o.className = 'preflight-network-steer__btn preflight-network-steer__btn--secondary';
+      o.textContent = overrideLabel;
+      actions.appendChild(o);
+    }
+    card.appendChild(head);
+    card.appendChild(actions);
+    overlay.appendChild(card);
+    return card;
+  }
+
+  function __mountAboutBlipCaption(text) {
+    const wrap = document.createElement('div');
+    wrap.className = 'about-blip-caption';
+    const lbl = document.createElement('strong');
+    lbl.textContent = 'Blip · <2s · silent by design';
+    const body = document.createElement('span');
+    body.textContent = text;
+    wrap.appendChild(lbl);
+    wrap.appendChild(body);
+    overlay.appendChild(wrap);
+    return wrap;
+  }
+
+  function __runWatchdogReveal(stepCopy) {
+    // Three-step reveal: 3s → 8s → 15s, matching framework §6.5.
+    __showVoiceShell();
+    overlay.classList.add('voice-overlay--error');
+    // Hide the default voice-status while the watchdog line is on screen.
+    if (statusText) statusText.classList.remove('visible');
+    // Mount inside the overlay (not chatMessages, which is display:none in
+    // voice mode) so the step copy is actually visible.
+    const host = overlay;
+    if (!host) return;
+    const step = document.createElement('div');
+    step.className = 'watchdog-step';
+    const line = document.createElement('div');
+    line.className = 'watchdog-step__line';
+    const dots = document.createElement('div');
+    dots.className = 'watchdog-step__dots';
+    for (let i = 0; i < 3; i++) {
+      const d = document.createElement('span');
+      d.className = 'watchdog-step__dot';
+      dots.appendChild(d);
+    }
+    step.appendChild(line);
+    step.appendChild(dots);
+    host.appendChild(step);
+
+    const setStep = (n) => {
+      const lines = [stepCopy.step1, stepCopy.step2, stepCopy.step3];
+      line.textContent = lines[n - 1] || '';
+      const ds = dots.querySelectorAll('.watchdog-step__dot');
+      ds.forEach((d, i) => {
+        d.classList.toggle('is-active', i === n - 1);
+        d.classList.toggle('is-done', i < n - 1);
+      });
+    };
+
+    // Framework §6.5 cumulative markers: 3s / 8s / 15s. Showcase starts at
+    // step 1 (the 3s mark) and advances to step 2 after 5s (8s cumulative)
+    // and step 3 after 12s (15s cumulative). Restart pill appears once
+    // step 3 has had a moment to be read.
+    setStep(1);
+    __errorWatchdogTimers.push(setTimeout(() => setStep(2), 5000));
+    __errorWatchdogTimers.push(setTimeout(() => setStep(3), 12000));
+    __errorWatchdogTimers.push(setTimeout(() => {
+      const restart = document.createElement('button');
+      restart.type = 'button';
+      restart.className = 'watchdog-restart-btn';
+      restart.textContent = 'Restart timeline';
+      restart.addEventListener('click', () => {
+        try {
+          const lang = (window.__lastErrorScenarioLang || 'en');
+          window.runPrototypeErrorScenario('watchdog', lang);
+        } catch (e) {}
+      });
+      step.appendChild(restart);
+    }, 14000));
+  }
+
+  function runPrototypeErrorScenario(id, lang) {
+    const scenarios = window.ERROR_SCENARIOS || {};
+    const sc = scenarios[id];
+    if (!sc) {
+      console.warn('Unknown error scenario:', id);
+      return;
+    }
+    const langKey = (lang === 'hi') ? 'hi' : 'en';
+    const copy = sc[langKey];
+    if (!copy) return;
+    window.__lastErrorScenarioLang = langKey;
+
+    if (typeof closePrototypesPanel === 'function') closePrototypesPanel();
+    if (typeof closeMenuPanel === 'function') closeMenuPanel();
+    __resetErrorScenarioState();
+
+    switch (sc.handler) {
+      case 'connection-initial': {
+        // Voice subtext + chat banner. Show voice shell with the error subtext
+        // and pre-mount the chat banner for when the user drops to chat.
+        __showVoiceShell();
+        overlay.classList.add('voice-overlay--error');
+        __setVoiceErrorSubtext(copy.voiceSubtext);
+        __mountChatBanner(copy.chatBanner);
+        break;
+      }
+      case 'connection-mid': {
+        __showVoiceShell();
+        overlay.classList.add('voice-overlay--error');
+        __setVoiceErrorSubtext(copy.voiceSubtext);
+        __mountChatBanner(copy.chatBanner);
+        break;
+      }
+      case 'mic-permission': {
+        __showVoiceShell();
+        overlay.classList.add('voice-overlay--error');
+        __setVoiceErrorSubtext(copy.voiceSubtext);
+        __mountSettingsHandoff(copy.settingsHandoff);
+        break;
+      }
+      case 'mic-busy': {
+        __showVoiceShell();
+        overlay.classList.add('voice-overlay--error');
+        __setVoiceErrorSubtext(copy.voiceSubtext);
+        break;
+      }
+      case 'watchdog': {
+        __runWatchdogReveal(copy);
+        break;
+      }
+      case 'voice-miss-1': {
+        __showVoiceShell();
+        overlay.classList.add('voice-overlay--error');
+        __setVoiceErrorSubtext(copy.voiceSubtext);
+        break;
+      }
+      case 'voice-miss-2': {
+        __showVoiceShell();
+        overlay.classList.add('voice-overlay--error');
+        __setVoiceErrorSubtext(copy.voiceSubtext);
+        __pulseKeyboardIcon();
+        break;
+      }
+      case 'no-results':
+      case 'out-of-scope': {
+        // Render as a regular conversational reply using the existing
+        // .text-response style so these read as Omni's normal voice, not
+        // a styled error.
+        __renderChatModeWithBanner('');
+        const bubble = document.createElement('div');
+        bubble.className = 'text-response';
+        const headline = document.createElement('p');
+        headline.className = 'text-response__headline';
+        headline.textContent = copy.spoken;
+        bubble.appendChild(headline);
+        if (chatMessages) chatMessages.appendChild(bubble);
+        break;
+      }
+      case 'tts-down': {
+        // §6.10 — chat surface, no audio plays. Note above the written body.
+        if (typeof openTypingMode === 'function') openTypingMode();
+        overlay.classList.add('chat-active');
+        __mountTtsDownNote(copy.note, copy.bodyExample);
+        break;
+      }
+      case 'transactional': {
+        // §6.11 — reassurance card in the chat thread.
+        if (typeof openTypingMode === 'function') openTypingMode();
+        overlay.classList.add('chat-active');
+        const retryLabel = (langKey === 'hi') ? 'Dobara try kar' : 'Tap to try again';
+        __mountTransactionalCard(copy.body, retryLabel);
+        break;
+      }
+
+      // -------------------------------------------------------------
+      // P2 — Mid-Conversation Connection Loss Spec v0.1
+      // -------------------------------------------------------------
+
+      // §3.1 — Drop while user is speaking
+      case 'mid-loss.speaking.dip': {
+        __showVoiceShell();
+        overlay.classList.add('voice-overlay--error');
+        __setVoiceErrorSubtext(copy.voiceSubtext);
+        __mountOfflineDot(); // pinned to overlay edge
+        break;
+      }
+      case 'mid-loss.speaking.sustained': {
+        __showVoiceShell();
+        __setDisconnectedAvatar();
+        __setVoiceErrorSubtext(copy.voiceSubtext);
+        __mountVoiceRetryActions({
+          retryLabel: copy.retryLabel,
+          switchLabel: copy.switchLabel,
+        });
+        __pulseKeyboardIcon();
+        break;
+      }
+      case 'mid-loss.speaking.permanent': {
+        __showVoiceShell();
+        __setDisconnectedAvatar();
+        __setVoiceErrorSubtext(copy.voiceSubtext);
+        __mountVoiceRetryActions({
+          retryLabel: null,
+          switchLabel: copy.switchLabel,
+        });
+        __mountChatBanner(copy.spoken);
+        __pulseKeyboardIcon();
+        break;
+      }
+
+      // §3.2 — Drop while Omni is processing
+      case 'mid-loss.processing.dip': {
+        __seedSampleThread({userTurn: copy.userTurn});
+        const thinking = createThinkingEl(copy.thinkingLine);
+        thinking.classList.add('is-scenario-seed');
+        const dot = document.createElement('span');
+        dot.className = 'offline-dot';
+        thinking.appendChild(dot);
+        if (chatMessages) chatMessages.appendChild(thinking);
+        break;
+      }
+      case 'mid-loss.processing.sustained': {
+        __seedSampleThread({userTurn: copy.userTurn});
+        __mountSoftRetryCard({
+          body: copy.body,
+          primaryLabel: copy.primaryLabel,
+          secondaryLabel: copy.secondaryLabel,
+        });
+        break;
+      }
+      case 'mid-loss.processing.permanent': {
+        __seedSampleThread({userTurn: copy.userTurn});
+        __mountSoftRetryCard({
+          body: copy.body,
+          primaryLabel: copy.primaryLabel,
+        });
+        break;
+      }
+
+      // §3.3 — Drop during a tool / skill call
+      case 'mid-loss.tool.dip': {
+        __seedSampleThread({userTurn: copy.userTurn});
+        const thinking = createThinkingEl(copy.thinkingLine);
+        thinking.classList.add('is-scenario-seed');
+        const dot = document.createElement('span');
+        dot.className = 'offline-dot';
+        thinking.appendChild(dot);
+        if (chatMessages) chatMessages.appendChild(thinking);
+        break;
+      }
+      case 'mid-loss.tool.sustained': {
+        __seedSampleThread({userTurn: copy.userTurn});
+        __mountSoftRetryCard({
+          body: copy.body,
+          primaryLabel: copy.primaryLabel,
+          secondaryLabel: copy.secondaryLabel,
+          caption: copy.caption,
+        });
+        break;
+      }
+      case 'mid-loss.tool.permanent': {
+        __seedSampleThread({userTurn: copy.userTurn});
+        __mountSoftRetryCard({
+          body: copy.body,
+          primaryLabel: copy.primaryLabel,
+        });
+        break;
+      }
+
+      // §3.4 — Drop while Omni is speaking
+      case 'mid-loss.speakingback.dip': {
+        __seedSampleThread({userTurn: copy.userTurn});
+        __mountTruncatedBubble({
+          partialText: copy.partialResponse,
+          marker: 'Streaming paused — reconnecting',
+          inProgress: true,
+        });
+        break;
+      }
+      case 'mid-loss.speakingback.sustained': {
+        __seedSampleThread({userTurn: copy.userTurn});
+        __mountTruncatedBubble({
+          partialText: copy.partialResponse,
+          marker: copy.truncationCard,
+          replayLabel: copy.replayLabel,
+          askAgainLabel: copy.askAgainLabel,
+        });
+        break;
+      }
+      case 'mid-loss.speakingback.permanent': {
+        __seedSampleThread({userTurn: copy.userTurn});
+        __mountTruncatedBubble({
+          partialText: copy.partialResponse,
+          askAgainLabel: copy.askAgainLabel,
+        });
+        break;
+      }
+
+      // §3.5 — Drop while user is typing in chat
+      case 'mid-loss.typing.dip': {
+        if (typeof openTypingMode === 'function') openTypingMode();
+        overlay.classList.add('chat-active');
+        __mountChatDraftBar({
+          draftText: copy.draft,
+          inlineNote: copy.inlineNote,
+        });
+        break;
+      }
+      case 'mid-loss.typing.sustained': {
+        if (typeof openTypingMode === 'function') openTypingMode();
+        overlay.classList.add('chat-active');
+        __mountChatDraftBar({
+          draftText: copy.draft,
+          bannerNote: copy.bannerNote,
+        });
+        break;
+      }
+
+      // §3.8 — Drop while rich content is loading
+      case 'mid-loss.richcontent.sustained': {
+        __seedSampleThread({
+          userTurn: copy.userTurn,
+          assistantTurn: copy.voiceSummary,
+        });
+        __mountRichContentRetryTile({
+          body: copy.body,
+          retryLabel: copy.retryLabel,
+          askDifferentLabel: copy.askDifferentLabel,
+        });
+        break;
+      }
+
+      // §6 — Transactional flow
+      case 'mid-loss.txn.dip':
+      case 'mid-loss.txn.sustained': {
+        __seedSampleThread({userTurn: copy.userTurn});
+        __mountTxnPendingCard({
+          purpose: copy.purpose,
+          amount: copy.amount,
+          refCode: copy.refCode,
+          statusChip: copy.statusChip,
+          body: copy.body,
+          withSpinner: true,
+        });
+        break;
+      }
+      case 'mid-loss.txn.permanent': {
+        __seedSampleThread({userTurn: copy.userTurn});
+        __mountTxnPendingCard({
+          purpose: copy.purpose,
+          amount: copy.amount,
+          refCode: copy.refCode,
+          statusChip: copy.statusChip,
+          body: copy.body,
+          retryLabel: copy.retryLabel,
+          withSpinner: false,
+        });
+        break;
+      }
+      case 'mid-loss.txn.confirmed-on-reconnect': {
+        __seedSampleThread({userTurn: copy.userTurn});
+        __mountTxnConfirmedCard({
+          purpose: copy.purpose,
+          amount: copy.amount,
+          refCode: copy.refCode,
+          statusChip: copy.statusChip,
+          body: copy.body,
+        });
+        __mountReconnectToast((langKey === 'hi') ? 'Wapas online.' : 'Back online.');
+        break;
+      }
+
+      // §4 — Reconnect & resume affordances
+      case 'mid-loss.reconnect.toast': {
+        __showVoiceShell();
+        __mountReconnectToast(copy.toast);
+        break;
+      }
+      case 'mid-loss.reconnect.divider': {
+        __seedSampleThread({
+          userTurn: copy.userTurn,
+          assistantTurn: copy.assistantBefore,
+        });
+        __mountThreadGapDivider(copy.divider);
+        const after = document.createElement('div');
+        after.className = 'assistant-bubble--p2';
+        after.textContent = copy.assistantAfter;
+        if (chatMessages) chatMessages.appendChild(after);
+        break;
+      }
+      case 'mid-loss.reconnect.voicebuffer': {
+        __showVoiceShell();
+        overlay.classList.add('voice-overlay--error');
+        __setVoiceErrorSubtext(copy.voiceSubtext);
+        break;
+      }
+
+      // Decision 1 — Pre-flight network steer
+      case 'mid-loss.preflight.steer': {
+        __showVoiceShell();
+        __mountPreflightSteer({
+          steerNote: copy.steerNote,
+          primaryLabel: copy.primaryLabel,
+          overrideLabel: copy.overrideLabel,
+        });
+        __pulseKeyboardIcon();
+        break;
+      }
+
+      // Pinned info entry
+      case 'mid-loss.about-blip': {
+        __showVoiceShell();
+        __mountAboutBlipCaption(copy.caption);
+        break;
+      }
+
+      default:
+        console.warn('Unhandled error scenario handler:', sc.handler);
+    }
+  }
+  // Expose for the playground iframe dispatcher.
+  window.runPrototypeErrorScenario = runPrototypeErrorScenario;
+
   // §9 Edge Affordance + SuggestedPrompts — both seed the next turn with an
   // author-authored follow-up query. SuggestedPrompts buttons carry the query
   // in detail.query (forwarded by discovery.js's click delegation from the
@@ -3979,7 +5760,11 @@
     document.querySelector('.home-voice-btn')?.addEventListener('click', dismissSpeakTooltip, { once: true });
     // Delay reveal so the user sees the homepage settle before the tooltip
     // springs in. The CSS keyframe animation kicks in once `hidden` flips.
-    setTimeout(() => { tip.hidden = false; }, 900);
+    setTimeout(() => {
+      const resume = document.getElementById('resumeStrip');
+      if (resume && !resume.hidden) return;
+      tip.hidden = false;
+    }, 900);
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', maybeShowSpeakTooltip);
@@ -4010,16 +5795,16 @@
 
   // === Resume strip (Phase B) ===
   function formatPausedAge(ageMs) {
-    if (ageMs < 60 * 1000) return 'Paused just now';
+    if (ageMs < 60 * 1000) return 'just now';
     if (ageMs < 60 * 60 * 1000) {
       const m = Math.floor(ageMs / (60 * 1000));
-      return `Paused ${m} min ago`;
+      return `${m} min${m === 1 ? '' : 's'} ago`;
     }
     if (ageMs < SESSION_EXPIRY_MS) {
       const h = Math.floor(ageMs / (60 * 60 * 1000));
-      return `Paused ${h} hr ago`;
+      return `${h} hr${h === 1 ? '' : 's'} ago`;
     }
-    return 'Paused yesterday';
+    return 'yesterday';
   }
 
   function refreshResumeStrip() {
@@ -4040,6 +5825,8 @@
       strip.hidden = false;
       jbiqTelemetry('jbiq.resume.surfaced', { ageMs });
     }
+    const tip = document.getElementById('homeSpeakTooltip');
+    if (tip && !tip.hidden) tip.hidden = true;
   }
 
   function maybeArchiveBeforeNew() {
@@ -4552,10 +6339,12 @@
   }
 
   // === Helper: create thinking indicator ===
-  function createThinkingEl() {
+  function createThinkingEl(text) {
     const el = document.createElement('div');
     el.className = 'thinking-row visible';
-    el.innerHTML = '<span class="thinking-avatar" aria-hidden="true"><video src="assets/thinking-avatar.mp4" autoplay loop muted playsinline></video></span><span class="thinking-text">Thinking...</span>';
+    const label = (typeof text === 'string' && text.trim()) ? text : 'Thinking...';
+    el.innerHTML = '<span class="thinking-avatar" aria-hidden="true"><video src="assets/thinking-avatar.mp4" autoplay loop muted playsinline></video></span><span class="thinking-text"></span>';
+    el.querySelector('.thinking-text').textContent = label;
     return el;
   }
 

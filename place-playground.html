@@ -140,6 +140,14 @@
       margin: 0;
       max-width: 328px;       /* wrap onto two lines, matches dropdown width */
     }
+    .page__scope-note {
+      font-size: var(--font-size-body); /* JDS body/s = 14px */
+      font-weight: 400;
+      line-height: 1.3;
+      color: var(--color-text-secondary);
+      margin: 0;
+      max-width: 328px;       /* match dropdown width */
+    }
 
     /* dataset dropdown */
     .page__title-block {
@@ -185,13 +193,48 @@
       font-size: 16px;                  /* JDS body/m */
       font-weight: 400;
       line-height: 1.3;
-      padding: var(--space-md);         /* 12px = JDS spacing/s */
+      padding: 12px 36px 12px 12px;     /* 12px gap right of chevron + 12px chevron + 12px text gap */
       border: 1.5px solid var(--color-border-strong); /* JDS stroke/subtle */
       border-radius: var(--radius-sm);  /* JDS shape/xs = 8px */
-      background: var(--color-surface-primary);
+      background-color: var(--color-surface-primary);
       color: var(--color-text-primary);
       cursor: pointer;
       width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'><path d='M3 4.5L6 7.5L9 4.5' stroke='%231A1A1A' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    /* Segmented language toggle (EN / Hinglish) for the error scenarios dropdown */
+    .lang-toggle {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px;
+      border: 1.5px solid var(--color-border-strong);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface-primary);
+      width: fit-content;
+    }
+    .lang-toggle__btn {
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 0;
+      background: transparent;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      transition: background 120ms ease, color 120ms ease;
+    }
+    .lang-toggle__btn[aria-pressed="true"] {
+      background: var(--color-action-primarySurface, #ede7ff);
+      color: var(--color-action-primary, #6d17ce);
+    }
+    .lang-toggle__btn:hover:not([aria-pressed="true"]) {
+      background: var(--color-surface-tertiary);
     }
 
     /* ========================================================================
@@ -914,6 +957,9 @@
 </head>
 <body>
   <div id="root"></div>
+
+  <!-- Omni Error Language Framework — scenario copy bank (window.ERROR_SCENARIOS / window.ERROR_SCENARIO_GROUPS) -->
+  <script src="errors.js"></script>
 
   <script type="module">
     /* ========================================================================
@@ -4850,11 +4896,13 @@
     function mountPlayground(rootEl) {
       let activeKey = '';
       let activeVoiceKey = '';
+      let activeErrorKey = '';
+      let activeLang = 'en';   // 'en' | 'hi'
       let activeHomeState = 'new-user';
-      let lastSurface = 'chat'; // 'chat' | 'voice' — which dropdown most recently fired
+      let lastSurface = 'chat'; // 'chat' | 'voice' | 'error' — which dropdown most recently fired
 
       const headerInner = el('div', {}, [
-        el('h1', { class: 'page__title', text: 'JBIQ Conversation Demo' }),
+        el('h1', { class: 'page__title', text: 'JBIQ Conversation Playground' }),
         el('p', {
           class: 'page__subtitle',
           text: 'Pick a dataset to drive the real chat surface',
@@ -4913,6 +4961,51 @@
         voiceSelect,
       ]);
 
+      // Error scenarios dropdown — drives runPrototypeErrorScenario(id, lang)
+      // in the iframe to render the framework's §6 worked examples.
+      const errorSelect = el('select', { class: 'dataset-select__control' });
+      const errorPlaceholder = el('option', { value: '', text: 'Select error scenario' });
+      errorPlaceholder.setAttribute('disabled', 'disabled');
+      errorPlaceholder.setAttribute('selected', 'selected');
+      errorPlaceholder.setAttribute('hidden', 'hidden');
+      errorSelect.appendChild(errorPlaceholder);
+      const errorGroups = window.ERROR_SCENARIO_GROUPS || [];
+      const errorScenarios = window.ERROR_SCENARIOS || {};
+      for (const g of errorGroups) {
+        const group = el('optgroup', { label: g.group });
+        for (const key of g.items) {
+          const sc = errorScenarios[key];
+          if (!sc) continue;
+          const o = el('option', { value: key, text: `${sc.ref}  ${sc.label}` });
+          group.appendChild(o);
+        }
+        errorSelect.appendChild(group);
+      }
+
+      // EN / Hinglish toggle — flips active language; re-dispatches if a
+      // scenario is already on screen so reviewers can compare live.
+      const langEnBtn = el('button', {
+        type: 'button',
+        class: 'lang-toggle__btn',
+        text: 'EN',
+        'aria-pressed': 'true',
+      });
+      const langHiBtn = el('button', {
+        type: 'button',
+        class: 'lang-toggle__btn',
+        text: 'Hinglish',
+        'aria-pressed': 'false',
+      });
+      const langToggle = el('div', { class: 'lang-toggle', role: 'group', 'aria-label': 'Language' }, [
+        langEnBtn, langHiBtn,
+      ]);
+
+      const errorSelector = el('div', { class: 'dataset-select' }, [
+        el('label', { class: 'dataset-select__label', text: 'Error scenario:' }),
+        errorSelect,
+        langToggle,
+      ]);
+
       // Live experience iframe — embeds /index.html so the playground renders
       // the real chat surface (user bubble, prose, DiscoveryView card, edge
       // pill, transactional Confirm & Pay). Dropdown drives the iframe via
@@ -4942,13 +5035,19 @@
       // dropdown most recently fired.
       const dispatchActive = () => {
         const surface = lastSurface;
-        const key = surface === 'voice' ? activeVoiceKey : activeKey;
-        const item = DATASETS[key];
-        const shape = itemShape(item);
         const onLoad = () => {
           liveFrame.removeEventListener('load', onLoad);
           try {
             const w = liveFrame.contentWindow;
+            if (surface === 'error') {
+              if (typeof w.runPrototypeErrorScenario === 'function') {
+                w.runPrototypeErrorScenario(activeErrorKey, activeLang);
+              }
+              return;
+            }
+            const key = surface === 'voice' ? activeVoiceKey : activeKey;
+            const item = DATASETS[key];
+            const shape = itemShape(item);
             if (surface === 'voice' && typeof w.runPrototypeVoiceQuery === 'function') {
               w.runPrototypeVoiceQuery(shape.query);
             } else if (typeof w.runPrototypeQuery === 'function') {
@@ -4960,6 +5059,20 @@
         };
         liveFrame.addEventListener('load', onLoad);
         liveFrame.src = homeStateSrc();
+      };
+
+      // Re-dispatch the *current* error scenario in-place (no iframe reload)
+      // so the language toggle flips copy live without losing visual state.
+      const redispatchErrorInPlace = () => {
+        if (lastSurface !== 'error' || !activeErrorKey) return;
+        try {
+          const w = liveFrame.contentWindow;
+          if (typeof w.runPrototypeErrorScenario === 'function') {
+            w.runPrototypeErrorScenario(activeErrorKey, activeLang);
+          }
+        } catch (e) {
+          console.warn('Live frame re-dispatch (lang) failed:', e);
+        }
       };
 
       homeStateSelect.addEventListener('change', (e) => {
@@ -4982,8 +5095,34 @@
         console.log(`voice-experience.change.${activeVoiceKey}`);
       });
 
-      const controls = el('div', { class: 'page__controls' }, [homeStateSelector, selector, voiceSelector]);
-      const header = el('div', { class: 'page__title-block' }, [headerInner, controls]);
+      errorSelect.addEventListener('change', (e) => {
+        activeErrorKey = e.target.value;
+        lastSurface = 'error';
+        dispatchActive();
+        console.log(`error-scenario.change.${activeErrorKey}.${activeLang}`);
+      });
+
+      const setLang = (next) => {
+        if (next === activeLang) return;
+        activeLang = next;
+        langEnBtn.setAttribute('aria-pressed', String(next === 'en'));
+        langHiBtn.setAttribute('aria-pressed', String(next === 'hi'));
+        redispatchErrorInPlace();
+        console.log(`error-scenario.lang.${activeLang}`);
+      };
+      langEnBtn.addEventListener('click', () => setLang('en'));
+      langHiBtn.addEventListener('click', () => setLang('hi'));
+
+      const controls = el('div', { class: 'page__controls' }, [homeStateSelector, selector, voiceSelector, errorSelector]);
+      const scopeNote = el('p', {
+        class: 'page__scope-note',
+        text: 'Out of scope: Homepage, Tools, Assistants and onboarding ',
+      });
+      const wipNote = el('p', {
+        class: 'page__scope-note',
+        text: 'Please note: This is a work in progress and for demo purposes',
+      });
+      const header = el('div', { class: 'page__title-block' }, [headerInner, controls, scopeNote, wipNote]);
       const page = el('div', { class: 'page' }, [header, liveFrame]);
       rootEl.appendChild(page);
     }
