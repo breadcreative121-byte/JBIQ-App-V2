@@ -4705,7 +4705,7 @@
           // muted" status, mic icon flipped to muted form.
           overlay.classList.add('glow', 'muted');
           avatarCenter.classList.add('visible');
-          avatarCenter.play().catch(() => {});
+          try { avatarCenter.pause(); } catch (_) {}
           statusText.textContent = 'Unmute to speak';
           statusText.classList.add('visible');
           break;
