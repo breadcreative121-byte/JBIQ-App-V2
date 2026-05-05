@@ -4599,12 +4599,18 @@
       card.querySelector('.order-confirmed-product-qty').textContent = bruProduct.qty;
       card.querySelector('.order-confirmed-product-price').textContent = '₹' + bruProduct.price + ' · Paid';
       currentTurnEl.appendChild(card);
+      appendFeedback();
+    };
+    const appendFeedback = () => {
+      if (!currentTurnEl) return;
+      try { currentTurnEl.appendChild(createFeedbackIcons()); } catch (_) {}
     };
     const appendCardsResponse = () => {
       if (!currentTurnEl) return;
       if (cardsSampleView && typeof window.renderDiscoveryView === 'function') {
         try { currentTurnEl.appendChild(window.renderDiscoveryView(cardsSampleView)); } catch (_) {}
       }
+      appendFeedback();
     };
     const appendTextResponse = () => {
       if (!currentTurnEl) return;
@@ -4613,6 +4619,7 @@
       el.setAttribute('data-conversational', 'true');
       el.textContent = textSampleAnswer;
       currentTurnEl.appendChild(el);
+      appendFeedback();
     };
 
     if (surface === 'voice') {
