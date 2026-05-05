@@ -5369,8 +5369,9 @@
     // Three-step reveal: 3s → 8s → 15s, matching framework §6.5.
     __showVoiceShell();
     overlay.classList.add('voice-overlay--error');
-    // Hide the default voice-status while the watchdog line is on screen.
-    if (statusText) statusText.classList.remove('visible');
+    // Watchdog uses its own step copy — suppress the avatar and default status.
+    if (avatarCenter) { avatarCenter.classList.remove('visible'); try { avatarCenter.pause(); } catch (e) {} }
+    if (statusText) { statusText.textContent = ''; statusText.classList.remove('visible'); }
     // Mount inside the overlay (not chatMessages, which is display:none in
     // voice mode) so the step copy is actually visible.
     const host = overlay;
@@ -5472,17 +5473,27 @@
         __runWatchdogReveal(copy);
         break;
       }
-      case 'voice-miss-1': {
-        __showVoiceShell();
-        overlay.classList.add('voice-overlay--error');
-        __setVoiceErrorSubtext(copy.voiceSubtext);
-        break;
-      }
+      case 'voice-miss-1':
       case 'voice-miss-2': {
+        // Inline agent response — error lands as a message in the thread,
+        // not as avatar shimmer text. __showVoiceShell resets cleanly;
+        // chat-active then hides the avatar via CSS so only the thread shows.
         __showVoiceShell();
-        overlay.classList.add('voice-overlay--error');
-        __setVoiceErrorSubtext(copy.voiceSubtext);
-        __pulseKeyboardIcon();
+        overlay.classList.add('chat-active');
+        if (chatMessages) {
+          // Faded bubble for the unrecognised voice input
+          const userFail = document.createElement('div');
+          userFail.className = 'user-bubble is-voice';
+          userFail.style.opacity = '0.45';
+          userFail.textContent = 'Mm…';
+          chatMessages.appendChild(userFail);
+          // Agent's response as an inline chat message
+          const agentEl = document.createElement('div');
+          agentEl.className = 'ai-response';
+          agentEl.textContent = copy.spoken;
+          chatMessages.appendChild(agentEl);
+        }
+        if (id === 'voice-miss-2') __pulseKeyboardIcon();
         break;
       }
       case 'no-results':
