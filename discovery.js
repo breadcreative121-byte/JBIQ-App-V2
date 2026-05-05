@@ -1023,9 +1023,7 @@ function renderInformationalResponse(view) {
   }
   container.appendChild(list);
 
-  if (view.edge_affordance) {
-    container.appendChild(renderEdgeAffordance(view.edge_affordance));
-  }
+  appendEdgeAffordance(container, view);
   appendSuggestedPrompts(container, view);
 
   wrapper.appendChild(container);
