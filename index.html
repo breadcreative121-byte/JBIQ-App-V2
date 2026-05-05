@@ -1081,13 +1081,14 @@
     }
 
     /* Muted hint — shown when muted during an active conversation, since the
-       center "Mic off. / You are muted" splash is suppressed in chat-active mode
-       (.voice-overlay.chat-active .voice-status { display: none }). */
+       center "Unmute to speak" splash is suppressed in chat-active mode
+       (.voice-overlay.chat-active .voice-status { display: none }). Mirrors
+       the listening hint exactly: same position, same shimmer text. */
     .voice-muted-hint {
       position: absolute;
       left: 0;
       right: 0;
-      bottom: 96px;
+      bottom: 82px;
       text-align: center;
       font-family: inherit;
       font-size: 16px;
@@ -1100,6 +1101,14 @@
       z-index: 4;
     }
     .voice-overlay.muted.chat-active .voice-muted-hint { opacity: 1; }
+    .voice-muted-hint span {
+      background: linear-gradient(90deg, var(--text-low) 25%, #999 50%, var(--text-low) 75%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmerText 2s ease-in-out infinite;
+    }
 
     /* Voice bottom actions */
     .voice-actions {
@@ -2414,6 +2423,31 @@
       pointer-events: auto;
     }
     .text-send-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+    /* Frozen-state preview only — replaces the input pill contents with a
+       small "Connecting…" label + spinner. Driven by the playground States
+       optgroup; never appears in the live flow. */
+    .voice-overlay.chat-state-connecting .text-pill { position: relative; }
+    .voice-overlay.chat-state-connecting .text-pill > * { visibility: hidden; }
+    .voice-overlay.chat-state-connecting .text-pill::before {
+      content: '';
+      position: absolute;
+      left: 14px; top: 50%;
+      width: 14px; height: 14px;
+      margin-top: -7px;
+      border-radius: 50%;
+      border: 2px solid rgba(109, 23, 206, 0.25);
+      border-top-color: #6d17ce;
+      animation: chatStateConnectingSpin 900ms linear infinite;
+    }
+    .voice-overlay.chat-state-connecting .text-pill::after {
+      content: 'Connecting…';
+      position: absolute;
+      left: 36px; top: 50%; transform: translateY(-50%);
+      color: #6d17ce; font-size: 14px;
+      font-family: var(--font-family);
+    }
+    @keyframes chatStateConnectingSpin { to { transform: rotate(360deg); } }
 
     /* Speak button smoothly collapses when the user types, instead of display:none */
     #textVoiceBtn {
@@ -4071,7 +4105,7 @@
     <!-- Listening hint (shown after ~2s of quiet listening in chat-active mode) -->
     <div class="voice-listening-hint" id="voiceListeningHint" aria-live="polite"><span>Listening...</span></div>
     <!-- Muted hint (shown when muted mid-conversation; center splash is suppressed in chat-active mode) -->
-    <div class="voice-muted-hint" id="voiceMutedHint" aria-live="polite">Muted</div>
+    <div class="voice-muted-hint" id="voiceMutedHint" aria-live="polite"><span>Unmute to speak</span></div>
 
     <!-- Bottom Actions -->
     <div class="voice-actions">
@@ -4468,6 +4502,196 @@
     await openVoiceMode({ silent: true });
     showResponse(text);
   }
+
+  // Frozen state previews driven by the playground's "States" optgroup.
+  // Sets the overlay into a single conversation state and holds it there —
+  // no timers, no real mic / TTS, no auto-progression. Designers use these
+  // to inspect spacing, copy, and motion for one frame of the flow.
+  function runPrototypeState(stateId, surface) {
+    closePrototypesPanel();
+    closeMenuPanel();
+    if (currentTTSAudio) { try { currentTTSAudio.pause(); } catch (_) {} currentTTSAudio = null; }
+    try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (_) {}
+    if (chatMessages) chatMessages.innerHTML = '';
+    currentTurnEl = null;
+    overlay.classList.remove('active', 'glow', 'listening-mode', 'kb-mode', 'kb-hidden', 'chat-active', 'has-text', 'text-mode', 'text-typing', 'user-speaking', 'agent-speaking', 'muted', 'show-listening-hint', 'chat-state-connecting');
+    spinner.classList.remove('visible');
+    spinner.pause();
+    avatarCenter.classList.remove('visible');
+    avatarCenter.pause();
+    botDots.classList.remove('visible', 'listening');
+    statusText.classList.remove('visible');
+    statusText.textContent = '';
+    setSpeakingAvatarPlaying(false);
+
+    const cardsSampleQuery = 'Best biryani in Hyderabad';
+    const cardsSampleView = window.MOCK_BIRYANI_HYDERABAD;
+    const textSampleQuery = 'Who is the PM of India?';
+    const textSampleAnswer = 'Narendra Modi has been the Prime Minister of India since May 2014, currently serving his third consecutive term.';
+
+    const appendUserBubble = (text) => {
+      const turn = startTurn();
+      const userEl = document.createElement('div');
+      userEl.className = 'user-bubble';
+      if (surface === 'voice') userEl.classList.add('is-voice');
+      userEl.textContent = text;
+      turn.appendChild(userEl);
+      return turn;
+    };
+    const appendThinkingRow = () => {
+      if (!currentTurnEl) return;
+      currentTurnEl.appendChild(createThinkingEl());
+    };
+    const appendJioMartFetchRow = () => {
+      if (!currentTurnEl) return;
+      currentTurnEl.appendChild(createSearchingJioMartEl());
+    };
+    const appendCardsResponse = () => {
+      if (!currentTurnEl) return;
+      if (cardsSampleView && typeof window.renderDiscoveryView === 'function') {
+        try { currentTurnEl.appendChild(window.renderDiscoveryView(cardsSampleView)); } catch (_) {}
+      }
+    };
+    const appendTextResponse = () => {
+      if (!currentTurnEl) return;
+      const el = document.createElement('div');
+      el.className = 'ai-response text-response text-response--conversational';
+      el.setAttribute('data-conversational', 'true');
+      el.textContent = textSampleAnswer;
+      currentTurnEl.appendChild(el);
+    };
+
+    if (surface === 'voice') {
+      overlay.classList.add('active');
+      // All voice states render in mid-conversation context — the PM India
+      // Q&A is the running thread. Connecting / Listening / Idle / Speaking
+      // show the assistant's reply already on screen and layer the state
+      // indicator on top. Thinking shows the user just asking; Results show
+      // the answer fully rendered.
+      const seedPriorPmTurn = () => {
+        appendUserBubble(textSampleQuery);
+        appendTextResponse();
+      };
+      switch (stateId) {
+        case 'connecting':
+          // Fresh-open connecting — large centered avatar + "Connecting..."
+          // label. Distinct from the other voice states which are mid-conv.
+          avatarCenter.classList.add('visible');
+          avatarCenter.play().catch(() => {});
+          statusText.textContent = 'Connecting...';
+          statusText.classList.add('visible');
+          break;
+        case 'connected':
+          // Fresh-open connected — same avatar element as Connecting (the
+          // avatar-idle.mp4 video, which the live app uses post-spinner)
+          // + "Say something..." prompt.
+          overlay.classList.add('glow');
+          avatarCenter.classList.add('visible');
+          avatarCenter.play().catch(() => {});
+          statusText.textContent = 'Say something...';
+          statusText.classList.add('visible');
+          break;
+        case 'listening':
+          overlay.classList.add('chat-active', 'listening-mode', 'show-listening-hint');
+          seedPriorPmTurn();
+          break;
+        case 'idle':
+          overlay.classList.add('chat-active');
+          seedPriorPmTurn();
+          break;
+        case 'speaking':
+          overlay.classList.add('chat-active', 'agent-speaking');
+          seedPriorPmTurn();
+          setSpeakingAvatarPlaying(true);
+          break;
+        case 'speaking-user':
+          // Mid-conv user speaking — bg circles amplify, prior PM Q&A stays
+          // above, a live (interim-transcript) user bubble pins to the top
+          // at 0.6 opacity with a sample partial utterance.
+          overlay.classList.add('chat-active', 'listening-mode', 'user-speaking');
+          seedPriorPmTurn();
+          {
+            const live = document.createElement('div');
+            live.className = 'user-bubble is-voice';
+            live.style.opacity = '0.6';
+            live.textContent = "What's the weather in Mumbai";
+            startTurn().appendChild(live);
+          }
+          statusText.textContent = 'Listening...';
+          statusText.classList.add('visible');
+          break;
+        case 'muted-welcome':
+          // Fresh-open muted — same avatar as Connected, "Mic off./You are
+          // muted" status, mic icon flipped to muted form.
+          overlay.classList.add('glow', 'muted');
+          avatarCenter.classList.add('visible');
+          avatarCenter.play().catch(() => {});
+          statusText.textContent = 'Unmute to speak';
+          statusText.classList.add('visible');
+          break;
+        case 'muted-midconv':
+          // Mid-conv muted — chat thread visible with PM Q&A, "Muted" pill
+          // shows via .voice-muted-hint, mic icon flips to muted form.
+          overlay.classList.add('chat-active', 'muted');
+          seedPriorPmTurn();
+          break;
+        case 'thinking':
+          overlay.classList.add('chat-active');
+          appendUserBubble(textSampleQuery);
+          appendThinkingRow();
+          break;
+        case 'fetching-jiomart':
+          overlay.classList.add('chat-active');
+          appendUserBubble('Order Bru coffee');
+          appendJioMartFetchRow();
+          break;
+        case 'results-text':
+          overlay.classList.add('chat-active');
+          appendUserBubble(textSampleQuery);
+          appendTextResponse();
+          break;
+        case 'results-cards':
+          overlay.classList.add('chat-active');
+          appendUserBubble(cardsSampleQuery);
+          appendCardsResponse();
+          break;
+      }
+    } else {
+      overlay.classList.add('active', 'text-mode');
+      textModeInput.value = '';
+      textModeInput.style.height = 'auto';
+      textSendBtn.classList.remove('is-visible');
+      switch (stateId) {
+        case 'connecting':
+          overlay.classList.add('chat-state-connecting');
+          break;
+        case 'idle':
+          requestAnimationFrame(() => textModeInput.focus());
+          break;
+        case 'thinking':
+          overlay.classList.add('chat-active');
+          appendUserBubble(cardsSampleQuery);
+          appendThinkingRow();
+          break;
+        case 'fetching-jiomart':
+          overlay.classList.add('chat-active');
+          appendUserBubble('Order Bru coffee');
+          appendJioMartFetchRow();
+          break;
+        case 'results-text':
+          overlay.classList.add('chat-active');
+          appendUserBubble(textSampleQuery);
+          appendTextResponse();
+          break;
+        case 'results-cards':
+          overlay.classList.add('chat-active');
+          appendUserBubble(cardsSampleQuery);
+          appendCardsResponse();
+          break;
+      }
+    }
+  }
+  window.runPrototypeState = runPrototypeState;
 
   // ===========================================================================
   // Omni Error Language Framework — showcase runtime.
@@ -6137,7 +6361,7 @@
       try { micOffSound.currentTime = 0; micOffSound.play().catch(() => {}); } catch (_) {}
       overlay.classList.add('muted');
       clearListeningHint();
-      statusText.innerHTML = '<span class="muted-title">Mic off.</span><span class="muted-body">You are muted</span>';
+      statusText.textContent = 'Unmute to speak';
       statusText.classList.add('visible');
       try { if (activeRec) activeRec.stop(); } catch (_) {}
       // Kill the voice-reactive mic stream so circles stop pulsing and the

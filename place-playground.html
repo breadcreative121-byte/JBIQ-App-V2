@@ -4923,12 +4923,45 @@
         homeStateSelect,
       ]);
 
+      // States optgroup — frozen previews of each conversation state. Driven
+      // by window.runPrototypeState in the iframe. Voice gets all 6 states;
+      // chat gets the 4 that apply (no Listening / Speaking — chat has no
+      // audio mode). Keys are prefixed `state:` so the dispatcher can route.
+      const STATE_OPTIONS_VOICE = [
+        { key: 'state:connecting',        label: 'Connecting' },
+        { key: 'state:connected',         label: 'Connected' },
+        { key: 'state:listening',         label: 'Listening' },
+        { key: 'state:speaking-user',     label: 'Speaking — user' },
+        { key: 'state:speaking',          label: 'Speaking — agent' },
+        { key: 'state:idle',              label: 'Idle' },
+        { key: 'state:muted-welcome',     label: 'Muted — welcome' },
+        { key: 'state:muted-midconv',     label: 'Muted — mid-conv' },
+        { key: 'state:thinking',          label: 'Thinking' },
+        { key: 'state:fetching-jiomart',  label: 'Fetching — JioMart' },
+        { key: 'state:results-text',      label: 'Results — text' },
+        { key: 'state:results-cards',     label: 'Results — cards' },
+      ];
+      const STATE_OPTIONS_CHAT = [
+        { key: 'state:connecting',        label: 'Connecting' },
+        { key: 'state:idle',              label: 'Idle' },
+        { key: 'state:thinking',          label: 'Thinking' },
+        { key: 'state:fetching-jiomart',  label: 'Fetching — JioMart' },
+        { key: 'state:results-text',      label: 'Results — text' },
+        { key: 'state:results-cards',     label: 'Results — cards' },
+      ];
+      const appendStatesOptgroup = (selectEl, options) => {
+        const group = el('optgroup', { label: 'States' });
+        for (const o of options) group.appendChild(el('option', { value: o.key, text: o.label }));
+        selectEl.appendChild(group);
+      };
+
       const select = el('select', { class: 'dataset-select__control' });
       const chatPlaceholder = el('option', { value: '', text: 'Select experience' });
       chatPlaceholder.setAttribute('disabled', 'disabled');
       chatPlaceholder.setAttribute('selected', 'selected');
       chatPlaceholder.setAttribute('hidden', 'hidden');
       select.appendChild(chatPlaceholder);
+      appendStatesOptgroup(select, STATE_OPTIONS_CHAT);
       for (const g of DATASET_GROUPS) {
         const group = el('optgroup', { label: g.group });
         for (const it of g.items) {
@@ -4948,6 +4981,7 @@
       voicePlaceholder.setAttribute('selected', 'selected');
       voicePlaceholder.setAttribute('hidden', 'hidden');
       voiceSelect.appendChild(voicePlaceholder);
+      appendStatesOptgroup(voiceSelect, STATE_OPTIONS_VOICE);
       for (const g of DATASET_GROUPS) {
         const group = el('optgroup', { label: g.group });
         for (const it of g.items) {
@@ -5046,6 +5080,13 @@
               return;
             }
             const key = surface === 'voice' ? activeVoiceKey : activeKey;
+            if (typeof key === 'string' && key.startsWith('state:')) {
+              const stateId = key.slice('state:'.length);
+              if (typeof w.runPrototypeState === 'function') {
+                w.runPrototypeState(stateId, surface);
+              }
+              return;
+            }
             const item = DATASETS[key];
             const shape = itemShape(item);
             if (surface === 'voice' && typeof w.runPrototypeVoiceQuery === 'function') {
@@ -5113,7 +5154,7 @@
       langEnBtn.addEventListener('click', () => setLang('en'));
       langHiBtn.addEventListener('click', () => setLang('hi'));
 
-      const controls = el('div', { class: 'page__controls' }, [homeStateSelector, selector, voiceSelector, errorSelector]);
+      const controls = el('div', { class: 'page__controls' }, [homeStateSelector, voiceSelector, selector, errorSelector]);
       const scopeNote = el('p', {
         class: 'page__scope-note',
         text: 'Out of scope: Homepage, Tools, Assistants and onboarding ',
