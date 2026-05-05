@@ -259,16 +259,25 @@
     }
     .state-caption[hidden] { display: none; }
     .state-caption__title {
-      margin: 0 0 12px;
+      margin: 0 0 4px;
       font-size: 18px;
       font-weight: var(--font-weight-medium);
       line-height: 1.2;
       color: var(--color-text-primary);
     }
+    .state-caption__group {
+      margin: 0 0 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-text-tertiary);
+    }
+    .state-caption__group[hidden] { display: none; }
+    .state-caption__title + .state-caption__dl,
+    .state-caption__group + .state-caption__dl { margin-top: 12px; }
     .state-caption__dl {
       margin: 0;
-      display: grid;
-      gap: 12px;
     }
     .state-caption__dt {
       font-size: 11px;
@@ -276,14 +285,15 @@
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: var(--color-text-tertiary);
-      margin: 0 0 4px;
+      margin: 0 0 8px;
     }
     .state-caption__dd {
-      margin: 0;
+      margin: 0 0 16px;
       font-size: 14px;
       line-height: 1.4;
       color: var(--color-text-primary);
     }
+    .state-caption__dd:last-child { margin-bottom: 0; }
 
     /* ========================================================================
        MOBILE FRAME
@@ -4758,46 +4768,74 @@
     const DATASET_GROUPS = [
       {
         group: 'Place',
+        description: 'DiscoveryView Place cards — list of nearby venues with map, distance, ratings, hours. For find-and-pick queries.',
         items: [
-          { key: 'biryani_hyderabad',   label: 'Best biryani in Hyderabad',         view: MOCK_BIRYANI_HYDERABAD },
-          { key: 'doctors',             label: 'Doctors near me for fever',         view: MOCK_DOCTORS },
-          { key: 'plumbers',            label: 'Plumber in my area',                view: MOCK_PLUMBERS },
-          { key: 'schools_bandra',      label: 'Schools for my child in Bandra',    view: MOCK_SCHOOLS_BANDRA },
-          { key: 'apartments',          label: 'Apartments for rent in Andheri',    view: MOCK_APARTMENTS },
+          { key: 'biryani_hyderabad',   label: 'Best biryani in Hyderabad',         view: MOCK_BIRYANI_HYDERABAD,
+            demonstrates: 'Dense, similarly rated results; user disambiguates by distance and rating.' },
+          { key: 'doctors',             label: 'Doctors near me for fever',         view: MOCK_DOCTORS,
+            demonstrates: 'Mid-density list with availability stamps and trust signals (degrees, experience).' },
+          { key: 'plumbers',            label: 'Plumber in my area',                view: MOCK_PLUMBERS,
+            demonstrates: 'Sparse list (3–4 results); how the surface holds with fewer cards.' },
+          { key: 'schools_bandra',      label: 'Schools for my child in Bandra',    view: MOCK_SCHOOLS_BANDRA,
+            demonstrates: 'Long attributes (board, fees, distance) on a single card; info density.' },
+          { key: 'apartments',          label: 'Apartments for rent in Andheri',    view: MOCK_APARTMENTS,
+            demonstrates: 'Image-led cards with price; media weight vs. attributes.' },
         ],
       },
       {
         group: 'Catalog',
+        description: 'DiscoveryView Catalog grid — browseable items (products, courses, events) with image, price, hook. For wide-browse intent, not direct compare.',
         items: [
-          { key: 'kurta_diwali',        label: 'Shop for a kurta for Diwali',       view: MOCK_KURTA_DIWALI },
-          { key: 'gifts_wedding',       label: "Gifts for my sister's wedding",     view: MOCK_GIFTS_WEDDING },
-          { key: 'movies_weekend',      label: 'Movies playing this weekend',       view: MOCK_MOVIES_WEEKEND },
-          { key: 'devotional_morning',  label: 'Devotional songs for morning',      view: MOCK_DEVOTIONAL_MORNING },
-          { key: 'courses_datascience', label: 'Online courses for data science',   view: MOCK_COURSES_DATASCIENCE },
-          { key: 'ipl_today',           label: 'IPL matches today',                 view: MOCK_IPL_TODAY },
-          { key: 'schemes_farmers',     label: 'Government schemes for farmers',    view: MOCK_SCHEMES_FARMERS },
+          { key: 'kurta_diwali',        label: 'Shop for a kurta for Diwali',       view: MOCK_KURTA_DIWALI,
+            demonstrates: 'Image-heavy product grid with price; browse-led intent.' },
+          { key: 'gifts_wedding',       label: "Gifts for my sister's wedding",     view: MOCK_GIFTS_WEDDING,
+            demonstrates: 'Mixed-category picks (jewellery, sweets, decor); grid heterogeneity.' },
+          { key: 'movies_weekend',      label: 'Movies playing this weekend',       view: MOCK_MOVIES_WEEKEND,
+            demonstrates: 'Time-sensitive grid with showtimes; temporal data on cards.' },
+          { key: 'devotional_morning',  label: 'Devotional songs for morning',      view: MOCK_DEVOTIONAL_MORNING,
+            demonstrates: 'Audio-led cards; media type beyond image.' },
+          { key: 'courses_datascience', label: 'Online courses for data science',   view: MOCK_COURSES_DATASCIENCE,
+            demonstrates: 'Long titles + provider; text wrap and metadata weight.' },
+          { key: 'ipl_today',           label: 'IPL matches today',                 view: MOCK_IPL_TODAY,
+            demonstrates: 'Live-event grid (teams, time, venue); live-data treatment.' },
+          { key: 'schemes_farmers',     label: 'Government schemes for farmers',    view: MOCK_SCHEMES_FARMERS,
+            demonstrates: 'Government scheme cards; dense informational tiles.' },
         ],
       },
       {
         group: 'Compare',
+        description: 'DiscoveryView Compare table — like-for-like options across price, EMI, terms, with a recommended row. For choose-between queries.',
         items: [
-          { key: 'home_loans',          label: 'Compare home loans under 8%',       view: MOCK_HOME_LOANS },
-          { key: 'flights_mumbai',      label: 'Cheap flights to Mumbai tomorrow',  view: MOCK_FLIGHTS_MUMBAI },
-          { key: 'recharge_299',        label: '₹299 mobile recharge plans',        view: MOCK_RECHARGE_299 },
-          { key: 'phones_20k',          label: 'Best phones under ₹20,000',         view: MOCK_PHONES_20K },
-          { key: 'trains_tatkal',       label: 'Tatkal trains to hometown',         view: MOCK_TRAINS_TATKAL },
-          { key: 'health_insurance',    label: 'Health insurance for family of 4',  view: MOCK_HEALTH_INSURANCE },
-          { key: 'emi_fridge',          label: 'EMI options for this fridge',       view: MOCK_EMI_FRIDGE },
+          { key: 'home_loans',          label: 'Compare home loans under 8%',       view: MOCK_HOME_LOANS,
+            demonstrates: 'Dense numerical comparison; row scan and recommended-row accent.' },
+          { key: 'flights_mumbai',      label: 'Cheap flights to Mumbai tomorrow',  view: MOCK_FLIGHTS_MUMBAI,
+            demonstrates: 'Sortable temporal data; primary vs. secondary attributes.' },
+          { key: 'recharge_299',        label: '₹299 mobile recharge plans',        view: MOCK_RECHARGE_299,
+            demonstrates: 'Simple 3-column compare; sparse layout.' },
+          { key: 'phones_20k',          label: 'Best phones under ₹20,000',         view: MOCK_PHONES_20K,
+            demonstrates: 'Multi-attribute product compare; cross-row scan.' },
+          { key: 'trains_tatkal',       label: 'Tatkal trains to hometown',         view: MOCK_TRAINS_TATKAL,
+            demonstrates: 'Time + class compare with seat-availability cues.' },
+          { key: 'health_insurance',    label: 'Health insurance for family of 4',  view: MOCK_HEALTH_INSURANCE,
+            demonstrates: 'Long-form benefit comparison; text-heavy cells.' },
+          { key: 'emi_fridge',          label: 'EMI options for this fridge',       view: MOCK_EMI_FRIDGE,
+            demonstrates: 'Compare across tenures; numeric-led rows.' },
         ],
       },
       {
         group: 'Text Responses',
+        description: 'Prose response inside the chat surface — informational, advisory, or conversational. No discovery cards.',
         items: [
-          { key: 'info_upi_limit',             label: 'Info (simple) — UPI per-transaction limit', fixture: TEXT_FIXTURES.info_upi_limit },
-          { key: 'info_upi_autopay',           label: 'Info (complex) — How UPI AutoPay works',    fixture: TEXT_FIXTURES.info_upi_autopay },
-          { key: 'advisory_mobile_plan',       label: 'Advisory — Which mobile plan?',             fixture: TEXT_FIXTURES.advisory_mobile_plan },
-          { key: 'advisory_recharge_hinglish', label: 'Advisory (Hinglish) — Recharge plan',       fixture: TEXT_FIXTURES.advisory_recharge_hinglish },
-          { key: 'conversational_thanks',      label: 'Conversational — Thanks',                   fixture: TEXT_FIXTURES.conversational_thanks },
+          { key: 'info_upi_limit',             label: 'Info (simple) — UPI per-transaction limit', fixture: TEXT_FIXTURES.info_upi_limit,
+            demonstrates: 'Simple factual answer; single-paragraph prose density.' },
+          { key: 'info_upi_autopay',           label: 'Info (complex) — How UPI AutoPay works',    fixture: TEXT_FIXTURES.info_upi_autopay,
+            demonstrates: 'Multi-step explainer with headline + ordered steps.' },
+          { key: 'advisory_mobile_plan',       label: 'Advisory — Which mobile plan?',             fixture: TEXT_FIXTURES.advisory_mobile_plan,
+            demonstrates: 'Recommendation table embedded inside prose.' },
+          { key: 'advisory_recharge_hinglish', label: 'Advisory (Hinglish) — Recharge plan',       fixture: TEXT_FIXTURES.advisory_recharge_hinglish,
+            demonstrates: 'Hinglish copy; code-mix readability.' },
+          { key: 'conversational_thanks',      label: 'Conversational — Thanks',                   fixture: TEXT_FIXTURES.conversational_thanks,
+            demonstrates: 'Single-line conversational reply; short-form acknowledgement.' },
         ],
       },
       // Voice-first use cases (Path A) — eleven new entries grouped by pillar.
@@ -4805,33 +4843,48 @@
       // Informational (info: { query, payload }); the rest are DiscoveryView.
       {
         group: 'Government & civic',
+        description: 'Mixed pattern — informational prose for status / eligibility, or scheme cards for browse. Tests vernacular Hinglish input.',
         items: [
-          { key: 'pm_kisan_status',      label: 'PM Kisan installment status',           info: { query: 'PM Kisan ka paisa kab aayega mere account mein',     payload: INFO_PM_KISAN_STATUS } },
-          { key: 'ration_status',        label: 'Ration card status',                    info: { query: 'Mera ration card ka status check karo',              payload: INFO_RATION_STATUS } },
-          { key: 'scholarships_12th_sc', label: 'Scholarships for daughter (Class 12)',  view: MOCK_SCHOLARSHIPS_12TH_SC },
+          { key: 'pm_kisan_status',      label: 'PM Kisan installment status',           info: { query: 'PM Kisan ka paisa kab aayega mere account mein',     payload: INFO_PM_KISAN_STATUS },
+            demonstrates: 'Hinglish status query → informational reply; vernacular comprehension.' },
+          { key: 'ration_status',        label: 'Ration card status',                    info: { query: 'Mera ration card ka status check karo',              payload: INFO_RATION_STATUS },
+            demonstrates: 'Hinglish status check → informational reply; official-status framing.' },
+          { key: 'scholarships_12th_sc', label: 'Scholarships for daughter (Class 12)',  view: MOCK_SCHOLARSHIPS_12TH_SC,
+            demonstrates: 'Scheme cards filtered by class/category; filter intent inside discovery.' },
         ],
       },
       {
         group: 'Local Services',
+        description: 'DiscoveryView Place cards skewed to availability and "book now" CTAs. Tests urgency and time-of-day filtering.',
         items: [
-          { key: 'plumbers_indore',         label: 'Plumber (Indore variant)',          view: MOCK_PLUMBERS_INDORE },
-          { key: 'pediatricians_open_now',  label: 'Pediatrician — child fever 2 a.m.', view: MOCK_PEDIATRICIANS_OPEN_NOW },
-          { key: 'tutors_maths_class10',    label: 'Maths tutor for Class 10',           view: MOCK_TUTORS_MATHS_CLASS10 },
-          { key: 'tailors_diwali',          label: 'Diwali blouse tailoring',            view: MOCK_TAILORS_DIWALI },
+          { key: 'plumbers_indore',         label: 'Plumber (Indore variant)',          view: MOCK_PLUMBERS_INDORE,
+            demonstrates: 'Tier-2 city variant; local availability and language.' },
+          { key: 'pediatricians_open_now',  label: 'Pediatrician — child fever 2 a.m.', view: MOCK_PEDIATRICIANS_OPEN_NOW,
+            demonstrates: 'Late-night urgency; "open now" filter prominence.' },
+          { key: 'tutors_maths_class10',    label: 'Maths tutor for Class 10',           view: MOCK_TUTORS_MATHS_CLASS10,
+            demonstrates: 'Class + subject filter; structured filter cues.' },
+          { key: 'tailors_diwali',          label: 'Diwali blouse tailoring',            view: MOCK_TAILORS_DIWALI,
+            demonstrates: 'Time-bound service request; deadline framing on cards.' },
         ],
       },
       {
         group: 'Recharge & Bills',
+        description: 'Single-path transactional flow — Confirm → pay → Confirmation receipt. Tests the happy-path purchase rhythm.',
         items: [
-          { key: 'recharge_299_single', label: '₹299 plan — single-path confirm', view: MOCK_RECHARGE_299_SINGLE },
-          { key: 'gas_refill',          label: 'Cooking gas refill',                view: MOCK_GAS_REFILL },
+          { key: 'recharge_299_single', label: '₹299 plan — single-path confirm', view: MOCK_RECHARGE_299_SINGLE,
+            demonstrates: 'Single-step confirm → pay → receipt; happy-path transactional rhythm.' },
+          { key: 'gas_refill',          label: 'Cooking gas refill',                view: MOCK_GAS_REFILL,
+            demonstrates: 'Vendor + slot selection on Confirm; subscription-style refill.' },
         ],
       },
       {
         group: 'Order & Buy',
+        description: 'DiscoveryView Catalog or single-card with edit / reorder actions. Tests subscription edits and one-tap reorders.',
         items: [
-          { key: 'kirana_reorder',         label: 'Kirana reorder',           view: MOCK_KIRANA_REORDER },
-          { key: 'milk_subscription_edit', label: 'Milk subscription edit',   view: MOCK_MILK_SUBSCRIPTION_EDIT },
+          { key: 'kirana_reorder',         label: 'Kirana reorder',           view: MOCK_KIRANA_REORDER,
+            demonstrates: 'One-tap reorder from a prior cart; recall affordances.' },
+          { key: 'milk_subscription_edit', label: 'Milk subscription edit',   view: MOCK_MILK_SUBSCRIPTION_EDIT,
+            demonstrates: 'Edit-existing flow; modify-subscription affordances.' },
         ],
       },
     ];
@@ -4840,6 +4893,21 @@
     const DATASETS = Object.fromEntries(
       DATASET_GROUPS.flatMap((g) => g.items.map((it) => [it.key, it])),
     );
+
+    // Flat lookup for the caption panel: key -> { label, groupName,
+    // groupDescription, demonstrates }. Mirrors STATE_DESCRIPTIONS so a
+    // single dispatcher can populate the side panel for either kind of pick.
+    const DATASET_INFO = {};
+    for (const g of DATASET_GROUPS) {
+      for (const it of g.items) {
+        DATASET_INFO[it.key] = {
+          label: it.label,
+          groupName: g.group,
+          groupDescription: g.description,
+          demonstrates: it.demonstrates,
+        };
+      }
+    }
 
     function renderValidatorPanel(view) {
       const result = validateDiscoveryView(view);
@@ -5177,32 +5245,60 @@
         },
       });
 
-      // Caption panel — sits beside the iframe, populated when a `state:*`
-      // option is selected. Hidden for regular datasets and error scenarios
-      // (those flows already carry their own context on screen).
+      // Caption panel — sits beside the iframe, populated for both `state:*`
+      // picks (When / Inspect for a frozen conversation state) and dataset
+      // picks (Pattern / Demonstrates for a sample query). Hidden when the
+      // selection has no description (placeholder, error scenarios).
       const captionTitle = el('h3', { class: 'state-caption__title' });
-      const captionWhenDd = el('dd', { class: 'state-caption__dd' });
-      const captionInspectDd = el('dd', { class: 'state-caption__dd' });
+      const captionGroup = el('p', { class: 'state-caption__group' });
+      const captionDl = el('dl', { class: 'state-caption__dl' });
       const captionPanel = el('aside', { class: 'state-caption' }, [
         captionTitle,
-        el('dl', { class: 'state-caption__dl' }, [
-          el('dt', { class: 'state-caption__dt', text: 'When' }),
-          captionWhenDd,
-          el('dt', { class: 'state-caption__dt', text: 'Inspect' }),
-          captionInspectDd,
-        ]),
+        captionGroup,
+        captionDl,
       ]);
       captionPanel.setAttribute('hidden', 'hidden');
-      const updateStateCaption = (key) => {
-        const desc = STATE_DESCRIPTIONS[key];
-        if (!desc) {
+      captionGroup.setAttribute('hidden', 'hidden');
+
+      const setCaption = (title, subtitle, sections) => {
+        if (!title || !sections || !sections.length) {
           captionPanel.setAttribute('hidden', 'hidden');
           return;
         }
-        captionTitle.textContent = desc.label;
-        captionWhenDd.textContent = desc.when;
-        captionInspectDd.textContent = desc.inspect;
+        captionTitle.textContent = title;
+        if (subtitle) {
+          captionGroup.textContent = subtitle;
+          captionGroup.removeAttribute('hidden');
+        } else {
+          captionGroup.removeAttribute('hidden');
+          captionGroup.setAttribute('hidden', 'hidden');
+        }
+        captionDl.replaceChildren();
+        for (const s of sections) {
+          captionDl.appendChild(el('dt', { class: 'state-caption__dt', text: s.label }));
+          captionDl.appendChild(el('dd', { class: 'state-caption__dd', text: s.body }));
+        }
         captionPanel.removeAttribute('hidden');
+      };
+
+      const updateCaption = (key) => {
+        const stateDesc = STATE_DESCRIPTIONS[key];
+        if (stateDesc) {
+          setCaption(stateDesc.label, null, [
+            { label: 'When', body: stateDesc.when },
+            { label: 'Inspect', body: stateDesc.inspect },
+          ]);
+          return;
+        }
+        const datasetDesc = DATASET_INFO[key];
+        if (datasetDesc) {
+          setCaption(datasetDesc.label, datasetDesc.groupName, [
+            { label: 'Pattern', body: datasetDesc.groupDescription },
+            { label: 'Demonstrates', body: datasetDesc.demonstrates },
+          ]);
+          return;
+        }
+        setCaption(null, null, null);
       };
 
       const homeStateSrc = () => 'index.html?home=' + activeHomeState;
@@ -5270,7 +5366,7 @@
       select.addEventListener('change', (e) => {
         activeKey = e.target.value;
         lastSurface = 'chat';
-        updateStateCaption(activeKey);
+        updateCaption(activeKey);
         dispatchActive();
         console.log(`dataset.change.${activeKey}`);
       });
@@ -5278,7 +5374,7 @@
       voiceSelect.addEventListener('change', (e) => {
         activeVoiceKey = e.target.value;
         lastSurface = 'voice';
-        updateStateCaption(activeVoiceKey);
+        updateCaption(activeVoiceKey);
         dispatchActive();
         console.log(`voice-experience.change.${activeVoiceKey}`);
       });
@@ -5286,7 +5382,7 @@
       errorSelect.addEventListener('change', (e) => {
         activeErrorKey = e.target.value;
         lastSurface = 'error';
-        updateStateCaption(null);
+        updateCaption(null);
         dispatchActive();
         console.log(`error-scenario.change.${activeErrorKey}.${activeLang}`);
       });
