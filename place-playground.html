@@ -237,6 +237,54 @@
       background: var(--color-surface-tertiary);
     }
 
+    /* Stage — sized to the iframe alone so it pins to the page's centre
+       (.page uses align-items: center). The caption panel is absolutely
+       positioned just past the stage's right edge, so the iframe stays
+       centred in the viewport regardless of whether the caption is shown. */
+    .stage {
+      position: relative;
+      width: 380px;
+    }
+    .state-caption {
+      position: absolute;
+      top: 16px;
+      left: calc(100% + 24px);
+      width: 280px;
+      padding: 16px 20px;
+      background: var(--color-surface-primary);
+      border: 1px solid var(--color-border-default);
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(12,13,16,0.06);
+      font-family: var(--font-family);
+    }
+    .state-caption[hidden] { display: none; }
+    .state-caption__title {
+      margin: 0 0 12px;
+      font-size: 18px;
+      font-weight: var(--font-weight-medium);
+      line-height: 1.2;
+      color: var(--color-text-primary);
+    }
+    .state-caption__dl {
+      margin: 0;
+      display: grid;
+      gap: 12px;
+    }
+    .state-caption__dt {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-text-tertiary);
+      margin: 0 0 4px;
+    }
+    .state-caption__dd {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.4;
+      color: var(--color-text-primary);
+    }
+
     /* ========================================================================
        MOBILE FRAME
        ======================================================================== */
@@ -4923,40 +4971,105 @@
         homeStateSelect,
       ]);
 
-      // States optgroup — frozen previews of each conversation state. Driven
-      // by window.runPrototypeState in the iframe. Voice gets all 6 states;
-      // chat gets the 4 that apply (no Listening / Speaking — chat has no
-      // audio mode). Keys are prefixed `state:` so the dispatcher can route.
-      const STATE_OPTIONS_VOICE = [
-        { key: 'state:connecting',        label: 'Connecting' },
-        { key: 'state:connected',         label: 'Connected' },
-        { key: 'state:listening',         label: 'Listening' },
-        { key: 'state:speaking-user',     label: 'Speaking — user' },
-        { key: 'state:speaking',          label: 'Speaking — agent' },
-        { key: 'state:idle',              label: 'Idle' },
-        { key: 'state:muted-welcome',     label: 'Muted — welcome' },
-        { key: 'state:muted-midconv',     label: 'Muted — mid-conv' },
-        { key: 'state:thinking',          label: 'Thinking' },
-        { key: 'state:fetching-jiomart',  label: 'Fetching — JioMart' },
-        { key: 'state:confirm',           label: 'Confirm' },
-        { key: 'state:confirmation',      label: 'Confirmation' },
-        { key: 'state:results-text',      label: 'Results — text' },
-        { key: 'state:results-cards',     label: 'Results — cards' },
+      // States — frozen previews of each conversation state, grouped into
+      // semantic clusters so the shape of the conversation (connection →
+      // active voice → processing → results / transactional) is legible
+      // from the dropdown. Voice gets all six clusters; chat hides the
+      // Active voice and Muted clusters (no audio mode). Each entry carries
+      // `when` / `inspect` copy that drives the caption panel beside the
+      // iframe. Keys are prefixed `state:` so the dispatcher can route.
+      const STATE_CLUSTERS_VOICE = [
+        {
+          group: 'Connection',
+          items: [
+            { key: 'state:connecting', label: 'Connecting',
+              when: 'Fresh open, before the mic handshake completes.',
+              inspect: 'Centered avatar position, "Connecting…" copy, that the screen doesn\'t feel dead while waiting.' },
+            { key: 'state:connected', label: 'Connected',
+              when: 'Mic permission granted, before the user has said anything.',
+              inspect: '"Say something…" prompt, avatar idle motion, the invitation to speak.' },
+          ],
+        },
+        {
+          group: 'Active voice',
+          items: [
+            { key: 'state:listening', label: 'Listening',
+              when: 'Mid-conversation, between turns. Mic is hot.',
+              inspect: 'Active mic affordance, status pill copy, motion of the avatar while waiting.' },
+            { key: 'state:speaking-user', label: 'Speaking — user',
+              when: 'User is mid-utterance. Interim transcript pins to the top.',
+              inspect: 'Transcript opacity (0.6), pin position, "Listening…" status pill.' },
+            { key: 'state:speaking', label: 'Speaking — agent',
+              when: 'Agent is replying out loud.',
+              inspect: 'Avatar speaking motion, whether on-screen text tracks what\'s being spoken.' },
+            { key: 'state:idle', label: 'Idle',
+              when: 'Mid-conv, neither side is speaking — the gap between agent finishing and user picking up.',
+              inspect: 'Whether the surface still feels alive vs. abandoned, ambient motion.' },
+          ],
+        },
+        {
+          group: 'Muted',
+          items: [
+            { key: 'state:muted-welcome', label: 'Muted — welcome',
+              when: 'Fresh open with mic muted. Cold-start path for users who deny / disable mic.',
+              inspect: '"Unmute to speak" CTA, muted icon variant, recovery affordance.' },
+            { key: 'state:muted-midconv', label: 'Muted — mid-conv',
+              when: 'User muted themselves partway through a thread.',
+              inspect: 'Muted pill placement, mic icon flip, that prior conversation context is preserved.' },
+          ],
+        },
+        {
+          group: 'Processing',
+          items: [
+            { key: 'state:thinking', label: 'Thinking',
+              when: 'User has just spoken; agent is composing.',
+              inspect: 'Thinking-row loader, dwell time before content lands.' },
+            { key: 'state:fetching-jiomart', label: 'Fetching — JioMart',
+              when: 'Same beat as Thinking, but a partner call is in flight.',
+              inspect: '"Searching JioMart" copy, branded fetch animation, how it diverges from generic Thinking.' },
+          ],
+        },
+        {
+          group: 'Transactional',
+          items: [
+            { key: 'state:confirm', label: 'Confirm',
+              when: 'Transactional flow — agent has surfaced a card the user must approve before payment.',
+              inspect: 'Card layout, price clarity, "Confirm & Pay" hierarchy.' },
+            { key: 'state:confirmation', label: 'Confirmation',
+              when: 'Order placed — receipt + delivery progress.',
+              inspect: 'Paid-status treatment, progress stages, dwell behaviour after the action.' },
+          ],
+        },
+        {
+          group: 'Results',
+          items: [
+            { key: 'state:results-text', label: 'Results — text',
+              when: 'Informational answer in prose (factual / explanatory queries).',
+              inspect: 'Prose typography, feedback icon placement and contrast.' },
+            { key: 'state:results-cards', label: 'Results — cards',
+              when: 'Discovery answer with multiple cards (places, products).',
+              inspect: 'Card grid, scroll behaviour, edge affordance at the right margin.' },
+          ],
+        },
       ];
-      const STATE_OPTIONS_CHAT = [
-        { key: 'state:connecting',        label: 'Connecting' },
-        { key: 'state:idle',              label: 'Idle' },
-        { key: 'state:thinking',          label: 'Thinking' },
-        { key: 'state:fetching-jiomart',  label: 'Fetching — JioMart' },
-        { key: 'state:confirm',           label: 'Confirm' },
-        { key: 'state:confirmation',      label: 'Confirmation' },
-        { key: 'state:results-text',      label: 'Results — text' },
-        { key: 'state:results-cards',     label: 'Results — cards' },
-      ];
-      const appendStatesOptgroup = (selectEl, options) => {
-        const group = el('optgroup', { label: 'States' });
-        for (const o of options) group.appendChild(el('option', { value: o.key, text: o.label }));
-        selectEl.appendChild(group);
+      const CHAT_HIDDEN_CLUSTERS = new Set(['Active voice', 'Muted']);
+      const STATE_CLUSTERS_CHAT = STATE_CLUSTERS_VOICE.filter(c => !CHAT_HIDDEN_CLUSTERS.has(c.group));
+
+      const STATE_DESCRIPTIONS = {};
+      for (const cluster of STATE_CLUSTERS_VOICE) {
+        for (const item of cluster.items) {
+          STATE_DESCRIPTIONS[item.key] = { label: item.label, when: item.when, inspect: item.inspect };
+        }
+      }
+
+      const appendStatesOptgroup = (selectEl, clusters) => {
+        for (const cluster of clusters) {
+          const group = el('optgroup', { label: 'States — ' + cluster.group });
+          for (const o of cluster.items) {
+            group.appendChild(el('option', { value: o.key, text: o.label }));
+          }
+          selectEl.appendChild(group);
+        }
       };
 
       const select = el('select', { class: 'dataset-select__control' });
@@ -4965,7 +5078,7 @@
       chatPlaceholder.setAttribute('selected', 'selected');
       chatPlaceholder.setAttribute('hidden', 'hidden');
       select.appendChild(chatPlaceholder);
-      appendStatesOptgroup(select, STATE_OPTIONS_CHAT);
+      appendStatesOptgroup(select, STATE_CLUSTERS_CHAT);
       for (const g of DATASET_GROUPS) {
         const group = el('optgroup', { label: g.group });
         for (const it of g.items) {
@@ -4985,7 +5098,7 @@
       voicePlaceholder.setAttribute('selected', 'selected');
       voicePlaceholder.setAttribute('hidden', 'hidden');
       voiceSelect.appendChild(voicePlaceholder);
-      appendStatesOptgroup(voiceSelect, STATE_OPTIONS_VOICE);
+      appendStatesOptgroup(voiceSelect, STATE_CLUSTERS_VOICE);
       for (const g of DATASET_GROUPS) {
         const group = el('optgroup', { label: g.group });
         for (const it of g.items) {
@@ -5058,11 +5171,39 @@
           border: '1px solid rgba(12,13,16,0.12)',
           borderRadius: '32px',
           display: 'block',
-          margin: '16px auto',
+          margin: '16px 0',
           background: '#fff',
           boxShadow: '0 8px 28px rgba(12,13,16,0.08)',
         },
       });
+
+      // Caption panel — sits beside the iframe, populated when a `state:*`
+      // option is selected. Hidden for regular datasets and error scenarios
+      // (those flows already carry their own context on screen).
+      const captionTitle = el('h3', { class: 'state-caption__title' });
+      const captionWhenDd = el('dd', { class: 'state-caption__dd' });
+      const captionInspectDd = el('dd', { class: 'state-caption__dd' });
+      const captionPanel = el('aside', { class: 'state-caption' }, [
+        captionTitle,
+        el('dl', { class: 'state-caption__dl' }, [
+          el('dt', { class: 'state-caption__dt', text: 'When' }),
+          captionWhenDd,
+          el('dt', { class: 'state-caption__dt', text: 'Inspect' }),
+          captionInspectDd,
+        ]),
+      ]);
+      captionPanel.setAttribute('hidden', 'hidden');
+      const updateStateCaption = (key) => {
+        const desc = STATE_DESCRIPTIONS[key];
+        if (!desc) {
+          captionPanel.setAttribute('hidden', 'hidden');
+          return;
+        }
+        captionTitle.textContent = desc.label;
+        captionWhenDd.textContent = desc.when;
+        captionInspectDd.textContent = desc.inspect;
+        captionPanel.removeAttribute('hidden');
+      };
 
       const homeStateSrc = () => 'index.html?home=' + activeHomeState;
 
@@ -5129,6 +5270,7 @@
       select.addEventListener('change', (e) => {
         activeKey = e.target.value;
         lastSurface = 'chat';
+        updateStateCaption(activeKey);
         dispatchActive();
         console.log(`dataset.change.${activeKey}`);
       });
@@ -5136,6 +5278,7 @@
       voiceSelect.addEventListener('change', (e) => {
         activeVoiceKey = e.target.value;
         lastSurface = 'voice';
+        updateStateCaption(activeVoiceKey);
         dispatchActive();
         console.log(`voice-experience.change.${activeVoiceKey}`);
       });
@@ -5143,6 +5286,7 @@
       errorSelect.addEventListener('change', (e) => {
         activeErrorKey = e.target.value;
         lastSurface = 'error';
+        updateStateCaption(null);
         dispatchActive();
         console.log(`error-scenario.change.${activeErrorKey}.${activeLang}`);
       });
@@ -5168,7 +5312,8 @@
         text: 'Please note: This is a work in progress and for demo purposes',
       });
       const header = el('div', { class: 'page__title-block' }, [headerInner, controls, scopeNote, wipNote]);
-      const page = el('div', { class: 'page' }, [header, liveFrame]);
+      const stage = el('div', { class: 'stage' }, [liveFrame, captionPanel]);
+      const page = el('div', { class: 'page' }, [header, stage]);
       rootEl.appendChild(page);
     }
 
