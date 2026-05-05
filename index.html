@@ -4514,6 +4514,11 @@
     closePrototypesPanel();
     closeMenuPanel();
     await openVoiceMode({ silent: true });
+    // Mirror rec.onresult — flag processing + clear the pending listening
+    // hint so "Listening…" doesn't show alongside "Thinking…" while the
+    // simulated voice query is in flight.
+    isProcessingResponse = true;
+    clearListeningHint();
     showResponse(text);
   }
 
