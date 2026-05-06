@@ -143,7 +143,7 @@ const tokens = {
  * @typedef {Object} EdgeAffordance
  * @property {string} label
  * @property {string} event
- * @property {'see_more'|'compare'|'save_later'|'remind_later'|'context_shift'} kind
+ * @property {'see_more'|'compare'|'save_later'|'remind_later'|'context_shift'|'commit'} kind
  * @property {string} [query]
  */
 
@@ -201,7 +201,7 @@ const tokens = {
    Top-level dispatcher: validateDiscoveryView.
    ======================================================================== */
 
-const VALID_EDGE_KINDS = ['see_more', 'compare', 'save_later', 'remind_later', 'context_shift'];
+const VALID_EDGE_KINDS = ['see_more', 'compare', 'save_later', 'remind_later', 'context_shift', 'commit'];
 
 function validateCommon(view, errors) {
   if (view.kind !== 'discovery_view') {
