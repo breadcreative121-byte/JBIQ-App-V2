@@ -437,6 +437,26 @@
   min-width: 0;
 }
 
+.collection-container--menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.collection-container--menu > .catalog-card {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+.collection-container--menu > .catalog-card .catalog-card__media {
+  width: 96px;
+  min-width: 96px;
+  height: 96px;
+}
+.collection-container--menu > .catalog-card .catalog-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
 .catalog-card__media {
   aspect-ratio: 3 / 4;
   border-radius: var(--radius-lg);

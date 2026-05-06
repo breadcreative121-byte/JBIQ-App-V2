@@ -178,7 +178,7 @@ const tokens = {
  * @property {{ title: string, subtitle?: string }} subject
  * @property {{ multi_select: boolean, chips: FilterChip[] }} [filters]
  * @property {{ options: Array<{id: string, label: string}>, selected_id: string }} [sort]
- * @property {{ layout: 'carousel'|'grid'|'list', cards: CatalogResultCard[] }} collection
+ * @property {{ layout: 'carousel'|'grid'|'list'|'menu', cards: CatalogResultCard[] }} collection
  * @property {{ title: string, body: string, refine_prompt: string }} [empty_state]
  * @property {EdgeAffordance} [edge_affordance]  -- §9: single ancillary action
  * @property {{ intent: 'discover', query: string, total_count: number, trace_id: string }} meta
@@ -269,7 +269,7 @@ function validateCatalog(view, errors) {
   if (view.sub_pattern !== 'catalog') {
     errors.push(`sub_pattern must be "catalog"`);
   }
-  const validLayouts = ['carousel', 'grid', 'list'];
+  const validLayouts = ['carousel', 'grid', 'list', 'menu'];
   if (!view.collection || !validLayouts.includes(view.collection.layout)) {
     errors.push(`Catalog collection.layout must be one of ${validLayouts.join('|')}`);
   }
@@ -538,7 +538,7 @@ function renderMapPanel({ userLocation, markers }) {
   return panel;
 }
 
-/** @param {{ layout: 'carousel'|'grid'|'list', children: HTMLElement[] }} props */
+/** @param {{ layout: 'carousel'|'grid'|'list'|'menu', children: HTMLElement[] }} props */
 function renderCollectionContainer({ layout, children }) {
   const container = el('div', {
     class: `collection-container collection-container--${layout}`,
@@ -4270,7 +4270,7 @@ const MOCK_SWIGGY_PARADISE_MENU = {
     selected_id: 'popular',
   },
   collection: {
-    layout: 'list',
+    layout: 'menu',
     cards: [
       {
         variant: 'catalog',
