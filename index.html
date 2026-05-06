@@ -7176,7 +7176,9 @@
     const hasVerb = /\b(order|buy|get me|purchase|pay for)\b/.test(t);
     // Exclude obvious non-shopping contexts
     const hasRestaurant = /\b(restaurant|table|reservation)\b/.test(t);
-    return hasVerb && !hasRestaurant;
+    // Partner brands route via the DiscoveryView pattern, not generic JioMart
+    const hasPartnerBrand = /\bswiggy\b/.test(t);
+    return hasVerb && !hasRestaurant && !hasPartnerBrand;
   }
 
   // === DiscoveryView routing (Place + Catalog + Compare) ===
@@ -7184,6 +7186,18 @@
   // in discovery.js (restaurants stays on the existing carousel journey).
   // First match wins — more specific patterns first.
   const DISCOVERY_QUERY_PATTERNS = [
+    // Partner experiences — Swiggy MCP Food. Brand qualifier MUST come first
+    // so `\bswiggy\b` wins over `\bbiryani\b → biryani_hyderabad`. Within the
+    // Swiggy set, order patterns (verb + Swiggy) win over menu patterns
+    // (which would otherwise grab "Paradise" or "biryani" alongside Swiggy).
+    { re: /\b(?:order|place|checkout)\b.{0,60}\bswiggy\b/i,                              view: 'swiggy_paradise_order' },
+    { re: /\bswiggy\b.{0,60}\b(?:order|place|checkout)\b/i,                              view: 'swiggy_paradise_order' },
+    { re: /\bswiggy\b.{0,40}\b(menu|dishes)\b/i,                                         view: 'swiggy_paradise_menu' },
+    { re: /\b(menu|dishes)\b.{0,40}\bswiggy\b/i,                                         view: 'swiggy_paradise_menu' },
+    { re: /\bparadise\b.{0,30}\bswiggy\b|\bswiggy\b.{0,30}\bparadise\b/i,                view: 'swiggy_paradise_menu' },
+    { re: /\bswiggy\b.{0,40}\b(biryani|restaurants?|food)\b/i,                           view: 'swiggy_biryani_search' },
+    { re: /\b(biryani|restaurants?|food)\b.{0,40}\bswiggy\b/i,                           view: 'swiggy_biryani_search' },
+
     // Voice-first use cases — specific patterns must come BEFORE the generic
     // ones below. Pediatrician (child fever) beats the generic doctor regex;
     // priced single-plan recharge beats the compare-table recharge.
@@ -7233,6 +7247,9 @@
   const INFORMATIONAL_QUERY_PATTERNS = [
     { re: /\bpm\s*kisan|kisan\s*samman\s*nidhi|kisan\s*ka\s*paisa/i, view: 'pm_kisan_status' },
     { re: /\bration\s*card|fps\s*shop|\brashan\b/i,                   view: 'ration_status'   },
+    // Partner — Swiggy order tracking. Must come before generic discovery
+    // matches so "track my Swiggy order" routes to the prose status card.
+    { re: /\b(?:where.?s|track)\b.{0,30}\bswiggy\b|\bswiggy\b.{0,30}\b(?:order\s*status|track|delivery)\b/i, view: 'swiggy_order_status' },
   ];
 
   function matchInformationalQuery(text) {
@@ -7306,6 +7323,15 @@
   // duplication. The DiscoveryView card on its own is just display; the tap
   // commitment lives on the shopping-card pay button.
   const TRANSACTIONAL_VIEW_PRODUCTS = {
+    swiggy_paradise_order: {
+      brand: 'Swiggy',
+      storefront: 'Swiggy',
+      name: 'Hyderabadi Chicken Biryani · Paradise',
+      qty: '1 Biryani · Mint chutney · Salan',
+      price: 449,
+      eta: '32 min · Koramangala',
+      img: 'https://images.unsplash.com/photo-1633945274309-2c16c945e2dd?w=400&h=400&fit=crop',
+    },
     recharge_299_single: {
       brand: 'Jio',
       storefront: 'Jio',

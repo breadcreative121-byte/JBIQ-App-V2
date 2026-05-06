@@ -4055,9 +4055,326 @@ const INFO_RATION_STATUS = {
   ],
 };
 
+/* ---- Partner experiences — Swiggy MCP (Food only) ---------------------- */
+/* Derived from github.com/Swiggy/swiggy-mcp-server-manifest and the
+   voice-vs-chat agent-pattern doc at mcp.swiggy.com/builders/docs. The same
+   payload renders rich in chat (≤8 results, full cards) and compressed in
+   voice (≤3 items, spoken price). The playground exposes both surfaces in
+   the new Partner experiences dropdown. */
+
+/** @type {PlaceDiscoveryView} */
+const MOCK_SWIGGY_BIRYANI_SEARCH = {
+  kind: 'discovery_view',
+  sub_pattern: 'place',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: { title: 'Biryani on Swiggy', subtitle: 'Top picks · 32 min avg delivery' },
+  location_context: { area: 'Koramangala, Bengaluru', change_event: 'location.change.koramangala' },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'fast_delivery', label: 'Under 30 min',  value: 30,    selected: false },
+      { id: 'top_rated',     label: 'Top rated',     value: 'top', selected: true  },
+      { id: 'under_400',     label: 'Under ₹400',    value: 400,   selected: false },
+      { id: 'free_delivery', label: 'Free delivery', value: 'free', selected: false },
+      { id: 'offers',        label: '50% off',       value: 'off50', selected: false },
+    ],
+  },
+  sort: {
+    options: [
+      { id: 'recommended', label: 'Recommended' },
+      { id: 'rating',      label: 'Rating' },
+      { id: 'eta',         label: 'Delivery time' },
+      { id: 'price',       label: 'Price' },
+    ],
+    selected_id: 'recommended',
+  },
+  map: {
+    center: { lat: 12.9352, lng: 77.6245 },
+    zoom: 14,
+    user_location: { lat: 12.9352, lng: 77.6245 },
+    markers: [
+      { id: 'paradise_biryani_swiggy', lat: 12.9382, lng: 77.6271, pin_label: '1' },
+      { id: 'meghana_swiggy',          lat: 12.9341, lng: 77.6189, pin_label: '2' },
+      { id: 'shah_ghouse_swiggy',      lat: 12.9270, lng: 77.6310, pin_label: '3' },
+      { id: 'donne_biryani_swiggy',    lat: 12.9398, lng: 77.6202, pin_label: '4' },
+      { id: 'behrouz_swiggy',          lat: 12.9450, lng: 77.6155, pin_label: '5' },
+    ],
+  },
+  collection: {
+    layout: 'carousel',
+    cards: [
+      {
+        variant: 'place',
+        id: 'paradise_biryani_swiggy',
+        title: 'Paradise Biryani',
+        subtitle: 'Swiggy · 1.8 km',
+        media: { alt: 'Paradise biryani handi', fallback_color: '#C9855A' },
+        rating: { value: 4.5, count: 10240 },
+        distance_km: 1.8,
+        price_level: '₹₹',
+        tags: ['28 min', '₹29 fee', 'Top rated'],
+        status: { kind: 'open', label: '50% off up to ₹100' },
+        badge: '#1',
+        filter_ids: ['fast_delivery', 'top_rated', 'offers'],
+        primary_event: 'place.swiggy.paradise.open',
+      },
+      {
+        variant: 'place',
+        id: 'meghana_swiggy',
+        title: 'Meghana Foods',
+        subtitle: 'Swiggy · 2.1 km',
+        media: { alt: 'Meghana chicken biryani', fallback_color: '#D19870' },
+        rating: { value: 4.6, count: 8410 },
+        distance_km: 2.1,
+        price_level: '₹₹',
+        tags: ['32 min', '₹39 fee', 'Andhra'],
+        status: { kind: 'open', label: '20% off' },
+        badge: '#2',
+        filter_ids: ['top_rated', 'offers'],
+        primary_event: 'place.swiggy.meghana.open',
+      },
+      {
+        variant: 'place',
+        id: 'shah_ghouse_swiggy',
+        title: 'Shah Ghouse',
+        subtitle: 'Swiggy · 3.4 km',
+        media: { alt: 'Shah Ghouse mutton biryani', fallback_color: '#B97349' },
+        rating: { value: 4.4, count: 6210 },
+        distance_km: 3.4,
+        price_level: '₹',
+        tags: ['38 min', 'Free delivery', 'Hyderabadi'],
+        status: { kind: 'open', label: 'Free delivery on ₹199+' },
+        badge: '#3',
+        filter_ids: ['top_rated', 'under_400', 'free_delivery'],
+        primary_event: 'place.swiggy.shah_ghouse.open',
+      },
+      {
+        variant: 'place',
+        id: 'donne_biryani_swiggy',
+        title: 'Donne Biryani House',
+        subtitle: 'Swiggy · 2.8 km',
+        media: { alt: 'Donne biryani plate', fallback_color: '#A8653E' },
+        rating: { value: 4.3, count: 3120 },
+        distance_km: 2.8,
+        price_level: '₹',
+        tags: ['35 min', '₹29 fee', 'Bengaluru style'],
+        status: { kind: 'open', label: 'Open' },
+        filter_ids: ['under_400'],
+        primary_event: 'place.swiggy.donne.open',
+      },
+      {
+        variant: 'place',
+        id: 'behrouz_swiggy',
+        title: 'Behrouz Biryani',
+        subtitle: 'Swiggy · 4.1 km',
+        media: { alt: 'Behrouz royal biryani', fallback_color: '#C09162' },
+        rating: { value: 4.2, count: 2410 },
+        distance_km: 4.1,
+        price_level: '₹₹₹',
+        tags: ['42 min', '₹49 fee', 'Royal'],
+        status: { kind: 'open', label: 'Open' },
+        filter_ids: ['top_rated'],
+        primary_event: 'place.swiggy.behrouz.open',
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Compare top 3',
+    event: 'edge.swiggy_biryani.compare',
+    kind: 'compare',
+    query: 'Compare Paradise, Meghana and Shah Ghouse on Swiggy',
+  },
+  voice_disclosure: "Top three biryani spots on Swiggy near you. Paradise — 4.5 stars, twenty-eight minutes, fifty percent off. Meghana — 4.6 stars, thirty-two minutes. Shah Ghouse — 4.4 stars, free delivery on two hundred rupees plus. On screen — tap one to see the menu.",
+  suggested_prompts: [
+    { label: 'Show Paradise menu',    kind: 'context_shift', query: 'Show Paradise menu on Swiggy' },
+    { label: 'Order from Paradise',   kind: 'commit',        query: 'Order biryani from Paradise on Swiggy' },
+    { label: 'Cheap options under ₹250', kind: 'compare',     query: 'Biryani on Swiggy under ₹250' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Find biryani on Swiggy',
+    total_count: 18,
+    trace_id: 'trace-swiggy-biryani-001',
+  },
+};
+
+/** @type {CatalogDiscoveryView} */
+const MOCK_SWIGGY_PARADISE_MENU = {
+  kind: 'discovery_view',
+  sub_pattern: 'catalog',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: { title: 'Paradise Biryani — menu', subtitle: 'Swiggy · 28 min · ₹29 delivery' },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'bestseller', label: 'Bestseller',   value: 'top',     selected: true  },
+      { id: 'chicken',    label: 'Chicken',      value: 'chicken', selected: false },
+      { id: 'mutton',     label: 'Mutton',       value: 'mutton',  selected: false },
+      { id: 'veg',        label: 'Veg',          value: 'veg',     selected: false },
+      { id: 'family',     label: 'Family pack',  value: 'family',  selected: false },
+    ],
+  },
+  sort: {
+    options: [
+      { id: 'popular',    label: 'Popular' },
+      { id: 'price_asc',  label: 'Price: low to high' },
+      { id: 'rating',     label: 'Rating' },
+    ],
+    selected_id: 'popular',
+  },
+  collection: {
+    layout: 'grid',
+    cards: [
+      {
+        variant: 'catalog',
+        id: 'paradise_chicken_biryani',
+        title: 'Hyderabadi Chicken Biryani',
+        subtitle: 'Bestseller · serves 1',
+        media: { alt: 'Chicken biryani plate', fallback_color: '#C9855A' },
+        price_label: '₹329',
+        rating: { value: 4.6, count: 4820 },
+        tags: ['Spicy', 'Chicken'],
+        badge: 'Top dish',
+        filter_ids: ['bestseller', 'chicken'],
+        primary_event: 'catalog.swiggy.paradise.chicken_biryani.add',
+      },
+      {
+        variant: 'catalog',
+        id: 'paradise_mutton_biryani',
+        title: 'Hyderabadi Mutton Biryani',
+        subtitle: 'Slow-cooked · serves 1',
+        media: { alt: 'Mutton biryani plate', fallback_color: '#B97349' },
+        price_label: '₹449',
+        rating: { value: 4.7, count: 3210 },
+        tags: ['Spicy', 'Mutton'],
+        filter_ids: ['mutton'],
+        primary_event: 'catalog.swiggy.paradise.mutton_biryani.add',
+      },
+      {
+        variant: 'catalog',
+        id: 'paradise_veg_biryani',
+        title: 'Veg Dum Biryani',
+        subtitle: 'Aromatic · serves 1',
+        media: { alt: 'Veg biryani plate', fallback_color: '#D6C593' },
+        price_label: '₹229',
+        rating: { value: 4.2, count: 1180 },
+        tags: ['Veg'],
+        filter_ids: ['veg'],
+        primary_event: 'catalog.swiggy.paradise.veg_biryani.add',
+      },
+      {
+        variant: 'catalog',
+        id: 'paradise_family_pack',
+        title: 'Family Pack — Chicken (serves 4)',
+        subtitle: 'Includes raita & gulab jamun',
+        media: { alt: 'Family biryani pack', fallback_color: '#A8653E' },
+        price_label: '₹999',
+        rating: { value: 4.5, count: 920 },
+        tags: ['Family', 'Combo'],
+        badge: 'Save ₹150',
+        filter_ids: ['chicken', 'family'],
+        primary_event: 'catalog.swiggy.paradise.family_pack.add',
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Add to cart',
+    event: 'edge.swiggy_paradise_menu.add',
+    kind: 'commit',
+    query: 'Add Hyderabadi Chicken Biryani from Paradise to cart',
+  },
+  voice_disclosure: "Paradise top dish — Hyderabadi Chicken Biryani at three hundred and twenty-nine rupees, 4.6 stars. Mutton biryani is four hundred and forty-nine. Family pack serves four for nine hundred and ninety-nine. Which one shall I add?",
+  meta: {
+    intent: 'discover',
+    query: 'Show Paradise menu on Swiggy',
+    total_count: 24,
+    trace_id: 'trace-swiggy-menu-001',
+  },
+};
+
+/** @type {CatalogDiscoveryView} */
+const MOCK_SWIGGY_PARADISE_ORDER = {
+  kind: 'discovery_view',
+  sub_pattern: 'catalog',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: { title: 'Order ready to confirm', subtitle: 'Paradise Biryani · Swiggy · 28 min' },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'cod_off', label: 'Pay online', value: 'online', selected: true },
+    ],
+  },
+  sort: {
+    options: [
+      { id: 'recommended', label: 'Recommended' },
+    ],
+    selected_id: 'recommended',
+  },
+  collection: {
+    layout: 'list',
+    cards: [
+      {
+        variant: 'catalog',
+        id: 'swiggy_paradise_order',
+        title: 'Hyderabadi Chicken Biryani · 1',
+        subtitle: 'Paradise Biryani · Koramangala',
+        media: { alt: 'Paradise chicken biryani', fallback_color: '#C9855A' },
+        price_label: '₹449',
+        temporal_label: '28 min · ₹29 delivery · ₹91 taxes',
+        status_label: 'Pay online · UPI ready',
+        badge: 'Bestseller',
+        tags: ['Chicken', 'Spicy'],
+        specs: ['1 Chicken Biryani', 'Mint chutney', 'Salan'],
+        primary_event: 'catalog.swiggy_paradise_order.confirm_pay',
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Add a side',
+    event: 'edge.swiggy_paradise_order.add_side',
+    kind: 'compare',
+    query: 'Add gulab jamun to my Paradise order',
+  },
+  voice_disclosure: "Order summary — one Hyderabadi Chicken Biryani from Paradise, four hundred and forty-nine rupees plus twenty-nine delivery and ninety-one taxes. Total five hundred and sixty-nine rupees. Delivery in twenty-eight minutes. Confirm to place the order?",
+  suggested_prompts: [
+    { label: 'Add a side',         kind: 'compare',       query: 'Add raita to my Paradise order' },
+    { label: 'Change to mutton',   kind: 'context_shift', query: 'Change my Paradise order to mutton biryani' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Order biryani from Paradise on Swiggy',
+    total_count: 1,
+    trace_id: 'trace-swiggy-order-001',
+  },
+};
+
+const INFO_SWIGGY_ORDER_STATUS = {
+  kind: 'informational_response',
+  subject: { title: 'Swiggy order — Paradise Biryani', subtitle: 'Order #SW-58293 · ₹569 · ETA 9 min' },
+  body_text: [
+    { label: 'Status',      value: 'Out for delivery · Aakash is 1.4 km away' },
+    { label: 'Order',       value: '1 Hyderabadi Chicken Biryani · Paradise' },
+    { label: 'Placed',      value: '7:42 PM · paid via UPI' },
+    { label: 'Stages',      value: 'Order placed → Kitchen prep → Picked up → Out for delivery' },
+  ],
+  voice_disclosure: "Your Swiggy order from Paradise is out for delivery. Aakash is one point four kilometres away — about nine minutes. On screen — track live, or call the rider?",
+  edge_affordance: {
+    label: 'Track live on map',
+    event: 'edge.swiggy_order.track',
+    kind: 'context_shift',
+    query: 'Track my Swiggy order live',
+  },
+  suggested_prompts: [
+    { label: 'Track live on map', kind: 'context_shift', query: 'Track my Swiggy order live' },
+    { label: 'Call the rider',    kind: 'context_shift', query: 'Call the Swiggy delivery rider' },
+    { label: 'Cancel order',      kind: 'context_shift', query: 'Cancel my Swiggy Paradise order' },
+  ],
+};
+
 const INFORMATIONAL_RESPONSES = {
-  pm_kisan_status: { key: 'pm_kisan_status', label: 'PM Kisan installment status', view: INFO_PM_KISAN_STATUS },
-  ration_status:   { key: 'ration_status',   label: 'Ration card status',          view: INFO_RATION_STATUS },
+  pm_kisan_status:    { key: 'pm_kisan_status',    label: 'PM Kisan installment status', view: INFO_PM_KISAN_STATUS },
+  ration_status:      { key: 'ration_status',      label: 'Ration card status',          view: INFO_RATION_STATUS },
+  swiggy_order_status:{ key: 'swiggy_order_status',label: 'Swiggy order status',         view: INFO_SWIGGY_ORDER_STATUS },
 };
 
 /* ============================================================================
@@ -4125,6 +4442,15 @@ const PILLAR_DATASET_ENTRIES = [
   { key: 'milk_subscription_edit',   label: 'Milk subscription edit',                    view: MOCK_MILK_SUBSCRIPTION_EDIT },
 ];
 
+// Partner experiences (Swiggy Food). Three discovery keys + one informational
+// (registered separately). Each MUST resolve via the flat DATASETS lookup so
+// the chat handler's matchDiscoveryQuery → DATASETS[key] path renders them.
+const PARTNER_DATASET_ENTRIES = [
+  { key: 'swiggy_biryani_search', label: 'Find biryani on Swiggy',         view: MOCK_SWIGGY_BIRYANI_SEARCH },
+  { key: 'swiggy_paradise_menu',  label: 'Show Paradise menu on Swiggy',   view: MOCK_SWIGGY_PARADISE_MENU },
+  { key: 'swiggy_paradise_order', label: 'Order biryani from Paradise',    view: MOCK_SWIGGY_PARADISE_ORDER },
+];
+
 // Flat lookup: key -> { label, view }. Includes the 20 legacy mocks plus the
 // new pillar-keyed DiscoveryView mocks. Informational responses live in their
 // own registry (INFORMATIONAL_RESPONSES) — keep that lookup separate so the
@@ -4132,6 +4458,7 @@ const PILLAR_DATASET_ENTRIES = [
 const DATASETS = Object.fromEntries([
   ...DATASET_GROUPS.flatMap((g) => g.items.map((it) => [it.key, it])),
   ...PILLAR_DATASET_ENTRIES.map((it) => [it.key, it]),
+  ...PARTNER_DATASET_ENTRIES.map((it) => [it.key, it]),
 ]);
 
 /**
@@ -4222,6 +4549,11 @@ window.MOCK_KIRANA_REORDER = MOCK_KIRANA_REORDER;
 window.MOCK_MILK_SUBSCRIPTION_EDIT = MOCK_MILK_SUBSCRIPTION_EDIT;
 window.INFO_PM_KISAN_STATUS = INFO_PM_KISAN_STATUS;
 window.INFO_RATION_STATUS = INFO_RATION_STATUS;
+// Partner mocks — Swiggy MCP Food samples
+window.MOCK_SWIGGY_BIRYANI_SEARCH = MOCK_SWIGGY_BIRYANI_SEARCH;
+window.MOCK_SWIGGY_PARADISE_MENU = MOCK_SWIGGY_PARADISE_MENU;
+window.MOCK_SWIGGY_PARADISE_ORDER = MOCK_SWIGGY_PARADISE_ORDER;
+window.INFO_SWIGGY_ORDER_STATUS = INFO_SWIGGY_ORDER_STATUS;
 
 /* ============================================================================
    Delegated event plumbing — every interactive primitive carries
