@@ -135,6 +135,7 @@
    `padding: 0 var(--space-lg)` so the first item still aligns with the
    subject header and map. */
 .jbiq-discovery .filter-chip-bar,
+.jbiq-discovery .sort-control,
 .jbiq-discovery .collection-container--carousel,
 .jbiq-discovery .collection-container--grid,
 .jbiq-discovery .collection-container--list {
@@ -172,6 +173,27 @@
   line-height: var(--font-line-height-tight);
   letter-spacing: var(--font-tracking-small);
 }
+.subject-header__subtitle-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.subject-header__brand-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-pill);
+  padding: 0;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+.subject-header__brand-chip--swiggy { background: #FC8019; }
 
 /* ----------------------------------------------------------------------------
    PRIMITIVE: LocationContext
@@ -239,6 +261,8 @@
   color: var(--color-text-secondary);
 }
 .sort-control__select {
+  flex: 1;
+  min-width: 0;
   font-family: inherit;
   font-size: var(--font-size-small);
   padding: var(--space-xs) var(--space-md);
@@ -405,8 +429,8 @@
 .collection-container--list > .catalog-card .catalog-card__media {
   width: 96px;
   min-width: 96px;
-  height: auto;
-  min-height: 96px;
+  height: 96px;
+  aspect-ratio: 1 / 1;
 }
 .collection-container--list > .catalog-card .catalog-card__content {
   flex: 1;
@@ -498,6 +522,28 @@
   margin: 0;
   font-size: var(--font-size-caption);
   color: var(--color-text-secondary);
+}
+
+/* Split tap model — when a card opts in via `commit_action`, the wrapper is
+   a non-interactive <div> and only the pill below is tappable. Cursor reset
+   prevents the wrapper from advertising itself as a tap target. */
+.catalog-card--has-commit { cursor: default; }
+
+.catalog-card__commit {
+  align-self: center;
+  margin-left: auto;
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--color-action-primary);
+  color: var(--color-text-on-primary);
+  font-family: inherit;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--font-tracking-body);
+  min-height: 32px;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 /* ----------------------------------------------------------------------------

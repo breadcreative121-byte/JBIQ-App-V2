@@ -1644,6 +1644,15 @@
       letter-spacing: 0.2px;
     }
 
+    /* Swiggy chip used in the connecting indicator (mirrors jiomart-chip) */
+    .swiggy-chip {
+      background: #FC8019 !important;
+      color: white;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+    }
+
     /* Shopping product card (state A — initial confirm) */
     .shopping-card {
       width: 100%;
@@ -7554,6 +7563,18 @@
     return el;
   }
 
+  function createConnectingSwiggyEl() {
+    const el = document.createElement('div');
+    el.className = 'searching-row';
+    el.innerHTML = `
+      <div class="searching-logos">
+        <div class="searching-logo swiggy-chip">Sw</div>
+      </div>
+      <span class="searching-text">Connecting to Swiggy...</span>
+    `;
+    return el;
+  }
+
   // Active order — shared across tap / voice-confirm paths
   let activeOrder = null; // { product, cardEl, payBtn, warningEl, tapped, completed, warningVisible }
 
@@ -8737,6 +8758,11 @@
     const informationalView = informationalEntry ? informationalEntry.view : null;
     const discoveryKey = (!isRestaurantQuery && !isShoppingQuery && !advisoryFixture && !informationalView && !bookingIntent) ? matchDiscoveryQuery(text) : null;
     const discoveryDs = (discoveryKey && window.DATASETS) ? window.DATASETS[discoveryKey] : null;
+    // Mutable copy of the view actually rendered. Partner experiences
+    // (e.g. swiggy_paradise_menu) attempt a live MCP fetch below and
+    // overwrite this on success; on failure we keep the fixture.
+    let discoveryView = discoveryDs ? discoveryDs.view : null;
+    let discoveryLiveSource = null;
     // Other text-response types run only when no richer journey matched.
     // Unknown types (or fixtureless matches) fall through to /api/chat.
     const textType = (!isRestaurantQuery && !isShoppingQuery && !discoveryDs && !informationalView && !bookingIntent)
@@ -8747,7 +8773,7 @@
         ? 'Top restaurants'
         : (isShoppingQuery ? `Order ${shoppingItemText}`
           : (bookingIntent ? bookingIntent.subject.title
-            : (discoveryDs ? discoveryDs.view.subject.title
+            : (discoveryView ? discoveryView.subject.title
               : (informationalView ? informationalView.subject.title
                 : extractTitle(text)))));
       voiceTitleLocked = true;
@@ -8822,6 +8848,25 @@
       }, 1200);
     }
 
+    // 3d. For Swiggy partner queries (biryani search, Paradise menu/order, order
+    // status), swap Thinking... -> Connecting to Swiggy... after 1.2s. Mirrors
+    // the JioMart pattern above.
+    const isSwiggyQuery = (typeof discoveryKey === 'string' && discoveryKey.startsWith('swiggy_'))
+      || informationalKey === 'swiggy_order_status';
+    if (isSwiggyQuery) {
+      setTimeout(() => {
+        if (!thinkingEl || !thinkingEl.isConnected) return;
+        thinkingEl.style.transition = 'opacity 0.25s ease';
+        thinkingEl.style.opacity = '0';
+        setTimeout(() => {
+          if (!thinkingEl.isConnected) return;
+          const connectingEl = createConnectingSwiggyEl();
+          thinkingEl.replaceWith(connectingEl);
+          thinkingEl = connectingEl;
+        }, 250);
+      }, 1200);
+    }
+
     // 4. Call API + enforce minimum 4s thinking time
     const thinkingStart = Date.now();
     let responseText = '';
@@ -8830,11 +8875,40 @@
     } else if (isShoppingQuery && shoppingProduct) {
       responseText = `Found ${shoppingProduct.name} on JioMart for ₹${shoppingProduct.price}. Tap Confirm & Pay to place the order.`;
     } else if (discoveryDs) {
+      // Partner experiences with a live MCP backend get a fetch attempt here,
+      // *during* the thinking window so latency is absorbed by the existing
+      // 4s minimum. On success, the fixture is replaced by the live shape;
+      // on any failure, we silently fall back to the fixture and a
+      // diagnostic badge appears above the rendered cards.
+      if (discoveryKey === 'swiggy_paradise_menu') {
+        try {
+          const r = await fetch(`${API_BASE}/api/partner/swiggy-menu`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: text }),
+          });
+          const payload = await r.json().catch(() => ({}));
+          if (r.ok && payload && payload.view) {
+            // Defensive: validate before swapping. Bad shape → keep fixture.
+            const errs = (window.validateDiscoveryView ? window.validateDiscoveryView(payload.view) : []) || [];
+            if (errs.length === 0) {
+              discoveryView = payload.view;
+              discoveryLiveSource = { ok: true, debug: payload.debug || null };
+            } else {
+              discoveryLiveSource = { ok: false, reason: 'validation: ' + errs.join('; ') };
+            }
+          } else {
+            discoveryLiveSource = { ok: false, reason: (payload && payload.error) || `HTTP ${r.status}` };
+          }
+        } catch (err) {
+          discoveryLiveSource = { ok: false, reason: err.message || 'network error' };
+        }
+      }
       // Text mode: render the §15 four-beat summary (outcome + anchor + shape)
       // as prose above the widget. The widget itself is the pivot surface, so
       // the "on screen…" pivot is stripped. Voice mode stays silent on screen;
       // TTS carries the full voice_disclosure via spokenText below.
-      const vd = discoveryDs.view.voice_disclosure;
+      const vd = discoveryView && discoveryView.voice_disclosure;
       responseText = (isTextMode && vd) ? stripVoicePivot(vd) : '';
     } else if (informationalView) {
       // §10.1 Informational — same prose contract as DiscoveryView. Pivot
@@ -8876,14 +8950,14 @@
     // complete disclosure still lands in TTS + conversationHistory so follow-
     // up turns keep context and §15 acceptance criteria are preserved.
     let spokenText = responseText;
-    if (discoveryDs && discoveryDs.view.voice_disclosure) {
-      spokenText = discoveryDs.view.voice_disclosure;
+    if (discoveryView && discoveryView.voice_disclosure) {
+      spokenText = discoveryView.voice_disclosure;
     } else if (informationalView && informationalView.voice_disclosure) {
       spokenText = informationalView.voice_disclosure;
     } else if (bookingIntent && bookingIntent.voice_disclosure) {
       spokenText = bookingIntent.voice_disclosure;
-    } else if (!responseText && discoveryDs && discoveryDs.view.subject) {
-      const s = discoveryDs.view.subject;
+    } else if (!responseText && discoveryView && discoveryView.subject) {
+      const s = discoveryView.subject;
       spokenText = s.subtitle
         ? `${s.title} — ${s.subtitle.replace(/\s*·\s*/g, ', ')}`
         : s.title;
@@ -8962,10 +9036,15 @@
     // all the plan/cart detail and the §14 commit surface, so showing the
     // DiscoveryView card too would be a redundant double widget.
     const isTransactional = !!(discoveryDs && TRANSACTIONAL_VIEW_PRODUCTS[discoveryKey]);
-    if (discoveryDs && window.renderDiscoveryView && !isTransactional) {
-      currentTurnEl.appendChild(window.renderDiscoveryView(discoveryDs.view));
+    if (discoveryView && window.renderDiscoveryView && !isTransactional) {
+      // The MCP source state is still tracked on `discoveryLiveSource` for
+      // console / telemetry consumers; we just don't render a visible badge.
+      if (discoveryLiveSource) {
+        try { console.info('[jbiq.mcp]', discoveryLiveSource); } catch (_) {}
+      }
+      currentTurnEl.appendChild(window.renderDiscoveryView(discoveryView));
       // Snapshot the open DiscoveryView so it can be re-mounted on Resume.
-      checkpointSession({ uiState: { discoveryView: { view: discoveryDs.view } } });
+      checkpointSession({ uiState: { discoveryView: { view: discoveryView } } });
     }
 
     // 7e. Render Informational response (§10.1) — single-status answers with
@@ -9007,8 +9086,8 @@
     // .jbiq-discovery wrapper — so taps need a local handler that calls
     // showResponse directly (the delegated jbiq-discovery handler only fires
     // for buttons inside the wrapper).
-    if (isTransactional && discoveryDs.view.suggested_prompts && window.renderSuggestedPrompts) {
-      const promptsEl = window.renderSuggestedPrompts(discoveryDs.view.suggested_prompts, discoveryDs.view.suggested_prompts_label);
+    if (isTransactional && discoveryView && discoveryView.suggested_prompts && window.renderSuggestedPrompts) {
+      const promptsEl = window.renderSuggestedPrompts(discoveryView.suggested_prompts, discoveryView.suggested_prompts_label);
       if (promptsEl) {
         currentTurnEl.appendChild(promptsEl);
         promptsEl.addEventListener('click', (e) => {
