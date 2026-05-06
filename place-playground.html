@@ -4909,6 +4909,63 @@
       }
     }
 
+    /* ------------------------------------------------------------------------
+       Partner experiences — Swiggy MCP. Each item carries a `surface` flag
+       ('chat' | 'voice') so reviewers can see how the same Swiggy intent
+       renders in each surface (rich grid in chat, compressed top-3 in
+       voice). The actual fixtures (MOCK_SWIGGY_*) live in discovery.js and
+       are loaded by the iframe; the playground only needs the `query` text
+       — the iframe's regex matcher resolves it to the right view.
+       ------------------------------------------------------------------------ */
+    const PARTNER_GROUPS = [
+      {
+        group: 'Swiggy Food',
+        description: 'MCP-driven partner experiences. Voice variants compress to top-3 + spoken price; chat variants render full cards/menus. Mirrors mcp.swiggy.com voice-vs-chat patterns.',
+        items: [
+          { key: 'swiggy_biryani_search_chat',  surface: 'chat',  label: 'Find biryani on Swiggy — chat',
+            query: 'Find biryani on Swiggy',
+            demonstrates: 'Rich Place grid: 5 restaurants, ratings, distance, ETA. Mirrors Swiggy chat pattern (≤8 results + widgets).' },
+          { key: 'swiggy_biryani_search_voice', surface: 'voice', label: 'Find biryani on Swiggy — voice',
+            query: 'Find biryani on Swiggy',
+            demonstrates: 'Compressed top-3 spoken answer + edge pill to see more. Mirrors Swiggy voice pattern (≤3 items, deliveryTimeSpoken).' },
+          { key: 'swiggy_menu_chat',  surface: 'chat',  label: 'Show Paradise menu on Swiggy — chat',
+            query: 'Show Paradise menu on Swiggy',
+            demonstrates: 'Catalog grid: menu items with price + bestseller badge.' },
+          { key: 'swiggy_menu_voice', surface: 'voice', label: 'Show Paradise menu on Swiggy — voice',
+            query: 'Show Paradise menu on Swiggy',
+            demonstrates: 'Voice surfaces top dish only; user disambiguates via follow-up.' },
+          { key: 'swiggy_order_chat',  surface: 'chat',  label: 'Order biryani from Swiggy — chat',
+            query: 'Order biryani from Paradise on Swiggy',
+            demonstrates: 'Transactional Confirm & Pay; reuses shopping-card primitive.' },
+          { key: 'swiggy_order_voice', surface: 'voice', label: 'Order biryani from Swiggy — voice',
+            query: 'Order biryani from Paradise on Swiggy',
+            demonstrates: 'Voice repeats total + asks for final confirmation before placement.' },
+          { key: 'swiggy_track_chat',  surface: 'chat',  label: 'Track my Swiggy order — chat',
+            query: "Where's my Swiggy order",
+            demonstrates: 'Informational status card with delivery progress stages.' },
+          { key: 'swiggy_track_voice', surface: 'voice', label: 'Track my Swiggy order — voice',
+            query: "Where's my Swiggy order",
+            demonstrates: 'Spoken ETA and stage; compressed informational reply.' },
+        ],
+      },
+    ];
+
+    const PARTNER_DATASETS = Object.fromEntries(
+      PARTNER_GROUPS.flatMap((g) => g.items.map((it) => [it.key, it])),
+    );
+
+    const PARTNER_INFO = {};
+    for (const g of PARTNER_GROUPS) {
+      for (const it of g.items) {
+        PARTNER_INFO[it.key] = {
+          label: it.label,
+          groupName: g.group,
+          groupDescription: g.description,
+          demonstrates: it.demonstrates,
+        };
+      }
+    }
+
     function renderValidatorPanel(view) {
       const result = validateDiscoveryView(view);
       const statusCls = result.valid
@@ -5012,10 +5069,11 @@
     function mountPlayground(rootEl) {
       let activeKey = '';
       let activeVoiceKey = '';
+      let activePartnerKey = '';
       let activeErrorKey = '';
       let activeLang = 'en';   // 'en' | 'hi'
       let activeHomeState = 'new-user';
-      let lastSurface = 'chat'; // 'chat' | 'voice' | 'error' — which dropdown most recently fired
+      let lastSurface = 'chat'; // 'chat' | 'voice' | 'partner' | 'error' — which dropdown most recently fired
 
       const headerInner = el('div', {}, [
         el('h1', { class: 'page__title', text: 'JBIQ Conversation Playground' }),
@@ -5180,6 +5238,28 @@
         voiceSelect,
       ]);
 
+      // Partner experiences dropdown — Swiggy MCP samples. Each item carries
+      // its own surface flag (chat | voice); the change handler routes via
+      // the same iframe hooks as the chat/voice dropdowns above.
+      const partnerSelect = el('select', { class: 'dataset-select__control' });
+      const partnerPlaceholder = el('option', { value: '', text: 'Select partner experience' });
+      partnerPlaceholder.setAttribute('disabled', 'disabled');
+      partnerPlaceholder.setAttribute('selected', 'selected');
+      partnerPlaceholder.setAttribute('hidden', 'hidden');
+      partnerSelect.appendChild(partnerPlaceholder);
+      for (const g of PARTNER_GROUPS) {
+        const group = el('optgroup', { label: g.group });
+        for (const it of g.items) {
+          const o = el('option', { value: it.key, text: it.label });
+          group.appendChild(o);
+        }
+        partnerSelect.appendChild(group);
+      }
+      const partnerSelector = el('div', { class: 'dataset-select' }, [
+        el('label', { class: 'dataset-select__label', text: 'Partner experience:' }),
+        partnerSelect,
+      ]);
+
       // Error scenarios dropdown — drives runPrototypeErrorScenario(id, lang)
       // in the iframe to render the framework's §6 worked examples.
       const errorSelect = el('select', { class: 'dataset-select__control' });
@@ -5298,6 +5378,14 @@
           ]);
           return;
         }
+        const partnerDesc = PARTNER_INFO[key];
+        if (partnerDesc) {
+          setCaption(partnerDesc.label, partnerDesc.groupName, [
+            { label: 'Pattern', body: partnerDesc.groupDescription },
+            { label: 'Demonstrates', body: partnerDesc.demonstrates },
+          ]);
+          return;
+        }
         setCaption(null, null, null);
       };
 
@@ -5317,6 +5405,16 @@
             if (surface === 'error') {
               if (typeof w.runPrototypeErrorScenario === 'function') {
                 w.runPrototypeErrorScenario(activeErrorKey, activeLang);
+              }
+              return;
+            }
+            if (surface === 'partner') {
+              const partnerItem = PARTNER_DATASETS[activePartnerKey];
+              if (!partnerItem || !partnerItem.query) return;
+              if (partnerItem.surface === 'voice' && typeof w.runPrototypeVoiceQuery === 'function') {
+                w.runPrototypeVoiceQuery(partnerItem.query);
+              } else if (typeof w.runPrototypeQuery === 'function') {
+                w.runPrototypeQuery(partnerItem.query);
               }
               return;
             }
@@ -5379,6 +5477,14 @@
         console.log(`voice-experience.change.${activeVoiceKey}`);
       });
 
+      partnerSelect.addEventListener('change', (e) => {
+        activePartnerKey = e.target.value;
+        lastSurface = 'partner';
+        updateCaption(activePartnerKey);
+        dispatchActive();
+        console.log(`partner-experience.change.${activePartnerKey}`);
+      });
+
       errorSelect.addEventListener('change', (e) => {
         activeErrorKey = e.target.value;
         lastSurface = 'error';
@@ -5398,7 +5504,7 @@
       langEnBtn.addEventListener('click', () => setLang('en'));
       langHiBtn.addEventListener('click', () => setLang('hi'));
 
-      const controls = el('div', { class: 'page__controls' }, [homeStateSelector, voiceSelector, selector, errorSelector]);
+      const controls = el('div', { class: 'page__controls' }, [homeStateSelector, voiceSelector, selector, partnerSelector, errorSelector]);
       const scopeNote = el('p', {
         class: 'page__scope-note',
         text: 'Out of scope: Homepage, Tools, Assistants and onboarding ',
