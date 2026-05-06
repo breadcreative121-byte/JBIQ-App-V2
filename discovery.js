@@ -113,6 +113,11 @@ const tokens = {
  * @property {string} [badge]
  * @property {string[]} [filter_ids]      -- chip ids this card passes (§8)
  * @property {string} primary_event
+ * @property {{ label: string, event: string }} [commit_action]
+ *   -- Optional explicit commit pill (e.g. "Add"). When present, the card is
+ *   rendered as a non-interactive container and only the pill is tappable;
+ *   the pill dispatches `commit_action.event`. When absent, the whole card
+ *   stays a single tap target firing `primary_event` (legacy behaviour).
  */
 
 /**
@@ -143,7 +148,7 @@ const tokens = {
  * @typedef {Object} EdgeAffordance
  * @property {string} label
  * @property {string} event
- * @property {'see_more'|'compare'|'save_later'|'remind_later'|'context_shift'} kind
+ * @property {'see_more'|'compare'|'save_later'|'remind_later'|'context_shift'|'commit'} kind
  * @property {string} [query]
  */
 
@@ -201,7 +206,7 @@ const tokens = {
    Top-level dispatcher: validateDiscoveryView.
    ======================================================================== */
 
-const VALID_EDGE_KINDS = ['see_more', 'compare', 'save_later', 'remind_later', 'context_shift'];
+const VALID_EDGE_KINDS = ['see_more', 'compare', 'save_later', 'remind_later', 'context_shift', 'commit'];
 
 function validateCommon(view, errors) {
   if (view.kind !== 'discovery_view') {
@@ -365,11 +370,25 @@ function el(tag, attrs = {}, children = []) {
   return node;
 }
 
-/** @param {{ title: string, subtitle?: string }} props */
-function renderSubjectHeader({ title, subtitle }) {
+/** @param {{ title: string, subtitle?: string, brand_chip?: { label: string, variant: string } }} props */
+function renderSubjectHeader({ title, subtitle, brand_chip }) {
+  let subtitleNode = null;
+  if (subtitle) {
+    if (brand_chip) {
+      subtitleNode = el('p', { class: 'subject-header__subtitle subject-header__subtitle-row' }, [
+        el('span', {
+          class: `subject-header__brand-chip subject-header__brand-chip--${brand_chip.variant}`,
+          text: brand_chip.label,
+        }),
+        el('span', { text: subtitle }),
+      ]);
+    } else {
+      subtitleNode = el('p', { class: 'subject-header__subtitle', text: subtitle });
+    }
+  }
   return el('header', { class: 'subject-header' }, [
     el('h2', { class: 'subject-header__title', text: title }),
-    subtitle ? el('p', { class: 'subject-header__subtitle', text: subtitle }) : null,
+    subtitleNode,
   ]);
 }
 
@@ -673,6 +692,26 @@ function renderCatalogResultCard(card) {
       class: 'catalog-card__specs',
       text: card.specs.join(' · '),
     }));
+  }
+
+  if (card.commit_action) {
+    // Schema opts the card into a split tap model: only the commit pill
+    // (e.g. "Add") is tappable, the wrapper is a div. The pill carries the
+    // dispatch event; primary_event is preserved on the wrapper for parity
+    // with legacy analytics consumers but is not what fires on tap.
+    const pill = el('button', {
+      class: 'catalog-card__commit',
+      type: 'button',
+      'data-event': card.commit_action.event,
+      'aria-label': `${card.commit_action.label} ${card.title}`,
+      text: card.commit_action.label,
+    });
+    return el('div', {
+      class: 'catalog-card catalog-card--has-commit',
+      role: 'listitem',
+      'data-event': card.primary_event,
+      'aria-label': card.title,
+    }, [media, content, pill]);
   }
 
   return el('button', {
@@ -4067,7 +4106,11 @@ const MOCK_SWIGGY_BIRYANI_SEARCH = {
   kind: 'discovery_view',
   sub_pattern: 'place',
   state: 'PARTIAL_RESULT_SHOWN',
-  subject: { title: 'Biryani on Swiggy', subtitle: 'Top picks · 32 min avg delivery' },
+  subject: {
+    title: 'Biryani on Swiggy',
+    subtitle: 'Top picks · 32 min avg delivery',
+    brand_chip: { label: 'Sw', variant: 'swiggy' },
+  },
   location_context: { area: 'Koramangala, Bengaluru', change_event: 'location.change.koramangala' },
   filters: {
     multi_select: true,
@@ -4203,11 +4246,15 @@ const MOCK_SWIGGY_PARADISE_MENU = {
   kind: 'discovery_view',
   sub_pattern: 'catalog',
   state: 'PARTIAL_RESULT_SHOWN',
-  subject: { title: 'Paradise Biryani — menu', subtitle: 'Swiggy · 28 min · ₹29 delivery' },
+  subject: {
+    title: 'Paradise Biryani — menu',
+    subtitle: 'Swiggy · 28 min · ₹29 delivery',
+    brand_chip: { label: 'Sw', variant: 'swiggy' },
+  },
   filters: {
     multi_select: true,
     chips: [
-      { id: 'bestseller', label: 'Bestseller',   value: 'top',     selected: true  },
+      { id: 'bestseller', label: 'Bestseller',   value: 'top',     selected: false },
       { id: 'chicken',    label: 'Chicken',      value: 'chicken', selected: false },
       { id: 'mutton',     label: 'Mutton',       value: 'mutton',  selected: false },
       { id: 'veg',        label: 'Veg',          value: 'veg',     selected: false },
@@ -4223,7 +4270,7 @@ const MOCK_SWIGGY_PARADISE_MENU = {
     selected_id: 'popular',
   },
   collection: {
-    layout: 'grid',
+    layout: 'list',
     cards: [
       {
         variant: 'catalog',
@@ -4237,6 +4284,7 @@ const MOCK_SWIGGY_PARADISE_MENU = {
         badge: 'Top dish',
         filter_ids: ['bestseller', 'chicken'],
         primary_event: 'catalog.swiggy.paradise.chicken_biryani.add',
+        commit_action: { label: 'Add', event: 'catalog.swiggy.paradise.chicken_biryani.add' },
       },
       {
         variant: 'catalog',
@@ -4249,6 +4297,7 @@ const MOCK_SWIGGY_PARADISE_MENU = {
         tags: ['Spicy', 'Mutton'],
         filter_ids: ['mutton'],
         primary_event: 'catalog.swiggy.paradise.mutton_biryani.add',
+        commit_action: { label: 'Add', event: 'catalog.swiggy.paradise.mutton_biryani.add' },
       },
       {
         variant: 'catalog',
@@ -4261,6 +4310,7 @@ const MOCK_SWIGGY_PARADISE_MENU = {
         tags: ['Veg'],
         filter_ids: ['veg'],
         primary_event: 'catalog.swiggy.paradise.veg_biryani.add',
+        commit_action: { label: 'Add', event: 'catalog.swiggy.paradise.veg_biryani.add' },
       },
       {
         variant: 'catalog',
@@ -4274,14 +4324,9 @@ const MOCK_SWIGGY_PARADISE_MENU = {
         badge: 'Save ₹150',
         filter_ids: ['chicken', 'family'],
         primary_event: 'catalog.swiggy.paradise.family_pack.add',
+        commit_action: { label: 'Add', event: 'catalog.swiggy.paradise.family_pack.add' },
       },
     ],
-  },
-  edge_affordance: {
-    label: 'Add to cart',
-    event: 'edge.swiggy_paradise_menu.add',
-    kind: 'commit',
-    query: 'Add Hyderabadi Chicken Biryani from Paradise to cart',
   },
   voice_disclosure: "Paradise top dish — Hyderabadi Chicken Biryani at three hundred and twenty-nine rupees, 4.6 stars. Mutton biryani is four hundred and forty-nine. Family pack serves four for nine hundred and ninety-nine. Which one shall I add?",
   meta: {
@@ -4297,7 +4342,11 @@ const MOCK_SWIGGY_PARADISE_ORDER = {
   kind: 'discovery_view',
   sub_pattern: 'catalog',
   state: 'PARTIAL_RESULT_SHOWN',
-  subject: { title: 'Order ready to confirm', subtitle: 'Paradise Biryani · Swiggy · 28 min' },
+  subject: {
+    title: 'Order ready to confirm',
+    subtitle: 'Paradise Biryani · Swiggy · 28 min',
+    brand_chip: { label: 'Sw', variant: 'swiggy' },
+  },
   filters: {
     multi_select: true,
     chips: [
