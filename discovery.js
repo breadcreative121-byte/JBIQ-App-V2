@@ -128,6 +128,7 @@ const tokens = {
  * @property {{ url?: string, alt: string, fallback_color?: string }} [media]
  * @property {string} [badge]         -- "Lowest EMI", "Cheapest", "Recommended"
  * @property {string} primary_event
+ * @property {string} [query]         -- when present, tapping this column seeds the next user utterance
  */
 
 /**
@@ -740,13 +741,15 @@ function renderCompareTable({ header, options, rows }) {
   // Options strip: one <button> column per option.
   const optionsStrip = el('div', { class: 'compare-table__options' });
   for (const opt of options) {
-    const col = el('button', {
+    const colAttrs = {
       class: 'compare-table__option' +
         (header.recommended_id === opt.id ? ' compare-table__option--recommended' : ''),
       type: 'button',
       'data-event': opt.primary_event,
       'aria-label': opt.title,
-    });
+    };
+    if (opt.query) colAttrs['data-query'] = opt.query;
+    const col = el('button', colAttrs);
 
     // Column header cell (option title + subtitle + badge)
     const hdr = el('div', { class: 'compare-table__header-cell' });
@@ -4241,6 +4244,96 @@ const MOCK_SWIGGY_BIRYANI_SEARCH = {
   },
 };
 
+/* Multi-partner conflict resolution — fires when the user expresses a
+   partner-agnostic biryani intent (e.g. "Order biryani"). Both Swiggy and
+   Zomato are candidates; this Compare view lets the user pick one and seeds
+   the existing partner subtree with `Find biryani on <partner>`. The
+   `recommended_id` ("your usual") is a static stub for now — personalised
+   ranking from history is a future probe. */
+/** @type {CompareDiscoveryView} */
+const MOCK_BIRYANI_PARTNER_PICK = {
+  kind: 'discovery_view',
+  sub_pattern: 'compare',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: { title: 'Biryani — pick a partner', subtitle: 'Both deliver to Koramangala right now' },
+  collection: {
+    layout: 'table',
+    header: { label_column: '', recommended_id: 'swiggy' },
+    options: [
+      {
+        id: 'swiggy',
+        title: 'Swiggy',
+        subtitle: 'Paradise · 4.5★',
+        badge: 'Your usual',
+        primary_event: 'partner.biryani.pick.swiggy',
+        query: 'Find biryani on Swiggy',
+      },
+      {
+        id: 'zomato',
+        title: 'Zomato',
+        subtitle: 'Bawarchi · 4.3★',
+        badge: 'Lower fee',
+        primary_event: 'partner.biryani.pick.zomato',
+        query: 'Find biryani on Zomato',
+      },
+    ],
+    rows: [
+      {
+        id: 'top_pick', label: 'Top pick',
+        values: [
+          { option_id: 'swiggy', display: 'Paradise (4.5★)' },
+          { option_id: 'zomato', display: 'Bawarchi (4.3★)' },
+        ],
+      },
+      {
+        id: 'price', label: 'Cheapest biryani',
+        values: [
+          { option_id: 'swiggy', display: '₹329' },
+          { option_id: 'zomato', display: '₹299', emphasis: 'best' },
+        ],
+      },
+      {
+        id: 'eta', label: 'Delivery ETA',
+        values: [
+          { option_id: 'swiggy', display: '28 min', emphasis: 'best' },
+          { option_id: 'zomato', display: '34 min' },
+        ],
+      },
+      {
+        id: 'fee', label: 'Delivery fee',
+        values: [
+          { option_id: 'swiggy', display: '₹29' },
+          { option_id: 'zomato', display: '₹19', emphasis: 'best' },
+        ],
+      },
+      {
+        id: 'offer', label: 'Offer',
+        values: [
+          { option_id: 'swiggy', display: '50% off up to ₹100', emphasis: 'best' },
+          { option_id: 'zomato', display: '20% off up to ₹50' },
+        ],
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Show both side-by-side',
+    event: 'edge.biryani_partner_pick.compare',
+    kind: 'compare',
+    query: 'Show top biryani on Swiggy and Zomato side by side',
+  },
+  voice_disclosure: "Both Swiggy and Zomato can deliver biryani right now. Swiggy: Paradise, twenty-eight minutes, fifty percent off — your usual. Zomato: Bawarchi, thirty-four minutes, lower fee at nineteen rupees. On screen — tap Swiggy, or hear Zomato first?",
+  suggested_prompts: [
+    { label: 'Open Swiggy biryani', kind: 'context_shift', query: 'Find biryani on Swiggy' },
+    { label: 'Open Zomato biryani', kind: 'context_shift', query: 'Find biryani on Zomato' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Order biryani',
+    total_count: 2,
+    trace_id: 'trace-biryani-partner-pick-001',
+  },
+};
+
 /** @type {CatalogDiscoveryView} */
 const MOCK_SWIGGY_PARADISE_MENU = {
   kind: 'discovery_view',
@@ -4420,6 +4513,150 @@ const INFO_SWIGGY_ORDER_STATUS = {
   ],
 };
 
+/* Zomato counterpart to MOCK_SWIGGY_BIRYANI_SEARCH. Used by the multi-partner
+   conflict-resolution flow (MOCK_BIRYANI_PARTNER_PICK) when the user picks
+   Zomato. TODO: zomato menu/order/track parity (parallel to the Swiggy
+   subtree) — not in scope for this iteration. */
+/** @type {PlaceDiscoveryView} */
+const MOCK_ZOMATO_BIRYANI_SEARCH = {
+  kind: 'discovery_view',
+  sub_pattern: 'place',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: {
+    title: 'Biryani on Zomato',
+    subtitle: 'Top picks · 33 min avg delivery',
+    brand_chip: { label: 'Zo', variant: 'zomato' },
+  },
+  location_context: { area: 'Koramangala, Bengaluru', change_event: 'location.change.koramangala' },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'fast_delivery', label: 'Under 30 min',  value: 30,    selected: false },
+      { id: 'top_rated',     label: 'Top rated',     value: 'top', selected: true  },
+      { id: 'under_400',     label: 'Under ₹400',    value: 400,   selected: false },
+      { id: 'free_delivery', label: 'Free delivery', value: 'free', selected: false },
+      { id: 'offers',        label: '20% off',       value: 'off20', selected: false },
+    ],
+  },
+  sort: {
+    options: [
+      { id: 'recommended', label: 'Recommended' },
+      { id: 'rating',      label: 'Rating' },
+      { id: 'eta',         label: 'Delivery time' },
+      { id: 'price',       label: 'Price' },
+    ],
+    selected_id: 'recommended',
+  },
+  map: {
+    center: { lat: 12.9352, lng: 77.6245 },
+    zoom: 14,
+    user_location: { lat: 12.9352, lng: 77.6245 },
+    markers: [
+      { id: 'bawarchi_zomato',       lat: 12.9374, lng: 77.6228, pin_label: '1' },
+      { id: 'mandi_house_zomato',    lat: 12.9329, lng: 77.6291, pin_label: '2' },
+      { id: 'nawabs_zomato',         lat: 12.9298, lng: 77.6202, pin_label: '3' },
+      { id: 'biryani_blues_zomato',  lat: 12.9410, lng: 77.6183, pin_label: '4' },
+      { id: 'kebabs_grill_zomato',   lat: 12.9438, lng: 77.6260, pin_label: '5' },
+    ],
+  },
+  collection: {
+    layout: 'carousel',
+    cards: [
+      {
+        variant: 'place',
+        id: 'bawarchi_zomato',
+        title: 'Bawarchi',
+        subtitle: 'Zomato · 1.6 km',
+        media: { alt: 'Bawarchi biryani plate', fallback_color: '#B25445' },
+        rating: { value: 4.3, count: 7820 },
+        distance_km: 1.6,
+        price_level: '₹₹',
+        tags: ['29 min', '₹19 fee', 'Hyderabadi'],
+        status: { kind: 'open', label: '20% off up to ₹50' },
+        badge: '#1',
+        filter_ids: ['fast_delivery', 'top_rated', 'offers'],
+        primary_event: 'place.zomato.bawarchi.open',
+      },
+      {
+        variant: 'place',
+        id: 'mandi_house_zomato',
+        title: 'Mandi House',
+        subtitle: 'Zomato · 2.4 km',
+        media: { alt: 'Mandi biryani', fallback_color: '#C56F4E' },
+        rating: { value: 4.4, count: 5310 },
+        distance_km: 2.4,
+        price_level: '₹₹',
+        tags: ['33 min', '₹19 fee', 'Arabian'],
+        status: { kind: 'open', label: 'Free delivery on ₹249+' },
+        badge: '#2',
+        filter_ids: ['top_rated', 'free_delivery'],
+        primary_event: 'place.zomato.mandi_house.open',
+      },
+      {
+        variant: 'place',
+        id: 'nawabs_zomato',
+        title: 'Nawab’s Kitchen',
+        subtitle: 'Zomato · 2.9 km',
+        media: { alt: 'Nawabi mutton biryani', fallback_color: '#A85838' },
+        rating: { value: 4.2, count: 3960 },
+        distance_km: 2.9,
+        price_level: '₹',
+        tags: ['36 min', '₹15 fee', 'Lucknowi'],
+        status: { kind: 'open', label: 'Open' },
+        badge: '#3',
+        filter_ids: ['under_400', 'free_delivery'],
+        primary_event: 'place.zomato.nawabs.open',
+      },
+      {
+        variant: 'place',
+        id: 'biryani_blues_zomato',
+        title: 'Biryani Blues',
+        subtitle: 'Zomato · 3.2 km',
+        media: { alt: 'Biryani Blues handi', fallback_color: '#9C5234' },
+        rating: { value: 4.1, count: 2740 },
+        distance_km: 3.2,
+        price_level: '₹₹',
+        tags: ['37 min', '₹29 fee', 'Dum'],
+        status: { kind: 'open', label: '15% off' },
+        filter_ids: ['top_rated', 'offers'],
+        primary_event: 'place.zomato.biryani_blues.open',
+      },
+      {
+        variant: 'place',
+        id: 'kebabs_grill_zomato',
+        title: 'Kebabs & Grill',
+        subtitle: 'Zomato · 3.8 km',
+        media: { alt: 'Kebabs & Grill biryani', fallback_color: '#B66B45' },
+        rating: { value: 4.0, count: 1830 },
+        distance_km: 3.8,
+        price_level: '₹₹₹',
+        tags: ['40 min', '₹25 fee', 'Mughlai'],
+        status: { kind: 'open', label: 'Open' },
+        filter_ids: ['top_rated'],
+        primary_event: 'place.zomato.kebabs_grill.open',
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Compare top 3',
+    event: 'edge.zomato_biryani.compare',
+    kind: 'compare',
+    query: 'Compare Bawarchi, Mandi House and Nawab’s on Zomato',
+  },
+  voice_disclosure: "Top three biryani spots on Zomato near you. Bawarchi — 4.3 stars, twenty-nine minutes, twenty percent off. Mandi House — 4.4 stars, thirty-three minutes, free delivery on two hundred forty-nine plus. Nawab’s Kitchen — 4.2 stars, thirty-six minutes, fifteen rupee fee. On screen — tap one to see the menu.",
+  suggested_prompts: [
+    { label: 'Show Bawarchi menu',    kind: 'context_shift', query: 'Show Bawarchi menu on Zomato' },
+    { label: 'Switch to Swiggy',      kind: 'context_shift', query: 'Find biryani on Swiggy' },
+    { label: 'Cheap options under ₹250', kind: 'compare',    query: 'Biryani on Zomato under ₹250' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Find biryani on Zomato',
+    total_count: 16,
+    trace_id: 'trace-zomato-biryani-001',
+  },
+};
+
 const INFORMATIONAL_RESPONSES = {
   pm_kisan_status:    { key: 'pm_kisan_status',    label: 'PM Kisan installment status', view: INFO_PM_KISAN_STATUS },
   ration_status:      { key: 'ration_status',      label: 'Ration card status',          view: INFO_RATION_STATUS },
@@ -4498,6 +4735,8 @@ const PARTNER_DATASET_ENTRIES = [
   { key: 'swiggy_biryani_search', label: 'Find biryani on Swiggy',         view: MOCK_SWIGGY_BIRYANI_SEARCH },
   { key: 'swiggy_paradise_menu',  label: 'Show Paradise menu on Swiggy',   view: MOCK_SWIGGY_PARADISE_MENU },
   { key: 'swiggy_paradise_order', label: 'Order biryani from Paradise',    view: MOCK_SWIGGY_PARADISE_ORDER },
+  { key: 'zomato_biryani_search', label: 'Find biryani on Zomato',         view: MOCK_ZOMATO_BIRYANI_SEARCH },
+  { key: 'biryani_partner_pick',  label: 'Biryani — pick a partner',       view: MOCK_BIRYANI_PARTNER_PICK },
 ];
 
 // Flat lookup: key -> { label, view }. Includes the 20 legacy mocks plus the
