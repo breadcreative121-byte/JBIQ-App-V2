@@ -194,6 +194,7 @@
   flex-shrink: 0;
 }
 .subject-header__brand-chip--swiggy { background: #FC8019; }
+.subject-header__brand-chip--zomato { background: #E23744; }
 
 /* ----------------------------------------------------------------------------
    PRIMITIVE: LocationContext

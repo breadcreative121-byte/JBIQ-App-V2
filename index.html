@@ -7232,6 +7232,13 @@
   // `chat` items through runPrototypeQuery, so the right surface renders.
   const PARTNER_GROUPS = [
     {
+      group: 'Multi-partner conflict',
+      items: [
+        { key: 'biryani_partner_pick_chat',  surface: 'chat',  label: 'Order biryani — Swiggy vs Zomato — chat',  query: 'Order biryani' },
+        { key: 'biryani_partner_pick_voice', surface: 'voice', label: 'Order biryani — Swiggy vs Zomato — voice', query: 'Order biryani' },
+      ],
+    },
+    {
       group: 'Swiggy Food',
       items: [
         { key: 'swiggy_biryani_search_chat',  surface: 'chat',  label: 'Find biryani on Swiggy — chat',     query: 'Find biryani on Swiggy' },
@@ -7242,6 +7249,13 @@
         { key: 'swiggy_order_voice',          surface: 'voice', label: 'Order biryani from Swiggy — voice',    query: 'Order biryani from Paradise on Swiggy' },
         { key: 'swiggy_track_chat',           surface: 'chat',  label: 'Track my Swiggy order — chat',         query: "Where's my Swiggy order" },
         { key: 'swiggy_track_voice',          surface: 'voice', label: 'Track my Swiggy order — voice',        query: "Where's my Swiggy order" },
+      ],
+    },
+    {
+      group: 'Zomato Food',
+      items: [
+        { key: 'zomato_biryani_search_chat',  surface: 'chat',  label: 'Find biryani on Zomato — chat',  query: 'Find biryani on Zomato' },
+        { key: 'zomato_biryani_search_voice', surface: 'voice', label: 'Find biryani on Zomato — voice', query: 'Find biryani on Zomato' },
       ],
     },
     {
@@ -7490,8 +7504,11 @@
     // Exclude obvious non-shopping contexts
     const hasRestaurant = /\b(restaurant|table|reservation)\b/.test(t);
     // Partner brands route via the DiscoveryView pattern, not generic JioMart
-    const hasPartnerBrand = /\bswiggy\b/.test(t);
-    return hasVerb && !hasRestaurant && !hasPartnerBrand;
+    const hasPartnerBrand = /\b(?:swiggy|zomato)\b/.test(t);
+    // Restaurant dishes route via the multi-partner conflict-resolution flow
+    // (MOCK_BIRYANI_PARTNER_PICK), not JioMart's grocery catalogue
+    const hasPartnerPickFood = /\bbiryani\b/.test(t);
+    return hasVerb && !hasRestaurant && !hasPartnerBrand && !hasPartnerPickFood;
   }
 
   // === DiscoveryView routing (Place + Catalog + Compare) ===
@@ -7510,6 +7527,19 @@
     { re: /\bparadise\b.{0,30}\bswiggy\b|\bswiggy\b.{0,30}\bparadise\b/i,                view: 'swiggy_paradise_menu' },
     { re: /\bswiggy\b.{0,40}\b(biryani|restaurants?|food)\b/i,                           view: 'swiggy_biryani_search' },
     { re: /\b(biryani|restaurants?|food)\b.{0,40}\bswiggy\b/i,                           view: 'swiggy_biryani_search' },
+
+    // Zomato matchers — parallel to Swiggy. Currently only the biryani search
+    // view exists; full menu/order/track parity is a follow-up.
+    { re: /\bzomato\b.{0,40}\b(biryani|restaurants?|food)\b/i,                           view: 'zomato_biryani_search' },
+    { re: /\b(biryani|restaurants?|food)\b.{0,40}\bzomato\b/i,                           view: 'zomato_biryani_search' },
+
+    // Multi-partner conflict resolution — fires when the user expresses a
+    // partner-agnostic biryani intent (verb + biryani, no partner brand named).
+    // The negative lookahead is belt-and-braces: explicit Swiggy/Zomato
+    // patterns above already match first, but it guards against ordering
+    // regressions if anyone reorders the list.
+    { re: /\b(?:order|find|get|buy|book)\b.{0,30}\bbiryani\b(?!.{0,40}\b(?:swiggy|zomato)\b)/i, view: 'biryani_partner_pick' },
+    { re: /\bbiryani\b.{0,30}\b(?:order|delivery)\b(?!.{0,40}\b(?:swiggy|zomato)\b)/i,           view: 'biryani_partner_pick' },
 
     // Partner experiences — Bus Travel aggregator. Specific (VRL + verb) patterns
     // come before the broad bus-route compare so "confirm my VRL booking" beats
