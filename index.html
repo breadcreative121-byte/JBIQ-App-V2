@@ -2415,7 +2415,7 @@
       flex: 1; min-width: 0;
       background: #eeeeef; border-radius: 24px;
       display: flex; align-items: flex-end;
-      padding: 6px 8px; gap: 8px; min-height: 42px;
+      padding: 5px 5px 5px 8px; gap: 8px; min-height: 42px;
     }
     .text-pill textarea {
       flex: 1; min-width: 0; border: none; background: none; outline: none;
@@ -2439,13 +2439,27 @@
                   width 260ms cubic-bezier(0.22, 0.61, 0.36, 1),
                   margin 260ms cubic-bezier(0.22, 0.61, 0.36, 1);
     }
-    .text-send-btn.is-visible {
+    .text-send-btn.is-visible,
+    .voice-overlay.text-mode.is-streaming .text-send-btn {
       opacity: 1;
       transform: scale(1);
       width: 32px;
       pointer-events: auto;
     }
-    .text-send-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+    /* Send and stop icons share the button. Stack them and crossfade. */
+    .text-send-btn { position: relative; }
+    .text-send-btn .text-send-icon,
+    .text-send-btn .text-stop-icon {
+      width: 20px; height: 20px; flex-shrink: 0;
+      transition: opacity 180ms ease;
+    }
+    .text-send-btn .text-stop-icon {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+    }
+    .voice-overlay.text-mode.is-streaming .text-send-btn .text-send-icon { opacity: 0; }
+    .voice-overlay.text-mode.is-streaming .text-send-btn .text-stop-icon { opacity: 1; }
 
     /* Frozen-state preview only — replaces the input pill contents with a
        small "Connecting…" label + spinner. Driven by the playground States
@@ -2483,7 +2497,8 @@
                   margin-left 300ms cubic-bezier(0.22, 0.61, 0.36, 1);
       max-width: 200px;
     }
-    .voice-overlay.text-mode.text-typing #textVoiceBtn {
+    .voice-overlay.text-mode.text-typing #textVoiceBtn,
+    .voice-overlay.text-mode.is-streaming #textVoiceBtn {
       max-width: 0;
       opacity: 0;
       transform: scale(0.85);
@@ -4196,8 +4211,9 @@
         <!-- Unified pill: textarea always inside, grows when typing -->
         <div class="text-pill" id="textPill">
           <textarea id="textModeInput" placeholder="Ask anything" rows="1" autocomplete="off"></textarea>
-          <button class="text-send-btn" id="textSendBtn" aria-label="Send" onclick="textModeSend()">
-            <svg viewBox="0 0 20 20" fill="none"><path d="M10 16V4m0 0l5 5m-5-5L5 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <button class="text-send-btn" id="textSendBtn" aria-label="Send" onclick="textActionBtnClick()">
+            <svg class="text-send-icon" viewBox="0 0 20 20" fill="none"><path d="M10 16V4m0 0l5 5m-5-5L5 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="text-stop-icon" viewBox="0 0 20 20" fill="none"><rect x="6" y="6" width="8" height="8" rx="1.5" fill="white"/></svg>
           </button>
         </div>
         <button class="home-voice-btn" id="textVoiceBtn" aria-label="Speak" onclick="switchToVoiceFromText()">
@@ -4542,7 +4558,7 @@
     try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (_) {}
     if (chatMessages) chatMessages.innerHTML = '';
     currentTurnEl = null;
-    overlay.classList.remove('active', 'glow', 'listening-mode', 'kb-mode', 'kb-hidden', 'chat-active', 'has-text', 'text-mode', 'text-typing', 'user-speaking', 'agent-speaking', 'muted', 'show-listening-hint', 'chat-state-connecting');
+    overlay.classList.remove('active', 'glow', 'listening-mode', 'kb-mode', 'kb-hidden', 'chat-active', 'has-text', 'text-mode', 'text-typing', 'user-speaking', 'agent-speaking', 'muted', 'show-listening-hint', 'chat-state-connecting', 'is-streaming');
     spinner.classList.remove('visible');
     spinner.pause();
     avatarCenter.classList.remove('visible');
@@ -6592,6 +6608,40 @@
     showResponse(text);
   }
 
+  // AbortController for the in-flight /api/chat call (created in showResponse
+  // when the text mode user sends a query that doesn't match a fixture).
+  let currentChatFetchAbort = null;
+
+  // Single button serves both Send and Stop; behaviour depends on whether
+  // the assistant is currently streaming.
+  function textActionBtnClick() {
+    if (overlay.classList.contains('is-streaming')) {
+      stopTextModeStreaming();
+    } else {
+      textModeSend();
+    }
+  }
+
+  function stopTextModeStreaming() {
+    // Abort upstream fetch first so showResponse stops awaiting network I/O.
+    if (currentChatFetchAbort) {
+      try { currentChatFetchAbort.abort(); } catch (_) {}
+      currentChatFetchAbort = null;
+    }
+    // Cancel the typewriter — leaves partial prose visible (ChatGPT/Claude
+    // convention) so the user keeps whatever the assistant managed to say.
+    if (currentTypewriterCancel) {
+      try { currentTypewriterCancel(); } catch (_) {}
+      currentTypewriterCancel = null;
+    }
+    // Drop any active thinking spinner so the UI doesn't leave it spinning.
+    document.querySelectorAll('.thinking-row, .searching-row, .text-thinking-dots')
+      .forEach(el => { try { el.remove(); } catch (_) {} });
+    overlay.classList.remove('is-streaming');
+    textSendBtn.setAttribute('aria-label', 'Send');
+    isProcessingResponse = false;
+  }
+
   const textSendBtn = document.getElementById('textSendBtn');
   const textVoiceBtn = document.getElementById('textVoiceBtn');
 
@@ -6748,19 +6798,33 @@
   // character, which fights the pin-to-top pattern (it would yank the user's
   // bubble off-screen as the response streams in). The third arg is kept for
   // compatibility with existing call sites but is intentionally ignored.
+  // Module-level handle so the text-mode Stop button (and showResponse cleanup)
+  // can interrupt an in-flight typewriter without unwinding the whole call site.
+  let currentTypewriterCancel = null;
+
   function typeWriter(el, text, _scrollContainer) {
     return new Promise(resolve => {
       let i = 0;
+      let timer = null;
+      let cancelled = false;
       const speed = 18; // ms per character
       function type() {
+        if (cancelled) { resolve(); return; }
         if (i < text.length) {
           el.textContent += text.charAt(i);
           i++;
-          setTimeout(type, speed);
+          timer = setTimeout(type, speed);
         } else {
+          currentTypewriterCancel = null;
           resolve();
         }
       }
+      currentTypewriterCancel = () => {
+        cancelled = true;
+        if (timer) { clearTimeout(timer); timer = null; }
+        currentTypewriterCancel = null;
+        resolve();
+      };
       type();
     });
   }
@@ -8717,6 +8781,8 @@
       showTapToConfirmWarning();
 
       isProcessingResponse = false;
+      overlay.classList.remove('is-streaming');
+      textSendBtn.setAttribute('aria-label', 'Send');
       // In voice mode, resume listening so the user can still tap or try again
       if (!isTextMode && !overlay.classList.contains('kb-mode')) {
         overlay.classList.add('listening-mode');
@@ -8815,6 +8881,13 @@
     // 3. Play understood sound + show thinking indicator
     understoodSound.currentTime = 0;
     understoodSound.play().catch(() => {});
+    // In text mode the bottom bar swaps Speak → Stop for the whole "streaming"
+    // phase (thinking + typewriter). Voice mode keeps its existing affordance.
+    if (isTextMode) {
+      isProcessingResponse = true;
+      overlay.classList.add('is-streaming');
+      textSendBtn.setAttribute('aria-label', 'Stop generating');
+    }
     let thinkingEl = createThinkingEl();
     currentTurnEl.appendChild(thinkingEl);
 
@@ -8930,17 +9003,25 @@
       responseText = textFixture.headline || textFixture.body || '';
     } else {
       try {
+        currentChatFetchAbort = new AbortController();
         const res = await fetch(`${API_BASE}/api/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages: conversationHistory, userProfile: USER_PROFILE }),
+          signal: currentChatFetchAbort.signal,
         });
         const data = await res.json();
         if (data.error) throw new Error(data.error);
         responseText = data.text;
       } catch (err) {
-        responseText = 'Sorry, I couldn\'t get a response. Please try again.';
-        console.error('API error:', err);
+        if (err && err.name === 'AbortError') {
+          responseText = '';
+        } else {
+          responseText = 'Sorry, I couldn\'t get a response. Please try again.';
+          console.error('API error:', err);
+        }
+      } finally {
+        currentChatFetchAbort = null;
       }
     }
 
@@ -9114,6 +9195,9 @@
       });
     } else {
       isProcessingResponse = false;
+      overlay.classList.remove('is-streaming');
+      textSendBtn.setAttribute('aria-label', 'Send');
+      currentTypewriterCancel = null;
     }
   }
 
