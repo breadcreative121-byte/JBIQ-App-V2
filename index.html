@@ -1100,7 +1100,7 @@
       transition: opacity 220ms ease;
       z-index: 4;
     }
-    .voice-overlay.muted.chat-active .voice-muted-hint { opacity: 1; }
+    .voice-overlay.muted.chat-active:not(.agent-speaking) .voice-muted-hint { opacity: 1; }
     .voice-muted-hint span {
       background: linear-gradient(90deg, var(--text-low) 25%, #999 50%, var(--text-low) 75%);
       background-size: 200% 100%;
