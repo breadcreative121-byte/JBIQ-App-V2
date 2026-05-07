@@ -4293,11 +4293,39 @@
         <span class="menu-item-label">Chats</span>
         <svg class="menu-item-arrow" viewBox="0 0 20 20" fill="none"><path d="M7.5 5l5 5-5 5" stroke="#0c0d10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <button class="menu-list-item" onclick="openPrototypesPanel()">
+      <button class="menu-list-item" onclick="openSubPanel('chatExperiencesOverlay')">
+        <div class="menu-item-icon">
+          <svg viewBox="0 0 20 20" fill="none" stroke="#6d17ce" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5a3 3 0 013-3h8a3 3 0 013 3v4a3 3 0 01-3 3H8l-3.5 3v-3a3 3 0 01-1.5-2v-5z"/></svg>
+        </div>
+        <span class="menu-item-label">Chat experiences</span>
+        <svg class="menu-item-arrow" viewBox="0 0 20 20" fill="none"><path d="M7.5 5l5 5-5 5" stroke="#0c0d10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="menu-list-item" onclick="openSubPanel('voiceExperiencesOverlay')">
+        <div class="menu-item-icon">
+          <svg viewBox="0 0 20 20" fill="none" stroke="#6d17ce" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="4" height="9" rx="2"/><path d="M5 10a5 5 0 0010 0M10 15v3"/></svg>
+        </div>
+        <span class="menu-item-label">Voice experiences</span>
+        <svg class="menu-item-arrow" viewBox="0 0 20 20" fill="none"><path d="M7.5 5l5 5-5 5" stroke="#0c0d10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="menu-list-item" onclick="openSubPanel('partnerExperiencesOverlay')">
+        <div class="menu-item-icon">
+          <svg viewBox="0 0 20 20" fill="none" stroke="#6d17ce" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="10" r="3"/><circle cx="13" cy="10" r="3"/></svg>
+        </div>
+        <span class="menu-item-label">Partner experiences</span>
+        <svg class="menu-item-arrow" viewBox="0 0 20 20" fill="none"><path d="M7.5 5l5 5-5 5" stroke="#0c0d10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="menu-list-item" onclick="openSubPanel('errorScenariosOverlay')">
+        <div class="menu-item-icon">
+          <svg viewBox="0 0 20 20" fill="none" stroke="#6d17ce" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3l8 14H2L10 3z"/><path d="M10 9v3M10 14.5v.5"/></svg>
+        </div>
+        <span class="menu-item-label">Error scenarios</span>
+        <svg class="menu-item-arrow" viewBox="0 0 20 20" fill="none"><path d="M7.5 5l5 5-5 5" stroke="#0c0d10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="menu-list-item" onclick="openSubPanel('statesOverlay')">
         <div class="menu-item-icon">
           <svg viewBox="0 0 20 20" fill="none" stroke="#6d17ce" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/><rect x="3" y="11" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></svg>
         </div>
-        <span class="menu-item-label">Prototypes</span>
+        <span class="menu-item-label">States</span>
         <svg class="menu-item-arrow" viewBox="0 0 20 20" fill="none"><path d="M7.5 5l5 5-5 5" stroke="#0c0d10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
 
@@ -4448,19 +4476,74 @@
     </div>
   </div>
 
-  <!-- Prototypes Sub-Panel -->
-  <div class="prototypes-overlay" id="prototypesOverlay">
+  <!-- Chat Experiences Sub-Panel -->
+  <div class="prototypes-overlay" id="chatExperiencesOverlay">
     <div class="tools-header">
-      <button class="tools-back-btn" onclick="closePrototypesPanel()" aria-label="Back">
+      <button class="tools-back-btn" onclick="closeAllSubPanels()" aria-label="Back">
         <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_chevron_left.svg" width="20" height="20" alt="Back">
       </button>
-      <span class="tools-title">Prototypes</span>
+      <span class="tools-title">Chat experiences</span>
       <button class="tools-edit-btn" aria-label="Edit">
         <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_edit_pen.svg" width="20" height="20" alt="Edit">
       </button>
     </div>
+    <div class="tools-content" id="chatExperiencesList"></div>
+  </div>
 
-    <div class="tools-content" id="prototypesList"></div>
+  <!-- Voice Experiences Sub-Panel -->
+  <div class="prototypes-overlay" id="voiceExperiencesOverlay">
+    <div class="tools-header">
+      <button class="tools-back-btn" onclick="closeAllSubPanels()" aria-label="Back">
+        <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_chevron_left.svg" width="20" height="20" alt="Back">
+      </button>
+      <span class="tools-title">Voice experiences</span>
+      <button class="tools-edit-btn" aria-label="Edit">
+        <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_edit_pen.svg" width="20" height="20" alt="Edit">
+      </button>
+    </div>
+    <div class="tools-content" id="voiceExperiencesList"></div>
+  </div>
+
+  <!-- Partner Experiences Sub-Panel -->
+  <div class="prototypes-overlay" id="partnerExperiencesOverlay">
+    <div class="tools-header">
+      <button class="tools-back-btn" onclick="closeAllSubPanels()" aria-label="Back">
+        <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_chevron_left.svg" width="20" height="20" alt="Back">
+      </button>
+      <span class="tools-title">Partner experiences</span>
+      <button class="tools-edit-btn" aria-label="Edit">
+        <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_edit_pen.svg" width="20" height="20" alt="Edit">
+      </button>
+    </div>
+    <div class="tools-content" id="partnerExperiencesList"></div>
+  </div>
+
+  <!-- Error Scenarios Sub-Panel -->
+  <div class="prototypes-overlay" id="errorScenariosOverlay">
+    <div class="tools-header">
+      <button class="tools-back-btn" onclick="closeAllSubPanels()" aria-label="Back">
+        <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_chevron_left.svg" width="20" height="20" alt="Back">
+      </button>
+      <span class="tools-title">Error scenarios</span>
+      <button class="tools-edit-btn" aria-label="Edit">
+        <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_edit_pen.svg" width="20" height="20" alt="Edit">
+      </button>
+    </div>
+    <div class="tools-content" id="errorScenariosList"></div>
+  </div>
+
+  <!-- States Sub-Panel -->
+  <div class="prototypes-overlay" id="statesOverlay">
+    <div class="tools-header">
+      <button class="tools-back-btn" onclick="closeAllSubPanels()" aria-label="Back">
+        <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_chevron_left.svg" width="20" height="20" alt="Back">
+      </button>
+      <span class="tools-title">States</span>
+      <button class="tools-edit-btn" aria-label="Edit">
+        <img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_edit_pen.svg" width="20" height="20" alt="Edit">
+      </button>
+    </div>
+    <div class="tools-content" id="statesList"></div>
   </div>
 </div>
 
@@ -4485,34 +4568,48 @@
     document.getElementById('toolsOverlay').classList.remove('active');
   }
 
-  // === Prototypes Sub-Panel ===
-  function openPrototypesPanel() {
+  // === Sub-panels (generic) ===
+  // Burger menu mirrors the playground's category split — Chat / Voice /
+  // Partner / Error / States — each as a separate sub-panel. openSubPanel
+  // pushes the menu list left and slides the named overlay over.
+  const __SUB_PANEL_IDS = [
+    'chatExperiencesOverlay',
+    'voiceExperiencesOverlay',
+    'partnerExperiencesOverlay',
+    'errorScenariosOverlay',
+    'statesOverlay',
+  ];
+  function openSubPanel(id) {
     document.getElementById('menuOverlay').classList.add('pushed-left');
-    document.getElementById('prototypesOverlay').classList.add('active');
+    document.getElementById(id).classList.add('active');
   }
-  function closePrototypesPanel() {
+  function closeAllSubPanels() {
     document.getElementById('menuOverlay').classList.remove('pushed-left');
-    document.getElementById('prototypesOverlay').classList.remove('active');
+    __SUB_PANEL_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('active');
+    });
   }
 
-  // Populate the Prototypes panel from the DiscoveryView registry exported by
-  // discovery.js. Tapping a row fires runPrototypeQuery() — closes the drawer,
-  // opens the chat in text mode, and sends the label through showResponse() so
-  // the full journey (user bubble, thinking, view) renders as if typed.
-  function populatePrototypesList() {
-    const root = document.getElementById('prototypesList');
+  // Generic populator. `groups` is `[{ group, items: [{ key, label, ... }] }]`.
+  // `dispatch(item, group)` is called when a row is tapped — each panel passes
+  // its own dispatcher (runPrototypeQuery / runPrototypeVoiceQuery /
+  // runPrototypeState / runPrototypeErrorScenario / surface-aware partner).
+  function populatePanel(rootId, groups, dispatch, emptyText) {
+    const root = document.getElementById(rootId);
     if (!root) return;
     root.innerHTML = '';
-    // DiscoveryView prototypes (20 mocks from discovery.js) first, then the
-    // Text Response patterns defined locally. Items with an explicit `.query`
-    // send that utterance through the classifier; legacy items send the label.
-    const allGroups = [
-      ...(window.DATASET_GROUPS || []),
-      ...(window.PILLAR_GROUPS || []),
-      ...(window.TEXT_RESPONSE_PROTOTYPES || []),
-      ...(window.TRANSACTIONAL_PROTOTYPES || []),
-    ];
-    allGroups.forEach(g => {
+    const flatItems = (groups || []).reduce((n, g) => n + (g.items || []).length, 0);
+    if (!flatItems) {
+      const empty = document.createElement('div');
+      empty.className = 'proto-group-title';
+      empty.style.color = '#8a8a8a';
+      empty.style.fontWeight = '500';
+      empty.textContent = emptyText || 'No items yet';
+      root.appendChild(empty);
+      return;
+    }
+    groups.forEach(g => {
       const h = document.createElement('div');
       h.className = 'proto-group-title';
       h.textContent = g.group;
@@ -4522,21 +4619,93 @@
         btn.className = 'proto-item';
         btn.type = 'button';
         btn.textContent = it.label;
-        btn.addEventListener('click', () => runPrototypeQuery(it.query || it.label));
+        btn.addEventListener('click', () => dispatch(it, g));
         root.appendChild(btn);
       });
     });
   }
 
+  function populateAllSubPanels() {
+    // Chat experiences — existing query-driven prototypes (DiscoveryView mocks,
+    // pillars, text responses, transactional). All dispatched via
+    // runPrototypeQuery so the classifier sees the utterance as if typed.
+    populatePanel(
+      'chatExperiencesList',
+      [
+        ...(window.DATASET_GROUPS || []),
+        ...(window.PILLAR_GROUPS || []),
+        ...(window.TEXT_RESPONSE_PROTOTYPES || []),
+        ...(window.TRANSACTIONAL_PROTOTYPES || []),
+      ],
+      (it) => runPrototypeQuery(it.query || it.label),
+    );
+    // Voice experiences — same query-driven items as Chat experiences but
+    // dispatched via runPrototypeVoiceQuery so the voice surface renders
+    // (mic-mode shell + voice-styled user bubble + agent reply spoken aloud).
+    populatePanel(
+      'voiceExperiencesList',
+      [
+        ...(window.DATASET_GROUPS || []),
+        ...(window.PILLAR_GROUPS || []),
+        ...(window.TEXT_RESPONSE_PROTOTYPES || []),
+        ...(window.TRANSACTIONAL_PROTOTYPES || []),
+      ],
+      (it) => runPrototypeVoiceQuery(it.query || it.label),
+    );
+    // Partner experiences — Swiggy MCP-driven mocks. Each item carries its own
+    // surface flag (chat | voice); chat dispatches via runPrototypeQuery and
+    // voice via runPrototypeVoiceQuery so the right surface renders.
+    populatePanel(
+      'partnerExperiencesList',
+      window.PARTNER_GROUPS || [],
+      (it) => {
+        if (it.surface === 'voice') runPrototypeVoiceQuery(it.query);
+        else runPrototypeQuery(it.query || it.label);
+      },
+    );
+    // Error scenarios — Omni Error Language Framework worked examples.
+    // Dispatched via runPrototypeErrorScenario(id, lang); language defaults to
+    // English (the playground's EN/Hinglish toggle isn't surfaced here).
+    const errorGroups = (window.ERROR_SCENARIO_GROUPS || []).map(g => ({
+      group: g.group,
+      items: (g.items || []).map(key => {
+        const sc = (window.ERROR_SCENARIOS || {})[key];
+        return sc ? { key, label: `${sc.ref}  ${sc.label}` } : null;
+      }).filter(Boolean),
+    }));
+    populatePanel(
+      'errorScenariosList',
+      errorGroups,
+      (it) => {
+        if (typeof window.runPrototypeErrorScenario === 'function') {
+          closeAllSubPanels();
+          closeMenuPanel();
+          window.runPrototypeErrorScenario(it.key, 'en');
+        }
+      },
+    );
+    // States — frozen conversation-state previews from CONVERSATION_STATE_PROTOTYPES.
+    // Each item key is `state:<id>`; dispatched via runPrototypeState with the
+    // cluster's `surface` (voice).
+    populatePanel(
+      'statesList',
+      window.CONVERSATION_STATE_PROTOTYPES || [],
+      (it, g) => {
+        const stateId = (it.key || '').slice('state:'.length);
+        runPrototypeState(stateId, g.surface || 'voice');
+      },
+    );
+  }
+
   function runPrototypeQuery(text) {
-    closePrototypesPanel();
+    closeAllSubPanels();
     closeMenuPanel();
     openTypingMode();
     showResponse(text);
   }
 
   async function runPrototypeVoiceQuery(text) {
-    closePrototypesPanel();
+    closeAllSubPanels();
     closeMenuPanel();
     await openVoiceMode({ silent: true });
     // Mirror rec.onresult — flag processing + clear the pending listening
@@ -4552,7 +4721,7 @@
   // no timers, no real mic / TTS, no auto-progression. Designers use these
   // to inspect spacing, copy, and motion for one frame of the flow.
   function runPrototypeState(stateId, surface) {
-    closePrototypesPanel();
+    closeAllSubPanels();
     closeMenuPanel();
     if (currentTTSAudio) { try { currentTTSAudio.pause(); } catch (_) {} currentTTSAudio = null; }
     try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (_) {}
@@ -5460,7 +5629,7 @@
     if (!copy) return;
     window.__lastErrorScenarioLang = langKey;
 
-    if (typeof closePrototypesPanel === 'function') closePrototypesPanel();
+    if (typeof closeAllSubPanels === 'function') closeAllSubPanels();
     if (typeof closeMenuPanel === 'function') closeMenuPanel();
     __resetErrorScenarioState();
 
@@ -5851,9 +6020,9 @@
   });
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', populatePrototypesList);
+    document.addEventListener('DOMContentLoaded', populateAllSubPanels);
   } else {
-    populatePrototypesList();
+    populateAllSubPanels();
   }
 
   // === Elements ===
@@ -6991,6 +7160,41 @@
     },
   ];
 
+  // Burger-menu Prototypes panel entries for the conversation state previews —
+  // the same 6 clusters / 14 states the playground exposes via STATE_CLUSTERS_VOICE.
+  // Items are routed through runPrototypeState() (not the classifier) when the
+  // populator sees a `state:` key prefix. Surface is voice — chat hides the
+  // Active voice + Muted clusters in the playground but the menu shows all 14.
+  const CONVERSATION_STATE_PROTOTYPES = [
+    { group: 'States — Connection', surface: 'voice', items: [
+        { key: 'state:connecting',       label: 'Connecting' },
+        { key: 'state:connected',        label: 'Connected' },
+    ]},
+    { group: 'States — Active voice', surface: 'voice', items: [
+        { key: 'state:listening',        label: 'Listening' },
+        { key: 'state:speaking-user',    label: 'Speaking — user' },
+        { key: 'state:speaking',         label: 'Speaking — agent' },
+        { key: 'state:idle',             label: 'Idle' },
+    ]},
+    { group: 'States — Muted', surface: 'voice', items: [
+        { key: 'state:muted-welcome',    label: 'Muted — welcome' },
+        { key: 'state:muted-midconv',    label: 'Muted — mid-conv' },
+    ]},
+    { group: 'States — Processing', surface: 'voice', items: [
+        { key: 'state:thinking',         label: 'Thinking' },
+        { key: 'state:fetching-jiomart', label: 'Fetching — JioMart' },
+    ]},
+    { group: 'States — Transactional', surface: 'voice', items: [
+        { key: 'state:confirm',          label: 'Confirm' },
+        { key: 'state:confirmation',     label: 'Confirmation' },
+    ]},
+    { group: 'States — Results', surface: 'voice', items: [
+        { key: 'state:results-text',     label: 'Results — text' },
+        { key: 'state:results-cards',    label: 'Results — cards' },
+    ]},
+  ];
+  window.CONVERSATION_STATE_PROTOTYPES = CONVERSATION_STATE_PROTOTYPES;
+
   // Burger-menu Prototypes panel entries for the four canonical text-response
   // shapes. Label is the descriptor; `query` is the exact utterance the user
   // would have typed — that's what the classifier sees.
@@ -7006,7 +7210,7 @@
       ],
     },
   ];
-  // Expose to populatePrototypesList (defined earlier in the file) so it can
+  // Expose to populateAllSubPanels (defined earlier in the file) so it can
   // read this after DOMContentLoaded without hitting a TDZ error.
   window.TEXT_RESPONSE_PROTOTYPES = TEXT_RESPONSE_PROTOTYPES;
 
@@ -7021,6 +7225,27 @@
     },
   ];
   window.TRANSACTIONAL_PROTOTYPES = TRANSACTIONAL_PROTOTYPES;
+
+  // Burger-menu Partner experiences panel. Mirrors PARTNER_GROUPS in
+  // place-playground.html — Swiggy MCP-driven samples in chat / voice variants.
+  // The populator dispatches `voice` items through runPrototypeVoiceQuery and
+  // `chat` items through runPrototypeQuery, so the right surface renders.
+  const PARTNER_GROUPS = [
+    {
+      group: 'Swiggy Food',
+      items: [
+        { key: 'swiggy_biryani_search_chat',  surface: 'chat',  label: 'Find biryani on Swiggy — chat',     query: 'Find biryani on Swiggy' },
+        { key: 'swiggy_biryani_search_voice', surface: 'voice', label: 'Find biryani on Swiggy — voice',    query: 'Find biryani on Swiggy' },
+        { key: 'swiggy_menu_chat',            surface: 'chat',  label: 'Show Paradise menu on Swiggy — chat',  query: 'Show Paradise menu on Swiggy' },
+        { key: 'swiggy_menu_voice',           surface: 'voice', label: 'Show Paradise menu on Swiggy — voice', query: 'Show Paradise menu on Swiggy' },
+        { key: 'swiggy_order_chat',           surface: 'chat',  label: 'Order biryani from Swiggy — chat',     query: 'Order biryani from Paradise on Swiggy' },
+        { key: 'swiggy_order_voice',          surface: 'voice', label: 'Order biryani from Swiggy — voice',    query: 'Order biryani from Paradise on Swiggy' },
+        { key: 'swiggy_track_chat',           surface: 'chat',  label: 'Track my Swiggy order — chat',         query: "Where's my Swiggy order" },
+        { key: 'swiggy_track_voice',          surface: 'voice', label: 'Track my Swiggy order — voice',        query: "Where's my Swiggy order" },
+      ],
+    },
+  ];
+  window.PARTNER_GROUPS = PARTNER_GROUPS;
 
   // Canned ≤15-word conversational replies. No "is there anything else?".
   const CONVERSATIONAL_REPLIES = [
