@@ -6035,6 +6035,13 @@
   const chatMessages = document.getElementById('chatMessages');
   const kbBotMini = document.getElementById('kbBotMini');
   let conversationHistory = []; // [{role: 'user', content}, {role: 'assistant', content}]
+  // The most recently rendered partner catalog (e.g. Swiggy Paradise menu).
+  // When set, a transactional utterance like "add chicken biryani" is resolved
+  // against `cards` and fires the matched card's commit_action.event — instead
+  // of routing through DiscoveryView matchers and accidentally landing on the
+  // city-wide place list. Cleared whenever the next turn renders a non-partner
+  // view, on session restore, and on reset.
+  let activePartnerCatalog = null;
   let voiceTitleLocked = false; // header title is set once from the first message and held for the conversation
   const kbBotMiniVideo = document.getElementById('kbBotMiniVideo');
   // Avatar removed from markup; keep a no-op stub so existing .classList/play/pause
@@ -6461,6 +6468,7 @@
     // rejoining an existing chat, not starting fresh.
     Promise.resolve(openVoiceMode({ silent: true })).then(() => {
       conversationHistory = record.conversationHistory.slice();
+      activePartnerCatalog = null;
       rehydrateChatFromHistory(record);
       const summary = record.summary || deriveSessionSummary(record);
       appendRecapLine(`Last time: ${summary}. Continue?`);
@@ -6867,6 +6875,7 @@
     if (clearHistory) {
       chatMessages.innerHTML = '';
       conversationHistory = [];
+      activePartnerCatalog = null;
       voiceTitle.textContent = 'New chat';
       voiceTitleLocked = false;
     }
@@ -7538,8 +7547,8 @@
     // The negative lookahead is belt-and-braces: explicit Swiggy/Zomato
     // patterns above already match first, but it guards against ordering
     // regressions if anyone reorders the list.
-    { re: /\b(?:order|find|get|buy|book)\b.{0,30}\bbiryani\b(?!.{0,40}\b(?:swiggy|zomato)\b)/i, view: 'biryani_partner_pick' },
-    { re: /\bbiryani\b.{0,30}\b(?:order|delivery)\b(?!.{0,40}\b(?:swiggy|zomato)\b)/i,           view: 'biryani_partner_pick' },
+    { re: /\b(?:add|order|find|get|buy|book)\b.{0,30}\bbiryani\b(?!.{0,40}\b(?:swiggy|zomato)\b)/i, view: 'biryani_partner_pick' },
+    { re: /\bbiryani\b.{0,30}\b(?:add|order|delivery)\b(?!.{0,40}\b(?:swiggy|zomato)\b)/i,           view: 'biryani_partner_pick' },
 
     // Partner experiences — Bus Travel aggregator. Specific (VRL + verb) patterns
     // come before the broad bus-route compare so "confirm my VRL booking" beats
@@ -7670,6 +7679,123 @@
     }
     return null;
   }
+
+  // Read a price_label like "₹329" / "Rs 329" / "₹1,299" and return a form
+  // ElevenLabs reads naturally ("329 rupees" / "1299 rupees"). Falls back to
+  // the input untouched if no number is found.
+  function formatPriceForSpeech(label) {
+    if (!label) return '';
+    const m = String(label).match(/(\d[\d,]*)/);
+    if (!m) return label;
+    const n = m[1].replace(/,/g, '');
+    return `${n} rupees`;
+  }
+
+  // Context-aware "menu add" matcher. Runs BEFORE matchDiscoveryQuery so that
+  // a transactional utterance ("add chicken biryani") spoken while a partner
+  // catalog (e.g. Swiggy Paradise) is on screen resolves against THAT menu's
+  // cards — instead of falling through to the generic biryani → city-list
+  // route. Mirrors the manifest contract: every catalog card carries a
+  // commit_action.event, so we just locate the card and fire its event the
+  // same way a tap would.
+  // Returns { matched: card } on a hit, { unresolved: phrase } when a verb
+  // was heard but no card matched (so caller can surface "not on this menu"),
+  // or null when there's no add/order intent at all (caller falls through).
+  function matchActiveMenuAdd(text) {
+    if (!activePartnerCatalog || !Array.isArray(activePartnerCatalog.cards) || !activePartnerCatalog.cards.length) {
+      return null;
+    }
+    const t = (text || '').trim();
+    if (!t) return null;
+    let phrase = null;
+    // Trailing-verb Hinglish FIRST so "ek family pack add karo" parses as
+    // "ek family pack" (NOT "karo" as an English-leading "add karo" match).
+    let m = t.match(/^(.+?)\s+(?:add|order)\s+kar(?:o|do|de)\s*[.!?]?$/i);
+    if (m) phrase = m[1];
+    // English + light Hinglish leading: "add X", "order X".
+    if (!phrase) {
+      m = t.match(/\b(?:add|order)\b\s+(.+?)(?:\s+(?:please|now|kar(?:o|do|de)))?[.!?]?\s*$/i);
+      if (m) phrase = m[1];
+    }
+    // "ek X" / "ek plate X".
+    if (!phrase) {
+      m = t.match(/\bek(?:\s+plate)?\b\s+(.+?)(?:\s+(?:please|now|kar(?:o|do|de)))?[.!?]?\s*$/i);
+      if (m) phrase = m[1];
+    }
+    // Strip a Hinglish "ek " or "ek plate " prefix on the captured phrase.
+    if (phrase) phrase = phrase.replace(/^ek(?:\s+plate)?\s+/i, '');
+    if (!phrase) return null;
+    const tokens = phrase.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!tokens.length) return null;
+    const scored = activePartnerCatalog.cards.map(c => {
+      const haystack = [
+        c.title || '',
+        (c.tags || []).join(' '),
+        (c.filter_ids || []).join(' '),
+        c.subtitle || '',
+      ].join(' ').toLowerCase();
+      const score = tokens.reduce((n, tok) => n + (haystack.includes(tok) ? 1 : 0), 0);
+      return { card: c, score };
+    }).filter(x => x.score > 0).sort((a, b) => b.score - a.score);
+    if (scored.length) return { matched: scored[0].card };
+    return { unresolved: phrase.trim() };
+  }
+
+  // "Done shopping" intent — fires while a partner catalog is on screen and
+  // routes the next turn to the partner's order/Confirm-Pay surface so the
+  // user actually has a tap target. English + Hinglish "I'm done" forms.
+  // Returns the order DiscoveryView key (e.g. 'swiggy_paradise_order') or null.
+  function matchPartnerCheckoutIntent(text) {
+    if (!activePartnerCatalog || !activePartnerCatalog.orderKey) return null;
+    if (!Array.isArray(activePartnerCatalog.cart) || !activePartnerCatalog.cart.length) {
+      // No items added yet — "checkout" with an empty cart should fall
+      // through to discovery, not a confirm-empty-order surface.
+      return null;
+    }
+    const t = (text || '').trim().toLowerCase();
+    if (!t) return null;
+    // Tight set of done/checkout phrases. Kept narrow on purpose so generic
+    // "no" answers to other prompts don't accidentally commit an order.
+    const patterns = [
+      /^\s*no[,\s]*(?:that(?:'|’)?s\s+(?:it|all)|nothing\s+else|that(?:'|’)?ll\s+do)\b/,
+      /\bthat(?:'|’)?s\s+(?:it|all)\b/,
+      /\bnothing\s+else\b/,
+      /\b(?:i(?:'|’)?m\s+)?done\b(?!\s+with\s+\w+ing)/,           // "done", "I'm done" but not "done with cooking"
+      /\b(?:place|confirm|complete)\s+(?:my\s+)?(?:order|the\s+order)\b/,
+      /^\s*checkout\b/,
+      /\bproceed\s+to\s+checkout\b/,
+      /\bkuch(?:\s+nahi|\s+nahin)\s+(?:aur|chahiye)\b/,           // Hinglish "nothing else / nothing more wanted"
+      /\bbas\s+(?:itna|ho\s+gaya|kar\s+do)\b/,                    // Hinglish "that's enough / done"
+      /\bord(?:er|ar)\s+(?:place|confirm|kar\s+do)\b/,            // Hinglish "place/confirm the order"
+    ];
+    return patterns.some(re => re.test(t)) ? activePartnerCatalog.orderKey : null;
+  }
+
+  // Build a §14 Confirm & Pay product from the voice cart. The shopping-card
+  // renderer reads name / qty / price / eta — none of which are on the
+  // discovery card, so this is a parallel projection of the same cart.
+  function buildVoiceCartProduct(baseProduct) {
+    if (!activePartnerCatalog || !Array.isArray(activePartnerCatalog.cart) || !activePartnerCatalog.cart.length) {
+      return baseProduct;
+    }
+    const cart = activePartnerCatalog.cart;
+    const itemsTotal = cart.reduce((sum, item) => {
+      const m = String(item.price_label || '').match(/(\d[\d,]*)/);
+      return sum + (m ? parseInt(m[1].replace(/,/g, ''), 10) : 0);
+    }, 0);
+    const headline = cart[0];
+    const qtyLine = cart.length === 1
+      ? `1 × ${headline.title}`
+      : `${cart.map(it => `${it.qty} × ${it.title}`).join(' · ')}`;
+    const totalQty = cart.reduce((n, it) => n + (it.qty || 1), 0);
+    const titleSuffix = cart.length === 1 ? '' : ` (+${cart.length - 1} more)`;
+    return Object.assign({}, baseProduct, {
+      name: `${headline.title}${titleSuffix} · ${baseProduct.storefront || baseProduct.brand || ''}`.replace(/\s·\s*$/, ''),
+      qty: `${totalQty} item${totalQty > 1 ? 's' : ''} · ${qtyLine}`,
+      price: itemsTotal,
+    });
+  }
+
 
   // Strip the §15 pivot beat ("On screen — …" / "I've put them on screen — …")
   // from a voice_disclosure so the outcome + anchor + shape read as text prose
@@ -9117,7 +9243,19 @@
     const informationalKey = (!isRestaurantQuery && !isShoppingQuery && !advisoryFixture && !bookingIntent) ? matchInformationalQuery(text) : null;
     const informationalEntry = (informationalKey && window.INFORMATIONAL_RESPONSES) ? window.INFORMATIONAL_RESPONSES[informationalKey] : null;
     const informationalView = informationalEntry ? informationalEntry.view : null;
-    const discoveryKey = (!isRestaurantQuery && !isShoppingQuery && !advisoryFixture && !informationalView && !bookingIntent) ? matchDiscoveryQuery(text) : null;
+    // Context-aware menu-add: if a partner catalog (e.g. Swiggy Paradise menu)
+    // is currently on screen, an "add X" / "order X" utterance resolves to a
+    // card on THAT menu — not a fresh DiscoveryView. Mirrors the manifest/MCP
+    // commit_action contract: same dispatch path as a tap on the Add pill.
+    const menuAdd = (!isRestaurantQuery && !isShoppingQuery && !advisoryFixture && !informationalView && !bookingIntent)
+      ? matchActiveMenuAdd(text) : null;
+    // "No that's it" / "checkout" / "place order" while a partner menu is on
+    // screen and the voice cart is non-empty → route to the partner's order
+    // surface so the §14 Confirm & Pay tap target actually appears.
+    const checkoutOrderKey = (!isRestaurantQuery && !isShoppingQuery && !advisoryFixture && !informationalView && !bookingIntent && !menuAdd)
+      ? matchPartnerCheckoutIntent(text) : null;
+    const discoveryKey = checkoutOrderKey
+      || ((!isRestaurantQuery && !isShoppingQuery && !advisoryFixture && !informationalView && !bookingIntent && !menuAdd) ? matchDiscoveryQuery(text) : null);
     const discoveryDs = (discoveryKey && window.DATASETS) ? window.DATASETS[discoveryKey] : null;
     // Mutable copy of the view actually rendered. Partner experiences
     // (e.g. swiggy_paradise_menu) attempt a live MCP fetch below and
@@ -9242,6 +9380,18 @@
       responseText = `Here are top restaurants near you in ${USER_PROFILE.city} — Spice Garden is top-rated.`;
     } else if (isShoppingQuery && shoppingProduct) {
       responseText = `Found ${shoppingProduct.name} on JioMart for ₹${shoppingProduct.price}. Tap Confirm & Pay to place the order.`;
+    } else if (menuAdd && menuAdd.matched) {
+      // Partner-catalog add (no DiscoveryView re-render, no city-list fallback).
+      // The matched card's commit_action.event is fired below in the same shape
+      // as a tap on the Add pill — so any future cart UI / live MCP commit hook
+      // sees identical input regardless of voice vs touch origin.
+      const card = menuAdd.matched;
+      responseText = `Added ${card.title}${card.price_label ? ` — ${card.price_label}` : ''}.`;
+    } else if (menuAdd && menuAdd.unresolved) {
+      const partnerName = (activePartnerCatalog && activePartnerCatalog.subjectTitle)
+        ? activePartnerCatalog.subjectTitle.replace(/\s+—.*$/, '')
+        : 'this menu';
+      responseText = `I don't see ${menuAdd.unresolved} on ${partnerName}. Want me to look elsewhere?`;
     } else if (discoveryDs) {
       // Partner experiences with a live MCP backend get a fetch attempt here,
       // *during* the thinking window so latency is absorbed by the existing
@@ -9326,7 +9476,32 @@
     // complete disclosure still lands in TTS + conversationHistory so follow-
     // up turns keep context and §15 acceptance criteria are preserved.
     let spokenText = responseText;
-    if (discoveryView && discoveryView.voice_disclosure) {
+    if (menuAdd && menuAdd.matched) {
+      const card = menuAdd.matched;
+      const price = formatPriceForSpeech(card.price_label || '');
+      spokenText = price
+        ? `Adding ${card.title} — ${price}. Anything else?`
+        : `Adding ${card.title}. Anything else?`;
+    } else if (menuAdd && menuAdd.unresolved) {
+      // responseText already reads naturally; keep TTS aligned.
+      spokenText = responseText;
+    } else if (checkoutOrderKey && activePartnerCatalog && Array.isArray(activePartnerCatalog.cart) && activePartnerCatalog.cart.length) {
+      // Speak the actual voice cart, not the fixture's hardcoded "one chicken
+      // biryani" disclosure. Mirrors the JBIQ voice principles: simple, smart,
+      // celebrate what the user already chose.
+      const cart = activePartnerCatalog.cart;
+      const total = cart.reduce((s, it) => {
+        const m = String(it.price_label || '').match(/(\d[\d,]*)/);
+        return s + (m ? parseInt(m[1].replace(/,/g, ''), 10) : 0);
+      }, 0);
+      const lineFor = it => `${it.qty} ${it.title}`;
+      const lines = cart.length === 1
+        ? lineFor(cart[0])
+        : cart.length === 2
+          ? `${lineFor(cart[0])} and ${lineFor(cart[1])}`
+          : `${cart.slice(0, -1).map(lineFor).join(', ')}, and ${lineFor(cart[cart.length - 1])}`;
+      spokenText = `Order summary — ${lines}. Total ${total} rupees. Tap Confirm and Pay to place the order.`;
+    } else if (discoveryView && discoveryView.voice_disclosure) {
       spokenText = discoveryView.voice_disclosure;
     } else if (informationalView && informationalView.voice_disclosure) {
       spokenText = informationalView.voice_disclosure;
@@ -9421,6 +9596,93 @@
       currentTurnEl.appendChild(window.renderDiscoveryView(discoveryView));
       // Snapshot the open DiscoveryView so it can be re-mounted on Resume.
       checkpointSession({ uiState: { discoveryView: { view: discoveryView } } });
+      // Track partner catalogs (Swiggy / Zomato) so a follow-up "add chicken
+      // biryani" voice utterance resolves against THIS menu's cards instead
+      // of triggering a fresh discovery turn.
+      const isPartnerCatalog =
+        discoveryView.sub_pattern === 'catalog' &&
+        discoveryView.subject &&
+        discoveryView.subject.brand_chip &&
+        ['swiggy', 'zomato'].includes(discoveryView.subject.brand_chip.variant) &&
+        Array.isArray(discoveryView.collection && discoveryView.collection.cards) &&
+        discoveryView.collection.cards.some(c => c && c.commit_action && c.commit_action.event);
+      if (isPartnerCatalog) {
+        // Derive the partner's order/confirm-pay key by suffix swap. Currently
+        // only swiggy_paradise_menu → swiggy_paradise_order exists; if a
+        // partner ever ships a menu without a paired order key, we just leave
+        // orderKey null and the checkout intent will silently no-op.
+        let orderKey = null;
+        if (typeof discoveryKey === 'string' && discoveryKey.endsWith('_menu')) {
+          const candidate = discoveryKey.slice(0, -'_menu'.length) + '_order';
+          if (window.DATASETS && window.DATASETS[candidate]) orderKey = candidate;
+        }
+        activePartnerCatalog = {
+          key: discoveryKey,
+          orderKey,
+          partner: discoveryView.subject.brand_chip.variant,
+          subjectTitle: discoveryView.subject.title || '',
+          cards: discoveryView.collection.cards.filter(c => c && c.commit_action),
+          // Voice-cart accumulator. Each successful menu-add appends here so a
+          // follow-up "no that's it" / "checkout" can render an accurate order
+          // summary instead of the hardcoded fixture item.
+          cart: [],
+        };
+      } else if (
+        // Same-partner order/confirm surface — keep the cart and menu cards so
+        // a "wait, also add a veg biryani" still resolves against the menu the
+        // user was just on. The order view is a continuation of the journey,
+        // not a journey-resetting render.
+        activePartnerCatalog &&
+        activePartnerCatalog.orderKey &&
+        activePartnerCatalog.orderKey === discoveryKey
+      ) {
+        // no-op — preserve activePartnerCatalog
+      } else {
+        // Any other DiscoveryView render replaces the active catalog.
+        activePartnerCatalog = null;
+      }
+    }
+
+    // Menu-add dispatch: fire commit_action.event on the matched card so the
+    // tap-equivalent path runs (delegated handler in discovery.js → custom
+    // event → any future cart UI). The Add pill flashes briefly so the user
+    // sees which item just got added.
+    if (menuAdd && menuAdd.matched) {
+      // Push to the partner's voice cart so a later "no that's it" / "checkout"
+      // can build an accurate order summary from real adds, not a fixture.
+      if (activePartnerCatalog && Array.isArray(activePartnerCatalog.cart)) {
+        activePartnerCatalog.cart.push({
+          id: menuAdd.matched.id,
+          title: menuAdd.matched.title,
+          price_label: menuAdd.matched.price_label || '',
+          qty: 1,
+          addedAt: Date.now(),
+        });
+      }
+      const evtName = menuAdd.matched.commit_action && menuAdd.matched.commit_action.event;
+      if (evtName) {
+        // Scope to the <button class="catalog-card__commit"> — the wrapper
+        // <div class="catalog-card--has-commit"> also carries the same
+        // data-event for legacy analytics, so a bare attribute match would
+        // return the wrapper first and the .is-pressed flash CSS (which
+        // targets only the pill) would never apply.
+        const pill = chatMessages.querySelector(
+          `.jbiq-discovery .catalog-card__commit[data-event="${CSS.escape(evtName)}"]`
+        );
+        if (pill) {
+          pill.classList.add('is-pressed');
+          pill.click();
+          setTimeout(() => { pill.classList.remove('is-pressed'); }, 700);
+        } else {
+          // No rendered pill (e.g. menu scrolled out of DOM). Fire the event
+          // directly so any registered listener still gets the commit signal.
+          try {
+            window.dispatchEvent(new CustomEvent('jbiq-discovery-event', {
+              detail: { name: evtName, wrapper: null, source: 'voice-menu-add' },
+            }));
+          } catch (_) {}
+        }
+      }
     }
 
     // 7e. Render Informational response (§10.1) — single-status answers with
@@ -9436,7 +9698,10 @@
     // handleConfirmAndPay so the safety contract (warning + tap) is enforced
     // identically to the existing shopping path.
     if (discoveryDs && TRANSACTIONAL_VIEW_PRODUCTS[discoveryKey]) {
-      const product = TRANSACTIONAL_VIEW_PRODUCTS[discoveryKey];
+      // Voice-cart turn: project the cart onto the §14 product so the Confirm
+      // & Pay surface shows the items the user actually added, not the fixture.
+      const baseProduct = TRANSACTIONAL_VIEW_PRODUCTS[discoveryKey];
+      const product = checkoutOrderKey ? buildVoiceCartProduct(baseProduct) : baseProduct;
       const cardEl = renderShoppingCard(product);
       currentTurnEl.appendChild(cardEl);
     }

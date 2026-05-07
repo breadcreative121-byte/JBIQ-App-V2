@@ -545,6 +545,13 @@
   min-height: 32px;
   cursor: pointer;
   flex-shrink: 0;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+/* Voice-triggered "add" — short flash so the user can see which item just
+   got added when they spoke instead of tapped. */
+.catalog-card__commit.is-pressed {
+  transform: scale(0.94);
+  box-shadow: 0 0 0 4px rgba(74, 41, 161, 0.18);
 }
 
 /* ----------------------------------------------------------------------------
