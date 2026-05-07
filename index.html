@@ -7244,6 +7244,21 @@
         { key: 'swiggy_track_voice',          surface: 'voice', label: 'Track my Swiggy order — voice',        query: "Where's my Swiggy order" },
       ],
     },
+    {
+      group: 'Bus Travel',
+      items: [
+        { key: 'bus_compare_chat',  surface: 'chat',  label: 'Best buses BLR → Tirupati — chat',  query: 'Best buses to Tirupati tomorrow' },
+        { key: 'bus_compare_voice', surface: 'voice', label: 'Best buses BLR → Tirupati — voice', query: 'Best buses to Tirupati tomorrow' },
+        { key: 'bus_seats_chat',    surface: 'chat',  label: 'Pick a seat on VRL — chat',         query: 'Pick a seat on VRL to Tirupati' },
+        { key: 'bus_seats_voice',   surface: 'voice', label: 'Pick a seat on VRL — voice',        query: 'Pick a seat on VRL to Tirupati' },
+        { key: 'bus_confirm_chat',  surface: 'chat',  label: 'Confirm VRL booking — chat',        query: 'Confirm my VRL Tirupati booking' },
+        { key: 'bus_confirm_voice', surface: 'voice', label: 'Confirm VRL booking — voice',       query: 'Confirm my VRL Tirupati booking' },
+        { key: 'bus_track_chat',    surface: 'chat',  label: "Where's my bus — chat",             query: "Where's my bus" },
+        { key: 'bus_track_voice',   surface: 'voice', label: "Where's my bus — voice",            query: "Where's my bus" },
+        { key: 'bus_ticket_chat',   surface: 'chat',  label: 'Show my bus ticket — chat',         query: 'Show my bus ticket' },
+        { key: 'bus_ticket_voice',  surface: 'voice', label: 'Show my bus ticket — voice',        query: 'Show my bus ticket' },
+      ],
+    },
   ];
   window.PARTNER_GROUPS = PARTNER_GROUPS;
 
@@ -7496,6 +7511,18 @@
     { re: /\bswiggy\b.{0,40}\b(biryani|restaurants?|food)\b/i,                           view: 'swiggy_biryani_search' },
     { re: /\b(biryani|restaurants?|food)\b.{0,40}\bswiggy\b/i,                           view: 'swiggy_biryani_search' },
 
+    // Partner experiences — Bus Travel aggregator. Specific (VRL + verb) patterns
+    // come before the broad bus-route compare so "confirm my VRL booking" beats
+    // "any VRL bus to Tirupati". The bus_trip_status tracker is matched in
+    // INFORMATIONAL_QUERY_PATTERNS, which runs first in the chat handler.
+    { re: /\b(?:confirm|book|booking)\b.{0,40}\bvrl\b/i,                                 view: 'bus_vrl_booking_confirm' },
+    { re: /\bvrl\b.{0,40}\b(?:confirm|book|booking)\b/i,                                 view: 'bus_vrl_booking_confirm' },
+    { re: /\b(?:pick|select|choose)\b.{0,15}\bseat\b.{0,30}\bvrl\b/i,                    view: 'bus_vrl_tpty_seats' },
+    { re: /\bvrl\b.{0,30}\b(?:seat|sleeper|seater|berth)\b/i,                            view: 'bus_vrl_tpty_seats' },
+    { re: /\b(?:bus(?:es)?|volvo|sleeper)\b.{0,40}\b(?:tirupati|tpty)\b/i,               view: 'bus_blr_tpty_compare' },
+    { re: /\b(?:tirupati|tpty)\b.{0,40}\b(?:bus(?:es)?|volvo|sleeper)\b/i,               view: 'bus_blr_tpty_compare' },
+    { re: /\b(?:cheap|best|aggregator|compare)\b.{0,30}\bbus(?:es)?\b/i,                 view: 'bus_blr_tpty_compare' },
+
     // Voice-first use cases — specific patterns must come BEFORE the generic
     // ones below. Pediatrician (child fever) beats the generic doctor regex;
     // priced single-plan recharge beats the compare-table recharge.
@@ -7548,6 +7575,19 @@
     // Partner — Swiggy order tracking. Must come before generic discovery
     // matches so "track my Swiggy order" routes to the prose status card.
     { re: /\b(?:where.?s|track)\b.{0,30}\bswiggy\b|\bswiggy\b.{0,30}\b(?:order\s*status|track|delivery)\b/i, view: 'swiggy_order_status' },
+    // Partner — Bus trip live status. Generic "where's my bus" / "track my bus"
+    // wins before any discovery match would route to compare/seats/booking.
+    { re: /\b(?:where(?:'s|\s+is)?|track)\b.{0,20}\b(?:my\s+)?bus\b/i,                                       view: 'bus_trip_status' },
+    { re: /\b(?:where(?:'s|\s+is)?|track)\b.{0,20}\bvrl\b/i,                                                 view: 'bus_trip_status' },
+    // Partner — Bus ticket preview (post-booking e-ticket card). PNR / "show
+    // my ticket" / "bus ticket" requests render the ticket card. The patterns
+    // sit after trip-status because the verbs are different (where/track vs
+    // show/view) so they don't collide; PNR alone is unambiguous.
+    { re: /\bpnr\b/i,                                                                                        view: 'bus_ticket'      },
+    { re: /\b(?:show|view|open|display|share|send)\b.{0,20}\b(?:my\s+)?(?:bus\s+)?ticket\b/i,                view: 'bus_ticket'      },
+    { re: /\b(?:my\s+)?(?:bus\s+)?ticket\b.{0,20}\b(?:dikhao|chahiye|please|now)\b/i,                        view: 'bus_ticket'      },
+    { re: /\b(?:bus|vrl)\b.{0,15}\bticket\b/i,                                                               view: 'bus_ticket'      },
+    { re: /\bticket\b.{0,15}\b(?:bus|vrl)\b/i,                                                               view: 'bus_ticket'      },
   ];
 
   function matchInformationalQuery(text) {

@@ -4420,10 +4420,374 @@ const INFO_SWIGGY_ORDER_STATUS = {
   ],
 };
 
+/* ============================================================================
+   Bus Travel — partner aggregator. Compare across operators on BLR → TPTY,
+   then a seat-class catalog on the picked operator (VRL), a single-card
+   booking confirm, and an informational live-trip status. Mirrors the Swiggy
+   shape (search → menu → order → track) but at sub_pattern: compare for the
+   aggregator step.
+   ============================================================================ */
+
+/** @type {CompareDiscoveryView} */
+const MOCK_BUS_BLR_TPTY_COMPARE = {
+  kind: 'discovery_view',
+  sub_pattern: 'compare',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: { title: 'Buses to Tirupati tomorrow', subtitle: 'BLR → TPTY · 1 traveller · Tomorrow night' },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'nonstop',        label: 'Non-stop',        value: true,    selected: true },
+      { id: 'ac',             label: 'AC',              value: 'ac',    selected: false },
+      { id: 'sleeper',        label: 'Sleeper',         value: 'slpr',  selected: false },
+      { id: 'under_1200',     label: 'Under ₹1,200',    value: 1200,    selected: false },
+      { id: 'depart_evening', label: 'Departs 8–11 PM', value: 'eve',   selected: false },
+    ],
+  },
+  sort: {
+    options: [
+      { id: 'price',    label: 'Price' },
+      { id: 'duration', label: 'Duration' },
+      { id: 'depart',   label: 'Depart' },
+      { id: 'rating',   label: 'Rating' },
+    ],
+    selected_id: 'price',
+  },
+  collection: {
+    layout: 'table',
+    header: { label_column: 'Detail', recommended_id: 'vrl' },
+    options: [
+      {
+        id: 'vrl',
+        title: 'VRL Travels',
+        subtitle: 'Volvo B11R AC Sleeper',
+        badge: 'Cheapest',
+        primary_event: 'compare.bus.vrl.open',
+      },
+      {
+        id: 'srs',
+        title: 'SRS Travels',
+        subtitle: 'Bharat Benz AC Semi-Sleeper',
+        primary_event: 'compare.bus.srs.open',
+      },
+      {
+        id: 'ksrtc',
+        title: 'KSRTC Airavat',
+        subtitle: 'Volvo Multi-Axle AC',
+        badge: 'Govt',
+        primary_event: 'compare.bus.ksrtc.open',
+      },
+      {
+        id: 'orange',
+        title: 'Orange Tours',
+        subtitle: 'Scania Metrolink AC Sleeper',
+        badge: 'Premium',
+        primary_event: 'compare.bus.orange.open',
+      },
+    ],
+    rows: [
+      {
+        id: 'depart', label: 'Depart',
+        values: [
+          { option_id: 'vrl',    display: '9:30 PM' },
+          { option_id: 'srs',    display: '10:15 PM' },
+          { option_id: 'ksrtc',  display: '8:45 PM' },
+          { option_id: 'orange', display: '11:00 PM' },
+        ],
+      },
+      {
+        id: 'arrive', label: 'Arrive',
+        values: [
+          { option_id: 'vrl',    display: '5:45 AM' },
+          { option_id: 'srs',    display: '7:00 AM' },
+          { option_id: 'ksrtc',  display: '5:30 AM' },
+          { option_id: 'orange', display: '6:30 AM' },
+        ],
+      },
+      {
+        id: 'duration', label: 'Duration',
+        values: [
+          { option_id: 'vrl',    display: '8h 15m' },
+          { option_id: 'srs',    display: '8h 45m', emphasis: 'worst' },
+          { option_id: 'ksrtc',  display: '8h 45m', emphasis: 'worst' },
+          { option_id: 'orange', display: '7h 30m', emphasis: 'best' },
+        ],
+      },
+      {
+        id: 'bus_type', label: 'Bus type',
+        values: [
+          { option_id: 'vrl',    display: 'AC Sleeper' },
+          { option_id: 'srs',    display: 'AC Semi-Sleeper' },
+          { option_id: 'ksrtc',  display: 'AC Seater' },
+          { option_id: 'orange', display: 'AC Sleeper' },
+        ],
+      },
+      {
+        id: 'seats_left', label: 'Seats left',
+        values: [
+          { option_id: 'vrl',    display: '12' },
+          { option_id: 'srs',    display: '6' },
+          { option_id: 'ksrtc',  display: '2',  emphasis: 'worst' },
+          { option_id: 'orange', display: '21', emphasis: 'best' },
+        ],
+      },
+      {
+        id: 'rating', label: 'Rating',
+        values: [
+          { option_id: 'vrl',    display: '4.5★' },
+          { option_id: 'srs',    display: '4.2★' },
+          { option_id: 'ksrtc',  display: '4.1★', emphasis: 'worst' },
+          { option_id: 'orange', display: '4.7★', emphasis: 'best' },
+        ],
+      },
+      {
+        id: 'price', label: 'Price',
+        values: [
+          { option_id: 'vrl',    display: '₹899',   emphasis: 'best' },
+          { option_id: 'srs',    display: '₹1,049' },
+          { option_id: 'ksrtc',  display: '₹1,150' },
+          { option_id: 'orange', display: '₹1,499', emphasis: 'worst' },
+        ],
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Set price alert',
+    event: 'edge.bus.remind_later',
+    kind: 'remind_later',
+    query: 'Alert me if any Tirupati bus drops below ₹750',
+  },
+  voice_disclosure: "4 buses to Tirupati tomorrow night. VRL is cheapest — eight ninety-nine, Volvo AC sleeper, departs 9:30 PM, twelve seats left. Others run up to fourteen ninety-nine. On screen — tap VRL, or set an alert below seven fifty?",
+  suggested_prompts: [
+    { label: 'Show all 12 buses', kind: 'see_more', query: 'Show all buses to Tirupati tomorrow' },
+    { label: 'Compare top three', kind: 'compare',  query: 'Compare VRL, SRS, and Orange side by side' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Best buses to Tirupati tomorrow',
+    total_count: 12,
+    trace_id: 'trace-bus-compare-001',
+  },
+};
+
+/** @type {CatalogDiscoveryView} */
+const MOCK_BUS_VRL_TPTY_SEATS = {
+  kind: 'discovery_view',
+  sub_pattern: 'catalog',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: {
+    title: 'VRL Travels — pick a seat',
+    subtitle: 'Volvo AC Sleeper · BLR → TPTY · Departs 9:30 PM',
+  },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'lower_berth', label: 'Lower berth', value: 'lower',  selected: false },
+      { id: 'upper_berth', label: 'Upper berth', value: 'upper',  selected: false },
+      { id: 'seater',      label: 'Seater',      value: 'seater', selected: false },
+      { id: 'ladies_only', label: 'Ladies-only', value: 'ladies', selected: false },
+    ],
+  },
+  sort: {
+    options: [
+      { id: 'price',    label: 'Price' },
+      { id: 'position', label: 'Position' },
+    ],
+    selected_id: 'price',
+  },
+  collection: {
+    layout: 'list',
+    cards: [
+      {
+        variant: 'catalog',
+        id: 'vrl_seater_s5',
+        title: 'AC Seater S5',
+        subtitle: '8 seats left · Window · Mid',
+        media: { alt: 'AC seater', fallback_color: '#C9A55E' },
+        price_label: '₹699',
+        rating: { value: 4.5, count: 1820 },
+        tags: ['Seater'],
+        filter_ids: ['seater'],
+        primary_event: 'catalog.bus.vrl.seater.select',
+        commit_action: { label: 'Select', event: 'catalog.bus.vrl.seater.select' },
+      },
+      {
+        variant: 'catalog',
+        id: 'vrl_upper_sleeper_b1',
+        title: 'Upper Sleeper B1',
+        subtitle: '4 seats left · Window · Front',
+        media: { alt: 'Upper sleeper berth', fallback_color: '#7C95C2' },
+        price_label: '₹849',
+        rating: { value: 4.5, count: 1820 },
+        tags: ['Sleeper', 'Upper'],
+        badge: 'Cheapest sleeper',
+        filter_ids: ['upper_berth'],
+        primary_event: 'catalog.bus.vrl.upper_sleeper.select',
+        commit_action: { label: 'Select', event: 'catalog.bus.vrl.upper_sleeper.select' },
+      },
+      {
+        variant: 'catalog',
+        id: 'vrl_lower_sleeper_a3',
+        title: 'Lower Sleeper A3',
+        subtitle: '2 seats left · Aisle · Mid',
+        media: { alt: 'Lower sleeper berth', fallback_color: '#5E7AA8' },
+        price_label: '₹899',
+        rating: { value: 4.5, count: 1820 },
+        tags: ['Sleeper', 'Lower'],
+        filter_ids: ['lower_berth'],
+        primary_event: 'catalog.bus.vrl.lower_sleeper.select',
+        commit_action: { label: 'Select', event: 'catalog.bus.vrl.lower_sleeper.select' },
+      },
+      {
+        variant: 'catalog',
+        id: 'vrl_ladies_l2',
+        title: 'Ladies-only Lower L2',
+        subtitle: '1 seat left · Front · Reserved',
+        media: { alt: 'Ladies-only sleeper berth', fallback_color: '#B97C9F' },
+        price_label: '₹949',
+        rating: { value: 4.5, count: 1820 },
+        tags: ['Sleeper', 'Ladies-only'],
+        badge: 'Last seat',
+        filter_ids: ['lower_berth', 'ladies_only'],
+        primary_event: 'catalog.bus.vrl.ladies.select',
+        commit_action: { label: 'Select', event: 'catalog.bus.vrl.ladies.select' },
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Change to a different bus',
+    event: 'edge.bus.vrl.change_bus',
+    kind: 'context_shift',
+    query: 'Best buses to Tirupati tomorrow',
+  },
+  voice_disclosure: "VRL Volvo to Tirupati. Seater is cheapest at six ninety-nine. Upper sleeper eight forty-nine, four seats left. Lower sleeper eight ninety-nine. Ladies-only is the last seat at nine forty-nine. On screen — pick a seat?",
+  suggested_prompts: [
+    { label: 'Show seat layout',          kind: 'see_more',     query: 'Show the VRL seat layout' },
+    { label: 'Change to a different bus', kind: 'context_shift', query: 'Best buses to Tirupati tomorrow' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Pick a seat on VRL to Tirupati',
+    total_count: 4,
+    trace_id: 'trace-bus-seats-001',
+  },
+};
+
+/** @type {CatalogDiscoveryView} */
+const MOCK_BUS_VRL_BOOKING_CONFIRM = {
+  kind: 'discovery_view',
+  sub_pattern: 'catalog',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: {
+    title: 'Booking ready to confirm',
+    subtitle: 'VRL Travels · Volvo AC Sleeper · BLR → TPTY',
+  },
+  filters: {
+    multi_select: true,
+    chips: [
+      { id: 'pay_online', label: 'Pay online', value: 'online', selected: true },
+    ],
+  },
+  sort: {
+    options: [{ id: 'recommended', label: 'Recommended' }],
+    selected_id: 'recommended',
+  },
+  collection: {
+    layout: 'list',
+    cards: [
+      {
+        variant: 'catalog',
+        id: 'vrl_booking_summary',
+        title: 'Lower Sleeper A3 · 1 Adult',
+        subtitle: 'Tomorrow 9:30 PM → 5:45 AM',
+        media: { alt: 'VRL Volvo sleeper', fallback_color: '#5E7AA8' },
+        price_label: '₹899',
+        temporal_label: '8h 15m · Boarding Madiwala 9:15 PM',
+        status_label: 'Pay online · UPI ready',
+        badge: 'Cheapest',
+        tags: ['Sleeper', 'AC'],
+        specs: [
+          '1 Adult · Lower Sleeper A3',
+          'Boarding · Madiwala BMTC 9:15 PM',
+          'Drop · Tirupati RTC Stand 5:45 AM',
+        ],
+        primary_event: 'catalog.bus.vrl.booking.confirm_pay',
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Change boarding point',
+    event: 'edge.bus.vrl.change_boarding',
+    kind: 'context_shift',
+    query: 'Change my VRL boarding point to Majestic',
+  },
+  voice_disclosure: "One adult, lower sleeper A3 on VRL to Tirupati. Eight ninety-nine, departs Madiwala BMTC nine fifteen PM, arrives Tirupati five forty-five AM. Pay online via UPI. Confirm to lock the seat?",
+  suggested_prompts: [
+    { label: 'Change boarding point', kind: 'context_shift', query: 'Change my VRL boarding point to Majestic' },
+    { label: 'Add return ticket',     kind: 'context_shift', query: 'Add a return ticket from Tirupati' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Confirm my VRL Tirupati booking',
+    total_count: 1,
+    trace_id: 'trace-bus-booking-001',
+  },
+};
+
+const INFO_BUS_TRIP_STATUS = {
+  kind: 'informational_response',
+  subject: { title: 'VRL Travels · Trip TR-58293', subtitle: 'Lower Sleeper A3 · ₹899 · Departs in 42 min' },
+  body_text: [
+    { label: 'Status', value: 'Bus is at Madiwala — boarding now' },
+    { label: 'Bus',    value: 'VRL Volvo B11R AC Sleeper · KA-01-EX-4821' },
+    { label: 'Booked', value: 'Tomorrow · 9:30 PM departure · Lower Sleeper A3' },
+    { label: 'Stages', value: 'Booked → Boarding → En route → Arrived' },
+  ],
+  voice_disclosure: "Your VRL bus to Tirupati is at Madiwala — boarding now. Lower sleeper A3, departs in forty-two minutes. On screen — track live, or call the driver?",
+  edge_affordance: {
+    label: 'Track live on map',
+    event: 'edge.bus.trip.track',
+    kind: 'context_shift',
+    query: 'Track my VRL bus live on the map',
+  },
+  suggested_prompts: [
+    { label: 'Track live on map', kind: 'context_shift', query: 'Track my VRL bus live on the map' },
+    { label: 'Call the driver',   kind: 'context_shift', query: 'Call the VRL bus driver' },
+    { label: 'Cancel ticket',     kind: 'context_shift', query: 'Cancel my VRL Tirupati ticket' },
+  ],
+};
+
+const INFO_BUS_TICKET = {
+  kind: 'informational_response',
+  subject: { title: 'Bus ticket · PNR TR58293', subtitle: 'VRL Travels · BLR → TPTY · Tomorrow 9:30 PM' },
+  body_text: [
+    { label: 'Passenger', value: 'Matt Jarvis · 1 Adult' },
+    { label: 'Seat',      value: 'Lower Sleeper A3 · ₹899 paid · UPI' },
+    { label: 'Bus',       value: 'VRL Volvo B11R AC Sleeper · KA-01-EX-4821' },
+    { label: 'Boarding',  value: 'Madiwala BMTC · 9:15 PM (gates close 9:25 PM)' },
+    { label: 'Drop',      value: 'Tirupati RTC Stand · ETA 5:45 AM' },
+    { label: 'Driver',    value: '+91 98•••••42 (call after 9:00 PM)' },
+  ],
+  voice_disclosure: "Your VRL ticket to Tirupati. PNR TR58293, lower sleeper A3, eight ninety-nine paid. Boarding Madiwala BMTC tomorrow nine fifteen PM. On screen — share with family, or add to wallet?",
+  edge_affordance: {
+    label: 'Show as boarding pass',
+    event: 'edge.bus.ticket.boarding_pass',
+    kind: 'context_shift',
+    query: 'Show my bus ticket as a boarding pass',
+  },
+  suggested_prompts: [
+    { label: 'Share with family', kind: 'context_shift', query: 'Share my bus ticket with my family' },
+    { label: 'Add to wallet',     kind: 'save_later',    query: 'Add my bus ticket to wallet' },
+    { label: 'Call the driver',   kind: 'context_shift', query: 'Call the VRL bus driver' },
+  ],
+};
+
 const INFORMATIONAL_RESPONSES = {
   pm_kisan_status:    { key: 'pm_kisan_status',    label: 'PM Kisan installment status', view: INFO_PM_KISAN_STATUS },
   ration_status:      { key: 'ration_status',      label: 'Ration card status',          view: INFO_RATION_STATUS },
   swiggy_order_status:{ key: 'swiggy_order_status',label: 'Swiggy order status',         view: INFO_SWIGGY_ORDER_STATUS },
+  bus_trip_status:    { key: 'bus_trip_status',    label: 'Bus trip status',             view: INFO_BUS_TRIP_STATUS },
+  bus_ticket:         { key: 'bus_ticket',         label: 'Bus ticket preview',          view: INFO_BUS_TICKET },
 };
 
 /* ============================================================================
@@ -4495,9 +4859,12 @@ const PILLAR_DATASET_ENTRIES = [
 // (registered separately). Each MUST resolve via the flat DATASETS lookup so
 // the chat handler's matchDiscoveryQuery → DATASETS[key] path renders them.
 const PARTNER_DATASET_ENTRIES = [
-  { key: 'swiggy_biryani_search', label: 'Find biryani on Swiggy',         view: MOCK_SWIGGY_BIRYANI_SEARCH },
-  { key: 'swiggy_paradise_menu',  label: 'Show Paradise menu on Swiggy',   view: MOCK_SWIGGY_PARADISE_MENU },
-  { key: 'swiggy_paradise_order', label: 'Order biryani from Paradise',    view: MOCK_SWIGGY_PARADISE_ORDER },
+  { key: 'swiggy_biryani_search',   label: 'Find biryani on Swiggy',         view: MOCK_SWIGGY_BIRYANI_SEARCH },
+  { key: 'swiggy_paradise_menu',    label: 'Show Paradise menu on Swiggy',   view: MOCK_SWIGGY_PARADISE_MENU },
+  { key: 'swiggy_paradise_order',   label: 'Order biryani from Paradise',    view: MOCK_SWIGGY_PARADISE_ORDER },
+  { key: 'bus_blr_tpty_compare',    label: 'Best buses BLR → Tirupati',      view: MOCK_BUS_BLR_TPTY_COMPARE },
+  { key: 'bus_vrl_tpty_seats',      label: 'Pick a seat on VRL',             view: MOCK_BUS_VRL_TPTY_SEATS },
+  { key: 'bus_vrl_booking_confirm', label: 'Confirm bus booking',            view: MOCK_BUS_VRL_BOOKING_CONFIRM },
 ];
 
 // Flat lookup: key -> { label, view }. Includes the 20 legacy mocks plus the
@@ -4603,6 +4970,12 @@ window.MOCK_SWIGGY_BIRYANI_SEARCH = MOCK_SWIGGY_BIRYANI_SEARCH;
 window.MOCK_SWIGGY_PARADISE_MENU = MOCK_SWIGGY_PARADISE_MENU;
 window.MOCK_SWIGGY_PARADISE_ORDER = MOCK_SWIGGY_PARADISE_ORDER;
 window.INFO_SWIGGY_ORDER_STATUS = INFO_SWIGGY_ORDER_STATUS;
+// Partner mocks — Bus Travel aggregator
+window.MOCK_BUS_BLR_TPTY_COMPARE = MOCK_BUS_BLR_TPTY_COMPARE;
+window.MOCK_BUS_VRL_TPTY_SEATS = MOCK_BUS_VRL_TPTY_SEATS;
+window.MOCK_BUS_VRL_BOOKING_CONFIRM = MOCK_BUS_VRL_BOOKING_CONFIRM;
+window.INFO_BUS_TRIP_STATUS = INFO_BUS_TRIP_STATUS;
+window.INFO_BUS_TICKET = INFO_BUS_TICKET;
 
 /* ============================================================================
    Delegated event plumbing — every interactive primitive carries
