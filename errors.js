@@ -38,12 +38,14 @@
       handler: 'connection-mid',
       en: {
         spoken: "Network just dropped. I'll keep your last question — tap when you're back online.",
-        voiceSubtext: 'Offline. Tap when ready.',
+        voiceSubtext: 'Offline.',
+        voiceCta: 'Try again',
         chatBanner: "You're offline. Your message is saved.",
       },
       hi: {
         spoken: 'Network gaya abhi. Sawal yaad rakha hai — wapas online ho to tap kar.',
-        voiceSubtext: 'Offline. Tap when ready.',
+        voiceSubtext: 'Offline.',
+        voiceCta: 'Dobara try kar',
         chatBanner: 'Tum offline ho. Message saved hai.',
       },
     },

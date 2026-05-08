@@ -124,8 +124,10 @@ Each example shows: bad version → English version → Hinglish version. Where 
 **Bad:** "Connection interrupted. Reconnecting…"
 
 **Voice (Omni speaks):** "Network just dropped. I'll keep your last question — tap when you're back online."
-**Voice subtext:** "Offline. Tap when ready."
+**Voice subtext:** "Offline."
 **Hinglish (Omni speaks):** "Network gaya abhi. Sawal yaad rakha hai — wapas online ho to tap kar."
+
+**Voice CTA (primary button):** "Try again" / "Dobara try kar"
 
 **Chat banner:** "You're offline. Your message is saved." / "Tum offline ho. Message saved hai."
 

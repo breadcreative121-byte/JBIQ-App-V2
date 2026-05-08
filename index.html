@@ -5746,6 +5746,16 @@
         overlay.classList.add('voice-overlay--error');
         __setVoiceErrorSubtext(copy.voiceSubtext);
         __mountChatBanner(copy.chatBanner);
+        const actions = __mountVoiceRetryActions({
+          retryLabel: copy.voiceCta,
+          switchLabel: null,
+        });
+        const retryBtn = actions && actions.querySelector('.voice-retry-actions__btn--primary');
+        if (retryBtn) {
+          retryBtn.addEventListener('click', () => {
+            runPrototypeErrorScenario('connection-mid', langKey);
+          });
+        }
         break;
       }
       case 'mic-permission': {
