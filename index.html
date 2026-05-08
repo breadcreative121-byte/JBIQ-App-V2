@@ -6460,6 +6460,7 @@
     { label: 'Cheap flights to Mumbai tomorrow',  query: 'Cheap flights to Mumbai tomorrow',  kind: 'starter' },
   ];
   let starterPromptsTimer = null;
+  let starterPromptsListenerAttached = false;
 
   function _starterPromptsBlocked() {
     if (Array.isArray(conversationHistory) && conversationHistory.length > 0) return true;
@@ -6482,13 +6483,19 @@
       if (!node) return;
       host.appendChild(node);
       host.classList.add('visible');
-      host.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-query]');
-        if (!btn) return;
-        const q = btn.getAttribute('data-query');
-        cancelStarterPrompts();
-        if (q && typeof showResponse === 'function') showResponse(q);
-      }, { once: false });
+      // Attach the click delegate exactly once per page lifetime — re-renders
+      // recycle the host element, so a fresh listener per fire would stack up
+      // and submit the same prompt multiple times.
+      if (!starterPromptsListenerAttached) {
+        starterPromptsListenerAttached = true;
+        host.addEventListener('click', (e) => {
+          const btn = e.target.closest('[data-query]');
+          if (!btn) return;
+          const q = btn.getAttribute('data-query');
+          cancelStarterPrompts();
+          if (q && typeof showResponse === 'function') showResponse(q);
+        });
+      }
     }, 3000);
   }
 
