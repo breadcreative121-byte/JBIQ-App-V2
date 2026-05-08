@@ -20,11 +20,13 @@
       surface: 'both',
       handler: 'connection-initial',
       en: {
-        voiceSubtext: "Can't reach the network. Tap to try again.",
+        voiceSubtext: "Can't reach the network.",
+        voiceCta: 'Try again',
         chatBanner: 'No internet. Tap to reconnect.',
       },
       hi: {
-        voiceSubtext: 'Network tak nahi pahuncha. Dobara try kar.',
+        voiceSubtext: 'Network tak nahi pahuncha.',
+        voiceCta: 'Dobara try kar',
         chatBanner: 'Internet nahi hai. Tap kar reconnect ke liye.',
       },
     },
@@ -97,12 +99,14 @@
       surface: 'voice',
       handler: 'voice-miss-1',
       en: {
-        spoken: "Didn't quite catch that — say it again?",
+        spoken: "Didn't quite catch that.",
         voiceSubtext: "Didn't catch it.",
+        voiceCta: 'Say again',
       },
       hi: {
-        spoken: 'Sahi nahi suna — dobara bol?',
+        spoken: 'Sahi nahi suna.',
         voiceSubtext: 'Sahi nahi suna.',
+        voiceCta: 'Dobara bol',
       },
     },
 
@@ -112,7 +116,7 @@
       surface: 'voice',
       handler: 'voice-miss-2',
       en: {
-        spoken: "Still didn't catch it. Want to type it instead?",
+        spoken: "Sorry, I still didn't understand, Want to type it instead?",
         voiceSubtext: 'Type instead?',
       },
       hi: {

@@ -917,6 +917,56 @@
       padding: 0 0 2px;
     }
     .voice-avatar-area.visible { display: flex; }
+
+    /* Starter prompts — anchored above the action buttons. Absolutely
+       positioned so the avatar + "Say something..." stay put when the
+       prompts appear. Pills fade in one-by-one with a staggered delay. */
+    .voice-starter-prompts {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 96px;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 0 16px;
+      pointer-events: none;
+    }
+    .voice-starter-prompts.visible {
+      pointer-events: auto;
+    }
+    /* Stack pills vertically, drop the horizontal scroll, centre them. */
+    .voice-starter-prompts .suggested-prompts__row {
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      overflow-x: visible;
+      width: 100%;
+    }
+    .voice-starter-prompts .edge-affordance__btn--suggested {
+      flex: 0 0 auto;
+      opacity: 0;
+    }
+    .voice-starter-prompts.visible .edge-affordance__btn--suggested {
+      animation: starterPromptIn 360ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    .voice-starter-prompts.visible .edge-affordance__btn--suggested:nth-child(1) { animation-delay: 0ms; }
+    .voice-starter-prompts.visible .edge-affordance__btn--suggested:nth-child(2) { animation-delay: 90ms; }
+    .voice-starter-prompts.visible .edge-affordance__btn--suggested:nth-child(3) { animation-delay: 180ms; }
+    .voice-starter-prompts.visible .edge-affordance__btn--suggested:nth-child(4) { animation-delay: 270ms; }
+    @keyframes starterPromptIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .voice-overlay.chat-active .voice-starter-prompts,
+    .voice-overlay.kb-mode .voice-starter-prompts,
+    .voice-overlay.text-mode .voice-starter-prompts,
+    .voice-overlay.agent-speaking .voice-starter-prompts {
+      display: none !important;
+    }
+
     .voice-avatar-label {
       font-size: 16px;
       font-weight: 400;
@@ -1221,6 +1271,7 @@
       max-width: 80%;
       align-self: flex-end;
       animation: bubbleIn 0.3s ease;
+      overflow-wrap: anywhere;
     }
     .user-bubble.is-voice {
       font-style: italic;
@@ -1320,6 +1371,27 @@
       0% { background-position: 200% 0; }
       100% { background-position: -200% 0; }
     }
+
+    /* Reasoning state lives INSIDE .thinking-row — the assistant avatar
+       stays fixed for the whole turn and only the chip + text portion
+       cycles through reasoning steps and the final tool-call line. No
+       row replacement, no cross-fade — just text/chip mutation so the
+       avatar reads as one continuous "thinking" beat. */
+    .thinking-row .searching-logos:empty { display: none; }
+    .thinking-row .searching-logos {
+      display: flex;
+      align-items: center;
+      margin-left: 2px;
+    }
+
+    /* Partner chip variants for the .searching-logo slot. The Sw / JM
+       chips already ship inline; Z (Zomato) and V (VRL) are added here so
+       Zomato + bus scenarios stop borrowing the Swiggy / generic-Places
+       chip. Treatment matches the existing JM and Sw chips. */
+    .searching-logo.swiggy-chip   { background: #FC8019; color: white; font: 600 9px/1 sans-serif; }
+    .searching-logo.jiomart-chip  { background: #2E5DAB; color: white; font: 600 8px/1 sans-serif; }
+    .searching-logo.zomato-chip   { background: #E23744; color: white; font: 600 10px/1 sans-serif; }
+    .searching-logo.vrl-chip      { background: #1F4E8C; color: white; font: 700 8px/1 sans-serif; letter-spacing: 0.3px; }
 
     /* AI response bubble */
     .ai-response {
@@ -2423,6 +2495,7 @@
       line-height: 1.3; padding: 4px 8px;
       resize: none; overflow: hidden;
       min-height: 24px; max-height: 120px;
+      overflow-wrap: anywhere;
     }
     .text-pill textarea::placeholder { color: var(--text-low); opacity: 0.65; }
     .text-send-btn {
@@ -2567,10 +2640,17 @@
     }
     .input-expanded .input-field-wrap {
       border-radius: 20px; padding: 5px 5px 5px 8px;
+      height: auto; min-height: 42px; align-items: flex-end;
     }
     .input-field {
       flex: 1; min-width: 0; border: none; background: none; outline: none; font-family: var(--font-family);
       font-size: 16px; color: var(--text-high); line-height: 1.3; padding: 4px 8px;
+    }
+    /* Apply to <textarea class="input-field"> only (no-op on <input>) */
+    textarea.input-field {
+      resize: none; overflow: hidden;
+      min-height: 24px; max-height: 120px;
+      overflow-wrap: anywhere;
     }
     .input-field::placeholder { color: var(--text-low); opacity: 0.65; }
     .input-send-btn {
@@ -3481,6 +3561,7 @@
       color: var(--text-high);
       font-size: 14px;
       line-height: 1.3;
+      overflow-wrap: anywhere;
     }
 
     /* Chat draft offline — shows the input bar with a disabled Send
@@ -4135,6 +4216,10 @@
       <span class="voice-avatar-label" id="voiceAvatarLabel">Say something...</span>
     </div>
 
+    <!-- First-time-use starter prompts. Populated and shown via
+         scheduleStarterPrompts() 3 s after the welcome state settles. -->
+    <div class="voice-starter-prompts" id="voiceStarterPrompts"></div>
+
     <!-- Speaking avatar (visible only while assistant TTS is playing) -->
     <div class="voice-speaking-avatar" id="voiceSpeakingAvatar" aria-hidden="true">
       <video id="voiceSpeakingAvatarVideo" src="assets/speaking-avatar.mp4" muted playsinline loop preload="auto"></video>
@@ -4147,7 +4232,7 @@
 
     <!-- Bottom Actions -->
     <div class="voice-actions">
-      <button class="voice-action-btn" aria-label="Add">
+      <button class="voice-action-btn" aria-label="Add" onclick="cancelStarterPrompts()">
         <svg viewBox="0 0 24 24" fill="none" width="24" height="24"><path d="M12 5v14M5 12h14" stroke="#6D17CE" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
       <button class="voice-action-btn is-mic" id="voiceMicActionBtn" aria-label="Microphone" onclick="toggleMute()">
@@ -4192,7 +4277,7 @@
         <!-- Expanded: full-width input with inline send -->
         <div class="input-expanded" id="inputExpanded">
           <div class="input-field-wrap">
-            <input type="text" class="input-field" id="chatInputExpanded" placeholder="Ask anything" autocomplete="off">
+            <textarea class="input-field" id="chatInputExpanded" placeholder="Ask anything" rows="1" autocomplete="off"></textarea>
             <button class="input-send-btn visible" id="sendBtn" aria-label="Send" onclick="sendMessage()">
               <svg viewBox="0 0 20 20" fill="none"><path d="M10 16V4m0 0l5 5m-5-5L5 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
@@ -5010,6 +5095,8 @@
       '.assistant-bubble--p2',
       '.user-bubble--p2',
       '.thinking-row.is-scenario-seed',
+      '.reasoning-row.is-scenario-seed',
+      '.searching-row.is-scenario-seed',
       '.chat-draft-offline',
       '.rich-content-retry-tile',
       '.txn-pending-card',
@@ -5066,6 +5153,7 @@
       try { avatarCenter.play().catch(() => {}); } catch (e) {}
     }
     if (voiceAvatarArea) voiceAvatarArea.classList.remove('visible');
+    if (typeof cancelStarterPrompts === 'function') cancelStarterPrompts();
     if (statusText) {
       statusText.textContent = 'Say something...';
       statusText.classList.add('visible');
@@ -5641,6 +5729,16 @@
         overlay.classList.add('voice-overlay--error');
         __setVoiceErrorSubtext(copy.voiceSubtext);
         __mountChatBanner(copy.chatBanner);
+        const actions = __mountVoiceRetryActions({
+          retryLabel: copy.voiceCta,
+          switchLabel: null,
+        });
+        const retryBtn = actions && actions.querySelector('.voice-retry-actions__btn--primary');
+        if (retryBtn) {
+          retryBtn.addEventListener('click', () => {
+            runPrototypeErrorScenario('connection-initial', langKey);
+          });
+        }
         break;
       }
       case 'connection-mid': {
@@ -5686,6 +5784,18 @@
           agentEl.className = 'ai-response';
           agentEl.textContent = copy.spoken;
           chatMessages.appendChild(agentEl);
+        }
+        if (id === 'voice-miss-1' && copy.voiceCta) {
+          const actions = __mountVoiceRetryActions({
+            retryLabel: copy.voiceCta,
+            switchLabel: null,
+          });
+          const retryBtn = actions && actions.querySelector('.voice-retry-actions__btn--primary');
+          if (retryBtn) {
+            retryBtn.addEventListener('click', () => {
+              runPrototypeErrorScenario('voice-miss-1', langKey);
+            });
+          }
         }
         if (id === 'voice-miss-2') __pulseKeyboardIcon();
         break;
@@ -6329,6 +6439,61 @@
     maybeShowSpeakTooltip();
   }
 
+  // Starter prompts. After the welcome state settles on "Say something...",
+  // wait 3 s and fade in 4 starter pills covering the discovery patterns
+  // (place / catalog / compare). Shown on every fresh new-chat — suppressed
+  // only while a conversation is already in progress.
+  const STARTER_PROMPTS = [
+    { label: 'Best biryani in Hyderabad',         query: 'Best biryani in Hyderabad',         kind: 'starter' },
+    { label: 'Shop for a kurta for Diwali',       query: 'Shop for a kurta for Diwali',       kind: 'starter' },
+    { label: 'Compare home loans under 8%',       query: 'Compare home loans under 8%',       kind: 'starter' },
+    { label: 'Cheap flights to Mumbai tomorrow',  query: 'Cheap flights to Mumbai tomorrow',  kind: 'starter' },
+  ];
+  let starterPromptsTimer = null;
+
+  function _starterPromptsBlocked() {
+    if (Array.isArray(conversationHistory) && conversationHistory.length > 0) return true;
+    if (overlay && (overlay.classList.contains('chat-active') ||
+                    overlay.classList.contains('kb-mode') ||
+                    overlay.classList.contains('text-mode'))) return true;
+    return false;
+  }
+
+  function scheduleStarterPrompts() {
+    if (_starterPromptsBlocked()) return;
+    if (starterPromptsTimer) clearTimeout(starterPromptsTimer);
+    starterPromptsTimer = setTimeout(() => {
+      starterPromptsTimer = null;
+      if (_starterPromptsBlocked()) return;
+      const host = document.getElementById('voiceStarterPrompts');
+      if (!host || !window.renderSuggestedPrompts) return;
+      host.innerHTML = '';
+      const node = window.renderSuggestedPrompts(STARTER_PROMPTS, '');
+      if (!node) return;
+      host.appendChild(node);
+      host.classList.add('visible');
+      host.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-query]');
+        if (!btn) return;
+        const q = btn.getAttribute('data-query');
+        cancelStarterPrompts();
+        if (q && typeof showResponse === 'function') showResponse(q);
+      }, { once: false });
+    }, 3000);
+  }
+
+  function cancelStarterPrompts() {
+    if (starterPromptsTimer) {
+      clearTimeout(starterPromptsTimer);
+      starterPromptsTimer = null;
+    }
+    const host = document.getElementById('voiceStarterPrompts');
+    if (host) {
+      host.classList.remove('visible');
+      host.innerHTML = '';
+    }
+  }
+
   // Resumption checkpoints — capture state at every interrupt boundary.
   // 250ms debounce inside saveSession() coalesces rapid events.
   // Guard: if the in-memory chat is empty (e.g. fresh tab reload), don't
@@ -6520,6 +6685,14 @@
   const micOnSound = new Audio('VA_mic_on.mp3');
   const micOffSound = new Audio('VA_mic_off.mp3');
 
+  // Bumped on every closeVoiceMode + openVoiceMode. In-flight TTS captures
+  // this on entry and bails if it changes — kills the race where a fetched
+  // reply starts speaking after the user has already exited the chat.
+  let voiceSessionId = 0;
+  function isVoiceSessionActive(capturedId) {
+    return capturedId === voiceSessionId && overlay.classList.contains('active');
+  }
+
   function clearKbTimeouts() { kbTimeouts.forEach(t => clearTimeout(t)); kbTimeouts = []; }
 
   // === Voice Mode ===
@@ -6529,6 +6702,7 @@
   async function openVoiceMode(opts) {
     opts = opts || {};
     const silent = !!opts.silent;
+    voiceSessionId++;
     await acquireMic(); // Get mic permission once — stays cached
     resetKeyboardMode();
     if (!silent) {
@@ -6553,6 +6727,7 @@
     avatarCenter.classList.remove('visible');
     avatarCenter.pause();
     voiceAvatarArea.classList.remove('visible');
+    cancelStarterPrompts();
     avatarIdle.classList.remove('visible');
     avatarIdle.pause();
 
@@ -6586,6 +6761,7 @@
       statusText.textContent = 'Say something...';
       statusText.classList.add('visible');
       if (!isListening) startListening();
+      scheduleStarterPrompts();
     };
 
     // Fallback 1: if video doesn't fire onended, show the avatar (but not the
@@ -6607,6 +6783,7 @@
         statusText.classList.add('visible');
       }
       if (!isListening) startListening();
+      scheduleStarterPrompts();
     }, 5000);
   }
 
@@ -6631,6 +6808,7 @@
     statusText.classList.add('visible');
     overlay.classList.add('glow');
     startListening();
+    scheduleStarterPrompts();
   }
 
   // Toggle the speaking-avatar video in lockstep with the agent-speaking class
@@ -6648,6 +6826,7 @@
   }
 
   function closeVoiceMode() {
+    voiceSessionId++;
     stopListening();
     // Stop all audio
     if (currentTTSAudio) { currentTTSAudio.pause(); currentTTSAudio = null; }
@@ -6659,12 +6838,15 @@
     welcomeSound.pause(); welcomeSound.currentTime = 0;
     understoodSound.pause(); understoodSound.currentTime = 0;
     messageSentSound.pause(); messageSentSound.currentTime = 0;
+    micOffSound.pause(); micOffSound.currentTime = 0;
+    micOnSound.pause(); micOnSound.currentTime = 0;
     // Stop videos
     avatarCenter.classList.remove('visible');
     avatarCenter.pause();
     spinner.classList.remove('visible');
     spinner.pause();
     voiceAvatarArea.classList.remove('visible');
+    cancelStarterPrompts();
     avatarIdle.classList.remove('visible');
     avatarIdle.pause();
     setSpeakingAvatarPlaying(false);
@@ -6683,6 +6865,8 @@
     // Meaningful any time voice overlay is open (voice-mode or kb-mode).
     const active = overlay.classList.contains('active');
     if (!isMuted && !active) return;
+
+    cancelStarterPrompts();
 
     if (!isMuted) {
       isMuted = true;
@@ -6734,6 +6918,7 @@
     avatarCenter.classList.add('visible');
     avatarCenter.play().catch(() => {});
     voiceAvatarArea.classList.remove('visible');
+    cancelStarterPrompts();
     avatarIdle.classList.remove('visible');
     avatarIdle.pause();
     botDots.classList.remove('visible', 'listening');
@@ -6805,6 +6990,10 @@
       try { currentChatFetchAbort.abort(); } catch (_) {}
       currentChatFetchAbort = null;
     }
+    // Silence any TTS that's still playing — e.g. user toggled into text mode
+    // mid-voice-response and the ElevenLabs / browser-speech audio is carrying over.
+    if (currentTTSAudio) { try { currentTTSAudio.pause(); } catch (_) {} currentTTSAudio = null; }
+    try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (_) {}
     // Cancel the typewriter — leaves partial prose visible (ChatGPT/Claude
     // convention) so the user keeps whatever the assistant managed to say.
     if (currentTypewriterCancel) {
@@ -6896,14 +7085,28 @@
     }
   }
 
+  // Auto-resize the expanded textarea to fit wrapped content
+  function autosizeChatInputExpanded() {
+    chatInputExpanded.style.height = 'auto';
+    chatInputExpanded.style.height = chatInputExpanded.scrollHeight + 'px';
+  }
+
   // Keep both inputs in sync
   chatInput.addEventListener('input', () => {
     chatInputExpanded.value = chatInput.value;
     syncInputState();
+    autosizeChatInputExpanded();
   });
   chatInputExpanded.addEventListener('input', () => {
     chatInput.value = chatInputExpanded.value;
     syncInputState();
+    autosizeChatInputExpanded();
+  });
+  chatInputExpanded.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   });
 
 
@@ -6934,11 +7137,14 @@
   }
 
   // === Helper: create thinking indicator ===
+  // Single persistent loader: [avatar][chip slot][text]. The avatar is
+  // the dotted thinking video and stays fixed for the whole turn; the
+  // reasoning orchestrator mutates the chip slot + text on each step.
   function createThinkingEl(text) {
     const el = document.createElement('div');
     el.className = 'thinking-row visible';
     const label = (typeof text === 'string' && text.trim()) ? text : 'Thinking...';
-    el.innerHTML = '<span class="thinking-avatar" aria-hidden="true"><video src="assets/thinking-avatar.mp4" autoplay loop muted playsinline></video></span><span class="thinking-text"></span>';
+    el.innerHTML = '<span class="thinking-avatar" aria-hidden="true"><video src="assets/thinking-avatar.mp4" autoplay loop muted playsinline></video></span><div class="searching-logos"></div><span class="thinking-text"></span>';
     el.querySelector('.thinking-text').textContent = label;
     return el;
   }
@@ -6980,30 +7186,111 @@
   // can interrupt an in-flight typewriter without unwinding the whole call site.
   let currentTypewriterCancel = null;
 
-  function typeWriter(el, text, _scrollContainer) {
+  function typeWriter(el, text, _scrollContainer, opts = {}) {
     return new Promise(resolve => {
-      let i = 0;
-      let timer = null;
       let cancelled = false;
-      const speed = 18; // ms per character
-      function type() {
-        if (cancelled) { resolve(); return; }
-        if (i < text.length) {
-          el.textContent += text.charAt(i);
-          i++;
-          timer = setTimeout(type, speed);
-        } else {
-          currentTypewriterCancel = null;
-          resolve();
+      let timer = null;
+      const ref = opts && opts.audioRef;
+      const FIXED_WORD_MS = 110;          // ms/token — legacy fallback when no TTS
+      const ESTIMATE_MS_PER_CHAR = 73;    // ~150 wpm × 5 chars/word — browser TTS estimate
+      const START_WAIT_CAP_MS = 3000;     // give up waiting for onstart after this
+      // Lead time between "audio started" and "first word appears". Compensates
+      // for browser → OS audio output latency (~50–100ms) and the tiny silence
+      // padding most TTS engines emit at the start of a clip. Without this the
+      // first word lands a beat before the user hears the voice.
+      const ANCHOR_LEAD_MS = 200;
+
+      // Tokenize into words + their trailing whitespace (and standalone whitespace
+      // runs) so reveal advances word-by-word while preserving exact spacing.
+      // Empty text → empty tokens → resolve immediately.
+      const tokens = String(text || '').match(/\S+\s*|\s+/g) || [];
+      const totalTokens = tokens.length;
+      let revealedTokens = 0;
+
+      const renderUpTo = (n) => {
+        revealedTokens = n;
+        el.textContent = tokens.slice(0, n).join('');
+      };
+
+      // Fixed-rate fallback (resumes from current revealedTokens so a brief
+      // wait before fallback isn't lost).
+      function revealAtFixed() {
+        function tick() {
+          if (cancelled) { resolve(); return; }
+          if (revealedTokens < totalTokens) {
+            renderUpTo(revealedTokens + 1);
+            timer = setTimeout(tick, FIXED_WORD_MS);
+          } else {
+            currentTypewriterCancel = null;
+            resolve();
+          }
         }
+        tick();
       }
+
       currentTypewriterCancel = () => {
         cancelled = true;
         if (timer) { clearTimeout(timer); timer = null; }
         currentTypewriterCancel = null;
         resolve();
       };
-      type();
+
+      if (totalTokens === 0) {
+        currentTypewriterCancel = null;
+        resolve();
+        return;
+      }
+
+      // No audioRef → text mode or non-TTS path → fixed-rate by word.
+      if (!ref) { revealAtFixed(); return; }
+
+      // Anchor-on-start + linear-pace path. Works uniformly for ElevenLabs
+      // (real audio.duration) and browser TTS (estimated duration). Wait for
+      // the speech engine to actually start before revealing the first word,
+      // so the first word lands with the first spoken syllable. If the engine
+      // never starts (failure) or stalls past START_WAIT_CAP_MS, fall back
+      // to the fixed-rate path so the user never sees a stuck blank prose.
+      const waitStart = performance.now();
+      function waitForStart() {
+        if (cancelled) return;
+        if (ref.started) {
+          // Subtract the lead time from the available duration so we don't
+          // overshoot the audio's natural end after the late-start delay.
+          const rawDur = (ref.durationMs && ref.durationMs > 0)
+            ? ref.durationMs
+            : Math.max(800, text.length * ESTIMATE_MS_PER_CHAR);
+          const dur = Math.max(400, rawDur - ANCHOR_LEAD_MS);
+          const interval = Math.max(40, dur / totalTokens);
+          function reveal() {
+            if (cancelled) { resolve(); return; }
+            // Audio finished before text caught up — race the rest at fixed
+            // word speed so prose doesn't visibly trail the silence.
+            if (ref.ended && revealedTokens < totalTokens) {
+              revealAtFixed();
+              return;
+            }
+            if (revealedTokens < totalTokens) {
+              renderUpTo(revealedTokens + 1);
+              timer = setTimeout(reveal, interval);
+            } else {
+              currentTypewriterCancel = null;
+              resolve();
+            }
+          }
+          // Hold the first word back by ANCHOR_LEAD_MS so it lands AFTER the
+          // user actually hears the voice, not when audio.onplaying fires.
+          timer = setTimeout(reveal, ANCHOR_LEAD_MS);
+          return;
+        }
+        if (ref.failed || performance.now() - waitStart > START_WAIT_CAP_MS) {
+          revealAtFixed();
+          return;
+        }
+        // Poll every ~16ms via setTimeout instead of RAF so the wait loop
+        // still fires when the tab is backgrounded (RAF stalls in hidden tabs).
+        timer = setTimeout(waitForStart, 16);
+      }
+      waitForStart();
     });
   }
 
@@ -7191,6 +7478,7 @@
     ]},
     { group: 'States — Processing', surface: 'voice', items: [
         { key: 'state:thinking',         label: 'Thinking' },
+        { key: 'state:reasoning',        label: 'Reasoning' },
         { key: 'state:fetching-jiomart', label: 'Fetching — JioMart' },
     ]},
     { group: 'States — Transactional', surface: 'voice', items: [
@@ -8059,6 +8347,560 @@
     `;
     return el;
   }
+
+  function createConnectingZomatoEl() {
+    const el = document.createElement('div');
+    el.className = 'searching-row';
+    el.innerHTML = `
+      <div class="searching-logos">
+        <div class="searching-logo zomato-chip">Z</div>
+      </div>
+      <span class="searching-text">Connecting to Zomato...</span>
+    `;
+    return el;
+  }
+
+  function createConnectingVRLEl() {
+    const el = document.createElement('div');
+    el.className = 'searching-row';
+    el.innerHTML = `
+      <div class="searching-logos">
+        <div class="searching-logo vrl-chip">VRL</div>
+      </div>
+      <span class="searching-text">Connecting to VRL...</span>
+    `;
+    return el;
+  }
+
+  function createConnectingTransitEl() {
+    const el = document.createElement('div');
+    el.className = 'searching-row';
+    el.innerHTML = `
+      <div class="searching-logos">
+        <div class="searching-logo vrl-chip">BUS</div>
+      </div>
+      <span class="searching-text">Comparing operators...</span>
+    `;
+    return el;
+  }
+
+  // === Reasoning step mutator ===
+  // The loader is created once (createThinkingEl) and lives for the
+  // whole turn. The avatar never moves — the reasoning orchestrator
+  // mutates ONLY the chip slot + text on each phase. No row swaps,
+  // no fades. Step shape:
+  //   { en, hi, partners?: ['swiggy'|'zomato'|'jiomart'|'vrl'] }
+  function applyReasoningStep(loaderEl, step, lang) {
+    if (!loaderEl || !step) return;
+    const textEl = loaderEl.querySelector('.thinking-text');
+    const logos  = loaderEl.querySelector('.searching-logos');
+    if (textEl) textEl.textContent = (lang === 'hi' && step.hi) ? step.hi : (step.en || '');
+    if (!logos) return;
+    logos.innerHTML = '';
+    const partners = Array.isArray(step.partners) ? step.partners : [];
+    partners.forEach(p => {
+      const chip = document.createElement('div');
+      chip.className = 'searching-logo';
+      if (p === 'swiggy')        { chip.classList.add('swiggy-chip');  chip.textContent = 'Sw'; }
+      else if (p === 'zomato')   { chip.classList.add('zomato-chip');  chip.textContent = 'Z'; }
+      else if (p === 'jiomart')  { chip.classList.add('jiomart-chip'); chip.textContent = 'JM'; }
+      else if (p === 'vrl')      { chip.classList.add('vrl-chip');     chip.textContent = 'VRL'; }
+      logos.appendChild(chip);
+    });
+  }
+
+  // === Reasoning copy by scenario key ===
+  // Central registry — keeps the per-scenario "what JBIQ is doing"
+  // sequence next to the helpers that render it instead of scattering
+  // the same shape across every MOCK_* record in discovery.js. Each
+  // value is { steps: [{ en, hi, partners? }, ...], toolCall?: 'fn' }.
+  // toolCall names a helper above (createConnectingSwiggyEl etc.) and
+  // is rendered after the last reasoning step. Omit toolCall for
+  // scenarios that should hand off straight to the response (e.g.
+  // tracking surfaces). All copy ≤6 words per JBIQ principle 8.
+  const REASONING_BY_KEY = {
+    // ----- Generic discovery (no partner) -----
+    restaurant: {
+      steps: [
+        { en: 'Looking for places near you', hi: 'Aas paas ke jagah dhoondh raha hoon' },
+        { en: 'Filtering for top-rated',     hi: 'Top-rated chhaant raha hoon' },
+      ],
+      toolCall: 'createSearchingEl',
+    },
+    biryani_hyderabad: {
+      steps: [
+        { en: 'Scanning Hyderabad biryani spots',     hi: 'Hyderabad ke biryani spots scan kar raha hoon' },
+        { en: 'Top picks from Old City and Banjara',  hi: 'Old City aur Banjara se top picks' },
+      ],
+      toolCall: 'createSearchingEl',
+    },
+
+    // ----- Shopping (JioMart) -----
+    shopping: {
+      steps: [
+        { en: 'Picking the right size and brand',    hi: 'Sahi size aur brand chun raha hoon' },
+        { en: 'Checking JioMart stock and ETA',      hi: 'JioMart ka stock aur ETA dekh raha hoon', partners: ['jiomart'] },
+      ],
+      toolCall: 'createSearchingJioMartEl',
+    },
+
+    // ----- Multi-partner conflict (biryani Swiggy vs Zomato) -----
+    biryani_partner_pick: {
+      steps: [
+        { en: 'Comparing Swiggy and Zomato',          hi: 'Swiggy aur Zomato compare kar raha hoon', partners: ['swiggy', 'zomato'] },
+        { en: 'Swiggy 30 min, Zomato 10% cheaper',    hi: 'Swiggy 30 min, Zomato 10% sasta' },
+        { en: 'Showing both so you can pick',         hi: 'Dono dikha raha hoon, aap chuno' },
+      ],
+      // No tool-call chip — the comparison card lands directly.
+    },
+
+    // ----- Swiggy partner -----
+    swiggy_biryani_search: {
+      steps: [
+        { en: "Pulling Swiggy's biryani picks",  hi: 'Swiggy ke biryani picks la raha hoon', partners: ['swiggy'] },
+        { en: 'Sorting by rating and ETA',       hi: 'Rating aur ETA pe sort kar raha hoon' },
+      ],
+      toolCall: 'createConnectingSwiggyEl',
+    },
+    swiggy_paradise_menu: {
+      steps: [
+        { en: "Reading Paradise's live menu",    hi: 'Paradise ka live menu padh raha hoon', partners: ['swiggy'] },
+        { en: 'Highlighting bestsellers',        hi: 'Bestsellers highlight kar raha hoon' },
+      ],
+      toolCall: 'createConnectingSwiggyEl',
+    },
+    swiggy_paradise_order: {
+      steps: [
+        { en: 'Building your Paradise order',    hi: 'Aapka Paradise order bana raha hoon', partners: ['swiggy'] },
+        { en: 'Confirming price and delivery',   hi: 'Price aur delivery confirm kar raha hoon' },
+      ],
+      toolCall: 'createConnectingSwiggyEl',
+    },
+    swiggy_track: {
+      steps: [
+        { en: 'Checking your order status',  hi: 'Order ka status dekh raha hoon', partners: ['swiggy'] },
+        { en: 'Locating your rider',         hi: 'Aapke rider ko locate kar raha hoon' },
+      ],
+      // Hands off to the informational card — no tool-call chip.
+    },
+
+    // ----- Zomato partner -----
+    zomato_biryani_search: {
+      steps: [
+        { en: "Pulling Zomato's biryani picks",  hi: 'Zomato ke biryani picks la raha hoon', partners: ['zomato'] },
+        { en: 'Sorting by rating and ETA',       hi: 'Rating aur ETA pe sort kar raha hoon' },
+      ],
+      toolCall: 'createConnectingZomatoEl',
+    },
+
+    // ----- Bus travel (VRL / generic) -----
+    bus_compare: {
+      steps: [
+        { en: 'Comparing operators for tomorrow', hi: 'Kal ke operators compare kar raha hoon', partners: ['vrl'] },
+        { en: 'Ranking by sleeper, fare, time',   hi: 'Sleeper, fare, time pe rank kar raha hoon' },
+      ],
+      toolCall: 'createConnectingTransitEl',
+    },
+    bus_seats: {
+      steps: [
+        { en: "Loading VRL's seat map",  hi: 'VRL ka seat map load kar raha hoon', partners: ['vrl'] },
+        { en: "Marking what's still free", hi: 'Khaali seats mark kar raha hoon' },
+      ],
+      toolCall: 'createConnectingVRLEl',
+    },
+    bus_confirm: {
+      steps: [
+        { en: 'Locking in your seat',     hi: 'Aapki seat lock kar raha hoon', partners: ['vrl'] },
+        { en: 'Checking total fare',      hi: 'Total fare dekh raha hoon' },
+      ],
+      toolCall: 'createConnectingVRLEl',
+    },
+    bus_track: {
+      steps: [
+        { en: "Checking your bus's GPS",  hi: 'Aapki bus ki GPS dekh raha hoon', partners: ['vrl'] },
+        { en: 'Working out ETA',          hi: 'ETA nikaal raha hoon' },
+      ],
+    },
+    bus_ticket: {
+      steps: [
+        { en: 'Pulling your PNR',          hi: 'Aapka PNR la raha hoon', partners: ['vrl'] },
+        { en: 'Loading boarding details',  hi: 'Boarding details load kar raha hoon' },
+      ],
+    },
+
+    // ----- Place (generic discovery, non-restaurant) -----
+    doctors: {
+      steps: [
+        { en: 'Looking for doctors near you',   hi: 'Aas paas ke doctors dhoondh raha hoon' },
+        { en: 'Filtering for fever, open now',  hi: 'Bukhar wale, abhi khule, chhaant raha hoon' },
+      ],
+    },
+    plumbers: {
+      steps: [
+        { en: 'Looking for plumbers nearby',    hi: 'Aas paas ke plumber dhoondh raha hoon' },
+        { en: 'Checking ratings and availability', hi: 'Rating aur availability dekh raha hoon' },
+      ],
+    },
+    schools_bandra: {
+      steps: [
+        { en: 'Scanning schools in Bandra',     hi: 'Bandra ke schools scan kar raha hoon' },
+        { en: 'Filtering by board and grade',   hi: 'Board aur grade pe chhaant raha hoon' },
+      ],
+    },
+    apartments: {
+      steps: [
+        { en: 'Searching 2BHKs in Andheri',     hi: 'Andheri ke 2BHK dhoondh raha hoon' },
+        { en: 'Filtering by budget and floor',  hi: 'Budget aur floor pe chhaant raha hoon' },
+      ],
+    },
+
+    // ----- Catalog (browse + sort) -----
+    kurta_diwali: {
+      steps: [
+        { en: 'Browsing festive kurtas',        hi: 'Festive kurte dekh raha hoon' },
+        { en: 'Sorting by style and price',     hi: 'Style aur price pe sort kar raha hoon' },
+      ],
+    },
+    gifts_wedding: {
+      steps: [
+        { en: 'Looking for wedding gifts',      hi: 'Shaadi ke gifts dhoondh raha hoon' },
+        { en: 'Picking trending choices',       hi: 'Trending picks chun raha hoon' },
+      ],
+    },
+    movies_weekend: {
+      steps: [
+        { en: "Pulling this weekend's showtimes", hi: 'Weekend showtimes la raha hoon' },
+        { en: 'Sorting by rating and theatre',    hi: 'Rating aur theatre pe sort kar raha hoon' },
+      ],
+    },
+    devotional_morning: {
+      steps: [
+        { en: 'Curating morning devotionals',   hi: 'Morning bhajan curate kar raha hoon' },
+        { en: 'Picking calm classics',          hi: 'Shaant classics chun raha hoon' },
+      ],
+    },
+    courses_datascience: {
+      steps: [
+        { en: 'Searching data-science courses', hi: 'Data science courses dhoondh raha hoon' },
+        { en: 'Sorting by rating and length',   hi: 'Rating aur length pe sort kar raha hoon' },
+      ],
+    },
+    ipl_today: {
+      steps: [
+        { en: "Pulling today's IPL fixtures",   hi: 'Aaj ke IPL match la raha hoon' },
+        { en: 'Adding scores and times',        hi: 'Scores aur timings jod raha hoon' },
+      ],
+    },
+    schemes_farmers: {
+      steps: [
+        { en: 'Looking up farmer schemes',      hi: 'Kisan schemes dhoondh raha hoon' },
+        { en: 'Checking eligibility windows',   hi: 'Eligibility windows dekh raha hoon' },
+      ],
+    },
+
+    // ----- Compare -----
+    home_loans: {
+      steps: [
+        { en: 'Pulling current home-loan rates', hi: 'Home loan rates la raha hoon' },
+        { en: 'Filtering under 8 percent',       hi: '8 percent ke neeche chhaant raha hoon' },
+      ],
+    },
+    flights_mumbai: {
+      steps: [
+        { en: 'Searching flights to Mumbai',    hi: 'Mumbai ke flights dhoondh raha hoon' },
+        { en: 'Sorting by price and time',      hi: 'Price aur time pe sort kar raha hoon' },
+      ],
+    },
+    recharge_299: {
+      steps: [
+        { en: 'Pulling ₹299 prepaid plans',     hi: '₹299 ke prepaid plans la raha hoon' },
+        { en: 'Comparing data and validity',    hi: 'Data aur validity compare kar raha hoon' },
+      ],
+    },
+    phones_20k: {
+      steps: [
+        { en: 'Searching phones under ₹20,000', hi: '₹20,000 ke neeche phones dhoondh raha hoon' },
+        { en: 'Sorting by RAM and battery',     hi: 'RAM aur battery pe sort kar raha hoon' },
+      ],
+    },
+    trains_tatkal: {
+      steps: [
+        { en: 'Searching tatkal availability',  hi: 'Tatkal availability dhoondh raha hoon' },
+        { en: 'Sorting by route and class',     hi: 'Route aur class pe sort kar raha hoon' },
+      ],
+    },
+    health_insurance: {
+      steps: [
+        { en: 'Pulling family health plans',    hi: 'Family health plans la raha hoon' },
+        { en: 'Comparing premium and cover',    hi: 'Premium aur cover compare kar raha hoon' },
+      ],
+    },
+    emi_fridge: {
+      steps: [
+        { en: 'Pulling fridge EMI options',     hi: 'Fridge ke EMI options la raha hoon' },
+        { en: 'Comparing tenures and interest', hi: 'Tenure aur interest compare kar raha hoon' },
+      ],
+    },
+
+    // ----- Pillar variants -----
+    plumbers_indore: {
+      steps: [
+        { en: 'Looking for Indore plumbers',    hi: 'Indore ke plumber dhoondh raha hoon' },
+        { en: "Checking who's free now",        hi: 'Abhi kaun free hai dekh raha hoon' },
+      ],
+    },
+    recharge_299_single: {
+      steps: [
+        { en: 'Pulling your ₹299 plan',         hi: 'Aapka ₹299 plan la raha hoon' },
+        { en: 'Confirming validity and data',   hi: 'Validity aur data confirm kar raha hoon' },
+      ],
+    },
+    pediatricians_open_now: {
+      steps: [
+        { en: 'Finding pediatricians open now', hi: 'Abhi khule pediatricians dhoondh raha hoon' },
+        { en: 'Filtering for fever, near you',  hi: 'Bukhar wale, paas wale, chhaant raha hoon' },
+      ],
+    },
+    gas_refill: {
+      steps: [
+        { en: 'Booking your cylinder refill',   hi: 'Cylinder refill book kar raha hoon' },
+        { en: "Picking this week's slot",       hi: 'Is hafte ka slot chun raha hoon' },
+      ],
+    },
+    scholarships_12th_sc: {
+      steps: [
+        { en: 'Searching Class 12 scholarships', hi: 'Class 12 scholarships dhoondh raha hoon' },
+        { en: 'Filtering by category and deadline', hi: 'Category aur deadline pe chhaant raha hoon' },
+      ],
+    },
+    tutors_maths_class10: {
+      steps: [
+        { en: 'Searching Class 10 maths tutors', hi: 'Class 10 maths tutors dhoondh raha hoon' },
+        { en: 'Filtering by rating and area',    hi: 'Rating aur area pe chhaant raha hoon' },
+      ],
+    },
+    tailors_diwali: {
+      steps: [
+        { en: 'Looking for Diwali tailors',     hi: 'Diwali ke tailors dhoondh raha hoon' },
+        { en: 'Checking who can finish in time', hi: 'Time pe kaun finish karega dekh raha hoon' },
+      ],
+    },
+    kirana_reorder: {
+      steps: [
+        { en: 'Pulling your last kirana order', hi: 'Aapka pichhla kirana order la raha hoon' },
+        { en: 'Adjusting Maggi and haldi',      hi: 'Maggi aur haldi adjust kar raha hoon' },
+      ],
+    },
+    milk_subscription_edit: {
+      steps: [
+        { en: 'Opening your milk subscription', hi: 'Aapki doodh subscription khol raha hoon' },
+        { en: 'Adjusting daily quantity',       hi: 'Daily quantity adjust kar raha hoon' },
+      ],
+    },
+
+    // ----- Informational (status / lookups) -----
+    pm_kisan_status: {
+      steps: [
+        { en: 'Checking your PM Kisan status',  hi: 'Aapka PM Kisan status dekh raha hoon' },
+        { en: 'Looking up the latest installment', hi: 'Pichhli kisht dhoondh raha hoon' },
+      ],
+    },
+    ration_status: {
+      steps: [
+        { en: 'Checking your ration card',      hi: 'Aapka ration card dekh raha hoon' },
+        { en: 'Looking at recent transactions', hi: 'Recent transactions dekh raha hoon' },
+      ],
+    },
+
+    // ----- §14 Booking intents -----
+    book_sona_tailors: {
+      steps: [
+        { en: 'Pulling Sona Tailors slots',     hi: 'Sona Tailors ke slots la raha hoon' },
+        { en: 'Checking your nearest branch',   hi: 'Sabse paas wala branch dekh raha hoon' },
+      ],
+    },
+    book_urban_company_indore: {
+      steps: [
+        { en: 'Looking for Indore plumbers',    hi: 'Indore ke plumber dhoondh raha hoon' },
+        { en: 'Locking next available slot',    hi: 'Agla available slot lock kar raha hoon' },
+      ],
+    },
+    book_urban_company_andheri: {
+      steps: [
+        { en: 'Looking for Andheri plumbers',   hi: 'Andheri ke plumber dhoondh raha hoon' },
+        { en: 'Locking next available slot',    hi: 'Agla available slot lock kar raha hoon' },
+      ],
+    },
+    book_dr_anand_rao: {
+      steps: [
+        { en: "Pulling Dr Anand Rao's calendar", hi: 'Dr Anand Rao ka calendar la raha hoon' },
+        { en: 'Checking next available slot',    hi: 'Agla available slot dekh raha hoon' },
+      ],
+    },
+    book_aakash_verma: {
+      steps: [
+        { en: "Pulling Aakash Verma's slots",   hi: 'Aakash Verma ke slots la raha hoon' },
+        { en: 'Checking your preferred time',   hi: 'Aapka preferred time dekh raha hoon' },
+      ],
+    },
+
+    // ----- Menu add (transactional cart actions on a partner menu) -----
+    menu_add_matched: {
+      steps: [
+        { en: 'Adding to your cart',            hi: 'Cart mein add kar raha hoon' },
+      ],
+    },
+    menu_add_unresolved: {
+      steps: [
+        { en: 'Searching this menu',            hi: 'Yeh menu dhoondh raha hoon' },
+        { en: 'Looking for the closest match',  hi: 'Sabse close match dhoondh raha hoon' },
+      ],
+    },
+
+    // ----- Text Response Patterns (§6 fixtures) -----
+    text_info_simple: {
+      steps: [
+        { en: 'Pulling a quick answer',         hi: 'Ek quick jawab la raha hoon' },
+      ],
+    },
+    text_info_complex: {
+      steps: [
+        { en: 'Gathering the details',          hi: 'Details ikatthe kar raha hoon' },
+        { en: 'Organising what matters most',   hi: 'Sabse zaroori cheezein arrange kar raha hoon' },
+      ],
+    },
+    text_advisory: {
+      steps: [
+        { en: 'Weighing your options',          hi: 'Aapke options tol raha hoon' },
+        { en: 'Picking the best fit',           hi: 'Sabse sahi fit chun raha hoon' },
+      ],
+    },
+    text_conversational: {
+      steps: [
+        { en: 'Got it — one sec',               hi: 'Samajh gaya, ek sec' },
+      ],
+    },
+
+    // ----- Generic catch-all (plain /api/chat fallback, no scenario match) -----
+    generic_chat: {
+      steps: [
+        { en: 'Thinking through your question', hi: 'Aapka sawaal soch raha hoon' },
+        { en: 'Putting an answer together',     hi: 'Jawab tayyar kar raha hoon' },
+      ],
+    },
+  };
+
+  // Voice variants drop the third reasoning line so total dwell stays
+  // inside the existing 4s minimum even when TTS pacing eats time.
+  const REASONING_VOICE_TRIM = new Set(['biryani_partner_pick']);
+
+  // Look up reasoning steps from the scenario context computed at the
+  // top of showResponse(). Returns { steps, toolCall } or null when no
+  // scenario matches — caller falls back to the existing thinking-only
+  // path. Voice-mode trimming applied here so the runner can stay flat.
+  function resolveReasoning(ctx) {
+    let key = null;
+    // High-priority transactional / commit paths first — same order as
+    // showResponse's response-text branching so the reasoning copy aligns
+    // with what's about to land below it.
+    if (ctx.menuAddMatched) key = 'menu_add_matched';
+    else if (ctx.menuAddUnresolved) key = 'menu_add_unresolved';
+    else if (ctx.isRestaurantQuery) key = 'restaurant';
+    else if (ctx.isShoppingQuery) key = 'shopping';
+    // Partner / multi-partner discovery
+    else if (ctx.discoveryKey === 'biryani_partner_pick')    key = 'biryani_partner_pick';
+    else if (ctx.discoveryKey === 'swiggy_biryani_search')   key = 'swiggy_biryani_search';
+    else if (ctx.discoveryKey === 'swiggy_paradise_menu')    key = 'swiggy_paradise_menu';
+    else if (ctx.discoveryKey === 'swiggy_paradise_order')   key = 'swiggy_paradise_order';
+    else if (ctx.discoveryKey === 'zomato_biryani_search')   key = 'zomato_biryani_search';
+    else if (ctx.discoveryKey === 'bus_blr_tpty_compare')    key = 'bus_compare';
+    else if (ctx.discoveryKey === 'bus_vrl_tpty_seats')      key = 'bus_seats';
+    else if (ctx.discoveryKey === 'bus_vrl_booking_confirm') key = 'bus_confirm';
+    else if (ctx.discoveryKey === 'biryani_hyderabad')       key = 'biryani_hyderabad';
+    // Generic discovery (Place / Catalog / Compare / Pillar) — REASONING_BY_KEY
+    // entry name matches the dataset key 1:1, so a direct passthrough covers
+    // every dataset that has a registered scenario without needing a switch.
+    else if (ctx.discoveryKey && REASONING_BY_KEY[ctx.discoveryKey]) key = ctx.discoveryKey;
+    // Booking intents — same passthrough by key.
+    else if (ctx.bookingKey && REASONING_BY_KEY[ctx.bookingKey]) key = ctx.bookingKey;
+    // Informational status / lookups
+    else if (ctx.informationalKey === 'swiggy_order_status')  key = 'swiggy_track';
+    else if (ctx.informationalKey === 'bus_trip_status')      key = 'bus_track';
+    else if (ctx.informationalKey === 'bus_ticket')           key = 'bus_ticket';
+    else if (ctx.informationalKey && REASONING_BY_KEY[ctx.informationalKey]) key = ctx.informationalKey;
+    // Text Response Patterns — typed fixtures map to their pattern's reasoning.
+    else if (ctx.textType === 'info_simple')     key = 'text_info_simple';
+    else if (ctx.textType === 'info_complex')    key = 'text_info_complex';
+    else if (ctx.textType === 'advisory')        key = 'text_advisory';
+    else if (ctx.textType === 'conversational')  key = 'text_conversational';
+    // Generic catch-all — plain /api/chat fallback. Ensures every scenario
+    // still gets a reasoning sequence (avatar + step copy) instead of just
+    // the bare Thinking shimmer.
+    else key = 'generic_chat';
+
+    const entry = REASONING_BY_KEY[key];
+    if (!entry) return null;
+    let steps = entry.steps.slice();
+    if (ctx.isVoiceMode && REASONING_VOICE_TRIM.has(key) && steps.length > 2) {
+      steps = steps.slice(0, 2);
+    }
+    return { key, steps, toolCall: entry.toolCall || null };
+  }
+
+  // The thinking avatar stays fixed for the whole turn — the orchestrator
+  // mutates ONLY the chip slot + text on the existing thinking-row.
+  // No row swaps, no fade. The final partner tool-call line is treated
+  // as one more reasoning step (translated below from the legacy
+  // toolCall function name).
+  // Per-phase dwell for the reasoning sequence. Tight enough to keep voice
+  // landing within ~3s of "user finished speaking" while still letting each
+  // step register on screen. Combined with the 2s thinking floor below, a
+  // 2-step + tool-call scenario takes ~2.8s of reasoning UI before the
+  // pre-fetched Sarvam audio plays.
+  const REASONING_PHASE_MS = 700;
+  const TOOLCALL_STEPS = {
+    createSearchingEl:        { en: 'Searching for places...',     hi: 'Jagah dhoondh raha hoon...' },
+    createSearchingJioMartEl: { en: 'Searching JioMart...',        hi: 'JioMart dhoondh raha hoon...',        partners: ['jiomart'] },
+    createConnectingSwiggyEl: { en: 'Connecting to Swiggy...',     hi: 'Swiggy se connect kar raha hoon...',  partners: ['swiggy'] },
+    createConnectingZomatoEl: { en: 'Connecting to Zomato...',     hi: 'Zomato se connect kar raha hoon...',  partners: ['zomato'] },
+    createConnectingVRLEl:    { en: 'Connecting to VRL...',        hi: 'VRL se connect kar raha hoon...',     partners: ['vrl'] },
+    createConnectingTransitEl:{ en: 'Comparing operators...',      hi: 'Operators compare kar raha hoon...',  partners: ['vrl'] },
+  };
+
+  async function runReasoningSequence({ loaderEl, steps, toolCall, lang }) {
+    if (!loaderEl || !steps || !steps.length) return;
+    // 1. Hold "Thinking..." for one phase before the first reasoning
+    //    step lands — same dwell the existing thinking → searching
+    //    transition uses today.
+    await new Promise(r => setTimeout(r, REASONING_PHASE_MS));
+    // 2. Append the partner tool-call line as the final pseudo-step
+    //    so cycling stays in-place (same row, same avatar).
+    const fullSteps = steps.slice();
+    if (toolCall && TOOLCALL_STEPS[toolCall]) fullSteps.push(TOOLCALL_STEPS[toolCall]);
+    // 3. Cycle through every step on the SAME loader element. The
+    //    avatar never moves; only the chip slot + text mutate. Each
+    //    phase dwells one REASONING_PHASE_MS before the next mutation.
+    for (const step of fullSteps) {
+      if (!loaderEl.isConnected) return;
+      applyReasoningStep(loaderEl, step, lang);
+      await new Promise(r => setTimeout(r, REASONING_PHASE_MS));
+    }
+  }
+
+  // Hinglish detection — fixture-aligned. Triggers reasoning copy in Hindi
+  // script-aware mode when the user types Hinglish tokens. Mirrors the
+  // existing Hinglish advisory regex at index.html:7175.
+  const HINGLISH_TOKEN_RE = /\b(kya|hai|kar|kar(?:o|na|ke)|le(?:lo|na)|mujhe|mere|aap(?:ka|ki|ko)?|sab|abhi|kuch|nahin?|nai|chahiye|kaisa|kaunsa|sahi|haan|yaar|bhai|kitn[aeiou])\b/i;
+  function detectReasoningLang(text) {
+    return HINGLISH_TOKEN_RE.test(String(text || '')) ? 'hi' : 'en';
+  }
+  // Expose helpers so window[toolCall] dispatch finds them.
+  window.createSearchingEl         = createSearchingEl;
+  window.createSearchingJioMartEl  = createSearchingJioMartEl;
+  window.createConnectingSwiggyEl  = createConnectingSwiggyEl;
+  window.createConnectingZomatoEl  = createConnectingZomatoEl;
+  window.createConnectingVRLEl     = createConnectingVRLEl;
+  window.createConnectingTransitEl = createConnectingTransitEl;
 
   // Active order — shared across tap / voice-confirm paths
   let activeOrder = null; // { product, cardEl, payBtn, warningEl, tapped, completed, warningVisible }
@@ -9218,6 +10060,7 @@
     avatarCenter.classList.remove('visible');
     avatarCenter.pause();
     voiceAvatarArea.classList.remove('visible');
+    cancelStarterPrompts();
     avatarIdle.classList.remove('visible');
     avatarIdle.pause();
     const isRestaurantQuery = matchesRestaurantQuery(text);
@@ -9291,21 +10134,39 @@
 
     // 1. Add user bubble — start a new turn (or reuse one handed off from
     // the voice live-bubble path so the bubble doesn't flicker top→none→top).
-    const userEl = document.createElement('div');
-    userEl.className = 'user-bubble';
-    if (!isTextMode) userEl.classList.add('is-voice');
-    userEl.textContent = text;
-    userEl.dataset.historyIndex = String(conversationHistory.length);
-    const reuse = opts.reuseTurn && opts.reuseTurn.isConnected ? opts.reuseTurn : null;
-    if (reuse) {
-      currentTurnEl = reuse;
-      currentTurnEl.classList.add('is-active');
-      currentTurnEl.appendChild(userEl);
+    // In voice mode we also reuse the live bubble itself, holding interim
+    // greyed styling through the thinking window so the user message lands
+    // in sync with the assistant's TTS instead of posting first (finalized
+    // below at the TTS-start beat).
+    const userHistoryIndex = conversationHistory.length;
+    let userEl;
+    const liveBubbleHandoff = opts.reuseLiveBubble && opts.reuseLiveBubble.isConnected
+      ? opts.reuseLiveBubble : null;
+    if (liveBubbleHandoff) {
+      userEl = liveBubbleHandoff;
+      userEl.textContent = text;
+      const reuse = opts.reuseTurn && opts.reuseTurn.isConnected ? opts.reuseTurn : null;
+      if (reuse) {
+        currentTurnEl = reuse;
+        currentTurnEl.classList.add('is-active');
+      }
     } else {
-      startTurn().appendChild(userEl);
+      userEl = document.createElement('div');
+      userEl.className = 'user-bubble';
+      if (!isTextMode) userEl.classList.add('is-voice');
+      userEl.textContent = text;
+      userEl.dataset.historyIndex = String(userHistoryIndex);
+      const reuse = opts.reuseTurn && opts.reuseTurn.isConnected ? opts.reuseTurn : null;
+      if (reuse) {
+        currentTurnEl = reuse;
+        currentTurnEl.classList.add('is-active');
+        currentTurnEl.appendChild(userEl);
+      } else {
+        startTurn().appendChild(userEl);
+      }
+      makeEditableUserBubble(userEl);
+      pinActiveTurnToTop();
     }
-    makeEditableUserBubble(userEl);
-    pinActiveTurnToTop();
 
     // 2. Add to conversation history
     conversationHistory.push({ role: 'user', content: text });
@@ -9324,53 +10185,37 @@
     let thinkingEl = createThinkingEl();
     currentTurnEl.appendChild(thinkingEl);
 
-    // 3b. For restaurant journey, swap Thinking... -> Searching for places... after 1.2s
-    if (isRestaurantQuery) {
-      setTimeout(() => {
-        if (!thinkingEl || !thinkingEl.isConnected) return;
-        thinkingEl.style.transition = 'opacity 0.25s ease';
-        thinkingEl.style.opacity = '0';
-        setTimeout(() => {
-          if (!thinkingEl.isConnected) return;
-          const searchingEl = createSearchingEl();
-          thinkingEl.replaceWith(searchingEl);
-          thinkingEl = searchingEl;
-        }, 250);
-      }, 1200);
-    }
-
-    // 3c. For shopping journey, swap Thinking... -> Searching JioMart... after 1.2s
-    if (isShoppingQuery) {
-      setTimeout(() => {
-        if (!thinkingEl || !thinkingEl.isConnected) return;
-        thinkingEl.style.transition = 'opacity 0.25s ease';
-        thinkingEl.style.opacity = '0';
-        setTimeout(() => {
-          if (!thinkingEl.isConnected) return;
-          const searchingEl = createSearchingJioMartEl();
-          thinkingEl.replaceWith(searchingEl);
-          thinkingEl = searchingEl;
-        }, 250);
-      }, 1200);
-    }
-
-    // 3d. For Swiggy partner queries (biryani search, Paradise menu/order, order
-    // status), swap Thinking... -> Connecting to Swiggy... after 1.2s. Mirrors
-    // the JioMart pattern above.
-    const isSwiggyQuery = (typeof discoveryKey === 'string' && discoveryKey.startsWith('swiggy_'))
-      || informationalKey === 'swiggy_order_status';
-    if (isSwiggyQuery) {
-      setTimeout(() => {
-        if (!thinkingEl || !thinkingEl.isConnected) return;
-        thinkingEl.style.transition = 'opacity 0.25s ease';
-        thinkingEl.style.opacity = '0';
-        setTimeout(() => {
-          if (!thinkingEl.isConnected) return;
-          const connectingEl = createConnectingSwiggyEl();
-          thinkingEl.replaceWith(connectingEl);
-          thinkingEl = connectingEl;
-        }, 250);
-      }, 1200);
+    // 3b. Reasoning sequence — the thinking row stays put for the whole
+    // turn (avatar fixed) and the orchestrator mutates only the chip
+    // slot + text on each phase. The final partner tool-call line is
+    // pushed as one more pseudo-step so cycling stays in-place. Falls
+    // back to the bare Thinking shimmer when no plan is registered.
+    const reasoningPlan = resolveReasoning({
+      isVoiceMode: !isTextMode,
+      isRestaurantQuery,
+      isShoppingQuery,
+      discoveryKey,
+      informationalKey,
+      bookingKey,
+      menuAddMatched: !!(menuAdd && menuAdd.matched),
+      menuAddUnresolved: !!(menuAdd && menuAdd.unresolved),
+      textType,
+    });
+    // Pending reasoning Promise — awaited below alongside the API call
+    // so the response only lands after the full sequence completes.
+    // Voice mode skips the multi-step reasoning sequence so voice can land
+    // sooner (the user gets an audio cue from TTS); text mode keeps the
+    // reasoning steps so there's something to read while waiting, since
+    // text mode has no audio.
+    let reasoningPromise = Promise.resolve();
+    if (reasoningPlan && isTextMode) {
+      const lang = detectReasoningLang(text);
+      reasoningPromise = runReasoningSequence({
+        loaderEl: thinkingEl,
+        steps: reasoningPlan.steps,
+        toolCall: reasoningPlan.toolCall,
+        lang,
+      });
     }
 
     // 4. Call API + enforce minimum 4s thinking time
@@ -9524,16 +10369,50 @@
         : s.title;
     }
 
-    // Wait for minimum 4s thinking duration
-    const elapsed = Date.now() - thinkingStart;
-    if (elapsed < 4000) {
-      await new Promise(r => setTimeout(r, 4000 - elapsed));
+    // Pre-fetch TTS audio NOW (in parallel with reasoning + thinking floor).
+    // Sarvam takes ~2s per request — without this, the user sees reasoning
+    // finish, then sits through 2s of silence before voice begins. With
+    // pre-fetch the audio is buffered by the time we resolve goSignal below,
+    // so playback starts within ~10–50ms of the response landing.
+    const ttsAudioRef = {
+      mode: null,         // 'eleven' | 'browser' | null
+      durationMs: null,   // total speech duration (real or estimated)
+      started: false,     // flips true on onplaying / utterance onstart
+      ended: false,       // flips true on onended / onend / onerror
+      failed: false,      // flips true only when no speech engine runs at all
+    };
+    let resolveTTSGo;
+    const ttsGoSignal = new Promise(r => { resolveTTSGo = r; });
+    let ttsPromise = Promise.resolve();
+    if (!isTextMode && spokenText) {
+      ttsPromise = playTTS(spokenText, ttsAudioRef, ttsGoSignal);
     }
+
+    // Wait for minimum 2s thinking duration AND for the reasoning
+    // sequence to finish. For multi-step scenarios the sequence runs
+    // longer than 2s, and we want the full sequence on screen before
+    // the response card lands. Resolves immediately when no reasoning
+    // plan was registered for this scenario.
+    const elapsed = Date.now() - thinkingStart;
+    if (elapsed < 2000) {
+      await new Promise(r => setTimeout(r, 2000 - elapsed));
+    }
+    await reasoningPromise;
 
     // 5. Remove thinking indicator + play message sent sound
     thinkingEl.remove();
     messageSentSound.currentTime = 0;
     messageSentSound.play().catch(() => {});
+
+    // 5b. If we held the user bubble in interim styling (voice handoff), finalize
+    // it now so it lands at the same beat as the assistant response (TTS + aiEl
+    // appear right below). Runs regardless of whether spokenText is non-empty
+    // so DiscoveryView turns with no voice prose still resolve cleanly.
+    if (liveBubbleHandoff) {
+      userEl.style.opacity = '';
+      userEl.dataset.historyIndex = String(userHistoryIndex);
+      makeEditableUserBubble(userEl);
+    }
 
     // 6. Add AI response element only if there's prose to show. DiscoveryView
     // queries suppress this — the sub-pattern header is the Context Line.
@@ -9556,17 +10435,17 @@
       currentTurnEl.appendChild(aiEl);
     }
 
-    // 7. Start TTS and typewriter simultaneously in voice mode. TTS speaks
-    // `spokenText` so voice-mode users still hear the Context Line even
-    // when no prose is rendered above the DiscoveryView cards.
-    let ttsPromise = Promise.resolve();
-    if (!isTextMode && spokenText) {
-      ttsPromise = playTTS(spokenText);
-    }
+    // 7. Trigger pre-fetched TTS playback. The audio was kicked off above
+    // (parallel with reasoning) so by now it's buffered — play() starts
+    // within ~10–50ms instead of waiting on a fresh ~2s Sarvam fetch.
+    // Typewriter still anchors on audioRef.started so text and voice land
+    // together regardless of how long the prefetch actually took.
+    resolveTTSGo();
 
     // Typewriter only runs when there is prose to type.
     if (aiEl) {
-      await typeWriter(aiEl, responseText, null);
+      const tOpts = (!isTextMode && spokenText) ? { audioRef: ttsAudioRef } : undefined;
+      await typeWriter(aiEl, responseText, null, tOpts);
     }
 
     // 7b. Render restaurant carousel for matching queries
@@ -9766,10 +10645,22 @@
 
   // Fallback to the browser's built-in SpeechSynthesis so the prototype still
   // speaks when /api/tts is unavailable (e.g. ElevenLabs quota exhausted).
-  function playBrowserTTS(text) {
+  // Also populates audioRef so the typewriter can pace itself against the
+  // utterance lifecycle (onstart / onend) instead of racing ahead at 18ms/char.
+  function playBrowserTTS(text, audioRef) {
+    const sessionId = voiceSessionId;
     clearListeningHint();
     return new Promise(resolve => {
-      if (!('speechSynthesis' in window)) { resolve(); return; }
+      if (!('speechSynthesis' in window)) {
+        if (audioRef) audioRef.failed = true;
+        resolve();
+        return;
+      }
+      if (!isVoiceSessionActive(sessionId)) {
+        if (audioRef) { audioRef.failed = true; audioRef.ended = true; }
+        resolve();
+        return;
+      }
       try {
         const u = new SpeechSynthesisUtterance(text);
         u.lang = 'en-IN';
@@ -9781,13 +10672,40 @@
                        || voices.find(v => /en[-_]GB/i.test(v.lang))
                        || voices.find(v => /en/i.test(v.lang));
         if (preferred) u.voice = preferred;
+        if (audioRef) {
+          audioRef.mode = 'browser';
+          // Estimate browser TTS duration at ~150 wpm × 5 chars/word ≈ 73 ms/char,
+          // floored to 800ms so single-word replies don't reveal instantly.
+          audioRef.durationMs = Math.max(800, text.length * 73);
+        }
         overlay.classList.add('agent-speaking');
         setSpeakingAvatarPlaying(true);
-        u.onend = () => { overlay.classList.remove('agent-speaking'); setSpeakingAvatarPlaying(false); resolve(); };
-        u.onerror = () => { overlay.classList.remove('agent-speaking'); setSpeakingAvatarPlaying(false); resolve(); };
+        u.onstart = () => { if (audioRef) audioRef.started = true; };
+        u.onend = () => {
+          if (audioRef) audioRef.ended = true;
+          overlay.classList.remove('agent-speaking');
+          setSpeakingAvatarPlaying(false);
+          resolve();
+        };
+        u.onerror = () => {
+          if (audioRef) { audioRef.ended = true; audioRef.failed = true; }
+          overlay.classList.remove('agent-speaking');
+          setSpeakingAvatarPlaying(false);
+          resolve();
+        };
         window.speechSynthesis.cancel();
+        // Final guard before speaking — handles the case where the user
+        // exited between the entry check and getVoices() resolving.
+        if (!isVoiceSessionActive(sessionId)) {
+          if (audioRef) { audioRef.failed = true; audioRef.ended = true; }
+          overlay.classList.remove('agent-speaking');
+          setSpeakingAvatarPlaying(false);
+          resolve();
+          return;
+        }
         window.speechSynthesis.speak(u);
       } catch (e) {
+        if (audioRef) { audioRef.failed = true; audioRef.ended = true; }
         overlay.classList.remove('agent-speaking');
         setSpeakingAvatarPlaying(false);
         resolve();
@@ -9795,7 +10713,17 @@
     });
   }
 
-  async function playTTS(text) {
+  // playTTS supports an optional `goSignal` Promise — if passed, the fetch
+  // and audio-element setup happen immediately, but `audio.play()` is deferred
+  // until goSignal resolves. Lets showResponse pre-fetch the (~2s Sarvam
+  // round-trip) audio during the reasoning sequence and trigger playback at
+  // the exact beat the response should land. Without it, voice arrives 2s
+  // after reasoning ends. Browser-TTS fallback path is unchanged because
+  // SpeechSynthesisUtterance has no equivalent fetch latency.
+  async function playTTS(text, audioRef, goSignal) {
+    // Capture the voice session id so any await boundary below can detect
+    // that the user has exited the chat and abort before audio plays.
+    const sessionId = voiceSessionId;
     // Guarantee the mic is not listening while TTS plays — otherwise Chrome's
     // SpeechRecognition picks up the assistant's own voice and transcribes it
     // back as a user bubble (causes echo/double-input).
@@ -9816,14 +10744,25 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
       });
+      // User exited during the fetch — drop the response on the floor.
+      if (!isVoiceSessionActive(sessionId)) {
+        if (audioRef) { audioRef.failed = true; audioRef.ended = true; }
+        return;
+      }
       if (!res.ok) {
-        // ElevenLabs rejected (quota / auth / network). Fall back to the
-        // browser's built-in speech synthesis so the prototype still talks.
+        // ElevenLabs rejected (quota / auth / network). Hand off to browser TTS
+        // — playBrowserTTS will populate audioRef.mode='browser' and emit its
+        // own started/ended signals so the typewriter still paces correctly.
         console.warn('TTS backend failed (status ' + res.status + '), using browser fallback');
-        return playBrowserTTS(text);
+        return playBrowserTTS(text, audioRef);
       }
 
       const blob = await res.blob();
+      // Second await boundary — re-check before we materialise an Audio element.
+      if (!isVoiceSessionActive(sessionId)) {
+        if (audioRef) { audioRef.failed = true; audioRef.ended = true; }
+        return;
+      }
       const url = URL.createObjectURL(blob);
 
       return new Promise(resolve => {
@@ -9832,12 +10771,38 @@
           currentTTSAudio = null;
         }
         currentTTSAudio = new Audio(url);
+        if (audioRef) audioRef.mode = 'eleven';
 
+        // durationMs becomes available once metadata is loaded. We capture it
+        // here so the typewriter has the real length to pace against.
+        currentTTSAudio.onloadedmetadata = () => {
+          if (audioRef && isFinite(currentTTSAudio.duration) && currentTTSAudio.duration > 0) {
+            audioRef.durationMs = currentTTSAudio.duration * 1000;
+          }
+        };
+        // 'play' fires when play() is called/committed; 'playing' fires when
+        // playback can actually proceed (after enough buffering). The latter
+        // is closer to "the user is now hearing this", so we use it as the
+        // typewriter's start signal. The avatar overlay still flips on either —
+        // 'play' is good enough for the speaking-avatar visual.
         currentTTSAudio.onplay = () => {
           overlay.classList.add('agent-speaking');
           setSpeakingAvatarPlaying(true);
         };
+        currentTTSAudio.onplaying = () => {
+          if (audioRef) {
+            audioRef.started = true;
+            // Belt-and-braces — capture duration on play too in case
+            // loadedmetadata didn't fire (some browsers fire only one).
+            if (!audioRef.durationMs && isFinite(currentTTSAudio.duration) && currentTTSAudio.duration > 0) {
+              audioRef.durationMs = currentTTSAudio.duration * 1000;
+            }
+          }
+          overlay.classList.add('agent-speaking');
+          setSpeakingAvatarPlaying(true);
+        };
         currentTTSAudio.onended = () => {
+          if (audioRef) audioRef.ended = true;
           overlay.classList.remove('agent-speaking');
           setSpeakingAvatarPlaying(false);
           URL.revokeObjectURL(url);
@@ -9846,25 +10811,54 @@
         };
         currentTTSAudio.onerror = () => {
           console.warn('TTS audio element error:', currentTTSAudio && currentTTSAudio.error);
+          if (audioRef) { audioRef.failed = true; audioRef.ended = true; }
           overlay.classList.remove('agent-speaking');
           setSpeakingAvatarPlaying(false);
           URL.revokeObjectURL(url);
           currentTTSAudio = null;
           resolve();
         };
-        currentTTSAudio.play().catch((e) => {
-          console.warn('TTS audio play() rejected:', e && (e.name + ': ' + e.message));
-          overlay.classList.remove('agent-speaking');
-          setSpeakingAvatarPlaying(false);
-          URL.revokeObjectURL(url);
-          currentTTSAudio = null;
-          resolve();
+        // Defer playback until the caller resolves goSignal (or immediately,
+        // if no signal was provided). The Audio element is fully buffered by
+        // this point, so play() will start playback within ~10–50ms.
+        const ready = goSignal || Promise.resolve();
+        Promise.resolve(ready).then(() => {
+          if (!currentTTSAudio) return; // cancelled / replaced before go-signal fired
+          // Voice overlay was closed (or a new session opened) while the
+          // go-signal was pending — drop the audio rather than speaking
+          // into an empty room.
+          if (!isVoiceSessionActive(sessionId)) {
+            try { currentTTSAudio.pause(); } catch (_) {}
+            URL.revokeObjectURL(url);
+            currentTTSAudio = null;
+            if (audioRef) { audioRef.failed = true; audioRef.ended = true; }
+            overlay.classList.remove('agent-speaking');
+            setSpeakingAvatarPlaying(false);
+            resolve();
+            return;
+          }
+          currentTTSAudio.play().catch((e) => {
+            console.warn('TTS audio play() rejected:', e && (e.name + ': ' + e.message));
+            if (audioRef) { audioRef.failed = true; audioRef.ended = true; }
+            overlay.classList.remove('agent-speaking');
+            setSpeakingAvatarPlaying(false);
+            URL.revokeObjectURL(url);
+            currentTTSAudio = null;
+            resolve();
+          });
         });
       });
     } catch (err) {
       console.error('TTS error:', err);
+      // User exited during the failed fetch — don't fall back to browser TTS,
+      // it would just speak into an empty room.
+      if (!isVoiceSessionActive(sessionId)) {
+        if (audioRef) { audioRef.failed = true; audioRef.ended = true; }
+        return;
+      }
       // Network or unexpected failure — still try to speak via the browser.
-      return playBrowserTTS(text);
+      // Browser TTS will populate audioRef itself so the typewriter syncs.
+      return playBrowserTTS(text, audioRef);
     }
   }
 
@@ -9978,6 +10972,7 @@
 
     function activateSpeakingUI() {
       if (overlay.classList.contains('user-speaking')) return;
+      cancelStarterPrompts();
       clearListeningHint();
       overlay.classList.remove('glow');
       overlay.classList.add('listening-mode', 'user-speaking', 'chat-active');
@@ -10073,8 +11068,14 @@
         }
         // Hand the live-bubble turn to showResponse so the finalized user
         // bubble lands inside the same already-pinned turn (no flicker).
+        // The live bubble itself is also handed off (reuseLiveBubble) and kept
+        // in interim/greyed styling through the thinking window — it finalizes
+        // at the moment TTS starts, so the user message visually lands in sync
+        // with the assistant speaking instead of posting first.
         const reuseTurn = currentTurnEl;
-        if (liveBubble) { liveBubble.remove(); liveBubble = null; }
+        const reuseLiveBubble = liveBubble;
+        if (reuseLiveBubble) reuseLiveBubble.textContent = finalText.trim();
+        liveBubble = null;
         overlay.classList.remove('user-speaking');
 
         // Voice-confirm interception: if there's an active un-tapped order and the user
@@ -10082,6 +11083,7 @@
         // forwarding the transcript to showResponse().
         if (activeOrder && !activeOrder.tapped && !activeOrder.completed &&
             matchesVoiceConfirmPhrase(finalText)) {
+          if (reuseLiveBubble) reuseLiveBubble.remove();
           showTapToConfirmWarning();
           isProcessingResponse = false;
           isListening = false;
@@ -10092,7 +11094,7 @@
         isProcessingResponse = true;
         isListening = false;
         try { rec.abort(); } catch(e) {}
-        showResponse(finalText.trim(), { reuseTurn });
+        showResponse(finalText.trim(), { reuseTurn, reuseLiveBubble });
       }
     };
 

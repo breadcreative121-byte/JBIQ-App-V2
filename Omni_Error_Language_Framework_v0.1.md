@@ -110,8 +110,10 @@ Each example shows: bad version → English version → Hinglish version. Where 
 
 **Bad:** "Couldn't connect. Tap to retry."
 
-**English (voice subtext):** "Can't reach the network. Tap to try again."
-**Hinglish (voice subtext):** "Network tak nahi pahuncha. Dobara try kar."
+**English (voice subtext):** "Can't reach the network."
+**Hinglish (voice subtext):** "Network tak nahi pahuncha."
+
+**Voice CTA (primary button):** "Try again" / "Dobara try kar"
 
 **Chat banner:** "No internet. Tap to reconnect." / "Internet nahi hai. Tap kar reconnect ke liye."
 
@@ -173,9 +175,11 @@ This three-step reveal is the single most important pattern in the framework. It
 
 **Bad:** "Speech not recognized. Please speak again."
 
-**Voice (Omni speaks, soft tone):** "Didn't quite catch that — say it again?"
+**Voice (Omni speaks, soft tone):** "Didn't quite catch that."
 **Voice subtext:** "Didn't catch it."
-**Hinglish (Omni speaks):** "Sahi nahi suna — dobara bol?"
+**Hinglish (Omni speaks):** "Sahi nahi suna."
+
+**Voice CTA (primary button):** "Say again" / "Dobara bol"
 
 ---
 
@@ -264,7 +268,7 @@ If no, rewrite. This is the single test that overrides everything else.
 | "Connecting…" | Fine | keep |
 | "Tap to speak" | Fine | keep |
 | "Listening" | Fine | keep |
-| "Couldn't connect. Tap to retry." | Misses the consequence and the reason | **EN:** "Can't reach the network. Tap to try again."  •  **HI:** "Network tak nahi pahuncha. Dobara try kar." |
+| "Couldn't connect. Tap to retry." | Misses the consequence and the reason | **EN:** "Can't reach the network." + "Try again" CTA  •  **HI:** "Network tak nahi pahuncha." + "Dobara try kar" CTA |
 | "Connection lost. Reconnecting…" | OK as a transient state, weak as a hard error | keep for transient; for hard error use 6.2 above |
 | "Something went wrong. Try again." | Fails every test | Replace per 6.5/6.8/6.9 depending on what actually broke |
 | "Couldn't get a response. Tap to retry." | Slightly better but still vague | "I'm not getting through right now. Tap to try again." / "Abhi reach nahi ho raha. Dobara tap kar." |

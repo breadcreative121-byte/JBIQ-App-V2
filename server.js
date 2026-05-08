@@ -40,42 +40,54 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-// === ElevenLabs TTS endpoint ===
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-if (ELEVENLABS_API_KEY) {
-  console.log('ElevenLabs key loaded:', ELEVENLABS_API_KEY.substring(0, 10) + '...');
+// === Sarvam TTS endpoint ===
+// Mirrors the Worker build (commit 45b5d4b): ElevenLabs's abuse detector
+// was blocking Free Tier traffic from Cloudflare Workers, so the public
+// build moved to Sarvam (bulbul:v3). Keep server.js aligned so local dev
+// matches production. Detect Devanagari → hi-IN, else en-IN. Sarvam returns
+// base64-encoded mp3 in { audios: [...] } — we decode and re-emit as
+// audio/mpeg so the existing frontend Audio playback path stays unchanged.
+const SARVAM_API_KEY = process.env.SARVAM_API_KEY;
+if (SARVAM_API_KEY) {
+  console.log('Sarvam key loaded:', SARVAM_API_KEY.substring(0, 10) + '...');
 }
 
 app.post('/api/tts', async (req, res) => {
   try {
-    const { text, voice_id } = req.body;
+    const { text, speaker, language_code } = req.body || {};
     if (!text) return res.status(400).json({ error: 'text is required' });
-    if (!ELEVENLABS_API_KEY) return res.status(500).json({ error: 'ElevenLabs API key not configured' });
+    if (!SARVAM_API_KEY) return res.status(500).json({ error: 'Sarvam API key not configured' });
 
-    const voiceId = voice_id || 'cjVigY5qzO86Huf0OWal'; // Eric - Smooth, Trustworthy
-    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+    const lang = language_code || (/[ऀ-ॿ]/.test(text) ? 'hi-IN' : 'en-IN');
+
+    const response = await fetch('https://api.sarvam.ai/text-to-speech', {
       method: 'POST',
       headers: {
-        'xi-api-key': ELEVENLABS_API_KEY,
+        'api-subscription-key': SARVAM_API_KEY,
         'Content-Type': 'application/json',
-        'Accept': 'audio/mpeg',
       },
       body: JSON.stringify({
-        text: text,
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-        },
+        text,
+        target_language_code: lang,
+        speaker: speaker || 'priya',
+        model: 'bulbul:v3',
+        output_audio_codec: 'mp3',
+        speech_sample_rate: '22050',
       }),
     });
 
     if (!response.ok) {
       const err = await response.text();
-      throw new Error(`ElevenLabs API error: ${response.status} - ${err}`);
+      throw new Error(`Sarvam API error: ${response.status} - ${err}`);
     }
 
-    const buffer = Buffer.from(await response.arrayBuffer());
+    const data = await response.json();
+    const b64 = data && Array.isArray(data.audios) ? data.audios[0] : null;
+    if (!b64) {
+      throw new Error('Sarvam returned no audio');
+    }
+
+    const buffer = Buffer.from(b64, 'base64');
     res.set({ 'Content-Type': 'audio/mpeg', 'Content-Length': buffer.length });
     res.send(buffer);
   } catch (error) {
