@@ -131,8 +131,42 @@
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* One-shot shimmer sweep across card media + the map panel, timed with the
+   widget reveal — suggests content "loading in" as the widget lands. */
+@keyframes jbiqMediaShimmer {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  15%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateX(110%); opacity: 0; }
+}
+.jbiq-discovery .place-card__media,
+.jbiq-discovery .catalog-card__media,
+.jbiq-discovery .map-panel {
+  overflow: hidden;
+}
+.jbiq-discovery .place-card__media::after,
+.jbiq-discovery .catalog-card__media::after,
+.jbiq-discovery .map-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 35%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0) 65%
+  );
+  transform: translateX(-100%);
+  animation: jbiqMediaShimmer 900ms linear 80ms 1 forwards;
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .jbiq-discovery { animation: none; }
+  .jbiq-discovery .place-card__media::after,
+  .jbiq-discovery .catalog-card__media::after,
+  .jbiq-discovery .map-panel::after { display: none; }
 }
 .jbiq-discovery *,
 .jbiq-discovery *::before,
