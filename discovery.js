@@ -371,23 +371,24 @@ function el(tag, attrs = {}, children = []) {
   return node;
 }
 
-/** @param {{ title: string, subtitle?: string, brand_chip?: { label: string, variant: string } }} props */
+/** @param {{ title: string, subtitle?: string, brand_chip?: { label: string, variant: string, name?: string } }} props */
 function renderSubjectHeader({ title, subtitle, brand_chip }) {
-  let subtitleNode = null;
-  if (subtitle) {
-    if (brand_chip) {
-      subtitleNode = el('p', { class: 'subject-header__subtitle subject-header__subtitle-row' }, [
+  const partnerRow = brand_chip
+    ? el('div', { class: 'subject-header__partner' }, [
         el('span', {
           class: `subject-header__brand-chip subject-header__brand-chip--${brand_chip.variant}`,
           text: brand_chip.label,
         }),
-        el('span', { text: subtitle }),
-      ]);
-    } else {
-      subtitleNode = el('p', { class: 'subject-header__subtitle', text: subtitle });
-    }
-  }
+        brand_chip.name
+          ? el('span', { class: 'subject-header__partner-name', text: brand_chip.name })
+          : null,
+      ])
+    : null;
+  const subtitleNode = subtitle
+    ? el('p', { class: 'subject-header__subtitle', text: subtitle })
+    : null;
   return el('header', { class: 'subject-header' }, [
+    partnerRow,
     el('h2', { class: 'subject-header__title', text: title }),
     subtitleNode,
   ]);
@@ -4110,9 +4111,9 @@ const MOCK_SWIGGY_BIRYANI_SEARCH = {
   sub_pattern: 'place',
   state: 'PARTIAL_RESULT_SHOWN',
   subject: {
-    title: 'Biryani on Swiggy',
+    title: 'Biryani',
     subtitle: 'Top picks · 32 min avg delivery',
-    brand_chip: { label: 'Sw', variant: 'swiggy' },
+    brand_chip: { label: 'Sw', variant: 'swiggy', name: 'Swiggy' },
   },
   location_context: { area: 'Koramangala, Bengaluru', change_event: 'location.change.koramangala' },
   filters: {
@@ -4341,8 +4342,8 @@ const MOCK_SWIGGY_PARADISE_MENU = {
   state: 'PARTIAL_RESULT_SHOWN',
   subject: {
     title: 'Paradise Biryani — menu',
-    subtitle: 'Swiggy · 28 min · ₹29 delivery',
-    brand_chip: { label: 'Sw', variant: 'swiggy' },
+    subtitle: '28 min · ₹29 delivery',
+    brand_chip: { label: 'Sw', variant: 'swiggy', name: 'Swiggy' },
   },
   filters: {
     multi_select: true,
@@ -4437,8 +4438,8 @@ const MOCK_SWIGGY_PARADISE_ORDER = {
   state: 'PARTIAL_RESULT_SHOWN',
   subject: {
     title: 'Order ready to confirm',
-    subtitle: 'Paradise Biryani · Swiggy · 28 min',
-    brand_chip: { label: 'Sw', variant: 'swiggy' },
+    subtitle: 'Paradise Biryani · 28 min',
+    brand_chip: { label: 'Sw', variant: 'swiggy', name: 'Swiggy' },
   },
   filters: {
     multi_select: true,
@@ -4492,7 +4493,11 @@ const MOCK_SWIGGY_PARADISE_ORDER = {
 
 const INFO_SWIGGY_ORDER_STATUS = {
   kind: 'informational_response',
-  subject: { title: 'Swiggy order — Paradise Biryani', subtitle: 'Order #SW-58293 · ₹569 · ETA 9 min' },
+  subject: {
+    title: 'Paradise Biryani',
+    subtitle: 'Order #SW-58293 · ₹569 · ETA 9 min',
+    brand_chip: { label: 'Sw', variant: 'swiggy', name: 'Swiggy' },
+  },
   body_text: [
     { label: 'Status',      value: 'Out for delivery · Aakash is 1.4 km away' },
     { label: 'Order',       value: '1 Hyderabadi Chicken Biryani · Paradise' },
@@ -4524,9 +4529,9 @@ const MOCK_ZOMATO_BIRYANI_SEARCH = {
   sub_pattern: 'place',
   state: 'PARTIAL_RESULT_SHOWN',
   subject: {
-    title: 'Biryani on Zomato',
+    title: 'Biryani',
     subtitle: 'Top picks · 33 min avg delivery',
-    brand_chip: { label: 'Zo', variant: 'zomato' },
+    brand_chip: { label: 'Zo', variant: 'zomato', name: 'Zomato' },
   },
   location_context: { area: 'Koramangala, Bengaluru', change_event: 'location.change.koramangala' },
   filters: {
@@ -4815,8 +4820,9 @@ const MOCK_BUS_VRL_TPTY_SEATS = {
   sub_pattern: 'catalog',
   state: 'PARTIAL_RESULT_SHOWN',
   subject: {
-    title: 'VRL Travels — pick a seat',
+    title: 'Pick a seat',
     subtitle: 'Volvo AC Sleeper · BLR → TPTY · Departs 9:30 PM',
+    brand_chip: { label: 'VR', variant: 'vrl', name: 'VRL Travels' },
   },
   filters: {
     multi_select: true,
@@ -4919,7 +4925,8 @@ const MOCK_BUS_VRL_BOOKING_CONFIRM = {
   state: 'PARTIAL_RESULT_SHOWN',
   subject: {
     title: 'Booking ready to confirm',
-    subtitle: 'VRL Travels · Volvo AC Sleeper · BLR → TPTY',
+    subtitle: 'Volvo AC Sleeper · BLR → TPTY',
+    brand_chip: { label: 'VR', variant: 'vrl', name: 'VRL Travels' },
   },
   filters: {
     multi_select: true,
@@ -4975,7 +4982,11 @@ const MOCK_BUS_VRL_BOOKING_CONFIRM = {
 
 const INFO_BUS_TRIP_STATUS = {
   kind: 'informational_response',
-  subject: { title: 'VRL Travels · Trip TR-58293', subtitle: 'Lower Sleeper A3 · ₹899 · Departs in 42 min' },
+  subject: {
+    title: 'Trip TR-58293',
+    subtitle: 'Lower Sleeper A3 · ₹899 · Departs in 42 min',
+    brand_chip: { label: 'VR', variant: 'vrl', name: 'VRL Travels' },
+  },
   body_text: [
     { label: 'Status', value: 'Bus is at Madiwala — boarding now' },
     { label: 'Bus',    value: 'VRL Volvo B11R AC Sleeper · KA-01-EX-4821' },
@@ -4998,7 +5009,11 @@ const INFO_BUS_TRIP_STATUS = {
 
 const INFO_BUS_TICKET = {
   kind: 'informational_response',
-  subject: { title: 'Bus ticket · PNR TR58293', subtitle: 'VRL Travels · BLR → TPTY · Tomorrow 9:30 PM' },
+  subject: {
+    title: 'Bus ticket · PNR TR58293',
+    subtitle: 'BLR → TPTY · Tomorrow 9:30 PM',
+    brand_chip: { label: 'VR', variant: 'vrl', name: 'VRL Travels' },
+  },
   body_text: [
     { label: 'Passenger', value: 'Matt Jarvis · 1 Adult' },
     { label: 'Seat',      value: 'Lower Sleeper A3 · ₹899 paid · UPI' },

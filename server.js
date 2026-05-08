@@ -117,7 +117,7 @@ Schema example (use this shape exactly; substitute real values from the MCP resp
   "subject": {
     "title": "<Restaurant name> — menu",
     "subtitle": "Swiggy · <eta> · ₹<delivery> delivery",
-    "brand_chip": { "label": "Sw", "variant": "swiggy" }
+    "brand_chip": { "label": "Sw", "variant": "swiggy", "name": "Swiggy" }
   },
   "filters": {
     "multi_select": true,

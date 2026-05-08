@@ -121,6 +121,18 @@
   align-self: stretch;
   width: 100%;
   min-width: 0;
+  /* Entrance: fade + soft rise so widgets ease into the conversation instead
+     of popping in. Slightly longer/softer than the app's bubbleIn (0.3s, 8px)
+     because the widget is visually heavier than a text bubble. */
+  animation: jbiqDiscoveryReveal 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  will-change: opacity, transform;
+}
+@keyframes jbiqDiscoveryReveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jbiq-discovery { animation: none; }
 }
 .jbiq-discovery *,
 .jbiq-discovery *::before,
@@ -178,6 +190,19 @@
   align-items: center;
   gap: var(--space-xs);
 }
+.subject-header__partner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xs);
+}
+.subject-header__partner-name {
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  letter-spacing: var(--font-tracking-small);
+  line-height: var(--font-line-height-tight);
+}
 .subject-header__brand-chip {
   display: inline-flex;
   align-items: center;
@@ -195,6 +220,7 @@
 }
 .subject-header__brand-chip--swiggy { background: #FC8019; }
 .subject-header__brand-chip--zomato { background: #E23744; }
+.subject-header__brand-chip--vrl { background: #C8102E; }
 
 /* ----------------------------------------------------------------------------
    PRIMITIVE: LocationContext
