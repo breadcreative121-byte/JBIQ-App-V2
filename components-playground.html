@@ -130,8 +130,9 @@
     overflow-y: auto;
     padding: var(--space-xl) var(--space-xl) var(--space-xl);
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
   }
   .mobile-frame {
     width: var(--layout-mobile-frame-width);
@@ -139,13 +140,20 @@
     background: var(--color-surface-primary);
     border: 0.5px solid var(--color-border-default);
     border-radius: var(--radius-lg);
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
+    scrollbar-width: none;
   }
-  .mobile-frame__header {
+  .mobile-frame::-webkit-scrollbar { display: none; }
+  .partner-card {
+    width: var(--layout-mobile-frame-width);
+    max-width: 100%;
+    background: var(--color-surface-primary);
+    border: 0.5px solid var(--color-border-default);
+    border-radius: var(--radius-lg);
     padding: var(--space-md) var(--space-lg);
-    border-bottom: 0.5px solid var(--color-border-default);
     display: flex; align-items: center; gap: var(--space-sm);
   }
   .partner-mark {
@@ -449,14 +457,14 @@
     <!-- Conversation surface -->
     <section class="companion">
       <div class="companion-stage">
-        <div class="mobile-frame">
-          <div class="mobile-frame__header">
-            <div class="partner-mark" id="partnerMark">J</div>
-            <div>
-              <div class="partner-name" id="partnerName">JBIQ</div>
-              <div class="partner-meta" id="partnerMeta">persona</div>
-            </div>
+        <div class="partner-card">
+          <div class="partner-mark" id="partnerMark">J</div>
+          <div>
+            <div class="partner-name" id="partnerName">JBIQ</div>
+            <div class="partner-meta" id="partnerMeta">persona</div>
           </div>
+        </div>
+        <div class="mobile-frame">
           <div class="user-turn">
             <div class="user-bubble" id="userTurn">—</div>
           </div>
@@ -559,7 +567,7 @@ const FRAMES = {
     mark: "S",
     frames: [
       {
-        narration: "User asks for pad thai. Swiggy's search_restaurants returns three nearby. With 2–4 results and shared facts (rating, ETA, price), the renderer picks ComparisonGrid → CompareTable to surface 'which one'.",
+        narration: "User asks for pad thai. Swiggy's search_restaurants returns three nearby. The renderer picks PlaceResultCard — a Place-typed result carousel — to surface the discovery moment.",
         userTurn: "Pad thai near me",
         assistantTurn: "Three nearby. Top is Soi 7 — 4.5 stars, 25 minutes.",
         tool: "search_restaurants",
@@ -572,18 +580,20 @@ const FRAMES = {
           ]
         },
         manifest: { tool:"search_restaurants", shape:"Collection<Place>",
-                    items:"$.restaurants[*]", render_hint:"compare_when_few" },
+                    items:"$.restaurants[*]", render_hint:"place_results" },
         entity: "Collection<Place>",
-        entityCard: "3 items · comparable",
-        component: "ComparisonGrid",
-        componentReason: "2–4 items + numeric facts → grid",
+        entityCard: "3 items · place",
+        component: "PlaceResultCard",
+        componentReason: "Collection<Place> → PlaceResultCard carousel",
         voiceScript: "Three places near you. Top is Soi 7, four point five stars, twenty-five minutes. Drunken Monkey is the highest-rated; Bangkok Bites is the closest.",
         replies: ["select(index)", "filter(cuisine)", "sort(rating|eta)"],
-        component_render: { type: "ComparisonGrid", data: [
-          { emoji:"🍜", title:"Soi 7",          sub:"Thai",      rating:4.5, facts:[["Rating","4.5 ★"],["ETA","25 min"],["For two","₹600"]], best:"Recommended" },
-          { emoji:"🥡", title:"Drunken Monkey", sub:"Pan-Asian", rating:4.6, facts:[["Rating","4.6 ★"],["ETA","32 min"],["For two","₹800"]], best:"Highest rated" },
-          { emoji:"🍲", title:"Bangkok Bites",  sub:"Thai",      rating:4.1, facts:[["Rating","4.1 ★"],["ETA","18 min"],["For two","₹450"]], best:"Fastest" }
-        ], focus: 0 }
+        component_render: { type: "PlaceResultCard", data: {
+          cards: [
+            { emoji:"🍜", title:"Soi 7",          cuisine:"Thai",      rating:4.5, eta:"25 min", price:"₹₹",  badge:"Recommended"   },
+            { emoji:"🥡", title:"Drunken Monkey", cuisine:"Pan-Asian", rating:4.6, eta:"32 min", price:"₹₹₹", badge:"Highest rated" },
+            { emoji:"🍲", title:"Bangkok Bites",  cuisine:"Thai",      rating:4.1, eta:"18 min", price:"₹",   badge:"Fastest"       }
+          ]
+        }}
       },
       {
         narration: "User picks Soi 7. The grid collapses to an EntityCard — same Place primitive, different cardinality, different component pick.",
@@ -1396,7 +1406,7 @@ const FRAMES = {
     mark: "M",
     frames: [
       {
-        narration: "JioMart's search_products returns Collection<Item> with comparable facts. ComparisonGrid renders — same rhetoric used for flights, courses, and food. Commerce doesn't introduce new components.",
+        narration: "JioMart's search_products returns Collection<Item>. The renderer picks CatalogResultCard grid — same primitive used for kurtas, books, electronics. Commerce doesn't introduce new components.",
         userTurn: "I need basmati rice, 5 kg",
         assistantTurn: "Three top picks under ₹650. India Gate is highest-rated. Daawat is on sale.",
         tool: "search_products",
@@ -1409,18 +1419,20 @@ const FRAMES = {
           ]
         },
         manifest: { tool:"search_products", shape:"Collection<Item>",
-                    items:"$.products[*]", render_hint:"compare_when_few" },
+                    items:"$.products[*]", render_hint:"catalog_results" },
         entity: "Collection<Item>",
-        entityCard: "3 items · comparable",
-        component: "ComparisonGrid",
-        componentReason: "2–4 items + numeric facts → grid",
+        entityCard: "3 items · catalog",
+        component: "CatalogResultCard",
+        componentReason: "Collection<Item> → CatalogResultCard grid",
         voiceScript: "Three top picks under six-fifty. India Gate is highest-rated. Daawat is on sale. Fortune arrives today.",
         replies: ["select(index)", "filter(brand|price)", "sort(rating|price)"],
-        component_render: { type: "ComparisonGrid", data: [
-          { emoji:"🌾", title:"India Gate Classic 5kg", sub:"India Gate", rating:4.6, facts:[["₹","625"],["Eta","Tomorrow"]], best:"Best rated" },
-          { emoji:"🍚", title:"Daawat Super 5kg",       sub:"Daawat",     rating:4.5, facts:[["₹","545"],["Eta","Tomorrow"]], best:"On sale"    },
-          { emoji:"🥘", title:"Fortune Biryani 5kg",    sub:"Fortune",    rating:4.4, facts:[["₹","599"],["Eta","Today"]],     best:"Fastest"    }
-        ], focus: 0 }
+        component_render: { type: "CatalogResultCard", data: {
+          cards: [
+            { emoji:"🌾", title:"India Gate Classic 5kg", brand:"India Gate", rating:4.6, price:"₹625", delivery:"Tomorrow", badge:"Best rated" },
+            { emoji:"🍚", title:"Daawat Super 5kg",       brand:"Daawat",     rating:4.5, price:"₹545", delivery:"Tomorrow", badge:"On sale"    },
+            { emoji:"🥘", title:"Fortune Biryani 5kg",    brand:"Fortune",    rating:4.4, price:"₹599", delivery:"Today",    badge:"Fastest"    }
+          ]
+        }}
       },
       {
         narration: "User adds to cart. add_to_cart returns Transaction.building. CartPanel renders — the only component typed to Transaction.building, regardless of vertical.",
@@ -1654,6 +1666,50 @@ function renderComparisonGrid(d) {
     </div>`;
 }
 
+function renderPlaceResultCard(d) {
+  const cards = d.data.cards;
+  return `
+    <div class="collection collection--carousel" role="list">
+      ${cards.map(c => `
+        <button class="place-card" role="listitem">
+          <div class="place-card__media" data-emoji="${c.emoji}">
+            ${c.badge ? `<span class="place-card__badge">${c.badge}</span>` : ''}
+          </div>
+          <div class="place-card__content">
+            <h4 class="place-card__title">${c.title}</h4>
+            <p class="place-card__tags">${c.cuisine}</p>
+            <div class="place-card__meta">
+              <span class="place-card__rating-value">${c.rating} ★</span>
+              <span>${c.eta}</span>
+              <span>${c.price}</span>
+            </div>
+          </div>
+        </button>`).join('')}
+    </div>`;
+}
+
+function renderCatalogResultCard(d) {
+  const cards = d.data.cards;
+  return `
+    <div class="collection collection--grid" role="list">
+      ${cards.map(c => `
+        <button class="catalog-card" role="listitem">
+          <div class="catalog-card__media" data-emoji="${c.emoji}">
+            ${c.badge ? `<span class="catalog-card__badge">${c.badge}</span>` : ''}
+          </div>
+          <div class="catalog-card__content">
+            <h4 class="catalog-card__title">${c.title}</h4>
+            <p class="catalog-card__subtitle">${c.brand}</p>
+            <div class="catalog-card__meta">
+              <span class="catalog-card__rating-value">${c.rating} ★</span>
+              <span class="catalog-card__price">${c.price}</span>
+              <span class="catalog-card__temporal">${c.delivery}</span>
+            </div>
+          </div>
+        </button>`).join('')}
+    </div>`;
+}
+
 function renderEntityCard(d) {
   const x = d.data;
   return `
@@ -1841,7 +1897,9 @@ function renderChoiceChips(d) {
 }
 
 const COMPONENT_RENDERERS = {
-  ComparisonGrid: (d) => renderComparisonGrid(d),
+  ComparisonGrid:    (d) => renderComparisonGrid(d),
+  PlaceResultCard:   (d) => renderPlaceResultCard(d),
+  CatalogResultCard: (d) => renderCatalogResultCard(d),
   EntityCard:    (d) => renderEntityCard(d),
   ListSectioned: (d) => renderListSectioned(d.data),
   CartPanel:     (d) => renderCartPanel(d),

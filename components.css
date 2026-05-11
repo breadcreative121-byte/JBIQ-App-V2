@@ -347,6 +347,13 @@
   text-align: left;
   font-family: inherit;
 }
+/* Standalone place-card (not inside a .collection): fill container,
+   capped at tablet width so it doesn't sprawl. */
+.discovery-view > .place-card {
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
+}
 .place-card__media {
   aspect-ratio: 16 / 9;
   border-radius: var(--radius-lg);
