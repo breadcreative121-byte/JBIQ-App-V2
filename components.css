@@ -1,0 +1,1258 @@
+/* ============================================================================
+   JBIQ — Canonical component stylesheet (source of truth)
+
+   This file is the single source for the design tokens and primitive classes
+   that appear across every JBIQ surface:
+
+     • index.html              — the main app (loads this, then discovery.css)
+     • components-overview.html — the static catalogue + spec
+     • place-playground.html    — the schema sandbox
+     • components-playground.html — the interactive pipeline prototype
+
+   Edit a token or a primitive here and it propagates everywhere. Surface-only
+   chrome (page shells, mobile frames, voice overlays, pipeline inspectors,
+   showcase tabs) stays inline in the consuming file.
+
+   Naming policy
+   -------------
+   • Layout containers use `.collection` + `--list / --grid / --carousel`.
+     The older `.collection-container` name is retired.
+   • Component primitives follow BEM: `.block`, `.block__element`,
+     `.block--modifier`.
+   • Brand chip variants belong here (--swiggy / --zomato / --vrl). Add new
+     partner colours here, not in app code.
+   ========================================================================== */
+
+
+/* ----------------------------------------------------------------------------
+   FONT — JioType via CDN. Available globally after this file loads.
+   ---------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'JioType';
+  font-weight: 100 900;
+  font-style: normal;
+  src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JioType';
+  font-weight: 100 900;
+  font-style: italic;
+  src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Italic.woff2') format('woff2');
+}
+
+
+/* ----------------------------------------------------------------------------
+   DESIGN TOKENS — JDS-sourced. Living on :root so primitives can reference
+   them without needing an ancestor wrapper. Consumers may override --font-family
+   inside a scoped namespace (e.g. `.jbiq-discovery` in index.html) if their
+   surface uses a different default typeface.
+   ---------------------------------------------------------------------------- */
+:root {
+  /* color.surface */
+  --color-surface-primary:   #ffffff;
+  --color-surface-secondary: #f5f5f5;
+  --color-surface-tertiary:  #eeeeef;
+
+  /* color.text */
+  --color-text-primary:    #0c0d10;
+  --color-text-secondary:  rgba(12,13,16,0.65);
+  --color-text-tertiary:   rgba(12,13,16,0.38);
+  --color-text-on-primary: #ffffff;
+
+  /* color.action — JDS primary (purple) */
+  --color-action-primary:         #6d17ce;
+  --color-action-primary-hover:   #310064;
+  --color-action-primary-surface: #ede7ff;
+
+  /* color.border */
+  --color-border-default: rgba(12,13,16,0.08);
+  --color-border-strong:  rgba(12,13,16,0.12);
+
+  /* color.overlay — badges over media */
+  --color-overlay-dark:    rgba(12,13,16,0.6);
+  --color-overlay-warning: rgba(240,109,15,0.9);
+
+  /* color.status — SOLID status colours for text/icon pills sitting OFF media.
+     For status badges sitting ON card media (place-card__status-badge variants)
+     we use the semi-transparent `--color-overlay-*` tokens below so the badge
+     reads cleanly against any underlying photo. */
+  --color-status-open:         #0c0d10;
+  --color-status-closing-soon: #f06d0f;
+  --color-status-closed:       rgba(12,13,16,0.65);
+
+  /* color.feedback */
+  --color-feedback-error-bg:     rgba(250,47,64,0.08);
+  --color-feedback-error-text:   #fa2f40;
+  --color-feedback-error-border: rgba(250,47,64,0.3);
+
+  /* color.semantic */
+  --color-success: #25ab21;
+  --color-warning: #f06d0f;
+  --color-error:   #fa2f40;
+
+  /* space */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  12px;
+  --space-lg:  16px;
+  --space-xl:  24px;
+  --space-xxl: 32px;
+
+  /* radius */
+  --radius-sm:   8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-pill: 999px;
+
+  /* font (size/weight/tracking — NOT family; consumers own that) */
+  --font-mono:   ui-monospace, 'SF Mono', Menlo, 'Roboto Mono', monospace;
+  --font-size-caption: 12px;
+  --font-size-small:   12px;
+  --font-size-body:    14px;
+  --font-size-title:   16px;
+  --font-size-hero:    18px;
+  --font-weight-regular: 400;
+  --font-weight-medium:  500;
+  --font-weight-bold:    700;
+  --font-line-height-tight:  1.2;
+  --font-line-height-normal: 1.5;
+  --font-tracking-headline: -0.03em;
+  --font-tracking-body:     -0.005em;
+  --font-tracking-small:     0.005em;
+
+  /* layout — used by primitives */
+  --layout-card-width:        220px;
+  --layout-card-media-height: 110px;
+  --layout-map-height:        132px;
+}
+
+
+/* ----------------------------------------------------------------------------
+   COMPOSITION: discovery-view — vertical stack of primitive sections, used
+   inside the chat surface and inside the playground stages.
+   ---------------------------------------------------------------------------- */
+.discovery-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: SubjectHeader — title, subtitle, and optional partner attribution
+   row (logo chip + partner name) sitting ABOVE the title.
+   ---------------------------------------------------------------------------- */
+.subject-header { padding: 0; }
+
+.subject-header__partner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xs);
+}
+.subject-header__partner-name {
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  letter-spacing: var(--font-tracking-small);
+  line-height: var(--font-line-height-tight);
+}
+.subject-header__brand-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-pill);
+  padding: 0;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+.subject-header__brand-chip--swiggy { background: #FC8019; }
+.subject-header__brand-chip--zomato { background: #E23744; }
+.subject-header__brand-chip--vrl    { background: #C8102E; }
+
+.subject-header__title {
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-tracking-headline);
+}
+.subject-header__subtitle {
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin: var(--space-xs) 0 0;
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-tracking-small);
+}
+.subject-header__subtitle-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: List section head
+   ---------------------------------------------------------------------------- */
+.list-section-head {
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+  margin: 0 var(--space-lg) var(--space-sm);
+}
+.collection + .list-section-head { margin-top: var(--space-xl); }
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: LocationContext — area pill with optional 'change' link.
+   ---------------------------------------------------------------------------- */
+.location-context {
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+}
+.location-context__area { color: var(--color-text-primary); font-weight: var(--font-weight-medium); }
+.location-context__separator { color: var(--color-text-tertiary); }
+.location-context__change {
+  font-family: inherit;
+  font-size: var(--font-size-caption);
+  color: var(--color-action-primary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.location-context__change:hover { color: var(--color-action-primary-hover); }
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: ChoiceChips / FilterChipBar
+   ---------------------------------------------------------------------------- */
+.chips-prompt {
+  padding: 0 var(--space-lg) var(--space-sm);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+}
+.filter-chip-bar {
+  display: flex;
+  gap: var(--space-xs);
+  padding: 0 var(--space-lg);
+  overflow-x: auto;
+  flex-wrap: wrap;
+  scrollbar-width: none;
+}
+.filter-chip-bar::-webkit-scrollbar { display: none; }
+.filter-chip {
+  flex-shrink: 0;
+  background: transparent;
+  border: 0.5px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  padding: var(--space-xs) var(--space-md);
+  font-family: inherit;
+  font-size: var(--font-size-small);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.filter-chip--selected {
+  background: var(--color-action-primary);
+  color: var(--color-text-on-primary);
+  border-color: transparent;
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: SortControl — pill-shaped <select> on the discovery rail.
+   ---------------------------------------------------------------------------- */
+.sort-control {
+  padding: 0 var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.sort-control__label {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+.sort-control__select {
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  font-size: var(--font-size-small);
+  padding: var(--space-xs) var(--space-md);
+  border: 0.5px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: Collection — one primitive, three layouts (list / grid / carousel).
+   ---------------------------------------------------------------------------- */
+.collection { padding: 0 var(--space-lg); }
+
+.collection--list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.collection--grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm);
+}
+.collection--carousel {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: var(--space-lg);
+  scroll-padding-right: var(--space-lg);
+  scrollbar-width: none;
+}
+.collection--carousel::-webkit-scrollbar { display: none; }
+/* Trailing spacer so the last card has breathing room on the right edge. */
+.collection--carousel::after { content: ""; flex-shrink: 0; width: var(--space-xs); }
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: PlaceCard (a.k.a. PlaceResultCard / EntityCard for Place)
+   ---------------------------------------------------------------------------- */
+.place-card {
+  flex-shrink: 0;
+  width: var(--layout-card-width);
+  background: var(--color-surface-primary);
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  scroll-snap-align: start;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
+}
+.place-card__media {
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--color-action-primary-surface);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  font-size: 36px;
+}
+.place-card__media[data-emoji]::before { content: attr(data-emoji); }
+.place-card__badge {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-on-primary);
+  background: var(--color-action-primary);
+}
+.place-card__status-badge {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-on-primary);
+  background: var(--color-overlay-dark);
+}
+.place-card__status-badge--open,
+.place-card__status-badge--closed       { background: var(--color-overlay-dark); }
+.place-card__status-badge--closing-soon { background: var(--color-overlay-warning); }
+
+.place-card__content { padding: var(--space-sm) 0 var(--space-md); }
+.place-card__title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-xs);
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-tracking-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.place-card__tags {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-xs);
+}
+.place-card__meta {
+  display: flex;
+  gap: var(--space-sm);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.place-card__rating-value {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  margin-right: 2px;
+}
+.place-card__specs {
+  margin: var(--space-xs) 0 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: CatalogCard (carousel / grid / list adaptive)
+   ---------------------------------------------------------------------------- */
+.catalog-card {
+  background: var(--color-surface-primary);
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+}
+.collection--carousel > .catalog-card {
+  flex-shrink: 0;
+  width: var(--layout-card-width);
+  scroll-snap-align: start;
+}
+.collection--list > .catalog-card {
+  flex-direction: row;
+  align-items: stretch;
+  gap: var(--space-md);
+}
+.collection--list > .catalog-card .catalog-card__media {
+  width: 96px;
+  min-width: 96px;
+  height: 96px;
+  aspect-ratio: 1 / 1;
+}
+.collection--list > .catalog-card .catalog-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.catalog-card__media {
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-lg);
+  background-size: cover;
+  background-position: center;
+  background-color: var(--color-action-primary-surface);
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+}
+.catalog-card__media[data-emoji]::before { content: attr(data-emoji); }
+.catalog-card__badge {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-on-primary);
+  background: var(--color-action-primary);
+}
+.catalog-card__status-badge {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-on-primary);
+  background: var(--color-overlay-dark);
+}
+.catalog-card__status-badge--live { background: var(--color-feedback-error-text); }
+
+.catalog-card__content {
+  padding: var(--space-sm) 0 var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+.catalog-card__title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-tracking-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.catalog-card__subtitle {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+.catalog-card__tags {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+.catalog-card__meta {
+  display: flex;
+  gap: var(--space-sm);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.catalog-card__price {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-bold);
+}
+.catalog-card__rating-value {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  margin-right: 2px;
+}
+.catalog-card__temporal {
+  color: var(--color-action-primary);
+  font-weight: var(--font-weight-medium);
+}
+.catalog-card__specs {
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+
+/* Split tap model — when a card opts in via `commit_action`, the wrapper is
+   a non-interactive <div> and only the pill below is tappable. */
+.catalog-card--has-commit { cursor: default; }
+.catalog-card__commit {
+  align-self: center;
+  margin-left: auto;
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--color-action-primary);
+  color: var(--color-text-on-primary);
+  font-family: inherit;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--font-tracking-body);
+  min-height: 32px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.catalog-card__commit.is-pressed {
+  transform: scale(0.94);
+  box-shadow: 0 0 0 4px rgba(74,41,161,0.18);
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: CompareTable — sticky label column + scroll-snap option columns.
+   ---------------------------------------------------------------------------- */
+.compare-table {
+  margin: 0 var(--space-lg);
+  border: 0.5px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-surface-primary);
+}
+.compare-table__scroller {
+  display: grid;
+  grid-template-columns: 85px 1fr;
+}
+.compare-table__labels {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface-secondary);
+  border-right: 0.5px solid var(--color-border-default);
+}
+.compare-table__options {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.compare-table__options::-webkit-scrollbar { display: none; }
+.compare-table__option {
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+  scroll-snap-align: start;
+  border-right: 0.5px solid var(--color-border-default);
+  background: none;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  padding: 0;
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.compare-table__option:last-child { border-right: none; }
+.compare-table__option--recommended { background: var(--color-action-primary-surface); }
+
+.compare-table__label-cell,
+.compare-table__cell {
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  line-height: var(--font-line-height-tight);
+  height: 52px;
+  display: flex;
+  align-items: center;
+  border-bottom: 0.5px solid var(--color-border-default);
+  overflow: hidden;
+}
+.compare-table__label-cell:last-child,
+.compare-table__cell:last-child { border-bottom: none; }
+.compare-table__label-cell {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+.compare-table__cell { color: var(--color-text-primary); }
+.compare-table__cell--best {
+  color: var(--color-action-primary);
+  font-weight: var(--font-weight-bold);
+}
+.compare-table__cell--worst { color: var(--color-text-secondary); }
+
+.compare-table__header-cell,
+.compare-table__header-label {
+  height: 108px;
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  border-bottom: 0.5px solid var(--color-border-default);
+  overflow: hidden;
+}
+.compare-table__header-cell { justify-content: flex-end; }
+.compare-table__header-label {
+  background: var(--color-surface-secondary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-secondary);
+  letter-spacing: var(--font-tracking-small);
+  text-transform: uppercase;
+  justify-content: flex-end;
+}
+.compare-table__option-title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  line-height: var(--font-line-height-tight);
+  letter-spacing: var(--font-tracking-body);
+  margin: 0;
+}
+.compare-table__option-subtitle {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+.compare-table__option-badge {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 2px var(--space-sm);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-on-primary);
+  background: var(--color-action-primary);
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: Timeline — Schedule entities (slots, appointments, fixtures).
+   ---------------------------------------------------------------------------- */
+.timeline {
+  padding: 0 var(--space-lg);
+  display: flex;
+  flex-direction: column;
+}
+.tl-row {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  border-bottom: 0.5px solid var(--color-border-default);
+}
+.tl-row:last-child { border-bottom: none; }
+.tl-row[data-active="true"] {
+  background: var(--color-action-primary-surface);
+  border-radius: var(--radius-sm);
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+  margin: 0 calc(-1 * var(--space-md));
+}
+.tl-time {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+}
+.tl-title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--font-tracking-body);
+}
+.tl-meta {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: Tracker — live Status / Status<Route>.
+   ---------------------------------------------------------------------------- */
+.tracker { margin: 0 var(--space-lg); }
+.tracker__media {
+  background: transparent;
+  color: var(--color-text-primary);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.tracker__stage {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-action-primary);
+}
+.tracker__eta {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: var(--font-tracking-headline);
+  line-height: 1;
+  margin-top: var(--space-xs);
+  color: var(--color-text-primary);
+}
+.tracker__detail {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-xs);
+}
+.tracker__progress {
+  height: 6px;
+  background: var(--color-surface-secondary);
+  border-radius: var(--radius-pill);
+  margin-top: var(--space-lg);
+  overflow: hidden;
+}
+.tracker__progress-fill {
+  height: 100%;
+  background: var(--color-action-primary);
+  width: 33%;
+  border-radius: var(--radius-pill);
+}
+.tracker__steps {
+  padding: var(--space-sm) 0 0;
+  display: flex;
+  gap: 2px;
+  font-size: 10px;
+  font-weight: var(--font-weight-regular);
+  color: rgba(12,13,16,0.73);
+  line-height: 1.3;
+}
+.tracker__steps > span { flex: 1 0 0; min-width: 0; text-align: center; }
+.tracker__steps > span:first-child { text-align: left; }
+.tracker__steps > span:last-child  { text-align: right; }
+.tracker__steps .done {
+  color: rgba(12,13,16,0.73);
+  font-weight: var(--font-weight-regular);
+}
+.tracker__steps .active {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: Map panel — base size, schematic land colour. Two render paths
+   share this base: (a) static pin classes for spec illustrations,
+   (b) `.map-panel__svg` for the live SVG render in the app.
+   ---------------------------------------------------------------------------- */
+.map-panel {
+  margin: 0 var(--space-lg);
+  height: var(--layout-map-height);
+  background: #E8EEF2;
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+}
+.map-panel__svg { display: block; width: 100%; height: 100%; }
+.map-pin {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill) var(--radius-pill) var(--radius-pill) 4px;
+  background: var(--color-action-primary);
+  color: var(--color-text-on-primary);
+  transform: rotate(-45deg);
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-surface-primary);
+}
+.map-pin > span { transform: rotate(45deg); font-size: 11px; font-weight: 700; }
+.map-pin.start { width: 22px; height: 22px; background: var(--color-success); top: 55%; left: 14%; }
+.map-pin.end   { top: 36%; right: 18%; }
+.map-route {
+  position: absolute;
+  top: 60%;
+  left: 18%;
+  width: 60%;
+  height: 2px;
+  background: var(--color-action-primary);
+  border-radius: var(--radius-pill);
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: CartPanel
+   ---------------------------------------------------------------------------- */
+.cart-section { padding: 0 var(--space-lg); }
+.cart-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  padding: var(--space-md) 0;
+  border-bottom: 0.5px solid var(--color-border-default);
+  align-items: center;
+}
+.cart-name  { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+.cart-qty   { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-top: 2px; }
+.cart-price { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+.cart-totals {
+  background: var(--color-surface-secondary);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-top: var(--space-md);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+.cart-totals .total-row {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  border-top: 0.5px solid var(--color-border-default);
+  padding-top: var(--space-sm);
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-title);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--font-tracking-headline);
+}
+
+
+/* ----------------------------------------------------------------------------
+   BUTTONS — primary / secondary CTAs used by CartPanel, ConfirmPanel, errors.
+   ---------------------------------------------------------------------------- */
+.cta-row { padding: var(--space-md) var(--space-lg) 0; }
+.btn-primary {
+  width: 100%;
+  appearance: none;
+  background: var(--color-action-primary);
+  color: var(--color-text-on-primary);
+  border: none;
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+.btn-primary:hover { background: var(--color-action-primary-hover); }
+.btn-secondary {
+  width: 100%;
+  appearance: none;
+  background: transparent;
+  border: 0.5px solid var(--color-border-strong);
+  color: var(--color-text-primary);
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: ConfirmPanel — the system-owned interrupt before any Transaction.
+   ---------------------------------------------------------------------------- */
+.confirm {
+  margin: 0 var(--space-lg);
+  padding: var(--space-lg);
+  background: var(--color-surface-secondary);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+.confirm-prompt {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-xs);
+}
+.confirm-summary {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-md);
+}
+.confirm-total {
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: var(--font-tracking-headline);
+  line-height: 1;
+  margin-bottom: var(--space-lg);
+}
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: ReceiptPanel — Transaction.confirmed / .completed.
+   ---------------------------------------------------------------------------- */
+.receipt {
+  margin: 0 var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.receipt-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  border-bottom: 0.5px solid var(--color-border-default);
+}
+.receipt-check {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--color-action-primary);
+  color: var(--color-text-on-primary);
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.receipt-title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+.receipt-sub   { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-top: 2px; }
+.receipt-line {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  padding: var(--space-xs) 0;
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+}
+.receipt-total {
+  border-top: 0.5px solid var(--color-border-default);
+  padding-top: var(--space-sm);
+  margin-top: var(--space-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: MediaPlayer
+   ---------------------------------------------------------------------------- */
+.player {
+  margin: 0 var(--space-lg);
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: var(--space-md);
+  align-items: center;
+}
+.player-art {
+  aspect-ratio: 1;
+  background: var(--color-action-primary-surface);
+  border-radius: var(--radius-lg);
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+}
+.player-title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--font-tracking-body);
+}
+.player-artist {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+.player-bar {
+  height: 3px;
+  background: var(--color-border-default);
+  border-radius: var(--radius-pill);
+  margin-top: var(--space-sm);
+  overflow: hidden;
+}
+.player-bar-fill {
+  height: 100%;
+  background: var(--color-action-primary);
+  width: 38%;
+}
+.player-controls {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body);
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: Gallery — Collection<Media> in a 2-column grid. Cards inside use
+   the .catalog-card primitive with 3:4 media (already defined above). For a
+   carousel-flavoured Gallery, wrap children in `.collection.collection--carousel`
+   instead and skip `.gallery`.
+   ---------------------------------------------------------------------------- */
+.gallery {
+  padding: 0 var(--space-lg);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm);
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: InformationalResponse — label/value rows for "tell me about X"
+   answers (opening hours, specs, FAQ-style facts). Renders as a bordered
+   card wrapping a vertical stack of label/value pairs.
+   ---------------------------------------------------------------------------- */
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  margin: 0 var(--space-lg);
+  background: var(--color-surface-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+.info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid rgba(12,13,16,0.06);
+}
+.info-row:last-child { padding-bottom: 0; border-bottom: none; }
+.info-row__label {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+.info-row__value {
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+
+/* ----------------------------------------------------------------------------
+   PRIMITIVE: EdgeAffordance — ancillary action after a collection (see more,
+   compare, save, etc.). Subordinate to card CTAs.
+   ---------------------------------------------------------------------------- */
+.edge-affordance { padding: var(--space-xs) 0 0; }
+.edge-affordance__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--color-action-primary-surface);
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-action-primary);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.edge-affordance__btn:hover  { background: rgba(116,66,228,0.06); }
+.edge-affordance__btn:active { background: rgba(116,66,228,0.12); }
+/* Kind modifiers (--see_more / --compare / --save_later / --remind_later /
+   --context_shift / --commit / --suggested) are emitted by the renderer as
+   CSS hooks. The base style covers every kind by default; only `--suggested`
+   currently differentiates (lighter, less primary). Add a new selector below
+   when a kind needs its own visual treatment. */
+
+.suggested-prompts {
+  padding: var(--space-sm) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  align-self: flex-start;
+  width: 100%;
+}
+.suggested-prompts__label {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-tertiary);
+  margin: 0;
+  letter-spacing: var(--font-tracking-small, normal);
+}
+.suggested-prompts__row {
+  display: flex;
+  gap: var(--space-sm);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.suggested-prompts__row::-webkit-scrollbar { display: none; }
+.edge-affordance__btn--suggested {
+  background: var(--color-surface-primary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-strong, rgba(12,13,16,0.12));
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+.edge-affordance__btn--suggested:hover {
+  background: var(--color-surface-secondary);
+  border-color: var(--color-text-primary);
+}
+.edge-affordance__btn--suggested:active { background: rgba(12,13,16,0.06); }
+
+
+/* ----------------------------------------------------------------------------
+   EmptyState + ValidatorBanner — pair with the primitives above.
+   ---------------------------------------------------------------------------- */
+.empty-state {
+  padding: var(--space-xl) var(--space-lg);
+  text-align: center;
+}
+.empty-state__title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-xs);
+}
+.empty-state__body {
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-sm);
+}
+.empty-state__prompt {
+  font-size: var(--font-size-small);
+  color: var(--color-action-primary);
+  margin: 0;
+}
+
+.validator-banner {
+  margin: var(--space-md) var(--space-lg);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-feedback-error-bg);
+  border: 0.5px solid var(--color-feedback-error-border);
+  color: var(--color-feedback-error-text);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-small);
+}
+.validator-banner__title {
+  font-weight: var(--font-weight-medium);
+  margin: 0 0 var(--space-xs);
+}
+.validator-banner__list {
+  margin: 0;
+  padding-left: var(--space-lg);
+}
+
+
+/* ----------------------------------------------------------------------------
+   REVEAL + SHIMMER — opt-in via `.components-reveal` on any container that
+   wraps a fresh discovery view. The main app's `.jbiq-discovery` wrapper
+   automatically inherits the same animation (see discovery.css).
+   ---------------------------------------------------------------------------- */
+@keyframes jbiqDiscoveryReveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes jbiqMediaShimmer {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  15%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateX(110%); opacity: 0; }
+}
+.components-reveal,
+.jbiq-discovery {
+  animation: jbiqDiscoveryReveal 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  will-change: opacity, transform;
+}
+.components-reveal .place-card__media,
+.components-reveal .catalog-card__media,
+.components-reveal .map-panel,
+.jbiq-discovery .place-card__media,
+.jbiq-discovery .catalog-card__media,
+.jbiq-discovery .map-panel { overflow: hidden; }
+
+.components-reveal .place-card__media::after,
+.components-reveal .catalog-card__media::after,
+.components-reveal .map-panel::after,
+.jbiq-discovery .place-card__media::after,
+.jbiq-discovery .catalog-card__media::after,
+.jbiq-discovery .map-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(255,255,255,0) 35%,
+    rgba(255,255,255,0.55) 50%,
+    rgba(255,255,255,0) 65%
+  );
+  transform: translateX(-100%);
+  animation: jbiqMediaShimmer 900ms linear 80ms 1 forwards;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .components-reveal,
+  .jbiq-discovery { animation: none; }
+  .components-reveal .place-card__media::after,
+  .components-reveal .catalog-card__media::after,
+  .components-reveal .map-panel::after,
+  .jbiq-discovery .place-card__media::after,
+  .jbiq-discovery .catalog-card__media::after,
+  .jbiq-discovery .map-panel::after { display: none; }
+}

@@ -37,11 +37,30 @@ Partners describe their tool output through a **manifest** that maps fields to p
 
 A small, opinionated library, each component typed to one or more primitives. The renderer picks based on (a) entity type, (b) cardinality, (c) conversational context, (d) surface affordances.
 
-Eleven components cover ~95% of cases (full spec in `02-component-spec.md`):
+**Eleven entity-rendering components cover ~95% of cases** (full spec in `components-spec.md`):
 
 EntityCard · ComparisonGrid · List · Map · Timeline · Tracker · CartPanel · ReceiptPanel · ChoiceChips · MediaPlayer · Gallery
 
+Two additional **system primitives** sit alongside the entity-rendering set — they are never authored in a manifest, the renderer drops them in:
+
+- **SubjectHeader** — title block at the top of every Discovery view, with optional partner-attribution row (brand chip + partner name).
+- **ConfirmPanel** — the mandatory interrupt before any Transaction tool fires. See §"Trust & safety as a system property" below and `components-spec.md` §3.
+
+So 13 components total ship in the canonical library, but the partner-facing surface area is the eleven entity renderers.
+
 The library is closed by default. Adding a new component requires a design review and a vertical justification. This is the discipline that keeps the system coherent across partners.
+
+### Files & roles — where the components actually live
+
+The component system is one CSS file with many consumers. To avoid drift:
+
+- **`components.css`** — single source of truth for tokens and primitive CSS. Edit a token or a primitive here and it propagates to every surface that links the file.
+- **`components-overview.html`** — the live catalogue. Demonstrates each component across verticals; it consumes `components.css` but does not define styles.
+- **`components-playground.html`** — interactive pipeline prototype (tool output → mapped entity → renderer pick → component → voice + visual). Consumer of `components.css`.
+- **`place-playground.html`** — schema sandbox for partner manifests and scenarios. Consumer of `components.css`. Renders its primitives through a local copy of the discovery renderer.
+- **`index.html` + `discovery.css` + `discovery.js`** — the main app. `discovery.js` produces the canonical DOM; `discovery.css` ships only the chat-surface scoping (`.jbiq-discovery` wrapper, full-bleed rails) on top of `components.css`.
+
+Authoring rule: *primitives live in `components.css`; surface chrome lives in the consuming file.* If you find yourself writing the same selector twice in two HTML files, you're editing the wrong file.
 
 ### Layer 3 — Voice ↔ visual choreography (the contract)
 
@@ -139,6 +158,8 @@ Partners declare what their MCP can do — `read`, `transact`, `track`, `notify`
 
 ### 4. Versioning at three levels
 Components are semver'd. Manifests pin component versions. Breaking changes ship as new components (`EntityCard.v2`), not mutations. Old manifests keep working until the partner upgrades. The renderer keeps the last three majors of every component live.
+
+> **2026-05-11 erratum.** The layout container previously named `.collection-container` (with `--list / --grid / --carousel` modifiers) was renamed to `.collection` as part of the source-of-truth refactor. This is the one historical breaking change in the library to date — no codemod was required because the change preceded any external partner adoption. From this point onward the versioning policy applies in full: future breaks ship as `EntityCard.v2`-style new components, not renames. See `components-spec.md` §6 Changelog for the migration note.
 
 ### 5. Uniform telemetry
 Every component emits the same events: `impression`, `focus`, `action`, `dismiss`, `abandon`. One funnel report works across every partner. Swiggy's "search → cart → order" and Practo's "search → book → confirm" share the same metric shape, so platform-level optimization is possible — drop-off at `focus → action` is comparable across verticals.
