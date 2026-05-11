@@ -294,6 +294,9 @@
      wrapping collection, so we re-introduce the side gutter at the panel
      level for those cases. */
   .component-card .tab-panel > .place-card { margin: 0 var(--space-lg); }
+  /* Gallery owns its own 16px padding — drop the component-card's vertical
+     padding so the visible gap stays at 16px rather than stacking to 32px. */
+  .component-card:has(.gallery) { padding: 0; }
 
   .appendix { margin-top: var(--space-xxl); padding-top: var(--space-xl); border-top: 0.5px solid var(--color-border-default); }
   .appendix h2 { font-size: 20px; font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-headline); margin: 0 0 var(--space-sm); }
@@ -376,12 +379,11 @@
 
 <aside id="sidebar" class="toc" role="navigation" aria-label="Components">
   <div class="toc-brand">
-    <div class="toc-brand__dot">J</div>
     <div class="toc-brand__name">JBIQ</div>
     <button class="toc-close" aria-label="Close navigation">×</button>
   </div>
   <div class="toc-header">Pages</div>
-  <a href="#home">Home</a>
+  <a href="#home">Overview</a>
   <div class="toc-header" style="margin-top: var(--space-md)">Components</div>
   <a href="#subjectheader">SubjectHeader</a>
     <a href="#entitycard">EntityCard</a>

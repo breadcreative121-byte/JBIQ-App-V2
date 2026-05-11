@@ -366,7 +366,6 @@
   place-items: center;
   font-size: 36px;
 }
-.place-card__media[data-emoji]::before { content: attr(data-emoji); }
 .place-card__badge {
   position: absolute;
   top: var(--space-sm);
@@ -480,7 +479,6 @@
   place-items: center;
   font-size: 32px;
 }
-.catalog-card__media[data-emoji]::before { content: attr(data-emoji); }
 .catalog-card__badge {
   position: absolute;
   top: var(--space-sm);
@@ -1051,16 +1049,13 @@
 
 
 /* ----------------------------------------------------------------------------
-   PRIMITIVE: Gallery — Collection<Media> in a 2-column grid. Cards inside use
-   the .catalog-card primitive with 3:4 media (already defined above). For a
-   carousel-flavoured Gallery, wrap children in `.collection.collection--carousel`
-   instead and skip `.gallery`.
+   PRIMITIVE: Gallery — Collection<Media> wrapper. The inner grid is handled by
+   `.collection.collection--grid`; `.gallery` just provides the side gutter and
+   a tablet max-width so the cards don't sprawl on wide viewports.
    ---------------------------------------------------------------------------- */
 .gallery {
-  padding: 0 var(--space-lg);
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-sm);
+  padding: var(--space-lg);
+  max-width: 720px;
 }
 
 
