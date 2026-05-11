@@ -177,13 +177,11 @@
     padding: var(--space-sm) var(--space-md);
     margin-bottom: var(--space-md);
   }
-  .toc-brand__dot {
-    width: 28px; height: 28px;
-    border-radius: var(--radius-pill);
-    background: var(--color-action-primary);
-    color: var(--color-text-on-primary);
-    display: grid; place-items: center;
-    font-weight: 900; font-size: 13px; letter-spacing: -0.02em;
+  .toc-brand__mark {
+    width: 28px;
+    height: 28px;
+    display: block;
+    flex-shrink: 0;
   }
   .toc-brand__name {
     font-size: var(--font-size-title);
@@ -263,21 +261,27 @@
   }
   @keyframes panelIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-  .you-line {
-    font-size: var(--font-size-caption);
-    color: var(--color-text-tertiary);
+  .user-turn {
+    display: flex;
+    justify-content: flex-start;
     padding: 0 var(--space-lg);
-    font-weight: var(--font-weight-medium);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
     margin-bottom: var(--space-md);
   }
-  .you-line .text {
-    text-transform: none;
+  .user-bubble {
+    background: var(--color-surface-secondary);
+    color: var(--color-text-primary);
+    padding: var(--space-md) var(--space-lg);
+    border-radius: 24px 24px 0 24px;
+    font-size: var(--font-size-body);
+    line-height: var(--font-line-height-normal);
     letter-spacing: var(--font-tracking-body);
-    font-weight: 400;
-    color: var(--color-text-secondary);
-    margin-left: var(--space-sm);
+    max-width: 80%;
+    overflow-wrap: anywhere;
+    animation: bubbleIn 0.3s ease;
+  }
+  @keyframes bubbleIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
   .text-response {
     padding: 0 var(--space-lg);
@@ -447,6 +451,7 @@
 
 <aside id="sidebar" class="toc" role="navigation" aria-label="Components">
   <div class="toc-brand">
+    <img src="assets/logo.svg" alt="Jio" class="toc-brand__mark" width="28" height="28">
     <div class="toc-brand__name">JBIQ</div>
     <button class="toc-close" aria-label="Close navigation">×</button>
   </div>
@@ -563,19 +568,19 @@
       </div>
       <div class="tab-panels">
         <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-          <div class="you-line">YOU<span class="text">Pad thai nearby</span></div>
+          <div class="user-turn"><div class="user-bubble">Pad thai nearby</div></div>
           <div class="text-response"><p class="text-response__body">Drunken Monkey is open. 4.3 stars, ETA 32 minutes.</p></div>
         </div>
         <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
-          <div class="you-line">YOU<span class="text">Cheap dinner deals tonight</span></div>
+          <div class="user-turn"><div class="user-bubble">Cheap dinner deals tonight</div></div>
           <div class="text-response"><p class="text-response__body">Three Zomato Gold deals near you, all under ₹400.</p></div>
         </div>
         <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
-          <div class="you-line">YOU<span class="text">Bus to Mangalore tomorrow</span></div>
+          <div class="user-turn"><div class="user-bubble">Bus to Mangalore tomorrow</div></div>
           <div class="text-response"><p class="text-response__body">VRL has a sleeper at 9:30 PM. Window seat free.</p></div>
         </div>
         <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
-          <div class="you-line">YOU<span class="text">Top picks near me</span></div>
+          <div class="user-turn"><div class="user-bubble">Top picks near me</div></div>
           <div class="text-response"><p class="text-response__body">Five open now across delivery apps.</p></div>
         </div>
       </div>
@@ -640,23 +645,23 @@
       <div class="tab-panels">
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Pad thai nearby</span></div>
+            <div class="user-turn"><div class="user-bubble">Pad thai nearby</div></div>
             <div class="text-response"><p class="text-response__body">Drunken Monkey is open. 4.3 stars, ETA 32 minutes.</p></div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Top picks near me</span></div>
+            <div class="user-turn"><div class="user-bubble">Top picks near me</div></div>
             <div class="text-response"><p class="text-response__body">Five open now. Swipe to browse.</p></div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Dermatologist this week</span></div>
+            <div class="user-turn"><div class="user-bubble">Dermatologist this week</div></div>
             <div class="text-response"><p class="text-response__body">Dr. Aparna Rao has slots tomorrow.</p></div>
           </div>
           <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Read me the budget story</span></div>
+            <div class="user-turn"><div class="user-bubble">Read me the budget story</div></div>
             <div class="text-response"><p class="text-response__body">Five percent tax relief for the salaried middle class. Markets up.</p></div>
           </div>
           <div class="tab-panel" data-idx="4" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Show my balance</span></div>
+            <div class="user-turn"><div class="user-bubble">Show my balance</div></div>
             <div class="text-response"><p class="text-response__body">Savings ₹1,24,580. One pending bill due Wednesday.</p></div>
           </div>
       </div>
@@ -774,19 +779,19 @@
       <div class="tab-panels">
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Thai near me</span></div>
+            <div class="user-turn"><div class="user-bubble">Thai near me</div></div>
             <div class="text-response"><p class="text-response__body">Soi 7 is recommended — top-rated and fast.</p></div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Flights to Lisbon</span></div>
+            <div class="user-turn"><div class="user-bubble">Flights to Lisbon</div></div>
             <div class="text-response"><p class="text-response__body">TAP is recommended — fastest and direct.</p></div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Recommend a SQL course</span></div>
+            <div class="user-turn"><div class="user-bubble">Recommend a SQL course</div></div>
             <div class="text-response"><p class="text-response__body">Coursera's specialization is most thorough.</p></div>
           </div>
           <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Basmati rice, 5 kg</span></div>
+            <div class="user-turn"><div class="user-bubble">Basmati rice, 5 kg</div></div>
             <div class="text-response"><p class="text-response__body">India Gate is highest-rated. Daawat is on sale.</p></div>
           </div>
       </div>
@@ -939,23 +944,23 @@
       <div class="tab-panels">
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Restaurants near me</span></div>
+            <div class="user-turn"><div class="user-bubble">Restaurants near me</div></div>
             <div class="text-response"><p class="text-response__body">Three nearby. Soi 7 is the top match for Thai.</p></div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Show me the menu</span></div>
+            <div class="user-turn"><div class="user-bubble">Show me the menu</div></div>
             <div class="text-response"><p class="text-response__body">Two sections shown. Pad Thai is the most ordered.</p></div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Dermatologists this week</span></div>
+            <div class="user-turn"><div class="user-bubble">Dermatologists this week</div></div>
             <div class="text-response"><p class="text-response__body">Three available — sorted by earliest slot.</p></div>
           </div>
           <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">PM jobs in Bangalore</span></div>
+            <div class="user-turn"><div class="user-bubble">PM jobs in Bangalore</div></div>
             <div class="text-response"><p class="text-response__body">Four matches. Razorpay is the top match.</p></div>
           </div>
           <div class="tab-panel" data-idx="4" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Top headlines</span></div>
+            <div class="user-turn"><div class="user-bubble">Top headlines</div></div>
             <div class="text-response"><p class="text-response__body">Five top stories. Lead is the budget.</p></div>
           </div>
       </div>
@@ -1170,19 +1175,19 @@
       <div class="tab-panels">
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Reserve at Drunken Monkey tonight</span></div>
+            <div class="user-turn"><div class="user-bubble">Reserve at Drunken Monkey tonight</div></div>
             <div class="text-response"><p class="text-response__body">Four slots tonight. Earliest is 7:30.</p></div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Slots for Dr. Aparna Rao</span></div>
+            <div class="user-turn"><div class="user-bubble">Slots for Dr. Aparna Rao</div></div>
             <div class="text-response"><p class="text-response__body">Five slots tomorrow. Earliest is 11:00.</p></div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Upcoming matches</span></div>
+            <div class="user-turn"><div class="user-bubble">Upcoming matches</div></div>
             <div class="text-response"><p class="text-response__body">Three this week. India vs Australia Wednesday.</p></div>
           </div>
           <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">What's on today?</span></div>
+            <div class="user-turn"><div class="user-bubble">What's on today?</div></div>
             <div class="text-response"><p class="text-response__body">Three things. Biggest is the 11 AM team review.</p></div>
           </div>
       </div>
@@ -1295,19 +1300,19 @@
       <div class="tab-panels">
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Where's my food?</span></div>
+            <div class="user-turn"><div class="user-bubble">Where's my food?</div></div>
             <div class="text-response"><p class="text-response__body">Driver picked up the order — 18 minutes away.</p></div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Where's my order?</span></div>
+            <div class="user-turn"><div class="user-bubble">Where's my order?</div></div>
             <div class="text-response"><p class="text-response__body">Out for delivery — arriving in twelve minutes.</p></div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Live India match</span></div>
+            <div class="user-turn"><div class="user-bubble">Live India match</div></div>
             <div class="text-response"><p class="text-response__body">India 245 for 4. Kohli on 67.</p></div>
           </div>
           <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Aadhaar update status</span></div>
+            <div class="user-turn"><div class="user-bubble">Aadhaar update status</div></div>
             <div class="text-response"><p class="text-response__body">Under verification. Expected approval in 4–6 days.</p></div>
           </div>
       </div>
@@ -1392,15 +1397,15 @@
       <div class="tab-panels">
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Show me the delivery</span></div>
+            <div class="user-turn"><div class="user-bubble">Show me the delivery</div></div>
             <div class="text-response"><p class="text-response__body">Driver Amit is 1.4 km away — turning onto Hosur Road.</p></div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Where's the plumber?</span></div>
+            <div class="user-turn"><div class="user-bubble">Where's the plumber?</div></div>
             <div class="text-response"><p class="text-response__body">Ravi is 12 minutes away. On Hosur Road.</p></div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Show my flight route</span></div>
+            <div class="user-turn"><div class="user-bubble">Show my flight route</div></div>
             <div class="text-response"><p class="text-response__body">Bangalore to Lisbon via Frankfurt.</p></div>
           </div>
       </div>
@@ -1453,15 +1458,15 @@
       <div class="tab-panels">
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Add pad thai and a thai iced tea</span></div>
+            <div class="user-turn"><div class="user-bubble">Add pad thai and a thai iced tea</div></div>
             <div class="text-response"><p class="text-response__body">Two items. ₹548 total with delivery.</p></div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Add rice and dal</span></div>
+            <div class="user-turn"><div class="user-bubble">Add rice and dal</div></div>
             <div class="text-response"><p class="text-response__body">Two items. Total ₹939 with delivery.</p></div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Plumber + AC service</span></div>
+            <div class="user-turn"><div class="user-bubble">Plumber + AC service</div></div>
             <div class="text-response"><p class="text-response__body">Two services for tomorrow. ₹798 estimate.</p></div>
           </div>
       </div>
@@ -1544,19 +1549,19 @@
       <div class="tab-panels">
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Checkout</span></div>
+            <div class="user-turn"><div class="user-bubble">Checkout</div></div>
             <div class="text-response"><p class="text-response__body">Just to confirm — pad thai and thai iced tea.</p></div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Send 5000 to mom</span></div>
+            <div class="user-turn"><div class="user-bubble">Send 5000 to mom</div></div>
             <div class="text-response"><p class="text-response__body">Just to confirm — five thousand to Mom.</p></div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Book the TAP</span></div>
+            <div class="user-turn"><div class="user-bubble">Book the TAP</div></div>
             <div class="text-response"><p class="text-response__body">Confirm — TAP TP1359 next Friday, 14A window.</p></div>
           </div>
           <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Book the 11</span></div>
+            <div class="user-turn"><div class="user-bubble">Book the 11</div></div>
             <div class="text-response"><p class="text-response__body">Confirm — Dr. Aparna Rao, tomorrow 11.</p></div>
           </div>
       </div>
@@ -1633,19 +1638,19 @@
       <div class="tab-panels">
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Yes, place it</span></div>
+            <div class="user-turn"><div class="user-bubble">Yes, place it</div></div>
             <div class="text-response"><p class="text-response__body">Done. Order placed. ETA 32 minutes.</p></div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Yes, send it</span></div>
+            <div class="user-turn"><div class="user-bubble">Yes, send it</div></div>
             <div class="text-response"><p class="text-response__body">Done. ₹5,000 sent.</p></div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Book the 11</span></div>
+            <div class="user-turn"><div class="user-bubble">Book the 11</div></div>
             <div class="text-response"><p class="text-response__body">Booked. SMS reminder set.</p></div>
           </div>
           <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Submit the form</span></div>
+            <div class="user-turn"><div class="user-bubble">Submit the form</div></div>
             <div class="text-response"><p class="text-response__body">Submitted. SMS will arrive on approval.</p></div>
           </div>
       </div>
@@ -1734,19 +1739,19 @@
       <div class="tab-panels">
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Find me dinner</span></div>
+            <div class="user-turn"><div class="user-bubble">Find me dinner</div></div>
             <div class="text-response"><p class="text-response__body">What kind?</p></div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">My horoscope</span></div>
+            <div class="user-turn"><div class="user-bubble">My horoscope</div></div>
             <div class="text-response"><p class="text-response__body">Which sign?</p></div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Book a flight</span></div>
+            <div class="user-turn"><div class="user-bubble">Book a flight</div></div>
             <div class="text-response"><p class="text-response__body">Seat preference and cabin?</p></div>
           </div>
           <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Update my Aadhaar</span></div>
+            <div class="user-turn"><div class="user-bubble">Update my Aadhaar</div></div>
             <div class="text-response"><p class="text-response__body">Which detail?</p></div>
           </div>
       </div>
@@ -1789,15 +1794,15 @@
       <div class="tab-panels">
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Play Zinda Banda</span></div>
+            <div class="user-turn"><div class="user-bubble">Play Zinda Banda</div></div>
             <div class="text-response"><p class="text-response__body">Playing Zinda Banda from Jawan.</p></div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Play Hanuman Chalisa</span></div>
+            <div class="user-turn"><div class="user-bubble">Play Hanuman Chalisa</div></div>
             <div class="text-response"><p class="text-response__body">Playing Hanuman Chalisa by Hariharan.</p></div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Read me the budget story</span></div>
+            <div class="user-turn"><div class="user-bubble">Read me the budget story</div></div>
             <div class="text-response"><p class="text-response__body">Audio summary, four minutes.</p></div>
           </div>
       </div>
@@ -1877,15 +1882,15 @@
       <div class="tab-panels">
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Top dishes at Drunken Monkey</span></div>
+            <div class="user-turn"><div class="user-bubble">Top dishes at Drunken Monkey</div></div>
             <div class="text-response"><p class="text-response__body">Four most-ordered.</p></div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">New Hindi movies</span></div>
+            <div class="user-turn"><div class="user-bubble">New Hindi movies</div></div>
             <div class="text-response"><p class="text-response__body">Four big releases this week.</p></div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
-            <div class="you-line">YOU<span class="text">Hanuman Jayanti playlists</span></div>
+            <div class="user-turn"><div class="user-bubble">Hanuman Jayanti playlists</div></div>
             <div class="text-response"><p class="text-response__body">Four collections for tomorrow's festival.</p></div>
           </div>
       </div>

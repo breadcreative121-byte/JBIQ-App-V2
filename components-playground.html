@@ -48,14 +48,11 @@
   }
   .topbar-top { display: flex; align-items: center; gap: var(--space-xl); }
   .brand { display: flex; align-items: center; gap: var(--space-md); }
-  .brand-dot {
-    width: 32px; height: 32px;
-    border-radius: var(--radius-pill);
-    background: var(--color-action-primary);
-    color: var(--color-text-on-primary);
-    display: grid; place-items: center;
-    font-weight: 900; font-size: 14px;
-    letter-spacing: -0.02em;
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+    display: block;
+    flex-shrink: 0;
   }
   .brand-name {
     font-size: var(--font-size-hero);
@@ -148,13 +145,13 @@
   }
   .mobile-frame::-webkit-scrollbar { display: none; }
   .partner-card {
-    width: var(--layout-mobile-frame-width);
-    max-width: 100%;
+    width: 100%;
     background: var(--color-surface-primary);
     border: 0.5px solid var(--color-border-default);
     border-radius: var(--radius-lg);
     padding: var(--space-md) var(--space-lg);
     display: flex; align-items: center; gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
   }
   .partner-mark {
     width: 28px; height: 28px;
@@ -425,7 +422,7 @@
   <header class="topbar">
     <div class="topbar-top">
       <div class="brand">
-        <div class="brand-dot">J</div>
+        <img src="assets/logo.svg" alt="Jio" class="brand-mark" width="32" height="32">
         <div>
           <div class="brand-name">JBIQ</div>
           <div class="brand-sub">Component System · Prototype</div>
@@ -457,13 +454,6 @@
     <!-- Conversation surface -->
     <section class="companion">
       <div class="companion-stage">
-        <div class="partner-card">
-          <div class="partner-mark" id="partnerMark">J</div>
-          <div>
-            <div class="partner-name" id="partnerName">JBIQ</div>
-            <div class="partner-meta" id="partnerMeta">persona</div>
-          </div>
-        </div>
         <div class="mobile-frame">
           <div class="user-turn">
             <div class="user-bubble" id="userTurn">—</div>
@@ -488,6 +478,13 @@
 
     <!-- Inspector -->
     <aside class="inspector">
+      <div class="partner-card">
+        <div class="partner-mark" id="partnerMark">J</div>
+        <div>
+          <div class="partner-name" id="partnerName">JBIQ</div>
+          <div class="partner-meta" id="partnerMeta">persona</div>
+        </div>
+      </div>
       <h1>What's happening in the system</h1>
       <p class="step-narration" id="narration">—</p>
 
@@ -1715,10 +1712,6 @@ function renderEntityCard(d) {
   const x = d.data;
   return `
     <div class="discovery-view">
-      <div>
-        <h3 class="subject-header__title">${x.title}</h3>
-        <p class="subject-header__subtitle">${x.sub}</p>
-      </div>
       <div class="place-card">
         <div class="place-card__media" data-emoji="${x.emoji}">
           <span class="place-card__badge">Recommended</span>

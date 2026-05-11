@@ -224,8 +224,9 @@
   letter-spacing: 0.06em;
   color: var(--color-text-secondary);
   margin: 0 0 var(--space-sm);
+  padding: 0 var(--space-lg);
 }
-.collection + .list-section-head { margin-top: var(--space-xl); }
+.collection + .list-section-head { margin-top: var(--space-lg); }
 
 
 /* ----------------------------------------------------------------------------
@@ -937,6 +938,7 @@
    PRIMITIVE: ConfirmPanel — the system-owned interrupt before any Transaction.
    ---------------------------------------------------------------------------- */
 .confirm {
+  margin: 0 var(--space-lg);
   padding: var(--space-lg);
   background: var(--color-surface-secondary);
   border-radius: var(--radius-lg);
@@ -973,6 +975,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+  padding: 0 var(--space-lg);
 }
 .receipt-banner {
   display: flex;
