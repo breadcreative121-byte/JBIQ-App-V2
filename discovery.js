@@ -543,7 +543,7 @@ function renderMapPanel({ userLocation, markers }) {
 /** @param {{ layout: 'carousel'|'grid'|'list', children: HTMLElement[] }} props */
 function renderCollectionContainer({ layout, children }) {
   const container = el('div', {
-    class: `collection-container collection-container--${layout}`,
+    class: `collection collection--${layout}`,
     role: 'list',
   });
   for (const c of children) container.appendChild(c);
@@ -579,7 +579,7 @@ function renderPlaceResultCard(card) {
   });
   if (card.status) {
     media.appendChild(el('span', {
-      class: `place-card__status-badge place-card__status-badge--${card.status.kind.replace('_', '-')}`,
+      class: `place-card__status-badge place-card__status-badge--${card.status.kind.replaceAll('_', '-')}`,
       text: card.status.label,
     }));
   }

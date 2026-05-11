@@ -10,20 +10,45 @@ Every theme is a bundle of these tokens. Partners override **a theme**, not indi
 
 ### Color (semantic)
 
-| Token | Purpose |
+The canonical token names live in [`components.css`](../components.css) `:root`. The table below maps each semantic role to the actual variable name as shipped. (An earlier draft of this spec used aliases like `--accent` and `--surface-0`; the implementation chose JDS-aligned names instead. Use the right-hand column when writing CSS.)
+
+| Role | Token (shipped) |
 |---|---|
-| `--accent` | Primary action, focus state |
-| `--accent-soft` | Hover, selection background |
-| `--surface-0` | Page / canvas background |
-| `--surface-1` | Component background |
-| `--surface-2` | Elevated surface (cart, modal) |
-| `--ink-1` | Primary text |
-| `--ink-2` | Secondary text |
-| `--ink-3` | Tertiary text, captions |
-| `--positive` | Confirm states, success |
-| `--warning` | Caution states |
-| `--critical` | Destructive, errors |
-| `--track` | Live state pulse, tracker fill |
+| Primary action, focus state | `--color-action-primary` |
+| Hover state for primary action | `--color-action-primary-hover` |
+| Selection / soft action background | `--color-action-primary-surface` |
+| Page / canvas background | `--color-surface-tertiary` |
+| Component background | `--color-surface-primary` |
+| Elevated surface (cart totals, modal) | `--color-surface-secondary` |
+| Primary text | `--color-text-primary` |
+| Secondary text | `--color-text-secondary` |
+| Tertiary text, captions | `--color-text-tertiary` |
+| Text on a filled primary background | `--color-text-on-primary` |
+| Hairline border | `--color-border-default` |
+| Stronger border (interactive controls) | `--color-border-strong` |
+| Dark overlay (badges on photos) | `--color-overlay-dark` |
+| Warning overlay (badges on photos) | `--color-overlay-warning` |
+| Status — open (solid, off-media) | `--color-status-open` |
+| Status — closing soon (solid, off-media) | `--color-status-closing-soon` |
+| Status — closed (solid, off-media) | `--color-status-closed` |
+| Confirm states, success | `--color-success` |
+| Caution states | `--color-warning` |
+| Destructive, errors | `--color-error` |
+| Feedback error background | `--color-feedback-error-bg` |
+| Feedback error text | `--color-feedback-error-text` |
+| Feedback error border | `--color-feedback-error-border` |
+
+### Partner brand tokens
+
+Single-partner surfaces (subject header, brand chip) render a partner-coloured circular swatch above the title. The swatch colour is a canonical token, not a per-partner stylesheet — adding a partner means one PR to `components.css`:
+
+| Token | Partner |
+|---|---|
+| `--swiggy` (chip `--swiggy`) | Swiggy — orange |
+| `--zomato` (chip `--zomato`) | Zomato — red |
+| `--vrl` (chip `--vrl`) | VRL Travels — red |
+
+Governance: a new partner colour is submitted as a PR adding a new `.subject-header__brand-chip--<partner>` rule, paired with a contrast check against `#ffffff` chip text (WCAG AA on the chip foreground/background pair).
 
 ### Type
 - Display: 28/32 — used sparingly (receipt totals, hero numbers)
@@ -53,6 +78,15 @@ All motion respects `prefers-reduced-motion`.
 
 Every component spec includes: entity types accepted, layout, voice template, replies (intents), states, and variants.
 
+### SubjectHeader
+A layout primitive — not an entity renderer — that captions every Discovery view. When a single partner owns the answer, it surfaces a partner-attribution row (brand chip + partner name) ABOVE the title in a dedicated row.
+
+- **Entities:** none (layout primitive — wraps any component group)
+- **Layout:** Optional partner row (18 × 18 px brand chip + partner name) → title → subtitle
+- **Authoring:** System-rendered. Partners do not author SubjectHeader; the renderer assembles it from the frame's metadata (`title`, `subtitle`, `partner`).
+- **States:** default, multi-partner (no chip row), partner-attributed (chip + name)
+- **Variants:** brand chip is canonical-tokened — `--swiggy`, `--zomato`, `--vrl` ship today. Add new partner colours in `components.css` (see §1 — Partner brand tokens).
+
 ### EntityCard
 The atomic unit. A single thing — a place, an item, a person, a piece of media.
 
@@ -61,6 +95,7 @@ The atomic unit. A single thing — a place, an item, a person, a piece of media
 - **Voice template:** *"{title} — {top_facts[0].label} {top_facts[0].value}, {top_facts[1].label} {top_facts[1].value}."*
 - **Replies:** `select`, `dismiss`, `more_info`, `compare_to(other)`
 - **States:** default, focused (voice anchored), loading (skeleton), error (retry CTA)
+- **Place-entity sub-states (badge variants):** when the entity is a `Place`, the card's status badge can render as one of three modifiers — `--open`, `--closing-soon`, `--closed`. The badge sits on the media; backgrounds use `--color-overlay-dark` (open / closed) and `--color-overlay-warning` (closing-soon). Solid off-media equivalents are available via `--color-status-open / --closing-soon / --closed` for use in lists or pills not sitting on photos.
 - **Variants:** `compact` (single fact), `full` (3+ facts), `media-led` (image dominant), `inline` (in a list)
 
 ### ComparisonGrid
@@ -118,6 +153,15 @@ Transactions in build state. Building is a *separate* state from confirmed — c
 - **Voice template:** *"{item_count} items. {total}. Anything else?"*
 - **Replies:** `add(item)`, `remove(item)`, `change_quantity(item, qty)`, `checkout`, `dismiss`
 - **Safety contract:** Never finalizes. Always hands off to the system-owned **Confirm flow** before any tool execution.
+
+### ConfirmPanel
+The system-injected interrupt that sits between `CartPanel` and `ReceiptPanel`. Partners cannot author or skip it; the renderer drops it in front of any tool execution that mutates state. See §3 for the full Confirm flow.
+
+- **Entities:** `Choice` (system-injected; not partner-authored)
+- **Layout:** Secondary-surface card with a tight prompt, a one-line transaction summary, a prominent total in display-size, and a two-button action row (`Cancel` secondary + `Confirm` primary)
+- **Voice template:** *"Just to confirm — I'm placing your order for {summary}. Total {total}. Should I go ahead?"*
+- **Replies:** `confirm`, `cancel`, `re-prompt` (ambiguous reply triggers a second pass)
+- **States:** prompt, awaiting, executing, error (retry CTA)
 
 ### ReceiptPanel
 Transactions in confirmed or completed state.
@@ -246,6 +290,10 @@ Partners receive their slice; the platform receives the full firehose for cross-
 - **Breaking changes** ship as new components (`EntityCard.v2`), not mutations.
 - **Deprecations** announce 6 months ahead, with a migration codemod for manifests.
 - **The schema itself** is versioned (`$schema` URL pin); the platform supports the last 2 major schema versions.
+
+### Changelog
+
+- **2026-05-11 — Breaking: `.collection-container` → `.collection`.** The layout container that wraps cards (formerly `.collection-container` + `--list / --grid / --carousel`) was renamed to `.collection` + `--list / --grid / --carousel`. No codemod required — find-and-replace is sufficient. The renderer's function name `renderCollectionContainer` is retained; only the CSS class string output changed. The old name is fully retired across `components.css`, `discovery.css`, `discovery.js`, `place-playground.html`, `components-playground.html`, and `components-overview.html`.
 
 ---
 

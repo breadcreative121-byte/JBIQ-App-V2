@@ -4,48 +4,16 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>JBIQ — Components across domains</title>
+<link rel="stylesheet" href="components.css">
 <style>
-  @font-face {
-    font-family: 'JioType';
-    font-weight: 100 900;
-    font-style: normal;
-    src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Regular.woff2') format('woff2');
-  }
-  @font-face {
-    font-family: 'JioType';
-    font-weight: 100 900;
-    font-style: italic;
-    src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Italic.woff2') format('woff2');
-  }
+  /* ============================================================================
+     components-overview.html — SHOWCASE chrome only.
+     All primitive (EntityCard, Collection, Tracker, etc.) styles live in
+     components.css. This block only carries page shell, TOC, tabs, and
+     showcase-specific paddings.
+     ========================================================================== */
   :root {
-    --color-surface-primary:   #ffffff;
-    --color-surface-secondary: #f5f5f5;
-    --color-surface-tertiary:  #eeeeef;
-    --color-text-primary:      #0c0d10;
-    --color-text-secondary:    rgba(12,13,16,0.65);
-    --color-text-tertiary:     rgba(12,13,16,0.38);
-    --color-text-on-primary:   #ffffff;
-    --color-action-primary:          #6d17ce;
-    --color-action-primary-hover:    #310064;
-    --color-action-primary-surface:  #ede7ff;
-    --color-border-default: rgba(12,13,16,0.08);
-    --color-border-strong:  rgba(12,13,16,0.12);
-    --color-overlay-dark:    rgba(12,13,16,0.6);
-    --color-overlay-warning: rgba(240,109,15,0.9);
-    --color-success: #25ab21;
-    --color-warning: #f06d0f;
-    --color-error:   #fa2f40;
-    --space-xs:  4px; --space-sm:  8px; --space-md:  12px;
-    --space-lg:  16px;--space-xl:  24px;--space-xxl: 32px;
-    --radius-sm:   8px; --radius-md:  12px; --radius-lg:  16px; --radius-pill:999px;
     --font-family: 'JioType', 'JioTypeVar', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-mono:   ui-monospace, 'SF Mono', Menlo, 'Roboto Mono', monospace;
-    --font-size-caption: 12px; --font-size-small: 12px;
-    --font-size-body: 14px; --font-size-title: 16px; --font-size-hero: 18px;
-    --font-weight-medium: 500; --font-weight-bold: 700;
-    --font-line-height-tight: 1.2; --font-line-height-normal: 1.5;
-    --font-tracking-headline: -0.03em; --font-tracking-body: -0.005em; --font-tracking-small: 0.005em;
-    --layout-card-width: 220px;
   }
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -319,213 +287,13 @@
   }
   .text-response__body { margin: 0; }
 
-  /* PRIMITIVES */
-  .discovery-view { display: flex; flex-direction: column; gap: var(--space-md); padding: 0 var(--space-lg); }
-  .subject-header__title { font-size: var(--font-size-title); font-weight: var(--font-weight-bold); margin: 0; line-height: var(--font-line-height-tight); letter-spacing: var(--font-tracking-headline); }
-  .subject-header__subtitle { font-size: var(--font-size-small); font-weight: var(--font-weight-medium); color: var(--color-text-secondary); margin: var(--space-xs) 0 0; line-height: var(--font-line-height-tight); }
-  .list-section-head { font-size: 11px; font-weight: var(--font-weight-bold); text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary); margin: 0 var(--space-lg) var(--space-sm); }
-  /* breathing room above any section that follows a collection */
-  .collection + .list-section-head { margin-top: var(--space-xl); }
-
-  .filter-chip-bar { display: flex; gap: var(--space-xs); padding: 0 var(--space-lg); overflow-x: auto; flex-wrap: wrap; scrollbar-width: none; }
-  .filter-chip-bar::-webkit-scrollbar { display: none; }
-  .filter-chip { flex-shrink: 0; background: transparent; border: 0.5px solid var(--color-border-strong); border-radius: var(--radius-pill); padding: var(--space-xs) var(--space-md); font-family: inherit; font-size: var(--font-size-small); color: var(--color-text-primary); cursor: pointer; white-space: nowrap; }
-  .filter-chip--selected { background: var(--color-action-primary); color: var(--color-text-on-primary); border-color: transparent; }
-
-  .collection { padding: 0 var(--space-lg); }
-  .collection--list { display: flex; flex-direction: column; gap: var(--space-md); }
-  .collection--grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-sm); }
-  .collection--carousel {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-sm);
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding-left: var(--space-lg);
-    scroll-padding-right: var(--space-lg);
-    scrollbar-width: none;
-  }
-  .collection--carousel::-webkit-scrollbar { display: none; }
-
-  .place-card { background: var(--color-surface-primary); padding: 0; text-align: left; font-family: inherit; margin: 0 var(--space-lg); }
-  /* place-card in a carousel: drop the side margin, fix width, scroll-snap */
-  .collection--carousel > .place-card {
-    margin: 0;
-    width: var(--layout-card-width);
-    flex-shrink: 0;
-    scroll-snap-align: start;
-  }
-  /* trailing spacer so the last card has breathing room on the right edge */
-  .collection--carousel::after {
-    content: "";
-    flex-shrink: 0;
-    width: var(--space-xs);
-  }
-  .place-card__media { aspect-ratio: 16 / 9; border-radius: var(--radius-lg); background: var(--color-action-primary-surface); position: relative; overflow: hidden; display: grid; place-items: center; font-size: 36px; }
-  .place-card__media[data-emoji]::after { content: attr(data-emoji); }
-  .place-card__badge { position: absolute; top: var(--space-sm); left: var(--space-sm); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-pill); font-size: var(--font-size-caption); font-weight: var(--font-weight-bold); color: var(--color-text-on-primary); background: var(--color-action-primary); }
-  .place-card__status-badge { position: absolute; top: var(--space-sm); right: var(--space-sm); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-sm); font-size: var(--font-size-caption); font-weight: var(--font-weight-bold); color: var(--color-text-on-primary); background: var(--color-overlay-dark); }
-  .place-card__content { padding: var(--space-sm) 0 var(--space-md); }
-  .place-card__title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); margin: 0 0 var(--space-xs); line-height: var(--font-line-height-tight); letter-spacing: var(--font-tracking-body); }
-  .place-card__tags { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin: 0 0 var(--space-xs); }
-  .place-card__meta { display: flex; gap: var(--space-sm); font-size: var(--font-size-caption); color: var(--color-text-secondary); align-items: center; flex-wrap: wrap; }
-  .place-card__rating-value { color: var(--color-text-primary); font-weight: var(--font-weight-medium); margin-right: 2px; }
-
-  .catalog-card { appearance: none; background: var(--color-surface-primary); border: none; padding: 0; text-align: left; font-family: inherit; color: inherit; cursor: pointer; display: flex; flex-direction: column; }
-  .collection--list > .catalog-card { flex-direction: row; gap: var(--space-md); align-items: stretch; }
-  .collection--list > .catalog-card .catalog-card__media { width: 80px; min-width: 80px; aspect-ratio: 1; }
-  .catalog-card__media { aspect-ratio: 3 / 4; border-radius: var(--radius-lg); background: var(--color-action-primary-surface); position: relative; overflow: hidden; display: grid; place-items: center; font-size: 32px; }
-  .catalog-card__media[data-emoji]::after { content: attr(data-emoji); }
-  .catalog-card__content { padding: var(--space-sm) 0 0; display: flex; flex-direction: column; gap: var(--space-xs); flex: 1; min-width: 0; }
-  .catalog-card__title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); margin: 0; line-height: var(--font-line-height-tight); letter-spacing: var(--font-tracking-body); }
-  .catalog-card__subtitle { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin: 0; }
-  .catalog-card__meta { display: flex; gap: var(--space-sm); font-size: var(--font-size-caption); color: var(--color-text-secondary); flex-wrap: wrap; align-items: center; }
-  .catalog-card__price { color: var(--color-text-primary); font-weight: var(--font-weight-bold); }
-  .catalog-card__temporal { color: var(--color-action-primary); font-weight: var(--font-weight-medium); }
-
-  .compare-table { margin: 0 var(--space-lg); border: 0.5px solid var(--color-border-default); border-radius: var(--radius-lg); overflow: hidden; background: var(--color-surface-primary); }
-  .compare-table__scroller { display: grid; grid-template-columns: 96px 1fr; }
-  .compare-table__labels { display: flex; flex-direction: column; background: var(--color-surface-secondary); border-right: 0.5px solid var(--color-border-default); }
-  .compare-table__options { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
-  .compare-table__options::-webkit-scrollbar { display: none; }
-  .compare-table__option { display: flex; flex-direction: column; min-width: 130px; scroll-snap-align: start; border-right: 0.5px solid var(--color-border-default); background: none; padding: 0; font-family: inherit; text-align: left; cursor: pointer; }
-  .compare-table__option:last-child { border-right: none; }
-  .compare-table__option--recommended { background: var(--color-action-primary-surface); }
-  .compare-table__header-label, .compare-table__header-cell { height: 88px; padding: var(--space-sm) var(--space-md); display: flex; flex-direction: column; gap: var(--space-xs); border-bottom: 0.5px solid var(--color-border-default); justify-content: flex-end; }
-  .compare-table__header-label { font-size: 11px; color: var(--color-text-tertiary); font-weight: var(--font-weight-bold); text-transform: uppercase; letter-spacing: 0.06em; }
-  .compare-table__header-title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-body); }
-  .compare-table__header-sub { font-size: var(--font-size-caption); color: var(--color-text-secondary); }
-  .compare-table__label-cell, .compare-table__cell { padding: var(--space-sm) var(--space-md); font-size: var(--font-size-caption); line-height: var(--font-line-height-tight); height: 46px; display: flex; align-items: center; border-bottom: 0.5px solid var(--color-border-default); }
-  .compare-table__label-cell:last-child, .compare-table__cell:last-child { border-bottom: none; }
-  .compare-table__label-cell { font-weight: var(--font-weight-bold); color: var(--color-text-primary); padding-right: var(--space-lg); }
-  .compare-table__header-label { padding-right: var(--space-lg); }
-  .compare-table__cell { color: var(--color-text-primary); }
-  .compare-table__cell--best { color: var(--color-action-primary); font-weight: var(--font-weight-bold); }
-  .compare-table__cell--worst { color: var(--color-text-secondary); }
-
-  .timeline { padding: 0 var(--space-lg); display: flex; flex-direction: column; }
-  .tl-row { display: grid; grid-template-columns: 64px 1fr; gap: var(--space-md); padding: var(--space-md) 0; border-bottom: 0.5px solid var(--color-border-default); }
-  .tl-row:last-child { border-bottom: none; }
-  .tl-row[data-active="true"] { background: var(--color-action-primary-surface); border-radius: var(--radius-sm); padding-left: var(--space-md); padding-right: var(--space-md); margin: 0 calc(-1 * var(--space-md)); }
-  .tl-time { font-size: var(--font-size-caption); color: var(--color-text-secondary); font-family: var(--font-mono); }
-  .tl-title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-body); }
-  .tl-meta { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-top: 2px; }
-
-  /* Tracker — flat on the conversation surface, no solid background, no
-     tinted tile. Purple stage label, dark ETA, hairline progress, step trail. */
-  .tracker { margin: 0 var(--space-lg); }
-  .tracker__media {
-    background: transparent;
-    color: var(--color-text-primary);
-    padding: 0;
-    display: flex; flex-direction: column;
-  }
-  .tracker__stage {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: var(--font-weight-bold);
-    color: var(--color-action-primary);
-  }
-  .tracker__eta {
-    font-size: 28px;
-    font-weight: 900;
-    letter-spacing: var(--font-tracking-headline);
-    line-height: 1;
-    margin-top: var(--space-xs);
-    color: var(--color-text-primary);
-  }
-  .tracker__detail {
-    font-size: var(--font-size-caption);
-    color: var(--color-text-secondary);
-    margin-top: var(--space-xs);
-  }
-  /* Progress bar — 6px pill, surface-minimal track, action-primary fill.
-     Matches Figma "Progress Status" pattern (shape/component/10xl = 46px). */
-  .tracker__progress {
-    height: 6px;
-    background: var(--color-surface-secondary);
-    border-radius: var(--radius-pill);
-    margin-top: var(--space-lg);
-    overflow: hidden;
-  }
-  .tracker__progress-fill {
-    height: 100%;
-    background: var(--color-action-primary);
-    width: 33%;
-    border-radius: var(--radius-pill);
-  }
-  /* Steps — 3 (or n) equal flex columns; first left-aligned, last right-aligned,
-     middle centered. Active step bold + text-primary. */
-  .tracker__steps {
-    padding: var(--space-sm) 0 0;
-    display: flex;
-    gap: 2px;
-    font-size: 10px;
-    font-weight: var(--font-weight-regular);
-    color: rgba(12,13,16,0.73);
-    line-height: 1.3;
-  }
-  .tracker__steps > span {
-    flex: 1 0 0;
-    min-width: 0;
-    text-align: center;
-  }
-  .tracker__steps > span:first-child { text-align: left; }
-  .tracker__steps > span:last-child  { text-align: right; }
-  .tracker__steps .done {
-    color: rgba(12,13,16,0.73);
-    font-weight: var(--font-weight-regular);
-  }
-  .tracker__steps .active {
-    color: var(--color-text-primary);
-    font-weight: var(--font-weight-bold);
-  }
-
-  .map-panel { margin: 0 var(--space-lg); height: 132px; background: #E8EEF2; border-radius: var(--radius-lg); position: relative; overflow: hidden; }
-  .map-pin { position: absolute; width: 28px; height: 28px; border-radius: var(--radius-pill) var(--radius-pill) var(--radius-pill) 4px; background: var(--color-action-primary); color: var(--color-text-on-primary); transform: rotate(-45deg); display: grid; place-items: center; border: 2px solid var(--color-surface-primary); }
-  .map-pin > span { transform: rotate(45deg); font-size: 11px; font-weight: 700; }
-  .map-pin.start { width: 22px; height: 22px; background: var(--color-success); top: 55%; left: 14%; }
-  .map-pin.end   { top: 36%; right: 18%; }
-  .map-route { position: absolute; top: 60%; left: 18%; width: 60%; height: 2px; background: var(--color-action-primary); border-radius: var(--radius-pill); }
-
-  .cart-section { padding: 0 var(--space-lg); }
-  .cart-row { display: grid; grid-template-columns: 1fr auto; padding: var(--space-md) 0; border-bottom: 0.5px solid var(--color-border-default); align-items: center; }
-  .cart-name { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
-  .cart-qty { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-top: 2px; }
-  .cart-price { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
-  .cart-totals { background: var(--color-surface-secondary); border-radius: var(--radius-md); padding: var(--space-md); margin-top: var(--space-md); display: grid; grid-template-columns: 1fr auto; gap: 6px 0; font-size: var(--font-size-caption); color: var(--color-text-secondary); }
-  .cart-totals .total-row { grid-column: span 2; display: grid; grid-template-columns: 1fr auto; border-top: 0.5px solid var(--color-border-default); padding-top: var(--space-sm); margin-top: var(--space-xs); font-size: var(--font-size-title); color: var(--color-text-primary); font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-headline); }
-  .cta-row { padding: var(--space-md) var(--space-lg) 0; }
-  .btn-primary { width: 100%; appearance: none; background: var(--color-action-primary); color: var(--color-text-on-primary); border: none; padding: var(--space-md) var(--space-lg); border-radius: var(--radius-pill); font: inherit; font-size: var(--font-size-body); font-weight: var(--font-weight-bold); cursor: pointer; }
-  .btn-primary:hover { background: var(--color-action-primary-hover); }
-  .btn-secondary { width: 100%; appearance: none; background: transparent; border: 0.5px solid var(--color-border-strong); color: var(--color-text-primary); padding: var(--space-md) var(--space-lg); border-radius: var(--radius-pill); font: inherit; font-size: var(--font-size-body); font-weight: var(--font-weight-bold); cursor: pointer; }
-
-  .confirm { margin: 0 var(--space-lg); padding: var(--space-lg); background: var(--color-surface-secondary); border-radius: var(--radius-lg); text-align: center; }
-  .confirm-prompt { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); margin-bottom: var(--space-xs); }
-  .confirm-summary { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-bottom: var(--space-md); }
-  .confirm-total { font-size: 32px; font-weight: 900; letter-spacing: var(--font-tracking-headline); line-height: 1; margin-bottom: var(--space-lg); }
-  .confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); }
-
-  .receipt { margin: 0 var(--space-lg); display: flex; flex-direction: column; gap: var(--space-md); }
-  .receipt-banner { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md) 0; border-bottom: 0.5px solid var(--color-border-default); }
-  .receipt-check { width: 32px; height: 32px; border-radius: var(--radius-pill); background: var(--color-action-primary); color: var(--color-text-on-primary); display: grid; place-items: center; font-weight: 900; font-size: 16px; flex-shrink: 0; }
-  .receipt-title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
-  .receipt-sub { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-top: 2px; }
-  .receipt-line { display: grid; grid-template-columns: 1fr auto; padding: var(--space-xs) 0; font-size: var(--font-size-body); color: var(--color-text-secondary); }
-  .receipt-total { border-top: 0.5px solid var(--color-border-default); padding-top: var(--space-sm); margin-top: var(--space-xs); font-weight: var(--font-weight-bold); color: var(--color-text-primary); }
-
-  .chips-prompt { padding: 0 var(--space-lg) var(--space-sm); font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
-
-  .player { margin: 0 var(--space-lg); display: grid; grid-template-columns: 80px 1fr; gap: var(--space-md); align-items: center; }
-  .player-art { aspect-ratio: 1; background: var(--color-action-primary-surface); border-radius: var(--radius-lg); display: grid; place-items: center; font-size: 32px; }
-  .player-title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-body); }
-  .player-artist { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-top: 2px; }
-  .player-bar { height: 3px; background: var(--color-border-default); border-radius: var(--radius-pill); margin-top: var(--space-sm); overflow: hidden; }
-  .player-bar-fill { height: 100%; background: var(--color-action-primary); width: 38%; }
-  .player-controls { display: flex; gap: var(--space-md); margin-top: var(--space-sm); color: var(--color-text-secondary); font-size: var(--font-size-body); }
-
-  .gallery { padding: 0 var(--space-lg); }
+  /* SHOWCASE-LOCAL ADJUSTMENTS
+     The canonical primitive baseline (from components.css) treats place-cards
+     as fixed-width items that live inside a .collection container which owns
+     the side gutter. Some showcase tabs render a SINGLE bare card with no
+     wrapping collection, so we re-introduce the side gutter at the panel
+     level for those cases. */
+  .component-card .tab-panel > .place-card { margin: 0 var(--space-lg); }
 
   .appendix { margin-top: var(--space-xxl); padding-top: var(--space-xl); border-top: 0.5px solid var(--color-border-default); }
   .appendix h2 { font-size: 20px; font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-headline); margin: 0 0 var(--space-sm); }
@@ -615,7 +383,8 @@
   <div class="toc-header">Pages</div>
   <a href="#home">Home</a>
   <div class="toc-header" style="margin-top: var(--space-md)">Components</div>
-  <a href="#entitycard">EntityCard</a>
+  <a href="#subjectheader">SubjectHeader</a>
+    <a href="#entitycard">EntityCard</a>
     <a href="#comparetable">CompareTable</a>
     <a href="#list">List</a>
     <a href="#timeline">Timeline</a>
@@ -639,6 +408,11 @@
       <p class="home-lead">Every visual primitive shown across two or three different verticals. Same component, different content. Pick a component to see how it adapts.</p>
     </header>
     <div class="home-grid">
+      <a class="home-card" href="#subjectheader">
+        <div class="home-card__tag">Title + subtitle · optional partner row above</div>
+        <div class="home-card__name">SubjectHeader</div>
+        <p class="home-card__desc">The frame's title block. Optional partner attribution row (logo chip + partner name) sits above the title — used wherever a single partner owns the answer (Swiggy food, VRL bus seats, Zomato deals). Brand chip swatches are part of the canonical library.</p>
+      </a>
       <a class="home-card" href="#entitycard">
         <div class="home-card__tag">Place | Item | Person | Media (single) · or Collection in carousel</div>
         <div class="home-card__name">EntityCard</div>
@@ -699,6 +473,82 @@
         <div class="home-card__name">Gallery</div>
         <p class="home-card__desc">CatalogResultCard at 3:4 media in a 2-column grid. Same primitive for menu items, movie posters, devotional collections, podcast covers.</p>
       </a>
+    </div>
+  </section>
+
+
+  <section class="page-view" id="subjectheader">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">SubjectHeader</h1>
+        <p class="page-subtitle">The frame's title block. When a single partner owns the answer, the partner logo chip + name sit ABOVE the title in a dedicated row. The brand chip swatch lives in the canonical library — every partner adds their colour here once.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">title · subtitle · optional partner row</span>
+          <span class="picked-when">Top of every Discovery view · Frame title</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Swiggy</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Food · Zomato <span class="tab-partner">· Zomato</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Travel · Bus <span class="tab-partner">· VRL</span></button><button class="tab-button" role="tab" data-idx="3" aria-selected="false">Multi-partner <span class="tab-partner">· no chip</span></button>
+      </div>
+      <div class="tab-panels">
+        <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+          <div class="you-line">YOU<span class="text">Pad thai nearby</span></div>
+          <div class="text-response"><p class="text-response__body">Drunken Monkey is open. 4.3 stars, ETA 32 minutes.</p></div>
+        </div>
+        <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+          <div class="you-line">YOU<span class="text">Cheap dinner deals tonight</span></div>
+          <div class="text-response"><p class="text-response__body">Three Zomato Gold deals near you, all under ₹400.</p></div>
+        </div>
+        <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+          <div class="you-line">YOU<span class="text">Bus to Mangalore tomorrow</span></div>
+          <div class="text-response"><p class="text-response__body">VRL has a sleeper at 9:30 PM. Window seat free.</p></div>
+        </div>
+        <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+          <div class="you-line">YOU<span class="text">Top picks near me</span></div>
+          <div class="text-response"><p class="text-response__body">Five open now across delivery apps.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+          <div class="subject-header" style="padding: 0 var(--space-lg);">
+            <div class="subject-header__partner">
+              <span class="subject-header__brand-chip subject-header__brand-chip--swiggy">S</span>
+              <span class="subject-header__partner-name">Swiggy</span>
+            </div>
+            <h2 class="subject-header__title">Drunken Monkey</h2>
+            <p class="subject-header__subtitle">Pan-Asian · ₹₹₹ · Koramangala</p>
+          </div>
+        </div>
+        <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+          <div class="subject-header" style="padding: 0 var(--space-lg);">
+            <div class="subject-header__partner">
+              <span class="subject-header__brand-chip subject-header__brand-chip--zomato">Z</span>
+              <span class="subject-header__partner-name">Zomato</span>
+            </div>
+            <h2 class="subject-header__title">3 Gold deals tonight</h2>
+            <p class="subject-header__subtitle">All under ₹400 · within 4 km</p>
+          </div>
+        </div>
+        <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+          <div class="subject-header" style="padding: 0 var(--space-lg);">
+            <div class="subject-header__partner">
+              <span class="subject-header__brand-chip subject-header__brand-chip--vrl">V</span>
+              <span class="subject-header__partner-name">VRL Travels</span>
+            </div>
+            <h2 class="subject-header__title">9:30 PM Mangalore</h2>
+            <p class="subject-header__subtitle">Sleeper · seat 14B available</p>
+          </div>
+        </div>
+        <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+          <div class="subject-header" style="padding: 0 var(--space-lg);">
+            <h2 class="subject-header__title">Open near you</h2>
+            <p class="subject-header__subtitle">5 places · 12-35 min delivery</p>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 

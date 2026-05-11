@@ -1,6 +1,6 @@
 # JBIQ Discovery Playground
 
-Schema-validation playground for the JBIQ `DiscoveryView` contract. One HTML file, 20 queries across three sub-patterns (Place × 6, Catalog × 7, Compare × 7), one source of styling truth. Runs on the existing Express server; no new dependencies.
+Schema-validation playground for the JBIQ `DiscoveryView` contract. One HTML file, 20 queries across three sub-patterns (Place × 6, Catalog × 7, Compare × 7). Primitive styles come from the canonical `components.css`; the playground only carries its own surface chrome. Runs on the existing Express server; no new dependencies.
 
 ## Run
 
@@ -23,9 +23,12 @@ What we gave up: compile-time type checks. What replaces them: JSDoc shapes + a 
 
 ## File map
 
-All three artifacts live at the repo root:
+The playground and its sibling surfaces all live at the repo root:
 
-- [place-playground.html](place-playground.html) — the one file that does everything.
+- [place-playground.html](place-playground.html) — the schema sandbox: 20 queries × validator + scenarios.
+- [components.css](components.css) — canonical primitives + tokens. Linked by every HTML consumer below. Edit a primitive here and it propagates everywhere.
+- [components-overview.html](components-overview.html) — live catalogue of every primitive, shown across verticals. Consumer of `components.css`.
+- [components-playground.html](components-playground.html) — interactive pipeline prototype (tool output → mapped entity → renderer pick). Consumer of `components.css`.
 - [SCHEMA-NOTES.md](SCHEMA-NOTES.md) — stress-test findings across all 20 queries + recommendation on card variant count before React Native.
 - [README-playground.md](README-playground.md) — this file.
 
@@ -35,15 +38,15 @@ The `<script type="module">` block is organised into clearly-labelled sections. 
 
 | Marker | Purpose |
 | --- | --- |
-| `// === tokens ===` | JS mirror of the `:root` CSS custom properties (JDS-sourced). Single source of truth. |
+| `// === tokens ===` | JS mirror of `components.css` `:root`. The CSS file is the source of truth — update here whenever a token changes there. |
 | `// === schema (JSDoc) ===` | `@typedef`s for `DiscoveryView` family: `PlaceResultCard`, `CatalogResultCard`, `CompareOption`, `CompareRow`, etc. |
 | `// === validator ===` | `validateCommon` + per-sub-pattern rules + `validateDiscoveryView` dispatcher. |
-| `// === primitives ===` | 9 render functions. Shared (SubjectHeader, FilterChipBar, SortControl, CollectionContainer); Place-only (LocationContext, MapPanel, PlaceResultCard); Catalog-only (CatalogResultCard); Compare-only (CompareTable). |
+| `// === primitives ===` | 9 render functions that emit the canonical class names. Shared (SubjectHeader, FilterChipBar, SortControl, `renderCollectionContainer` → emits `.collection`); Place-only (LocationContext, MapPanel, PlaceResultCard); Catalog-only (CatalogResultCard); Compare-only (CompareTable). |
 | `// === composition ===` | `renderDiscoveryView` — runs the validator, dispatches on `sub_pattern`. |
 | `// === mocks ===` | 20 `MOCK_*` objects, grouped Place / Catalog / Compare. |
 | `// === playground ===` | Grouped `<optgroup>` dropdown, mobile frame, validator panel, delegated event listeners. |
 
-CSS sits in a single `<style>` block at the top of the file. Every declaration uses `var(--…)`; the only hex literals outside `:root` + the JS token mirror are in the explicitly-marked schematic map SVG section and in `media.fallback_color` data fields on cards (schema-sanctioned content).
+Primitive styles come from [components.css](components.css) (linked in `<head>`). The inline `<style>` block at the top of `place-playground.html` carries only playground-specific chrome (mobile frame, state-caption, lang-toggle, dataset-select, validator-panel). Every declaration uses `var(--…)`; the only hex literals outside the token blocks are in the explicitly-marked schematic map SVG section and in `media.fallback_color` data fields on cards (schema-sanctioned content).
 
 ## Sub-pattern cheatsheet
 
