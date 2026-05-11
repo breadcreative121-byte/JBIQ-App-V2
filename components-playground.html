@@ -1,0 +1,2397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JBIQ — Component System Prototype</title>
+<style>
+  /* ============================================================
+     TOKENS — JBIQ Discovery Playground alignment
+     ============================================================ */
+  @font-face {
+    font-family: 'JioType';
+    font-weight: 100 900;
+    font-style: normal;
+    src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Regular.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'JioType';
+    font-weight: 100 900;
+    font-style: italic;
+    src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Italic.woff2') format('woff2');
+  }
+
+  :root {
+    --color-surface-primary:   #ffffff;
+    --color-surface-secondary: #f5f5f5;
+    --color-surface-tertiary:  #eeeeef;
+    --color-text-primary:      #0c0d10;
+    --color-text-secondary:    rgba(12,13,16,0.65);
+    --color-text-tertiary:     rgba(12,13,16,0.38);
+    --color-text-on-primary:   #ffffff;
+    --color-action-primary:          #6d17ce;
+    --color-action-primary-hover:    #310064;
+    --color-action-primary-surface:  #ede7ff;
+    --color-border-default: rgba(12,13,16,0.08);
+    --color-border-strong:  rgba(12,13,16,0.12);
+    --color-overlay-dark:    rgba(12,13,16,0.6);
+    --color-overlay-warning: rgba(240,109,15,0.9);
+    --color-success: #25ab21;
+    --color-warning: #f06d0f;
+    --color-error:   #fa2f40;
+
+    --space-xs:  4px;
+    --space-sm:  8px;
+    --space-md:  12px;
+    --space-lg:  16px;
+    --space-xl:  24px;
+    --space-xxl: 32px;
+
+    --radius-sm:   8px;
+    --radius-md:  12px;
+    --radius-lg:  16px;
+    --radius-pill:999px;
+
+    --font-family: 'JioType', 'JioTypeVar', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono:   ui-monospace, 'SF Mono', Menlo, 'Roboto Mono', monospace;
+    --font-size-caption: 12px;
+    --font-size-small:   12px;
+    --font-size-body:    14px;
+    --font-size-title:   16px;
+    --font-size-hero:    18px;
+    --font-weight-medium: 500;
+    --font-weight-bold:   700;
+    --font-line-height-tight:  1.2;
+    --font-line-height-normal: 1.5;
+    --font-tracking-headline: -0.03em;
+    --font-tracking-body:     -0.005em;
+    --font-tracking-small:     0.005em;
+
+    --layout-mobile-frame-width: 390px;
+    --layout-card-width:         220px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    background: var(--color-surface-tertiary);
+    color: var(--color-text-primary);
+    font-family: var(--font-family);
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--font-line-height-normal);
+    letter-spacing: var(--font-tracking-body);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  .app {
+    display: grid;
+    grid-template-rows: auto 1fr 96px;
+    height: 100vh;
+  }
+
+  /* ----- Topbar ----- */
+  header.topbar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-xl);
+    background: var(--color-surface-primary);
+    border-bottom: 0.5px solid var(--color-border-default);
+  }
+  .topbar-top { display: flex; align-items: center; gap: var(--space-xl); }
+  .brand { display: flex; align-items: center; gap: var(--space-md); }
+  .brand-dot {
+    width: 32px; height: 32px;
+    border-radius: var(--radius-pill);
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    display: grid; place-items: center;
+    font-weight: 900; font-size: 14px;
+    letter-spacing: -0.02em;
+  }
+  .brand-name {
+    font-size: var(--font-size-hero);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--font-tracking-headline);
+    line-height: 1.1;
+  }
+  .brand-sub {
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-secondary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .step-indicator {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-secondary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 0.5px solid var(--color-border-strong);
+    padding: var(--space-xs) var(--space-md);
+    border-radius: var(--radius-sm);
+    min-width: 96px;
+    text-align: center;
+  }
+  .step-indicator b { color: var(--color-text-primary); }
+
+  .verticals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+  .vertical-chip {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--color-border-strong);
+    color: var(--color-text-primary);
+    padding: var(--space-xs) var(--space-md);
+    font: inherit;
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 140ms;
+  }
+  .vertical-chip:hover { background: var(--color-surface-secondary); }
+  .vertical-chip[aria-pressed="true"] {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    border-color: transparent;
+  }
+
+  /* ----- Stage ----- */
+  main.stage {
+    display: grid;
+    grid-template-columns: 1fr minmax(420px, 540px);
+    overflow: hidden;
+  }
+
+  /* Companion = chat surface holding a mobile-frame */
+  .companion {
+    background: var(--color-surface-tertiary);
+    display: grid;
+    grid-template-rows: 1fr auto;
+    overflow: hidden;
+    border-right: 0.5px solid var(--color-border-default);
+  }
+  .companion-stage {
+    overflow-y: auto;
+    padding: var(--space-xl) var(--space-xl) var(--space-xl);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .mobile-frame {
+    width: var(--layout-mobile-frame-width);
+    max-width: 100%;
+    background: var(--color-surface-primary);
+    border: 0.5px solid var(--color-border-default);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .mobile-frame__header {
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 0.5px solid var(--color-border-default);
+    display: flex; align-items: center; gap: var(--space-sm);
+  }
+  .partner-mark {
+    width: 28px; height: 28px;
+    border-radius: var(--radius-sm);
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    display: grid; place-items: center;
+    font-size: 14px;
+    font-weight: 900;
+  }
+  .partner-name { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-body); }
+  .partner-meta { font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+
+  .you-line {
+    font-size: var(--font-size-caption);
+    color: var(--color-text-tertiary);
+    padding: var(--space-md) var(--space-lg) 0;
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .you-line .text {
+    text-transform: none;
+    letter-spacing: var(--font-tracking-body);
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin-left: var(--space-sm);
+  }
+  .text-response {
+    padding: var(--space-md) var(--space-lg) var(--space-md);
+    font-size: var(--font-size-body);
+    color: var(--color-text-primary);
+    line-height: var(--font-line-height-normal);
+    letter-spacing: var(--font-tracking-body);
+  }
+  .text-response__body { margin: 0; }
+
+  .visual-area { padding-bottom: var(--space-xl); }
+
+  /* Voice bar pinned below the frame */
+  .voice-bar {
+    background: var(--color-surface-primary);
+    border-top: 0.5px solid var(--color-border-default);
+    padding: var(--space-md) var(--space-xl);
+    display: flex; align-items: center; gap: var(--space-md);
+  }
+  .voice-meter { display: flex; align-items: center; gap: 3px; height: 24px; }
+  .voice-meter span {
+    width: 3px;
+    background: var(--color-action-primary);
+    border-radius: var(--radius-pill);
+    animation: pulse 1.1s ease-in-out infinite;
+  }
+  .voice-meter span:nth-child(1) { height: 35%; animation-delay: 0s; }
+  .voice-meter span:nth-child(2) { height: 80%; animation-delay: .12s; }
+  .voice-meter span:nth-child(3) { height: 60%; animation-delay: .25s; }
+  .voice-meter span:nth-child(4) { height: 95%; animation-delay: .37s; }
+  .voice-meter span:nth-child(5) { height: 50%; animation-delay: .5s; }
+  .voice-meter span:nth-child(6) { height: 70%; animation-delay: .62s; }
+  .voice-meter span:nth-child(7) { height: 30%; animation-delay: .75s; }
+  @keyframes pulse {
+    0%, 100% { transform: scaleY(.5); opacity: .5; }
+    50%      { transform: scaleY(1);  opacity: 1; }
+  }
+  .voice-status { font-size: 10px; font-weight: var(--font-weight-bold); color: var(--color-text-secondary); letter-spacing: 0.08em; text-transform: uppercase; }
+  .reply-chips { margin-left: auto; display: flex; gap: var(--space-xs); flex-wrap: wrap; }
+  .reply-chip {
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-bold);
+    padding: var(--space-xs) var(--space-md);
+    background: transparent;
+    border: 0.5px solid var(--color-border-strong);
+    border-radius: var(--radius-pill);
+    color: var(--color-text-primary);
+  }
+
+  /* ----- Inspector ----- */
+  .inspector {
+    background: var(--color-surface-primary);
+    overflow-y: auto;
+    padding: var(--space-xl) var(--space-xxl) var(--space-xxl);
+  }
+  .inspector h1 {
+    font-size: 11px;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-secondary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 var(--space-xs);
+  }
+  .step-narration {
+    font-size: var(--font-size-title);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--font-line-height-normal);
+    letter-spacing: var(--font-tracking-body);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xl);
+    max-width: 720px;
+  }
+
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+  }
+  .pipe-step {
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--space-md) var(--space-md);
+    position: relative;
+  }
+  .pipe-step::after {
+    content: "→";
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-tertiary);
+    font-size: 14px;
+    font-weight: 700;
+    background: var(--color-surface-primary);
+    padding: 0 2px;
+  }
+  .pipe-step:last-child::after { display: none; }
+  .pipe-label {
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-xs);
+  }
+  .pipe-value {
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    line-height: var(--font-line-height-tight);
+  }
+  .pipe-tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px var(--space-sm);
+    border-radius: var(--radius-sm);
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    margin-top: var(--space-xs);
+    font-family: var(--font-mono);
+    font-weight: var(--font-weight-medium);
+  }
+
+  .panel {
+    background: var(--color-surface-primary);
+    border: 0.5px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    overflow: hidden;
+  }
+  .panel-head {
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 0.5px solid var(--color-border-default);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .panel-title {
+    font-size: 11px;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-primary);
+  }
+  .panel-meta { font-size: 11px; color: var(--color-text-secondary); font-family: var(--font-mono); }
+  .panel-body {
+    padding: var(--space-md);
+    font-size: var(--font-size-caption);
+    color: var(--color-text-primary);
+    line-height: 1.55;
+  }
+  .panel-body pre {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+    margin: 0;
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.6;
+  }
+  .panel-body .key   { color: #6d17ce; }
+  .panel-body .str   { color: #00ad8b; }
+  .panel-body .num   { color: #f06d0f; }
+  .panel-body .bool  { color: #fa2f40; }
+  .panel-body .punct { color: var(--color-text-secondary); }
+
+  .reply-list { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+  .reply-list .intent {
+    font-size: 11px;
+    padding: 2px var(--space-sm);
+    border-radius: var(--radius-pill);
+    background: var(--color-surface-secondary);
+    color: var(--color-text-primary);
+    font-family: var(--font-mono);
+  }
+
+  /* ----- Footer controls ----- */
+  footer.controls {
+    border-top: 0.5px solid var(--color-border-default);
+    background: var(--color-surface-primary);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 0 var(--space-xl);
+  }
+  .controls-left { color: var(--color-text-secondary); font-size: var(--font-size-caption); }
+  .controls-center { display: flex; align-items: center; gap: var(--space-md); }
+  .ctl {
+    appearance: none;
+    background: var(--color-surface-secondary);
+    border: 0.5px solid var(--color-border-strong);
+    color: var(--color-text-primary);
+    width: 40px; height: 40px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    display: grid; place-items: center;
+    font-size: 16px;
+    font-weight: var(--font-weight-bold);
+  }
+  .ctl:hover { background: var(--color-surface-tertiary); }
+  .ctl.primary {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    border-color: transparent;
+    width: 52px; height: 52px;
+    font-size: 18px;
+  }
+  .ctl.primary:hover { background: var(--color-action-primary-hover); }
+  .ctl:disabled { opacity: 0.38; cursor: not-allowed; }
+  .controls-right {
+    text-align: right;
+    color: var(--color-text-secondary);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ============================================================
+     COMPONENT PRIMITIVES — Playground conventions (no card chrome)
+     ============================================================ */
+  .discovery-view {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    padding: 0 var(--space-lg);
+  }
+  .subject-header__title {
+    font-size: var(--font-size-title);
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+    line-height: var(--font-line-height-tight);
+    letter-spacing: var(--font-tracking-headline);
+  }
+  .subject-header__subtitle {
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    margin: var(--space-xs) 0 0;
+    line-height: var(--font-line-height-tight);
+  }
+  .list-section-head {
+    font-size: 11px;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-secondary);
+    margin: 0 var(--space-lg) var(--space-sm);
+  }
+
+  /* FilterChipBar */
+  .filter-chip-bar {
+    display: flex;
+    gap: var(--space-xs);
+    padding: 0 var(--space-lg);
+    overflow-x: auto;
+    flex-wrap: wrap;
+    scrollbar-width: none;
+  }
+  .filter-chip-bar::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    flex-shrink: 0;
+    background: transparent;
+    border: 0.5px solid var(--color-border-strong);
+    border-radius: var(--radius-pill);
+    padding: var(--space-xs) var(--space-md);
+    font-family: inherit;
+    font-size: var(--font-size-small);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .filter-chip--selected {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    border-color: transparent;
+  }
+
+  /* Collection layouts */
+  .collection { padding: 0 var(--space-lg); }
+  .collection--list { display: flex; flex-direction: column; gap: var(--space-md); }
+  .collection--grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-sm); }
+  .collection--carousel {
+    display: flex; gap: var(--space-sm);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .collection--carousel::-webkit-scrollbar { display: none; }
+
+  /* PlaceResultCard */
+  .place-card {
+    flex-shrink: 0;
+    width: 100%;
+    background: var(--color-surface-primary);
+    border: none; border-radius: 0;
+    padding: 0; text-align: left;
+    font-family: inherit;
+  }
+  .collection--carousel > .place-card { width: var(--layout-card-width); scroll-snap-align: start; }
+  .place-card__media {
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-lg);
+    background: var(--color-action-primary-surface);
+    position: relative;
+    overflow: hidden;
+    display: grid; place-items: center;
+    font-size: 36px;
+  }
+  .place-card__media[data-emoji]::after { content: attr(data-emoji); }
+  .place-card__badge {
+    position: absolute;
+    top: var(--space-sm); left: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-on-primary);
+    background: var(--color-action-primary);
+  }
+  .place-card__status-badge {
+    position: absolute;
+    top: var(--space-sm); right: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-on-primary);
+    background: var(--color-overlay-dark);
+  }
+  .place-card__content { padding: var(--space-sm) 0 var(--space-md); }
+  .place-card__title {
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-bold);
+    margin: 0 0 var(--space-xs);
+    line-height: var(--font-line-height-tight);
+    letter-spacing: var(--font-tracking-body);
+  }
+  .place-card__tags { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin: 0 0 var(--space-xs); }
+  .place-card__meta {
+    display: flex; gap: var(--space-sm);
+    font-size: var(--font-size-caption);
+    color: var(--color-text-secondary);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* CatalogResultCard (used in lists + gallery) */
+  .catalog-card {
+    background: var(--color-surface-primary);
+    border: none; padding: 0; text-align: left;
+    font-family: inherit;
+    display: flex; flex-direction: column;
+  }
+  .collection--list > .catalog-card { flex-direction: row; gap: var(--space-md); align-items: stretch; }
+  .collection--list > .catalog-card .catalog-card__media { width: 80px; min-width: 80px; aspect-ratio: 1; }
+  .collection--carousel > .catalog-card { flex-shrink: 0; width: var(--layout-card-width); scroll-snap-align: start; }
+  .catalog-card__media {
+    aspect-ratio: 3 / 4;
+    border-radius: var(--radius-lg);
+    background: var(--color-action-primary-surface);
+    position: relative;
+    overflow: hidden;
+    display: grid; place-items: center;
+    font-size: 32px;
+  }
+  .catalog-card__media[data-emoji]::after { content: attr(data-emoji); }
+  .catalog-card__content { padding: var(--space-sm) 0 0; display: flex; flex-direction: column; gap: var(--space-xs); flex: 1; min-width: 0; }
+  .catalog-card__title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); margin: 0; line-height: var(--font-line-height-tight); letter-spacing: var(--font-tracking-body); }
+  .catalog-card__subtitle { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin: 0; }
+  .catalog-card__meta {
+    display: flex; gap: var(--space-sm);
+    font-size: var(--font-size-caption);
+    color: var(--color-text-secondary);
+    align-items: center; flex-wrap: wrap;
+  }
+  .catalog-card__price { color: var(--color-text-primary); font-weight: var(--font-weight-bold); }
+  .catalog-card__temporal { color: var(--color-action-primary); font-weight: var(--font-weight-medium); }
+
+  /* CompareTable */
+  .compare-table {
+    margin: 0 var(--space-lg);
+    border: 0.5px solid var(--color-border-default);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--color-surface-primary);
+  }
+  .compare-table__scroller { display: grid; grid-template-columns: 76px 1fr; }
+  .compare-table__labels {
+    display: flex; flex-direction: column;
+    background: var(--color-surface-secondary);
+    border-right: 0.5px solid var(--color-border-default);
+  }
+  .compare-table__options {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .compare-table__options::-webkit-scrollbar { display: none; }
+  .compare-table__option {
+    display: flex; flex-direction: column;
+    min-width: 124px;
+    scroll-snap-align: start;
+    border-right: 0.5px solid var(--color-border-default);
+    background: none; padding: 0;
+    font-family: inherit; text-align: left;
+    cursor: pointer;
+  }
+  .compare-table__option:last-child { border-right: none; }
+  .compare-table__option--recommended { background: var(--color-action-primary-surface); }
+  .compare-table__header-label, .compare-table__header-cell {
+    height: 92px;
+    padding: var(--space-sm) var(--space-md);
+    display: flex; flex-direction: column; gap: var(--space-xs);
+    border-bottom: 0.5px solid var(--color-border-default);
+    justify-content: flex-end;
+  }
+  .compare-table__header-label { font-size: 11px; color: var(--color-text-tertiary); font-weight: var(--font-weight-bold); text-transform: uppercase; letter-spacing: 0.06em; }
+  .compare-table__header-title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+  .compare-table__header-sub { font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+  .compare-table__label-cell, .compare-table__cell {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-caption);
+    line-height: var(--font-line-height-tight);
+    height: 48px;
+    display: flex; align-items: center;
+    border-bottom: 0.5px solid var(--color-border-default);
+  }
+  .compare-table__label-cell:last-child, .compare-table__cell:last-child { border-bottom: none; }
+  .compare-table__label-cell { font-weight: var(--font-weight-bold); }
+  .compare-table__cell { color: var(--color-text-primary); }
+  .compare-table__cell--best { color: var(--color-action-primary); font-weight: var(--font-weight-bold); }
+  .compare-table__cell--worst { color: var(--color-text-secondary); }
+
+  /* Timeline */
+  .timeline { padding: 0 var(--space-lg); display: flex; flex-direction: column; }
+  .tl-row {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: var(--space-md);
+    padding: var(--space-md) 0;
+    border-bottom: 0.5px solid var(--color-border-default);
+  }
+  .tl-row:last-child { border-bottom: none; }
+  .tl-row[data-active="true"] {
+    background: var(--color-action-primary-surface);
+    border-radius: var(--radius-sm);
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+    margin: 0 calc(-1 * var(--space-md));
+  }
+  .tl-time { font-size: var(--font-size-caption); color: var(--color-text-secondary); font-family: var(--font-mono); }
+  .tl-title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+  .tl-meta  { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-top: 2px; }
+
+  /* Tracker (primary-coloured tile inside the frame) */
+  .tracker { margin: 0 var(--space-lg); }
+  .tracker__media {
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-lg);
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    padding: var(--space-lg);
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .tracker__stage { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: var(--font-weight-bold); color: rgba(255,255,255,0.85); }
+  .tracker__eta { font-size: 32px; font-weight: 900; letter-spacing: var(--font-tracking-headline); line-height: 1; margin-top: var(--space-xs); }
+  .tracker__detail { font-size: var(--font-size-caption); color: rgba(255,255,255,0.85); margin-top: var(--space-xs); }
+  .tracker__progress {
+    height: 3px;
+    background: rgba(255,255,255,0.25);
+    border-radius: var(--radius-pill);
+    margin-top: var(--space-md);
+    overflow: hidden;
+  }
+  .tracker__progress-fill { height: 100%; background: var(--color-surface-primary); width: 70%; border-radius: var(--radius-pill); }
+  .tracker__steps {
+    padding: var(--space-sm) 0 0;
+    display: flex; justify-content: space-between;
+    font-size: var(--font-size-caption);
+    color: var(--color-text-secondary);
+  }
+  .tracker__steps .done { color: var(--color-success); font-weight: var(--font-weight-bold); }
+  .tracker__steps .active { color: var(--color-text-primary); font-weight: var(--font-weight-bold); }
+
+  /* CartPanel */
+  .cart-section { padding: 0 var(--space-lg); }
+  .cart-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    padding: var(--space-md) 0;
+    border-bottom: 0.5px solid var(--color-border-default);
+    align-items: center;
+  }
+  .cart-name { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+  .cart-qty  { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-top: 2px; }
+  .cart-price { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+  .cart-totals {
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-top: var(--space-md);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6px 0;
+    font-size: var(--font-size-caption);
+    color: var(--color-text-secondary);
+  }
+  .cart-totals .total-row {
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    border-top: 0.5px solid var(--color-border-default);
+    padding-top: var(--space-sm);
+    margin-top: var(--space-xs);
+    font-size: var(--font-size-title);
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--font-tracking-headline);
+  }
+  .cta-row { padding: var(--space-md) var(--space-lg) 0; }
+  .btn-primary {
+    width: 100%;
+    appearance: none;
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    border: none;
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-pill);
+    font: inherit;
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+    transition: background 140ms;
+  }
+  .btn-primary:hover { background: var(--color-action-primary-hover); }
+  .btn-secondary {
+    width: 100%;
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--color-border-strong);
+    color: var(--color-text-primary);
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-pill);
+    font: inherit;
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+  }
+
+  /* ConfirmPanel — inline secondary-surface card */
+  .confirm {
+    margin: 0 var(--space-lg);
+    padding: var(--space-lg);
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-lg);
+    text-align: center;
+  }
+  .confirm-prompt { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); margin-bottom: var(--space-xs); }
+  .confirm-summary { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-bottom: var(--space-md); }
+  .confirm-total { font-size: 32px; font-weight: 900; letter-spacing: var(--font-tracking-headline); line-height: 1; margin-bottom: var(--space-lg); }
+  .confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); }
+
+  /* ReceiptPanel */
+  .receipt { margin: 0 var(--space-lg); display: flex; flex-direction: column; gap: var(--space-md); }
+  .receipt-banner {
+    display: flex; align-items: center; gap: var(--space-md);
+    padding: var(--space-md) 0;
+    border-bottom: 0.5px solid var(--color-border-default);
+  }
+  .receipt-check {
+    width: 32px; height: 32px;
+    border-radius: var(--radius-pill);
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    display: grid; place-items: center;
+    font-weight: 900; font-size: 16px;
+    flex-shrink: 0;
+  }
+  .receipt-title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+  .receipt-sub { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-top: 2px; }
+  .receipt-line {
+    display: grid; grid-template-columns: 1fr auto;
+    padding: var(--space-xs) 0;
+    font-size: var(--font-size-body);
+    color: var(--color-text-secondary);
+  }
+  .receipt-total {
+    border-top: 0.5px solid var(--color-border-default);
+    padding-top: var(--space-sm); margin-top: var(--space-xs);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+  }
+
+  /* ChoiceChips inline prompt */
+  .chips-prompt {
+    padding: 0 var(--space-lg) var(--space-sm);
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-bold);
+  }
+
+  /* MediaPlayer */
+  .player {
+    margin: 0 var(--space-lg);
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: var(--space-md);
+    align-items: center;
+  }
+  .player-art {
+    aspect-ratio: 1;
+    background: var(--color-action-primary-surface);
+    border-radius: var(--radius-lg);
+    display: grid; place-items: center;
+    font-size: 32px;
+  }
+  .player-title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-body); }
+  .player-artist { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-top: 2px; }
+  .player-bar { height: 3px; background: var(--color-border-default); border-radius: var(--radius-pill); margin-top: var(--space-sm); overflow: hidden; }
+  .player-bar-fill { height: 100%; background: var(--color-action-primary); width: 38%; }
+  .player-controls { display: flex; gap: var(--space-md); margin-top: var(--space-sm); color: var(--color-text-secondary); font-size: var(--font-size-body); }
+</style>
+</head>
+<body data-vertical="food">
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="topbar-top">
+      <div class="brand">
+        <div class="brand-dot">J</div>
+        <div>
+          <div class="brand-name">JBIQ</div>
+          <div class="brand-sub">Component System · Prototype</div>
+        </div>
+      </div>
+      <div class="step-indicator">Step <b id="stepNum">1</b> / <b id="stepTotal">2</b></div>
+    </div>
+
+    <div class="verticals" role="tablist" aria-label="Vertical">
+      <button class="vertical-chip" data-vertical="food"       aria-pressed="true">Food</button>
+      <button class="vertical-chip" data-vertical="daily"      aria-pressed="false">Daily Assistant</button>
+      <button class="vertical-chip" data-vertical="cricket"    aria-pressed="false">Cricket</button>
+      <button class="vertical-chip" data-vertical="bollywood"  aria-pressed="false">Bollywood</button>
+      <button class="vertical-chip" data-vertical="news"       aria-pressed="false">News &amp; Affairs</button>
+      <button class="vertical-chip" data-vertical="jobs"       aria-pressed="false">Jobs &amp; Skilling</button>
+      <button class="vertical-chip" data-vertical="devotion"   aria-pressed="false">Devotion</button>
+      <button class="vertical-chip" data-vertical="astrology"  aria-pressed="false">Astrology</button>
+      <button class="vertical-chip" data-vertical="life"       aria-pressed="false">Life Companion</button>
+      <button class="vertical-chip" data-vertical="health"     aria-pressed="false">Health &amp; Wellness</button>
+      <button class="vertical-chip" data-vertical="finance"    aria-pressed="false">Finance</button>
+      <button class="vertical-chip" data-vertical="commerce"   aria-pressed="false">Commerce</button>
+      <button class="vertical-chip" data-vertical="local"      aria-pressed="false">Local Services</button>
+      <button class="vertical-chip" data-vertical="government" aria-pressed="false">Govt Services</button>
+    </div>
+  </header>
+
+  <main class="stage">
+
+    <!-- Conversation surface -->
+    <section class="companion">
+      <div class="companion-stage">
+        <div class="mobile-frame">
+          <div class="mobile-frame__header">
+            <div class="partner-mark" id="partnerMark">J</div>
+            <div>
+              <div class="partner-name" id="partnerName">JBIQ</div>
+              <div class="partner-meta" id="partnerMeta">persona</div>
+            </div>
+          </div>
+          <div class="you-line">YOU<span class="text" id="userTurn">—</span></div>
+          <div class="text-response">
+            <p class="text-response__body" id="assistantTurn">—</p>
+          </div>
+          <div class="visual-area" id="visualArea"></div>
+        </div>
+      </div>
+
+      <div class="voice-bar">
+        <div class="voice-meter" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span>
+        </div>
+        <div class="voice-status">Speaking</div>
+        <div class="reply-chips" id="replyChips"></div>
+      </div>
+    </section>
+
+    <!-- Inspector -->
+    <aside class="inspector">
+      <h1>What's happening in the system</h1>
+      <p class="step-narration" id="narration">—</p>
+
+      <div class="pipeline">
+        <div class="pipe-step">
+          <div class="pipe-label">1. Tool output</div>
+          <div class="pipe-value" id="pipeTool">—</div>
+          <div class="pipe-tag" id="pipeToolShape">—</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-label">2. Mapped entity</div>
+          <div class="pipe-value" id="pipeEntity">—</div>
+          <div class="pipe-tag" id="pipeEntityCard">—</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-label">3. Renderer pick</div>
+          <div class="pipe-value" id="pipeComponent">—</div>
+          <div class="pipe-tag" id="pipeComponentReason">—</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Partner tool output</div>
+          <div class="panel-meta" id="toolMeta">MCP · JSON</div>
+        </div>
+        <div class="panel-body"><pre id="toolOutput"></pre></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Manifest mapping</div>
+          <div class="panel-meta">jbiq.manifest.json</div>
+        </div>
+        <div class="panel-body"><pre id="manifestSnippet"></pre></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Voice script</div>
+          <div class="panel-meta" id="personaMeta">persona</div>
+        </div>
+        <div class="panel-body" id="voiceScript">—</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Reply contract</div>
+          <div class="panel-meta">verbal + tap</div>
+        </div>
+        <div class="panel-body">
+          <div class="reply-list" id="replyList"></div>
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <footer class="controls">
+    <div class="controls-left">Walk through how a partner's MCP output becomes a conversation.</div>
+    <div class="controls-center">
+      <button class="ctl" id="btnPrev" aria-label="Previous">‹</button>
+      <button class="ctl primary" id="btnPlay" aria-label="Play">▶</button>
+      <button class="ctl" id="btnNext" aria-label="Next">›</button>
+    </div>
+    <div class="controls-right" id="controlsRight">daily · 1/2</div>
+  </footer>
+
+</div>
+
+<script>
+const FRAMES = {
+
+  /* 0. FOOD · SWIGGY — canonical worked example */
+  food: {
+    partner: "Swiggy",
+    persona: "casual_friendly",
+    mark: "S",
+    frames: [
+      {
+        narration: "User asks for pad thai. Swiggy's search_restaurants returns three nearby. With 2–4 results and shared facts (rating, ETA, price), the renderer picks ComparisonGrid → CompareTable to surface 'which one'.",
+        userTurn: "Pad thai near me",
+        assistantTurn: "Three nearby. Top is Soi 7 — 4.5 stars, 25 minutes.",
+        tool: "search_restaurants",
+        toolShape: "Collection<Place>",
+        toolOutput: {
+          restaurants:[
+            { id:"r1", name:"Soi 7",          cuisine:"Thai",      rating:4.5, delivery_time:25, price_band:"₹₹",  distance_km:1.2 },
+            { id:"r2", name:"Drunken Monkey", cuisine:"Pan-Asian", rating:4.6, delivery_time:32, price_band:"₹₹₹", distance_km:2.1 },
+            { id:"r3", name:"Bangkok Bites",  cuisine:"Thai",      rating:4.1, delivery_time:18, price_band:"₹",   distance_km:0.8 }
+          ]
+        },
+        manifest: { tool:"search_restaurants", shape:"Collection<Place>",
+                    items:"$.restaurants[*]", render_hint:"compare_when_few" },
+        entity: "Collection<Place>",
+        entityCard: "3 items · comparable",
+        component: "ComparisonGrid",
+        componentReason: "2–4 items + numeric facts → grid",
+        voiceScript: "Three places near you. Top is Soi 7, four point five stars, twenty-five minutes. Drunken Monkey is the highest-rated; Bangkok Bites is the closest.",
+        replies: ["select(index)", "filter(cuisine)", "sort(rating|eta)"],
+        component_render: { type: "ComparisonGrid", data: [
+          { emoji:"🍜", title:"Soi 7",          sub:"Thai",      rating:4.5, facts:[["Rating","4.5 ★"],["ETA","25 min"],["For two","₹600"]], best:"Recommended" },
+          { emoji:"🥡", title:"Drunken Monkey", sub:"Pan-Asian", rating:4.6, facts:[["Rating","4.6 ★"],["ETA","32 min"],["For two","₹800"]], best:"Highest rated" },
+          { emoji:"🍲", title:"Bangkok Bites",  sub:"Thai",      rating:4.1, facts:[["Rating","4.1 ★"],["ETA","18 min"],["For two","₹450"]], best:"Fastest" }
+        ], focus: 0 }
+      },
+      {
+        narration: "User picks Soi 7. The grid collapses to an EntityCard — same Place primitive, different cardinality, different component pick.",
+        userTurn: "Soi 7",
+        assistantTurn: "Soi 7 — Thai, 4.5 stars, ETA 25 minutes. Want the menu?",
+        tool: "search_restaurants",
+        toolShape: "Place",
+        toolOutput: { focused_entity:"r1",
+          restaurant:{ id:"r1", name:"Soi 7", cuisine:"Thai", rating:4.5, delivery_time:25, price_band:"₹₹", distance_km:1.2 }},
+        manifest: { intent:"select", maps_to:"$.entities[0]" },
+        entity: "Place",
+        entityCard: "single",
+        component: "EntityCard",
+        componentReason: "user selected one → collapse to card",
+        voiceScript: "Soi 7 — Thai, four point five stars, twenty-five minutes. Want the menu?",
+        replies: ["view_menu", "back", "compare"],
+        component_render: { type: "EntityCard", data: {
+          emoji:"🍜", title:"Soi 7", sub:"Thai · ₹₹ · Koramangala",
+          facts:[["Rating","4.5 ★"],["ETA","25 min"],["For two","₹600"]],
+          actions:[["View menu","primary"],["Back","secondary"]]
+        }}
+      },
+      {
+        narration: "User adds items. update_food_cart returns Transaction.building. CartPanel renders — the only component typed to a cart being assembled.",
+        userTurn: "Add pad thai and a thai iced tea",
+        assistantTurn: "Two items, ₹548 total. Anything else, or ready to check out?",
+        tool: "update_food_cart",
+        toolShape: "Transaction.building",
+        toolOutput: {
+          cart_id:"c-9921", state:"building",
+          line_items:[
+            { item_id:"i3", name:"Pad Thai",      qty:1, price:345 },
+            { item_id:"i6", name:"Thai Iced Tea", qty:1, price:140 }
+          ],
+          subtotal:485, fees:[{name:"Delivery",value:39},{name:"Taxes",value:24}], total:548
+        },
+        manifest: { tool:"update_food_cart", shape:"Transaction.building" },
+        entity: "Transaction.building",
+        entityCard: "cart",
+        component: "CartPanel",
+        componentReason: "Transaction.building → CartPanel",
+        voiceScript: "Added. Pad thai and thai iced tea. Subtotal four eighty-five, total five forty-eight with delivery. Anything else, or ready to check out?",
+        replies: ["add(item)", "remove(item)", "checkout"],
+        component_render: { type: "CartPanel", data: {
+          rows:[{name:"Pad Thai",qty:"× 1",price:"₹345"},{name:"Thai Iced Tea",qty:"× 1",price:"₹140"}],
+          totals:[["Subtotal","₹485"],["Delivery","₹39"],["Taxes","₹24"]],
+          total:["Total","₹548"],
+          cta:"Review and checkout"
+        }}
+      },
+      {
+        narration: "Checkout. The platform-owned Confirm flow intercepts before place_food_order executes. Voice reads back the order; visual surfaces the total. Partners can't bypass this.",
+        userTurn: "Checkout",
+        assistantTurn: "Just to confirm — pad thai and thai iced tea from Soi 7. ₹548 to Visa ending 4421. Should I go ahead?",
+        tool: "[system] Confirm flow",
+        toolShape: "platform_owned",
+        toolOutput: {
+          confirm_for:"place_food_order",
+          summary:"Pad Thai, Thai Iced Tea — Soi 7",
+          total_charge:548,
+          payment_method:"Visa ending 4421"
+        },
+        manifest: { note:"Platform-owned. Every Transaction execution routes through this. Partners cannot opt out." },
+        entity: "Choice (system-injected)",
+        entityCard: "confirm",
+        component: "ConfirmPanel",
+        componentReason: "Transaction about to execute → system interrupt",
+        voiceScript: "Just to confirm — pad thai and thai iced tea from Soi 7. Five hundred and forty-eight rupees charged to Visa ending 4421. Should I go ahead?",
+        replies: ["confirm", "cancel", "change_payment"],
+        component_render: { type: "ConfirmPanel", data: {
+          prompt:"Place this order?",
+          summary:"Soi 7 · Pad Thai, Thai Iced Tea · Visa •• 4421",
+          total:"₹548",
+          actions:["Confirm","Cancel"]
+        }}
+      },
+      {
+        narration: "Confirmed. place_food_order returns Transaction.confirmed with a tracking handoff. ReceiptPanel renders, queues Tracker for the delivery. The Status<Route> primitive then streams the driver's progress.",
+        userTurn: "Yes",
+        assistantTurn: "Done. Order placed. ETA 25 minutes. I'll keep you posted.",
+        tool: "place_food_order",
+        toolShape: "Transaction.confirmed → Status<Route>",
+        toolOutput: {
+          order_id:"ord-44921", state:"confirmed", eta_minutes:25,
+          line_items:[{name:"Pad Thai"},{name:"Thai Iced Tea"}],
+          total:548, payment:"visa_4421",
+          tracking:{ stages:["accepted","preparing","picked_up","out_for_delivery","delivered"], current:"accepted" }
+        },
+        manifest: { tool:"place_food_order", shape:"Transaction.confirmed",
+                    handoff:"track_food_order" },
+        entity: "Transaction.confirmed → Status<Route>",
+        entityCard: "receipt + tracker handoff",
+        component: "ReceiptPanel → Tracker",
+        componentReason: "confirmed + tracking → receipt with tracker handoff",
+        voiceScript: "Done. Order placed. Five hundred forty-eight rupees charged. ETA twenty-five minutes — I'll keep you posted.",
+        replies: ["track", "share", "repeat_order"],
+        component_render: { type: "ReceiptPanel", data: {
+          banner:["Order placed", "Soi 7 · #ord-44921"],
+          lines:[["Pad Thai","₹345"],["Thai Iced Tea","₹140"],["Delivery + Taxes","₹63"]],
+          total:["Total charged","₹548"]
+        }}
+      },
+      {
+        narration: "Live tracking. track_food_order streams Status<Route>. Renderer picks Tracker — same component that shows a Strava run, a cricket innings, and an Aadhaar application. Different domain, identical primitive.",
+        userTurn: "(driving — eyes-busy mode)",
+        assistantTurn: "Your food is 12 minutes away. Driver Amit is on the way.",
+        tool: "track_food_order",
+        toolShape: "Status<Route>",
+        toolOutput: {
+          order_id:"ord-44921",
+          stage:"out_for_delivery",
+          stages:["accepted","preparing","picked_up","out_for_delivery","delivered"],
+          eta_minutes:12,
+          driver:{ name:"Amit", phone:"+91 ••• ••12" },
+          route:{ from:[12.93,77.61], to:[12.95,77.62] }
+        },
+        manifest: { tool:"track_food_order", shape:"Status<Route>" },
+        entity: "Status<Route>",
+        entityCard: "live",
+        component: "Tracker",
+        componentReason: "Status<Route> in progress → Tracker (with Map inset if available)",
+        voiceScript: "Your food is twelve minutes away. Driver Amit is on the way.",
+        replies: ["notify_when(arrived)", "share", "contact_driver"],
+        component_render: { type: "Tracker", data: {
+          stage:"Out for delivery", eta:"12 min", detail:"Amit · +91 ••• ••12 · Soi 7",
+          steps:[["accepted","done"],["preparing","done"],["picked up","done"],["out for delivery","active"],["delivered","pending"]]
+        }}
+      }
+    ]
+  },
+
+  /* 1. DAILY ASSISTANT */
+  daily: {
+    partner: "JBIQ",
+    persona: "concise_neutral",
+    mark: "D",
+    frames: [
+      {
+        narration: "User asks for the morning brief. JBIQ aggregates weather, calendar, news, and traffic into a Collection<*> grouped by section. Renderer picks List.sectioned — a single grouped overview voice can summarize in one breath.",
+        userTurn: "Morning brief",
+        assistantTurn: "Good morning. 21° with rain after 2. Three things on your calendar — biggest is the 11 AM review. Headline: budget tabled in parliament.",
+        tool: "get_daily_briefing",
+        toolShape: "Collection<Place|Schedule|Media|Status>",
+        toolOutput: {
+          weather:{ temp_c:21, condition:"Light rain after 2pm" },
+          calendar:[
+            { id:"e1", title:"Team review", start:"11:00", end:"11:30" },
+            { id:"e2", title:"Lunch · Priya", start:"13:00", end:"14:00" },
+            { id:"e3", title:"Gym", start:"19:00", end:"20:00" }
+          ],
+          headlines:[
+            { id:"h1", title:"Budget tabled in parliament", source:"Times of India" },
+            { id:"h2", title:"Sensex closes at record high", source:"Mint" }
+          ],
+          commute:{ mode:"car", duration_min:32, traffic:"moderate" }
+        },
+        manifest: { tool:"get_daily_briefing", shape:"Collection<*>",
+                    sections:[{name:"Weather",items:"$.weather"},
+                              {name:"Calendar",items:"$.calendar[*]"},
+                              {name:"Headlines",items:"$.headlines[*]"}] },
+        entity: "Collection<*> grouped",
+        entityCard: "briefing",
+        component: "List.sectioned",
+        componentReason: "Mixed Collection with section keys → sectioned list",
+        voiceScript: "Good morning. Twenty-one degrees, rain expected after two. Three things on your calendar — biggest is the eleven AM review. Top headline: budget tabled in parliament.",
+        replies: ["select(item)", "skip_section", "set_reminder", "details"],
+        component_render: { type: "ListSectioned", data: [
+          { name:"Weather", items:[
+            { name:"Light rain after 2pm", desc:"21° · feels like 19° · Bangalore", price:"21°" }
+          ]},
+          { name:"Calendar (3)", items:[
+            { name:"Team review", desc:"30 min · Conf room", price:"11:00" },
+            { name:"Lunch · Priya", desc:"60 min · Café Coffee Day", price:"13:00" },
+            { name:"Gym", desc:"60 min · Self", price:"19:00" }
+          ]},
+          { name:"Headlines (2)", items:[
+            { name:"Budget tabled in parliament", desc:"Times of India · 42 min ago", price:"" },
+            { name:"Sensex closes at record high", desc:"Mint · 1h 20m", price:"" }
+          ]}
+        ]}
+      },
+      {
+        narration: "User sets a reminder. set_reminder returns Transaction.confirmed. ReceiptPanel renders — the same component that confirms a Swiggy order or a flight booking. Transaction.confirmed is a primitive, not a vertical-specific format.",
+        userTurn: "Remind me to call mom at 6",
+        assistantTurn: "Reminder set for 6 PM today. I'll buzz you.",
+        tool: "set_reminder",
+        toolShape: "Transaction.confirmed",
+        toolOutput: { reminder_id:"rem-8821", state:"confirmed",
+                      label:"Call mom", at:"18:00", repeat:"none",
+                      channel:"voice+haptic" },
+        manifest: { tool:"set_reminder", shape:"Transaction.confirmed" },
+        entity: "Transaction.confirmed",
+        entityCard: "receipt",
+        component: "ReceiptPanel",
+        componentReason: "Confirmed action → receipt",
+        voiceScript: "Reminder set for 6 PM today. I'll buzz you.",
+        replies: ["change_time", "cancel", "add_note"],
+        component_render: { type: "ReceiptPanel", data: {
+          banner:["Reminder set", "Today · 6:00 PM"],
+          lines:[["Label","Call mom"],["Repeat","Once"],["Channel","Voice + haptic"]],
+          total:["When","18:00"]
+        }}
+      }
+    ]
+  },
+
+  /* 2. CRICKET */
+  cricket: {
+    partner: "Cricbuzz",
+    persona: "playful_energetic",
+    mark: "C",
+    frames: [
+      {
+        narration: "User asks for the live India match. Cricbuzz returns Status<Schedule> with live updates. Renderer picks Tracker — the same component that shows a Swiggy delivery and a Strava run, now showing a live cricket innings.",
+        userTurn: "Live score, India match",
+        assistantTurn: "India 245 for 4, 38 overs. Kohli on 67. Required run rate 6.3.",
+        tool: "get_live_match",
+        toolShape: "Status<Schedule>",
+        toolOutput: {
+          match_id:"m-ind-aus-441",
+          stage:"innings_1",
+          stages:["pre_match","innings_1","interval","innings_2","completed"],
+          batting:"India", overs:38.2, score:"245/4", required_rate:6.3,
+          batsmen:[{name:"Kohli",runs:67},{name:"Iyer",runs:42}],
+          opponent:"Australia"
+        },
+        manifest: { tool:"get_live_match", shape:"Status<Schedule>",
+                    stage:"$.stage", stages:"$.stages", primary_metric:"$.score" },
+        entity: "Status<Schedule>",
+        entityCard: "live",
+        component: "Tracker",
+        componentReason: "Live status with stages → Tracker (same as food delivery)",
+        voiceScript: "India two-forty-five for four, thirty-eight overs. Kohli on sixty-seven. Required rate six point three.",
+        replies: ["scorecard", "commentary", "notify(wicket|fifty|century)"],
+        component_render: { type: "Tracker", data: {
+          stage:"India vs Australia · 1st innings",
+          eta:"245/4 · 38.2 ov",
+          detail:"Kohli 67* · Iyer 42* · RRR 6.3",
+          steps:[["pre-match","done"],["innings 1","active"],["interval","pending"],["innings 2","pending"],["result","pending"]]
+        }}
+      },
+      {
+        narration: "Upcoming matches. get_match_schedule returns Collection<Schedule>. Renderer picks Timeline — same component that shows Practo's appointment slots and Strava's run history.",
+        userTurn: "When's the next big match?",
+        assistantTurn: "Three coming up. India versus Australia Wednesday at 7, T20 from Mumbai.",
+        tool: "get_match_schedule",
+        toolShape: "Collection<Schedule>",
+        toolOutput: {
+          matches:[
+            { id:"m1", teams:"IND vs AUS", format:"T20",  start:"Wed 19:00", venue:"Mumbai" },
+            { id:"m2", teams:"IND vs ENG", format:"ODI",  start:"Sat 14:30", venue:"Pune" },
+            { id:"m3", teams:"AUS vs ENG", format:"Test", start:"Mon 09:30", venue:"Delhi" }
+          ]
+        },
+        manifest: { tool:"get_match_schedule", shape:"Collection<Schedule>",
+                    items:"$.matches[*]", render_hint:"timeline" },
+        entity: "Collection<Schedule>",
+        entityCard: "agenda",
+        component: "Timeline",
+        componentReason: "Time-ordered events → Timeline",
+        voiceScript: "Three coming up. India versus Australia, Wednesday 7 PM, T20 from Mumbai. Then India versus England Saturday. And Australia versus England Monday.",
+        replies: ["select(match)", "set_reminder", "filter(team)"],
+        component_render: { type: "Timeline", data: [
+          { time:"Wed", title:"IND vs AUS · T20",  meta:"19:00 · Wankhede, Mumbai", active:true },
+          { time:"Sat", title:"IND vs ENG · ODI",  meta:"14:30 · MCA, Pune" },
+          { time:"Mon", title:"AUS vs ENG · Test", meta:"09:30 · Kotla, Delhi" }
+        ]}
+      }
+    ]
+  },
+
+  /* 3. BOLLYWOOD */
+  bollywood: {
+    partner: "JioCinema",
+    persona: "playful_energetic",
+    mark: "B",
+    frames: [
+      {
+        narration: "Bollywood's new-releases returns Collection<Media>. Gallery renders — same component used for Spotify's playlists. The Media primitive doesn't change because the vertical changes.",
+        userTurn: "What new Hindi movies are out?",
+        assistantTurn: "Four big releases. Top picks are Jawan 2 and Animal Park.",
+        tool: "get_new_releases",
+        toolShape: "Collection<Media>",
+        toolOutput: {
+          movies:[
+            { id:"m1", title:"Jawan 2",        kind:"film", rating:8.2, lang:"Hindi" },
+            { id:"m2", title:"Animal Park",    kind:"film", rating:7.8, lang:"Hindi" },
+            { id:"m3", title:"Laapata Ladies", kind:"film", rating:8.5, lang:"Hindi" },
+            { id:"m4", title:"Kalki 2898 AD",  kind:"film", rating:8.0, lang:"Hindi+Tel" }
+          ]
+        },
+        manifest: { tool:"get_new_releases", shape:"Collection<Media>",
+                    items:"$.movies[*]", render_hint:"media_led" },
+        entity: "Collection<Media>",
+        entityCard: "media gallery",
+        component: "Gallery",
+        componentReason: "Collection<Media> + media-led → Gallery",
+        voiceScript: "Four big releases. Top is Jawan 2, then Animal Park. Laapata Ladies is the highest-rated at eight point five.",
+        replies: ["select(movie)", "play_trailer", "filter(lang|rating)"],
+        component_render: { type: "Gallery", data: [
+          { emoji:"🎬", label:"Jawan 2" },
+          { emoji:"🐅", label:"Animal Park" },
+          { emoji:"🥻", label:"Laapata Ladies" },
+          { emoji:"🚀", label:"Kalki 2898 AD" }
+        ]}
+      },
+      {
+        narration: "User asks for the title song. play_track returns Status<Media>. MediaPlayer renders — same component as Spotify and Devotion. Different content, identical primitive.",
+        userTurn: "Play the title song from Jawan",
+        assistantTurn: "Playing 'Zinda Banda' from Jawan, by Anirudh Ravichander.",
+        tool: "play_track",
+        toolShape: "Status<Media>",
+        toolOutput: { now_playing:{ id:"t-zinda", title:"Zinda Banda", artist:"Anirudh Ravichander", source:"Jawan (2023)" },
+                      position_ms:0, duration_ms:218000 },
+        manifest: { tool:"play_track", shape:"Status<Media>",
+                    title:"$.now_playing.title", subtitle:"$.now_playing.artist" },
+        entity: "Status<Media>",
+        entityCard: "now playing",
+        component: "MediaPlayer",
+        componentReason: "Status<Media> → MediaPlayer",
+        voiceScript: "Playing Zinda Banda from Jawan, by Anirudh.",
+        replies: ["pause", "skip", "lyrics", "add_to_playlist"],
+        component_render: { type: "MediaPlayer", data: {
+          emoji:"🎬", title:"Zinda Banda", artist:"Anirudh Ravichander · Jawan"
+        }}
+      }
+    ]
+  },
+
+  /* 4. NEWS */
+  news: {
+    partner: "Times of India",
+    persona: "concise_neutral",
+    mark: "N",
+    frames: [
+      {
+        narration: "Headlines arrive as Collection<Media> sectioned by category. Renderer picks List.sectioned. Voice template summarizes the lead and offers to drill in.",
+        userTurn: "Top headlines",
+        assistantTurn: "Five top stories. Lead: budget with surprise tax revisions. Also: Sensex at record high, the Test match, monsoon update, and a long read on AI in education.",
+        tool: "get_headlines",
+        toolShape: "Collection<Media>",
+        toolOutput: {
+          sections:[
+            { name:"Top",     items:[{ id:"a1", title:"Government tables budget with surprise tax revisions", source:"PTI", age_min:42 }]},
+            { name:"Markets", items:[{ id:"a2", title:"Sensex closes at record high, 84,200", source:"Mint", age_min:80 }]},
+            { name:"Sports",  items:[{ id:"a3", title:"India 245/4 vs Australia at lunch", source:"PTI", age_min:25 }]}
+          ]
+        },
+        manifest: { tool:"get_headlines", shape:"Collection<Media>",
+                    sections:"$.sections[*]", items:"$.sections[*].items[*]" },
+        entity: "Collection<Media> sectioned",
+        entityCard: "headlines",
+        component: "List.sectioned",
+        componentReason: "Sectioned Collection → List.sectioned",
+        voiceScript: "Five top stories. Lead: budget with surprise tax revisions. Markets at a record high. Test match drama. Monsoon update. And a long read on AI in education.",
+        replies: ["select(article)", "read(article)", "filter(section)"],
+        component_render: { type: "ListSectioned", data: [
+          { name:"Top", items:[{ name:"Government tables budget with surprise tax revisions", desc:"PTI · 42 min ago", price:"" }]},
+          { name:"Markets", items:[{ name:"Sensex closes at record high, 84,200", desc:"Mint · 1h 20m", price:"" }]},
+          { name:"Sports",  items:[{ name:"India 245/4 vs Australia at lunch", desc:"PTI · 25 min ago", price:"" }]}
+        ]}
+      },
+      {
+        narration: "User asks to read one. get_article returns single Media. EntityCard renders — same component that highlighted a single restaurant.",
+        userTurn: "Read me the budget story",
+        assistantTurn: "From Times of India: Five percent tax relief for the salaried middle class; new GST tiers; markets up. Want the full read?",
+        tool: "get_article",
+        toolShape: "Media",
+        toolOutput: {
+          article:{ id:"a1", title:"Government tables budget with surprise tax revisions",
+                    source:"Times of India · PTI", published_at:"2026-05-11T08:30:00Z",
+                    summary:"Five percent tax relief for salaried middle class; new GST tiers; markets respond positively.",
+                    read_time_min:4 }
+        },
+        manifest: { tool:"get_article", shape:"Media",
+                    title:"$.article.title", subtitle:"$.article.source" },
+        entity: "Media",
+        entityCard: "single",
+        component: "EntityCard",
+        componentReason: "Single Media → EntityCard",
+        voiceScript: "From Times of India: Government tables budget with surprise tax revisions. Five percent relief for the salaried middle class. New GST tiers. Markets up. Want the full read?",
+        replies: ["read_full", "summarize", "save", "share"],
+        component_render: { type: "EntityCard", data: {
+          emoji:"📰", title:"Budget with surprise tax revisions", sub:"Times of India · PTI · 4 min read",
+          facts:[["Relief","5%"],["GST","New tiers"],["Markets","Up"]],
+          actions:[["Read full","primary"],["Summarize","secondary"]]
+        }}
+      }
+    ]
+  },
+
+  /* 5. JOBS & SKILLING */
+  jobs: {
+    partner: "Naukri",
+    persona: "concise_neutral",
+    mark: "J",
+    frames: [
+      {
+        narration: "Job search returns Collection<Item>. List renders — same component as doctors and headlines. Item facts here are CTC, experience, location.",
+        userTurn: "Product manager jobs in Bangalore",
+        assistantTurn: "Four matches. Top is Senior PM at Razorpay, ₹40L. Cred is highest at ₹55L but needs 8+ years.",
+        tool: "search_jobs",
+        toolShape: "Collection<Item>",
+        toolOutput: {
+          jobs:[
+            { id:"j1", title:"Senior Product Manager", company:"Razorpay", ctc_lpa:40, exp:"6-9 yrs", location:"Bangalore" },
+            { id:"j2", title:"Product Manager II",     company:"PhonePe",  ctc_lpa:32, exp:"4-7 yrs", location:"Bangalore" },
+            { id:"j3", title:"Group PM",               company:"Cred",     ctc_lpa:55, exp:"8+ yrs",  location:"Bangalore" },
+            { id:"j4", title:"Product Manager",        company:"Meesho",   ctc_lpa:28, exp:"3-5 yrs", location:"Bangalore" }
+          ]
+        },
+        manifest: { tool:"search_jobs", shape:"Collection<Item>",
+                    items:"$.jobs[*]", fields:{ title:"$.title", subtitle:"$.company",
+                    facts:[{label:"CTC",value:"$.ctc_lpa",unit:"LPA"}] }},
+        entity: "Collection<Item>",
+        entityCard: "list",
+        component: "List",
+        componentReason: "Collection<Item>, count ≥ 3 → List",
+        voiceScript: "Four matches. Top is Senior PM at Razorpay, forty lakhs. Cred has the highest at fifty-five LPA but needs eight-plus years. PhonePe and Meesho also have openings.",
+        replies: ["select(job)", "filter(ctc|exp)", "sort(salary)", "save"],
+        component_render: { type: "ListSectioned", data: [
+          { name:"4 matches", items:[
+            { name:"Senior PM · Razorpay",  desc:"Bangalore · 6–9 yrs · ⭐ Strong match", price:"₹40 LPA" },
+            { name:"PM II · PhonePe",       desc:"Bangalore · 4–7 yrs",                  price:"₹32 LPA" },
+            { name:"Group PM · Cred",       desc:"Bangalore · 8+ yrs",                   price:"₹55 LPA" },
+            { name:"PM · Meesho",           desc:"Bangalore · 3–5 yrs",                  price:"₹28 LPA" }
+          ]}
+        ]}
+      },
+      {
+        narration: "User asks for upskilling. recommend_courses returns Collection<Item> with comparable facts. ComparisonGrid renders — same rhetoric the flight search used.",
+        userTurn: "Recommend a SQL course",
+        assistantTurn: "Three picks. Coursera's specialization is most thorough; W3Schools is free.",
+        tool: "recommend_courses",
+        toolShape: "Collection<Item>",
+        toolOutput: {
+          courses:[
+            { id:"c1", title:"SQL for Data Science", provider:"Coursera",  rating:4.7, hours:24, price_inr:3200 },
+            { id:"c2", title:"SQL Bootcamp",         provider:"Udemy",     rating:4.6, hours:18, price_inr:499 },
+            { id:"c3", title:"SQL Basics",           provider:"W3Schools", rating:4.4, hours:6,  price_inr:0 }
+          ]
+        },
+        manifest: { tool:"recommend_courses", shape:"Collection<Item>", render_hint:"compare_when_few" },
+        entity: "Collection<Item>",
+        entityCard: "comparable",
+        component: "ComparisonGrid",
+        componentReason: "2–4 items + comparable facts → grid",
+        voiceScript: "Three picks. Coursera's specialization is most thorough — twenty-four hours, three thousand two hundred. Udemy is faster. W3Schools is free.",
+        replies: ["select(course)", "enroll", "filter(free)"],
+        component_render: { type: "ComparisonGrid", data: [
+          { emoji:"📚", title:"SQL for Data Science", sub:"Coursera",  rating:4.7, facts:[["Hrs","24"],["₹","3,200"]], best:"Most thorough" },
+          { emoji:"💻", title:"SQL Bootcamp",         sub:"Udemy",     rating:4.6, facts:[["Hrs","18"],["₹","499"]],   best:"Best value" },
+          { emoji:"🆓", title:"SQL Basics",           sub:"W3Schools", rating:4.4, facts:[["Hrs","6"], ["₹","0"]],     best:"Free" }
+        ], focus: 0 }
+      }
+    ]
+  },
+
+  /* 6. DEVOTION */
+  devotion: {
+    partner: "Sri Mandir",
+    persona: "warm_clinical",
+    mark: "Ω",
+    frames: [
+      {
+        narration: "Today's panchang as a Schedule entity with rich religious-calendar facts. EntityCard renders — same component shape as a doctor card or flight card, different content. Voice persona shifts to warm_clinical: reverent, measured.",
+        userTurn: "Today's panchang",
+        assistantTurn: "Krishna Paksha, Saptami. Auspicious time 11:30 to 1:15. Hanuman Jayanti tomorrow.",
+        tool: "get_panchang",
+        toolShape: "Schedule",
+        toolOutput: {
+          date:"2026-05-11",
+          tithi:"Krishna Paksha · Saptami",
+          nakshatra:"Uttara Bhadrapada",
+          shubh_muhurat:"11:30 AM – 1:15 PM",
+          rahu_kaal:"07:30 – 09:00",
+          festival_tomorrow:"Hanuman Jayanti"
+        },
+        manifest: { tool:"get_panchang", shape:"Schedule",
+                    title:"$.tithi", subtitle:"$.nakshatra" },
+        entity: "Schedule",
+        entityCard: "single",
+        component: "EntityCard",
+        componentReason: "Single Schedule with rich facts → EntityCard",
+        voiceScript: "Krishna Paksha Saptami today. Auspicious time eleven-thirty to one-fifteen. Rahu Kaal is in the early morning. Hanuman Jayanti tomorrow.",
+        replies: ["mark_festival", "view_calendar", "play_chant"],
+        component_render: { type: "EntityCard", data: {
+          emoji:"🪔", title:"Krishna Paksha · Saptami", sub:"Uttara Bhadrapada · 11 May",
+          facts:[["Shubh","11:30–13:15"],["Rahu","07:30–09:00"],["Tomorrow","Hanuman Jayanti"]],
+          actions:[["Set reminder","primary"],["Play chant","secondary"]]
+        }}
+      },
+      {
+        narration: "User asks to play a chant. play_devotional returns Status<Media>. MediaPlayer renders — same component as Spotify and Bollywood. Different content, identical primitive.",
+        userTurn: "Play Hanuman Chalisa",
+        assistantTurn: "Playing Hanuman Chalisa, sung by Hariharan, twelve minutes.",
+        tool: "play_devotional",
+        toolShape: "Status<Media>",
+        toolOutput: { now_playing:{ id:"hc-h1", title:"Hanuman Chalisa", artist:"Hariharan", duration_min:12 }},
+        manifest: { tool:"play_devotional", shape:"Status<Media>" },
+        entity: "Status<Media>",
+        entityCard: "now playing",
+        component: "MediaPlayer",
+        componentReason: "Status<Media> → MediaPlayer",
+        voiceScript: "Playing Hanuman Chalisa by Hariharan, twelve minutes.",
+        replies: ["pause", "loop", "queue_next(aarti)"],
+        component_render: { type: "MediaPlayer", data: {
+          emoji:"🪔", title:"Hanuman Chalisa", artist:"Hariharan · 12 min"
+        }}
+      }
+    ]
+  },
+
+  /* 7. ASTROLOGY */
+  astrology: {
+    partner: "AstroSage",
+    persona: "warm_clinical",
+    mark: "★",
+    frames: [
+      {
+        narration: "Astrology needs a zodiac sign first. The system surfaces ChoiceChips with all twelve signs — same component used to disambiguate flight seats and music vibes.",
+        userTurn: "Show my horoscope",
+        assistantTurn: "Which sign?",
+        tool: "[system] disambiguation",
+        toolShape: "Choice",
+        toolOutput: { options:["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"] },
+        manifest: { tool:"get_horoscope", requires:["sign"], on_missing:"surface_choice_chips" },
+        entity: "Choice",
+        entityCard: "single-select",
+        component: "ChoiceChips",
+        componentReason: "Choice entity → chips",
+        voiceScript: "Which sign?",
+        replies: ["select(sign)", "save_my_sign"],
+        component_render: { type: "ChoiceChips", data: {
+          prompt:"Pick your sign",
+          options:["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"],
+          selected: 3
+        }}
+      },
+      {
+        narration: "User picks Cancer. get_horoscope returns a daily reading. EntityCard renders with axis facts (love, career, money, health) — the same fact-row pattern used everywhere else.",
+        userTurn: "Cancer",
+        assistantTurn: "Cancer today. Favourable for finances. Avoid signing contracts after 4 PM. Lucky colour: silver.",
+        tool: "get_horoscope",
+        toolShape: "Media",
+        toolOutput: {
+          sign:"Cancer", date:"2026-05-11",
+          summary:"A favourable day for finances; energy dips late afternoon. Avoid signing contracts after 4 PM.",
+          axes:{ love:3, career:4, money:5, health:3 },
+          lucky:{ color:"silver", number:7 }
+        },
+        manifest: { tool:"get_horoscope", shape:"Media", title:"$.sign" },
+        entity: "Media",
+        entityCard: "single",
+        component: "EntityCard",
+        componentReason: "Single Media with axis facts → EntityCard",
+        voiceScript: "Cancer today. Favourable for finances. Energy dips later. Avoid signing contracts after four. Lucky colour silver, lucky number seven.",
+        replies: ["save_daily", "share", "compatibility(other_sign)"],
+        component_render: { type: "EntityCard", data: {
+          emoji:"♋", title:"Cancer · Today", sub:"11 May 2026",
+          facts:[["Love","3/5"],["Career","4/5"],["Money","5/5"]],
+          actions:[["Save daily","primary"],["Compatibility","secondary"]]
+        }}
+      }
+    ]
+  },
+
+  /* 8. LIFE COMPANION */
+  life: {
+    partner: "JBIQ",
+    persona: "warm_clinical",
+    mark: "♡",
+    frames: [
+      {
+        narration: "User shares something emotional. JBIQ doesn't force a transactional path — the orchestrator surfaces low-pressure ChoiceChips letting the user choose what's helpful. Voice persona shifts to warm_clinical: empathetic, unhurried.",
+        userTurn: "I'm stressed about my interview tomorrow",
+        assistantTurn: "Interviews are tough. I can help you prep, walk through what's worrying you, do a quick breathing exercise, or just be here. What would feel best?",
+        tool: "[system] companion route",
+        toolShape: "Choice",
+        toolOutput: { options:["Help me prep","Talk it through","Breathing exercise","Just listen"] },
+        manifest: { tool:"life_companion", routes:"$.options[*]", persona:"warm_clinical", density:"roomy" },
+        entity: "Choice",
+        entityCard: "single-select",
+        component: "ChoiceChips",
+        componentReason: "Open emotional moment → low-pressure choice",
+        voiceScript: "Interviews are tough. I can help you prep, walk through what's worrying you, do a breathing exercise, or just be here. What would feel best?",
+        replies: ["select(option)", "say_more"],
+        component_render: { type: "ChoiceChips", data: {
+          prompt:"What would feel best right now?",
+          options:["Help me prep","Talk it through","Breathing exercise","Just listen"],
+          selected: 0
+        }}
+      },
+      {
+        narration: "User picks prep. The companion module returns Collection<Item> of practice questions grouped by category. List.sectioned renders. Partner here is JBIQ's own coach module — same component contract, no third party needed.",
+        userTurn: "Help me prep",
+        assistantTurn: "Six high-yield questions for product roles. Want to start with strategy or behavioural?",
+        tool: "get_interview_prep",
+        toolShape: "Collection<Item>",
+        toolOutput: {
+          questions:[
+            { id:"q1", category:"Strategy",   text:"Walk me through how you'd grow JioCinema's subscriber base." },
+            { id:"q2", category:"Strategy",   text:"How do you decide which features to deprecate?" },
+            { id:"q3", category:"Behavioural",text:"Tell me about a time you disagreed with a senior leader." },
+            { id:"q4", category:"Behavioural",text:"What's a project you'd do differently in hindsight?" }
+          ]
+        },
+        manifest: { tool:"get_interview_prep", shape:"Collection<Item>", sections:"$.questions[*].category" },
+        entity: "Collection<Item>",
+        entityCard: "list",
+        component: "List.sectioned",
+        componentReason: "Categorised collection → sectioned list",
+        voiceScript: "Six questions. Strategy, behavioural, and execution. Want to start with strategy?",
+        replies: ["pick_category", "start_practice", "skip", "save_set"],
+        component_render: { type: "ListSectioned", data: [
+          { name:"Strategy", items:[
+            { name:"Grow JioCinema's subscriber base", desc:"15-min answer · Frameworks: AARRR", price:"" },
+            { name:"Deprecation decision-making",      desc:"10-min answer · Trade-offs", price:"" }
+          ]},
+          { name:"Behavioural", items:[
+            { name:"Disagreement with a senior leader", desc:"STAR · 5 min", price:"" },
+            { name:"Project I'd do differently",        desc:"STAR · 5 min", price:"" }
+          ]}
+        ]}
+      }
+    ]
+  },
+
+  /* 9. HEALTH & WELLNESS */
+  health: {
+    partner: "Practo",
+    persona: "warm_clinical",
+    mark: "+",
+    frames: [
+      {
+        narration: "Practo's search_doctors returns Collection<Person>. With ≥3 results, renderer picks List. Density mode 'roomy' for health. Voice persona 'warm_clinical' — calmer, more precise.",
+        userTurn: "I need a dermatologist this week",
+        assistantTurn: "Five dermatologists nearby with availability this week. Top is Dr. Aparna Rao, 4.8 stars, available tomorrow at 11.",
+        tool: "search_doctors",
+        toolShape: "Collection<Person>",
+        toolOutput: {
+          doctors:[
+            { id:"d1", name:"Dr. Aparna Rao",     specialty:"Dermatology", rating:4.8, exp_years:14, next_slot:"Tomorrow 11:00", fee_inr:1200 },
+            { id:"d2", name:"Dr. Vikram Iyer",    specialty:"Dermatology", rating:4.7, exp_years:9,  next_slot:"Tomorrow 16:00", fee_inr:900  },
+            { id:"d3", name:"Dr. Meera Krishnan", specialty:"Dermatology", rating:4.6, exp_years:11, next_slot:"Thursday 09:30", fee_inr:1100 }
+          ]
+        },
+        manifest: { tool:"search_doctors", shape:"Collection<Person>", items:"$.doctors[*]", render_hint:"list_only" },
+        entity: "Collection<Person>",
+        entityCard: "list",
+        component: "List",
+        componentReason: "Collection<Person>, count ≥ 3 → List",
+        voiceScript: "Five dermatologists nearby with availability this week. Top is Doctor Aparna Rao — 4.8 stars, fourteen years' experience, next slot tomorrow at 11.",
+        replies: ["select(doctor)", "filter(time|fee)", "sort(rating|fee|earliest)"],
+        component_render: { type: "ListSectioned", data: [
+          { name:"Available this week", items:[
+            { name:"Dr. Aparna Rao",     desc:"Dermatology · 14 yrs · ⭐ 4.8 · Tomorrow 11:00", price:"₹1,200" },
+            { name:"Dr. Vikram Iyer",    desc:"Dermatology · 9 yrs · ⭐ 4.7 · Tomorrow 16:00",  price:"₹900"   },
+            { name:"Dr. Meera Krishnan", desc:"Dermatology · 11 yrs · ⭐ 4.6 · Thu 09:30",      price:"₹1,100" }
+          ]}
+        ]}
+      },
+      {
+        narration: "Practo returns available slots — Collection<Schedule>. Timeline renders — same component that shows flight schedules and event calendars.",
+        userTurn: "Dr. Aparna Rao",
+        assistantTurn: "Five slots tomorrow. Earliest is 11. Want to book that?",
+        tool: "get_doctor_slots",
+        toolShape: "Collection<Schedule>",
+        toolOutput: {
+          slots:[
+            { id:"s1", start:"11:00", end:"11:20", available:true },
+            { id:"s2", start:"11:30", end:"11:50", available:true },
+            { id:"s3", start:"14:00", end:"14:20", available:true },
+            { id:"s4", start:"15:00", end:"15:20", available:false },
+            { id:"s5", start:"16:00", end:"16:20", available:true }
+          ]
+        },
+        manifest: { tool:"get_doctor_slots", shape:"Collection<Schedule>" },
+        entity: "Collection<Schedule>",
+        entityCard: "agenda",
+        component: "Timeline",
+        componentReason: "Collection<Schedule> → Timeline",
+        voiceScript: "Five slots tomorrow. Earliest is 11. Then 11:30, 2 PM, and 4 PM. Want the 11?",
+        replies: ["select(slot_id)", "next_day", "earliest"],
+        component_render: { type: "Timeline", data: [
+          { time:"11:00", title:"Slot · 20 min", meta:"Available", active:true },
+          { time:"11:30", title:"Slot · 20 min", meta:"Available" },
+          { time:"14:00", title:"Slot · 20 min", meta:"Available" },
+          { time:"15:00", title:"Slot · 20 min", meta:"Booked" },
+          { time:"16:00", title:"Slot · 20 min", meta:"Available" }
+        ]}
+      },
+      {
+        narration: "User confirms. book_appointment returns Transaction.confirmed. ReceiptPanel renders — same component that confirms a food order, a flight booking, or a money transfer. Different domain, identical primitive.",
+        userTurn: "book the 11",
+        assistantTurn: "Booked. Tomorrow 11 with Dr. Aparna Rao. ₹1,200 at the clinic. SMS reminder set.",
+        tool: "book_appointment",
+        toolShape: "Transaction.confirmed",
+        toolOutput: {
+          appointment_id:"appt-7741", state:"confirmed",
+          doctor:{ name:"Dr. Aparna Rao", specialty:"Dermatology" },
+          slot:{ start:"11:00", end:"11:20", date:"Tomorrow" },
+          fee_inr:1200, payment_mode:"at_clinic"
+        },
+        manifest: { tool:"book_appointment", shape:"Transaction.confirmed" },
+        entity: "Transaction.confirmed",
+        entityCard: "receipt",
+        component: "ReceiptPanel",
+        componentReason: "Transaction.confirmed → receipt",
+        voiceScript: "Booked. Tomorrow 11 with Doctor Aparna Rao. One thousand two hundred at the clinic. SMS reminder set.",
+        replies: ["add_to_calendar", "reschedule", "share", "directions"],
+        component_render: { type: "ReceiptPanel", data: {
+          banner:["Appointment booked", "Dr. Aparna Rao · #appt-7741"],
+          lines:[["Date","Tomorrow"],["Time","11:00 – 11:20"],["Specialty","Dermatology"]],
+          total:["Consultation fee","₹1,200"]
+        }}
+      }
+    ]
+  },
+
+  /* 10. FINANCE */
+  finance: {
+    partner: "JioFinance",
+    persona: "concise_neutral",
+    mark: "₹",
+    frames: [
+      {
+        narration: "Account summary returns a Status entity. EntityCard renders — same component shape as a doctor or flight card, different content. The large numeric (balance) uses display-style weight 950 from the JDS scale.",
+        userTurn: "Show my balance",
+        assistantTurn: "Savings ₹1,24,580. Last transaction was ₹500 to Big Bazaar yesterday. One pending bill: ₹2,200 to electricity, due Wednesday.",
+        tool: "get_account_summary",
+        toolShape: "Status",
+        toolOutput: {
+          account:{ id:"sav-4421", type:"Savings", balance_inr:124580, currency:"INR" },
+          last_transaction:{ merchant:"Big Bazaar", amount_inr:500, when:"Yesterday" },
+          pending_bills:[{ name:"Electricity", amount_inr:2200, due:"Wed" }]
+        },
+        manifest: { tool:"get_account_summary", shape:"Status",
+                    title:"$.account.type", primary_metric:"$.account.balance_inr" },
+        entity: "Status",
+        entityCard: "single",
+        component: "EntityCard",
+        componentReason: "Single Status with rich facts → EntityCard",
+        voiceScript: "Savings one lakh twenty-four thousand five hundred eighty. Last transaction five hundred to Big Bazaar yesterday. One pending bill, twenty-two hundred to electricity, due Wednesday.",
+        replies: ["pay_bill", "transfer", "transactions", "set_budget"],
+        component_render: { type: "EntityCard", data: {
+          emoji:"₹", title:"Savings · ₹1,24,580", sub:"JioFinance · Account •••• 4421",
+          facts:[["Last","₹500 · Big Bazaar"],["Due Wed","₹2,200 · Electricity"]],
+          actions:[["Pay bill","primary"],["Transfer","secondary"]]
+        }}
+      },
+      {
+        narration: "User initiates a transfer. The platform-owned Confirm flow intercepts. Finance is regulated, so the readback is explicit: full amount, full payee, full account. Partners cannot bypass this — safety lives at the platform layer.",
+        userTurn: "Send 5000 to mom",
+        assistantTurn: "₹5,000 to Mom — Mrs. Sharma, ICICI ending 4571. Confirm?",
+        tool: "[system] Confirm flow",
+        toolShape: "platform_owned",
+        toolOutput: {
+          confirm_for:"complete_transfer",
+          payee:"Mom · Mrs. Sharma",
+          payee_account:"ICICI •••• 4571",
+          amount_inr:5000,
+          payment_method:"JioFinance •••• 4421"
+        },
+        manifest: { note:"Platform-owned. Every Finance Transaction routes through this. 2FA on transfers above ₹10,000." },
+        entity: "Choice (system-injected)",
+        entityCard: "confirm",
+        component: "ConfirmPanel",
+        componentReason: "Finance Transaction → mandatory confirm",
+        voiceScript: "Five thousand to Mom — Misses Sharma, ICICI account ending 4571. Should I go ahead?",
+        replies: ["confirm", "cancel", "change_account"],
+        component_render: { type: "ConfirmPanel", data: {
+          prompt:"Send this money?",
+          summary:"Mom · Mrs. Sharma · ICICI •••• 4571",
+          total:"₹5,000",
+          actions:["Send","Cancel"]
+        }}
+      },
+      {
+        narration: "User confirms. complete_transfer executes and returns Transaction.confirmed with a UPI reference. ReceiptPanel renders. The system contract holds across regulated and unregulated domains — same component as a food order or flight booking.",
+        userTurn: "yes",
+        assistantTurn: "Done. ₹5,000 sent. UPI reference UPI/445792… Mom will get an SMS.",
+        tool: "complete_transfer",
+        toolShape: "Transaction.confirmed",
+        toolOutput: {
+          txn_id:"upi-445792-abc", state:"confirmed",
+          amount_inr:5000, payee:"Mrs. Sharma · ICICI ••• 4571",
+          ref:"UPI/445792/202605110730"
+        },
+        manifest: { tool:"complete_transfer", shape:"Transaction.confirmed" },
+        entity: "Transaction.confirmed",
+        entityCard: "receipt",
+        component: "ReceiptPanel",
+        componentReason: "Confirmed Transaction → receipt",
+        voiceScript: "Done. Five thousand sent. UPI reference four-four-five-seven-nine-two. Mom will get an SMS.",
+        replies: ["share_receipt", "save_payee", "repeat_monthly"],
+        component_render: { type: "ReceiptPanel", data: {
+          banner:["Money sent", "UPI/445792/202605110730"],
+          lines:[["To","Mom · Mrs. Sharma"],["Account","ICICI •••• 4571"],["Mode","UPI"]],
+          total:["Amount","₹5,000"]
+        }}
+      }
+    ]
+  },
+
+  /* 11. COMMERCE */
+  commerce: {
+    partner: "JioMart",
+    persona: "concise_neutral",
+    mark: "M",
+    frames: [
+      {
+        narration: "JioMart's search_products returns Collection<Item> with comparable facts. ComparisonGrid renders — same rhetoric used for flights, courses, and food. Commerce doesn't introduce new components.",
+        userTurn: "I need basmati rice, 5 kg",
+        assistantTurn: "Three top picks under ₹650. India Gate is highest-rated. Daawat is on sale.",
+        tool: "search_products",
+        toolShape: "Collection<Item>",
+        toolOutput: {
+          products:[
+            { id:"p1", name:"India Gate Classic 5kg", brand:"India Gate", price:625, rating:4.6, delivery:"Tomorrow" },
+            { id:"p2", name:"Daawat Super 5kg",       brand:"Daawat",     price:545, rating:4.5, delivery:"Tomorrow", sale:true },
+            { id:"p3", name:"Fortune Biryani 5kg",    brand:"Fortune",    price:599, rating:4.4, delivery:"Today" }
+          ]
+        },
+        manifest: { tool:"search_products", shape:"Collection<Item>",
+                    items:"$.products[*]", render_hint:"compare_when_few" },
+        entity: "Collection<Item>",
+        entityCard: "3 items · comparable",
+        component: "ComparisonGrid",
+        componentReason: "2–4 items + numeric facts → grid",
+        voiceScript: "Three top picks under six-fifty. India Gate is highest-rated. Daawat is on sale. Fortune arrives today.",
+        replies: ["select(index)", "filter(brand|price)", "sort(rating|price)"],
+        component_render: { type: "ComparisonGrid", data: [
+          { emoji:"🌾", title:"India Gate Classic 5kg", sub:"India Gate", rating:4.6, facts:[["₹","625"],["Eta","Tomorrow"]], best:"Best rated" },
+          { emoji:"🍚", title:"Daawat Super 5kg",       sub:"Daawat",     rating:4.5, facts:[["₹","545"],["Eta","Tomorrow"]], best:"On sale"    },
+          { emoji:"🥘", title:"Fortune Biryani 5kg",    sub:"Fortune",    rating:4.4, facts:[["₹","599"],["Eta","Today"]],     best:"Fastest"    }
+        ], focus: 0 }
+      },
+      {
+        narration: "User adds to cart. add_to_cart returns Transaction.building. CartPanel renders — the only component typed to Transaction.building, regardless of vertical.",
+        userTurn: "the India Gate",
+        assistantTurn: "Added. India Gate Classic, 5 kg. ₹625 plus delivery. ₹629 total.",
+        tool: "add_to_cart",
+        toolShape: "Transaction.building",
+        toolOutput: {
+          cart_id:"c-jm-991", state:"building",
+          line_items:[{ id:"p1", name:"India Gate Classic 5kg", qty:1, price:625 }],
+          subtotal:625, fees:[{name:"Delivery",value:4}], total:629
+        },
+        manifest: { tool:"add_to_cart", shape:"Transaction.building" },
+        entity: "Transaction.building",
+        entityCard: "cart",
+        component: "CartPanel",
+        componentReason: "Transaction.building → CartPanel",
+        voiceScript: "Added. India Gate Classic five kilo, six hundred twenty-five plus four delivery. Total six twenty-nine. Anything else?",
+        replies: ["add(item)", "remove(item)", "checkout"],
+        component_render: { type: "CartPanel", data: {
+          rows:[{name:"India Gate Classic 5kg", qty:"× 1", price:"₹625"}],
+          totals:[["Subtotal","₹625"],["Delivery","₹4"]],
+          total:["Total","₹629"],
+          cta:"Place order"
+        }}
+      },
+      {
+        narration: "Checkout. place_order returns Transaction.confirmed with a tracking handoff. ReceiptPanel renders + queues Tracker for delivery — exactly the Swiggy flow shape with different content.",
+        userTurn: "place the order",
+        assistantTurn: "Done. ₹629 charged. Arriving tomorrow before noon.",
+        tool: "place_order",
+        toolShape: "Transaction.confirmed → Status<Route>",
+        toolOutput: {
+          order_id:"jm-202605-9921", state:"confirmed", eta:"Tomorrow by 12:00",
+          line_items:[{name:"India Gate Classic 5kg"}],
+          total:629, payment:"jiopay_4421",
+          tracking:{ stages:["packed","shipped","out_for_delivery","delivered"], current:"packed" }
+        },
+        manifest: { tool:"place_order", shape:"Transaction.confirmed", handoff:"track_shipment" },
+        entity: "Transaction.confirmed → Status<Route>",
+        entityCard: "receipt + tracker handoff",
+        component: "ReceiptPanel → Tracker",
+        componentReason: "confirmed + tracking → receipt with tracker handoff",
+        voiceScript: "Done. Six twenty-nine charged. Arriving tomorrow before noon.",
+        replies: ["track", "share", "repeat_order"],
+        component_render: { type: "ReceiptPanel", data: {
+          banner:["Order placed", "JioMart · #jm-202605-9921"],
+          lines:[["India Gate Classic 5kg","₹625"],["Delivery","₹4"]],
+          total:["Total","₹629"]
+        }}
+      }
+    ]
+  },
+
+  /* 12. LOCAL SERVICES */
+  local: {
+    partner: "UrbanCompany",
+    persona: "casual_friendly",
+    mark: "L",
+    frames: [
+      {
+        narration: "Local service search returns Collection<Person> — service providers. Same primitive as doctors. Fact row differs (skill, rating, eta, fee) but the component (List) is unchanged.",
+        userTurn: "I need a plumber today",
+        assistantTurn: "Three available this afternoon. Ravi is top-rated at 4.8 and can be there in 35 minutes.",
+        tool: "search_providers",
+        toolShape: "Collection<Person>",
+        toolOutput: {
+          providers:[
+            { id:"pr1", name:"Ravi Kumar",    skill:"Plumbing", rating:4.8, eta_min:35, fee_inr:299 },
+            { id:"pr2", name:"Naveen S",      skill:"Plumbing", rating:4.7, eta_min:50, fee_inr:249 },
+            { id:"pr3", name:"Suresh Mishra", skill:"Plumbing", rating:4.6, eta_min:65, fee_inr:279 }
+          ]
+        },
+        manifest: { tool:"search_providers", shape:"Collection<Person>",
+                    items:"$.providers[*]", render_hint:"list_only" },
+        entity: "Collection<Person>",
+        entityCard: "list",
+        component: "List",
+        componentReason: "Collection<Person>, ≥3 → List",
+        voiceScript: "Three available this afternoon. Ravi is top-rated at 4.8, can be there in 35 minutes. Naveen is cheapest. Suresh has the longest ETA.",
+        replies: ["select(provider)", "filter(fee|eta)", "sort(rating|fee|eta)"],
+        component_render: { type: "ListSectioned", data: [
+          { name:"Available today", items:[
+            { name:"Ravi Kumar",     desc:"Plumbing · ⭐ 4.8 · ETA 35 min", price:"₹299" },
+            { name:"Naveen S",       desc:"Plumbing · ⭐ 4.7 · ETA 50 min", price:"₹249" },
+            { name:"Suresh Mishra",  desc:"Plumbing · ⭐ 4.6 · ETA 65 min", price:"₹279" }
+          ]}
+        ]}
+      },
+      {
+        narration: "User books Ravi. book_service returns Transaction.confirmed + tracking handoff. ReceiptPanel renders. The provider's ETA streams through the same Status<Route> shape as a food delivery — a person en route is structurally identical to a meal en route.",
+        userTurn: "Ravi, soon as he can",
+        assistantTurn: "Booked. Ravi will be there in 35 minutes. ₹299 after the service.",
+        tool: "book_service",
+        toolShape: "Transaction.confirmed → Status<Route>",
+        toolOutput: {
+          booking_id:"bk-uc-4421", state:"confirmed",
+          provider:{ name:"Ravi Kumar", skill:"Plumbing" },
+          eta_min:35, fee_inr:299, payment_mode:"after_service",
+          tracking:{ stages:["assigned","on_the_way","arrived","servicing","completed"], current:"on_the_way" }
+        },
+        manifest: { tool:"book_service", shape:"Transaction.confirmed", handoff:"track_provider" },
+        entity: "Transaction.confirmed → Status<Route>",
+        entityCard: "receipt + tracker",
+        component: "ReceiptPanel → Tracker",
+        componentReason: "confirmed + tracking → receipt + tracker handoff",
+        voiceScript: "Booked. Ravi will be there in thirty-five minutes. Two hundred ninety-nine after the service is done.",
+        replies: ["track", "contact_provider", "reschedule", "cancel"],
+        component_render: { type: "ReceiptPanel", data: {
+          banner:["Service booked", "Ravi Kumar · #bk-uc-4421"],
+          lines:[["Service","Plumbing"],["ETA","35 min"],["Payment","After service"]],
+          total:["Estimated","₹299"]
+        }}
+      }
+    ]
+  },
+
+  /* 13. GOVERNMENT SERVICES */
+  government: {
+    partner: "UMANG",
+    persona: "warm_clinical",
+    mark: "G",
+    frames: [
+      {
+        narration: "Government services are deeply nested — many sub-services per scheme. The orchestrator surfaces ChoiceChips for disambiguation rather than guessing. Voice persona 'warm_clinical' to match the regulated, precise nature of the domain.",
+        userTurn: "I need to update my Aadhaar",
+        assistantTurn: "Which detail — address, mobile, email, or photo?",
+        tool: "[system] disambiguation",
+        toolShape: "Choice",
+        toolOutput: { options:["Address","Mobile number","Email","Photo","Date of birth"] },
+        manifest: { tool:"start_aadhaar_update", requires:["field"],
+                    on_missing:"surface_choice_chips", persona:"warm_clinical" },
+        entity: "Choice",
+        entityCard: "single-select",
+        component: "ChoiceChips",
+        componentReason: "Sub-service disambiguation → chips",
+        voiceScript: "Which detail do you want to update — address, mobile, email, photo, or date of birth?",
+        replies: ["select(field)", "more_info"],
+        component_render: { type: "ChoiceChips", data: {
+          prompt:"What needs updating?",
+          options:["Address","Mobile number","Email","Photo","Date of birth"],
+          selected: 0
+        }}
+      },
+      {
+        narration: "User picks 'Address'. get_service_summary returns an Item describing the form, prerequisites, fee, and turnaround. EntityCard renders — same component shape as a flight or doctor card. Content is procedural rather than commercial.",
+        userTurn: "Address",
+        assistantTurn: "Aadhaar address update. You'll need a self-attested address proof. Fee is ₹50 online, turnaround 5–10 days. Open the form?",
+        tool: "get_service_summary",
+        toolShape: "Item",
+        toolOutput: {
+          service:"Aadhaar address update",
+          requirements:["Self-attested address proof","Aadhaar number","Registered mobile"],
+          fee_inr:50,
+          turnaround_days:"5-10",
+          mode:"Online (UMANG)"
+        },
+        manifest: { tool:"get_service_summary", shape:"Item",
+                    title:"$.service",
+                    facts:[{label:"Fee",value:"$.fee_inr",unit:"₹"},
+                           {label:"TAT",value:"$.turnaround_days",unit:"days"}]},
+        entity: "Item",
+        entityCard: "single",
+        component: "EntityCard",
+        componentReason: "Single Item with procedural facts → EntityCard",
+        voiceScript: "Aadhaar address update. You'll need a self-attested address proof. Fifty rupees online. Turnaround five to ten days. Open the form?",
+        replies: ["open_form", "check_eligibility", "talk_to_agent"],
+        component_render: { type: "EntityCard", data: {
+          emoji:"⚖", title:"Aadhaar address update", sub:"UMANG · Online procedure",
+          facts:[["Fee","₹50"],["TAT","5–10 days"],["Mode","Online"]],
+          actions:[["Open form","primary"],["Eligibility","secondary"]]
+        }}
+      },
+      {
+        narration: "User submits. submit_application returns Transaction.confirmed with a service request number. ReceiptPanel renders. Government, finance, food, travel — all use the same Transaction.confirmed primitive. The receipt is the universal proof.",
+        userTurn: "open the form, I'll fill it",
+        assistantTurn: "Submitted. Your SRN is UID-784A2C. You'll get an SMS when it's approved.",
+        tool: "submit_application",
+        toolShape: "Transaction.confirmed",
+        toolOutput: {
+          srn:"UID-784A2C", state:"submitted",
+          service:"Aadhaar address update",
+          fee_paid_inr:50, payment_ref:"UPI/884419/...",
+          expected_resolution:"5-10 working days"
+        },
+        manifest: { tool:"submit_application", shape:"Transaction.confirmed", handoff:"track_application" },
+        entity: "Transaction.confirmed",
+        entityCard: "receipt",
+        component: "ReceiptPanel",
+        componentReason: "Confirmed Transaction → receipt",
+        voiceScript: "Submitted. Your service request number is UID-seven-eight-four-A-two-C. SMS will arrive when it's approved.",
+        replies: ["track", "save_srn", "share", "next_service"],
+        component_render: { type: "ReceiptPanel", data: {
+          banner:["Application submitted", "SRN UID-784A2C"],
+          lines:[["Service","Aadhaar address update"],["Fee paid","₹50"],["Expected","5–10 days"]],
+          total:["Status","Submitted"]
+        }}
+      }
+    ]
+  }
+};
+
+const state = { vertical: "food", step: 0 };
+
+/* ============================================================
+   Renderers — emit playground-aligned markup (no card chrome)
+   ============================================================ */
+
+function renderComparisonGrid(d) {
+  const data = d.data;
+  const labels = (data[0] && data[0].facts) ? data[0].facts.map(f => f[0]) : [];
+  return `
+    <div class="compare-table">
+      <div class="compare-table__scroller">
+        <div class="compare-table__labels">
+          <div class="compare-table__header-label">Compare</div>
+          ${labels.map(l => `<div class="compare-table__label-cell">${l}</div>`).join("")}
+        </div>
+        <div class="compare-table__options">
+          ${data.map((opt, i) => `
+            <div class="compare-table__option ${i === (d.focus ?? -1) ? 'compare-table__option--recommended' : ''}">
+              <div class="compare-table__header-cell">
+                <div class="compare-table__header-title">${opt.title}</div>
+                <div class="compare-table__header-sub">${opt.sub}${opt.best ? ' · ' + opt.best : ''}</div>
+              </div>
+              ${(opt.facts || []).map(f => `<div class="compare-table__cell">${f[1]}</div>`).join("")}
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderEntityCard(d) {
+  const x = d.data;
+  return `
+    <div class="discovery-view">
+      <div>
+        <h3 class="subject-header__title">${x.title}</h3>
+        <p class="subject-header__subtitle">${x.sub}</p>
+      </div>
+      <div class="place-card">
+        <div class="place-card__media" data-emoji="${x.emoji}">
+          <span class="place-card__badge">Recommended</span>
+        </div>
+        <div class="place-card__content">
+          <h4 class="place-card__title">${x.title}</h4>
+          <p class="place-card__tags">${x.sub}</p>
+          <div class="place-card__meta">
+            ${x.facts.map(f => `<span>${f[0]} <b>${f[1]}</b></span>`).join('<span>·</span>')}
+          </div>
+        </div>
+      </div>
+      <div style="padding: 0 16px;">
+        ${x.actions.map(a =>
+          `<div style="margin-top:8px"><button class="${a[1] === 'primary' ? 'btn-primary' : 'btn-secondary'}">${a[0]}</button></div>`
+        ).join('')}
+      </div>
+    </div>`;
+}
+
+function renderListSectioned(sections) {
+  return sections.map(sec => `
+    <div class="list-section-head">${sec.name}</div>
+    <div class="collection collection--list">
+      ${sec.items.map(i => `
+        <button class="catalog-card">
+          <div class="catalog-card__media" data-emoji="${pickEmojiFor(i)}"></div>
+          <div class="catalog-card__content">
+            <h4 class="catalog-card__title">${i.name}</h4>
+            ${i.desc ? `<p class="catalog-card__subtitle">${i.desc}</p>` : ''}
+            ${i.price ? `<div class="catalog-card__meta"><span class="catalog-card__price">${i.price}</span></div>` : ''}
+          </div>
+        </button>
+      `).join('')}
+    </div>
+  `).join('');
+}
+function pickEmojiFor(item) {
+  // Lightweight emoji pick from name/desc keyword
+  const t = (item.name + ' ' + (item.desc || '')).toLowerCase();
+  if (t.match(/dr\.|doctor|derma|medic/)) return '🩺';
+  if (t.match(/thai|pad |noodle/))         return '🍜';
+  if (t.match(/tea|drink|soda/))           return '🥤';
+  if (t.match(/rice|basmati|dal/))         return '🌾';
+  if (t.match(/jobs?|pm|product/))         return '💼';
+  if (t.match(/weather|rain|°/))           return '🌧';
+  if (t.match(/lunch|coffee|gym/))         return '📅';
+  if (t.match(/headline|article|story/))   return '📰';
+  if (t.match(/plumb|electric|tech/))      return '🔧';
+  if (t.match(/sql|course|coursera/))      return '📚';
+  if (t.match(/strategy|behaviour|behavi/))return '🎯';
+  return '◆';
+}
+
+function renderCartPanel(d) {
+  const x = d.data;
+  return `
+    <div class="cart-section">
+      ${x.rows.map(r => `
+        <div class="cart-row">
+          <div>
+            <div class="cart-name">${r.name}</div>
+            <div class="cart-qty">${r.qty}</div>
+          </div>
+          <div class="cart-price">${r.price}</div>
+        </div>`).join('')}
+      <div class="cart-totals">
+        ${x.totals.map(t => `<div>${t[0]}</div><div>${t[1]}</div>`).join('')}
+        <div class="total-row"><div>${x.total[0]}</div><div>${x.total[1]}</div></div>
+      </div>
+    </div>
+    <div class="cta-row">
+      <button class="btn-primary">${x.cta}</button>
+    </div>`;
+}
+
+function renderConfirmPanel(d) {
+  const x = d.data;
+  return `
+    <div class="confirm">
+      <div class="confirm-prompt">${x.prompt}</div>
+      <div class="confirm-summary">${x.summary}</div>
+      <div class="confirm-total">${x.total}</div>
+      <div class="confirm-actions">
+        <button class="btn-primary">${x.actions[0]}</button>
+        <button class="btn-secondary">${x.actions[1]}</button>
+      </div>
+    </div>`;
+}
+
+function renderReceiptPanel(d) {
+  const x = d.data;
+  return `
+    <div class="receipt">
+      <div class="receipt-banner">
+        <div class="receipt-check">✓</div>
+        <div>
+          <div class="receipt-title">${x.banner[0]}</div>
+          <div class="receipt-sub">${x.banner[1]}</div>
+        </div>
+      </div>
+      <div>
+        ${x.lines.map(l => `<div class="receipt-line"><div>${l[0]}</div><div>${l[1]}</div></div>`).join('')}
+        <div class="receipt-line receipt-total"><div>${x.total[0]}</div><div>${x.total[1]}</div></div>
+      </div>
+    </div>`;
+}
+
+function renderTracker(d) {
+  const x = d.data;
+  return `
+    <div class="tracker">
+      <div class="tracker__media">
+        <div>
+          <div class="tracker__stage">${x.stage}</div>
+          <div class="tracker__eta">${x.eta}</div>
+          <div class="tracker__detail">${x.detail}</div>
+        </div>
+        <div class="tracker__progress"><div class="tracker__progress-fill"></div></div>
+      </div>
+      <div class="tracker__steps">
+        ${x.steps.map(s => `<span class="${s[1]}">${s[0]}</span>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderGallery(items) {
+  return `
+    <div class="collection collection--grid">
+      ${items.map(i => `
+        <button class="catalog-card">
+          <div class="catalog-card__media" data-emoji="${i.emoji}"></div>
+          <div class="catalog-card__content">
+            <h4 class="catalog-card__title">${i.label}</h4>
+          </div>
+        </button>`).join('')}
+    </div>`;
+}
+
+function renderMediaPlayer(d) {
+  const x = d.data;
+  return `
+    <div class="player">
+      <div class="player-art">${x.emoji}</div>
+      <div>
+        <div class="player-title">${x.title}</div>
+        <div class="player-artist">${x.artist}</div>
+        <div class="player-bar"><div class="player-bar-fill"></div></div>
+        <div class="player-controls">⏮  ⏸  ⏭   🔊</div>
+      </div>
+    </div>`;
+}
+
+function renderTimeline(rows) {
+  return `
+    <div class="timeline">
+      ${rows.map(r => `
+        <div class="tl-row" data-active="${!!r.active}">
+          <div class="tl-time">${r.time}</div>
+          <div>
+            <div class="tl-title">${r.title}</div>
+            <div class="tl-meta">${r.meta}</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderChoiceChips(d) {
+  const x = d.data;
+  return `
+    <div class="chips-prompt">${x.prompt}</div>
+    <div class="filter-chip-bar">
+      ${x.options.map((o, i) =>
+        `<button class="filter-chip ${i === (x.selected ?? -1) ? 'filter-chip--selected' : ''}">${o}</button>`
+      ).join('')}
+    </div>`;
+}
+
+const COMPONENT_RENDERERS = {
+  ComparisonGrid: (d) => renderComparisonGrid(d),
+  EntityCard:    (d) => renderEntityCard(d),
+  ListSectioned: (d) => renderListSectioned(d.data),
+  CartPanel:     (d) => renderCartPanel(d),
+  ConfirmPanel:  (d) => renderConfirmPanel(d),
+  ReceiptPanel:  (d) => renderReceiptPanel(d),
+  Tracker:       (d) => renderTracker(d),
+  Gallery:       (d) => renderGallery(d.data),
+  MediaPlayer:   (d) => renderMediaPlayer(d),
+  Timeline:      (d) => renderTimeline(d.data),
+  ChoiceChips:   (d) => renderChoiceChips(d)
+};
+
+function highlightJSON(obj) {
+  const json = JSON.stringify(obj, null, 2);
+  return json
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/("(?:\\.|[^"\\])*")\s*:/g, '<span class="key">$1</span><span class="punct">:</span>')
+    .replace(/:\s*("(?:\\.|[^"\\])*")/g, ': <span class="str">$1</span>')
+    .replace(/:\s*(-?\d+(?:\.\d+)?)/g, ': <span class="num">$1</span>')
+    .replace(/:\s*(true|false|null)/g, ': <span class="bool">$1</span>');
+}
+
+function render() {
+  const v = FRAMES[state.vertical];
+  const f = v.frames[state.step];
+  document.body.dataset.vertical = state.vertical;
+
+  document.getElementById("partnerMark").textContent = v.mark;
+  document.getElementById("partnerName").textContent = v.partner;
+  document.getElementById("partnerMeta").textContent = v.persona;
+  document.getElementById("personaMeta").textContent = v.persona;
+  document.getElementById("stepNum").textContent = state.step + 1;
+  document.getElementById("stepTotal").textContent = v.frames.length;
+  document.getElementById("controlsRight").textContent =
+    `${state.vertical} · ${state.step + 1}/${v.frames.length}`;
+
+  document.querySelectorAll(".vertical-chip").forEach(c => {
+    c.setAttribute("aria-pressed", c.dataset.vertical === state.vertical);
+  });
+  document.getElementById("btnPrev").disabled = state.step === 0;
+  document.getElementById("btnNext").disabled = state.step === v.frames.length - 1;
+
+  document.getElementById("userTurn").textContent = f.userTurn;
+  document.getElementById("assistantTurn").textContent = f.assistantTurn;
+
+  const renderer = COMPONENT_RENDERERS[f.component_render.type];
+  document.getElementById("visualArea").innerHTML = renderer
+    ? renderer(f.component_render)
+    : `<em>Unknown component</em>`;
+
+  document.getElementById("replyChips").innerHTML = f.replies.slice(0, 3)
+    .map(r => `<span class="reply-chip">${r.replace(/\(.*\)/, '')}</span>`).join('');
+
+  document.getElementById("narration").textContent = f.narration;
+  document.getElementById("pipeTool").textContent = f.tool;
+  document.getElementById("pipeToolShape").textContent = f.toolShape;
+  document.getElementById("pipeEntity").textContent = f.entity;
+  document.getElementById("pipeEntityCard").textContent = f.entityCard;
+  document.getElementById("pipeComponent").textContent = f.component;
+  document.getElementById("pipeComponentReason").textContent = f.componentReason;
+  document.getElementById("toolOutput").innerHTML = highlightJSON(f.toolOutput);
+  document.getElementById("toolMeta").textContent = `${v.partner} MCP · ${f.tool}`;
+  document.getElementById("manifestSnippet").innerHTML = highlightJSON(f.manifest);
+  document.getElementById("voiceScript").textContent = `"${f.voiceScript}"`;
+  document.getElementById("replyList").innerHTML = f.replies
+    .map(r => `<span class="intent">${r}</span>`).join('');
+}
+
+document.querySelectorAll(".vertical-chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    state.vertical = chip.dataset.vertical;
+    state.step = 0;
+    render();
+  });
+});
+document.getElementById("btnPrev").addEventListener("click", () => {
+  if (state.step > 0) { state.step--; render(); }
+});
+document.getElementById("btnNext").addEventListener("click", () => {
+  const max = FRAMES[state.vertical].frames.length - 1;
+  if (state.step < max) { state.step++; render(); }
+});
+
+let playInterval = null;
+document.getElementById("btnPlay").addEventListener("click", function () {
+  if (playInterval) {
+    clearInterval(playInterval); playInterval = null;
+    this.textContent = "▶";
+    return;
+  }
+  this.textContent = "⏸";
+  playInterval = setInterval(() => {
+    const max = FRAMES[state.vertical].frames.length - 1;
+    if (state.step >= max) {
+      clearInterval(playInterval); playInterval = null;
+      document.getElementById("btnPlay").textContent = "▶";
+      return;
+    }
+    state.step++;
+    render();
+  }, 3500);
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft")  document.getElementById("btnPrev").click();
+  if (e.key === "ArrowRight") document.getElementById("btnNext").click();
+  if (e.key === " ") { e.preventDefault(); document.getElementById("btnPlay").click(); }
+});
+
+render();
+</script>
+</body>
+</html>

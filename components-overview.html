@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JBIQ — Components across domains</title>
+<style>
+  @font-face {
+    font-family: 'JioType';
+    font-weight: 100 900;
+    font-style: normal;
+    src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Regular.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'JioType';
+    font-weight: 100 900;
+    font-style: italic;
+    src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Italic.woff2') format('woff2');
+  }
+  :root {
+    --color-surface-primary:   #ffffff;
+    --color-surface-secondary: #f5f5f5;
+    --color-surface-tertiary:  #eeeeef;
+    --color-text-primary:      #0c0d10;
+    --color-text-secondary:    rgba(12,13,16,0.65);
+    --color-text-tertiary:     rgba(12,13,16,0.38);
+    --color-text-on-primary:   #ffffff;
+    --color-action-primary:          #6d17ce;
+    --color-action-primary-hover:    #310064;
+    --color-action-primary-surface:  #ede7ff;
+    --color-border-default: rgba(12,13,16,0.08);
+    --color-border-strong:  rgba(12,13,16,0.12);
+    --color-overlay-dark:    rgba(12,13,16,0.6);
+    --color-overlay-warning: rgba(240,109,15,0.9);
+    --color-success: #25ab21;
+    --color-warning: #f06d0f;
+    --color-error:   #fa2f40;
+    --space-xs:  4px; --space-sm:  8px; --space-md:  12px;
+    --space-lg:  16px;--space-xl:  24px;--space-xxl: 32px;
+    --radius-sm:   8px; --radius-md:  12px; --radius-lg:  16px; --radius-pill:999px;
+    --font-family: 'JioType', 'JioTypeVar', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono:   ui-monospace, 'SF Mono', Menlo, 'Roboto Mono', monospace;
+    --font-size-caption: 12px; --font-size-small: 12px;
+    --font-size-body: 14px; --font-size-title: 16px; --font-size-hero: 18px;
+    --font-weight-medium: 500; --font-weight-bold: 700;
+    --font-line-height-tight: 1.2; --font-line-height-normal: 1.5;
+    --font-tracking-headline: -0.03em; --font-tracking-body: -0.005em; --font-tracking-small: 0.005em;
+    --layout-card-width: 220px;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--color-surface-tertiary);
+    color: var(--color-text-primary);
+    font-family: var(--font-family);
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--font-line-height-normal);
+    letter-spacing: var(--font-tracking-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1100px; margin: 0 auto; padding: var(--space-xxl) var(--space-lg); }
+
+  /* Each component is its own routed view; only the active one is shown. */
+  .page-view { display: none; }
+  .page-view.is-active { display: block; animation: pageIn 220ms ease; }
+  @keyframes pageIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .page-header {
+    padding: 0 var(--space-lg);
+    margin-bottom: var(--space-xl);
+  }
+  .page-eyebrow {
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-action-primary);
+    margin-bottom: var(--space-sm);
+  }
+  /* Display title — JDS display-m: 44px Black, -3% tracking */
+  .page-title {
+    font-size: 44px;
+    font-weight: 900;
+    letter-spacing: var(--font-tracking-headline);
+    line-height: 1.05;
+    margin: 0 0 var(--space-sm);
+  }
+  .page-subtitle {
+    font-size: var(--font-size-hero);
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin: 0;
+    max-width: 720px;
+    line-height: 1.4;
+  }
+  .page-tag-row {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: baseline;
+    flex-wrap: wrap;
+    margin-top: var(--space-md);
+  }
+
+  /* Homepage hero + preview grid */
+  .home-hero {
+    margin-bottom: var(--space-xxl);
+  }
+  .brand-dot {
+    width: 44px; height: 44px; border-radius: var(--radius-pill);
+    background: var(--color-action-primary); color: var(--color-text-on-primary);
+    display: grid; place-items: center;
+    font-weight: 900; font-size: 18px; letter-spacing: -0.02em;
+  }
+  .home-title { font-size: 44px; font-weight: 900; letter-spacing: var(--font-tracking-headline); line-height: 1.05; margin: 0 0 var(--space-xs); }
+  .home-lead { font-size: var(--font-size-hero); font-weight: 400; color: var(--color-text-secondary); margin: 0; max-width: 720px; line-height: 1.4; }
+
+  .home-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-md);
+  }
+  .home-card {
+    background: var(--color-surface-primary);
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    transition: background 140ms;
+  }
+  .home-card:hover { background: var(--color-action-primary-surface); }
+  .home-card__name {
+    font-size: var(--font-size-hero);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--font-tracking-headline);
+    color: var(--color-text-primary);
+  }
+  .home-card__tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-action-primary);
+    margin-bottom: var(--space-xs);
+  }
+  .home-card__desc {
+    font-size: var(--font-size-body);
+    color: var(--color-text-secondary);
+    line-height: var(--font-line-height-normal);
+    margin: 0;
+  }
+  /* Sidebar TOC — pinned to the left of the viewport on desktop.
+     Body gets matching padding so the page content shifts right. */
+  body { padding-left: 220px; }
+  .toc {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 220px;
+    background: var(--color-surface-primary);
+    border-right: 0.5px solid var(--color-border-default);
+    padding: var(--space-xxl) var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 10;
+    overflow-y: auto;
+    scrollbar-width: none;
+    margin: 0;
+    border-radius: 0;
+  }
+  .toc::-webkit-scrollbar { display: none; }
+  .toc-header {
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-xs);
+  }
+  .toc a {
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-medium);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: background 140ms, color 140ms;
+  }
+  .toc a:hover {
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+  }
+  .toc a.is-active {
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    font-weight: var(--font-weight-bold);
+  }
+  /* Brand block at the top of the sidebar */
+  .toc-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  .toc-brand__dot {
+    width: 28px; height: 28px;
+    border-radius: var(--radius-pill);
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    display: grid; place-items: center;
+    font-weight: 900; font-size: 13px; letter-spacing: -0.02em;
+  }
+  .toc-brand__name {
+    font-size: var(--font-size-title);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--font-tracking-headline);
+  }
+
+  .entity-tag { font-family: var(--font-mono); font-size: 11px; font-weight: var(--font-weight-medium); padding: 2px var(--space-sm); background: var(--color-action-primary-surface); color: var(--color-action-primary); border-radius: var(--radius-sm); }
+  .picked-when { font-size: 11px; font-weight: var(--font-weight-bold); color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* First card on each page-view: title + tabs + YOU/reply input */
+  .showcase-body {
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    padding: var(--space-xl) 0;
+  }
+  /* Second card: just the rendered component visual */
+  .component-card {
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    padding: var(--space-lg) 0;
+    margin-top: var(--space-md);
+  }
+  /* Component card's tab panels don't need the default 24px top/bottom pad */
+  .component-card .tab-panel { padding: 0; }
+
+  /* Tabs sit on the page surface above the white content card, not inside it */
+  .tabs {
+    display: flex;
+    gap: var(--space-lg);
+    padding: 0 var(--space-lg);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-button {
+    appearance: none;
+    background: transparent;
+    border: none;
+    padding: var(--space-md) 0;
+    margin-bottom: -0.5px;
+    font-family: inherit;
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-xs);
+    transition: color 140ms, border-color 140ms;
+  }
+  .tab-button:hover { color: var(--color-text-primary); }
+  .tab-button[aria-selected="true"] {
+    color: var(--color-action-primary);
+    border-bottom-color: var(--color-action-primary);
+  }
+  .tab-partner {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 11px;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-tertiary);
+  }
+  .tab-panel {
+    display: none;
+    padding: var(--space-xl) 0;
+  }
+  .tab-panel[data-active="true"] {
+    display: block;
+    animation: panelIn 220ms ease;
+  }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .you-line {
+    font-size: var(--font-size-caption);
+    color: var(--color-text-tertiary);
+    padding: 0 var(--space-lg);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: var(--space-md);
+  }
+  .you-line .text {
+    text-transform: none;
+    letter-spacing: var(--font-tracking-body);
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin-left: var(--space-sm);
+  }
+  .text-response {
+    padding: 0 var(--space-lg);
+    margin-bottom: var(--space-md);
+    font-size: var(--font-size-body);
+    color: var(--color-text-primary);
+    line-height: var(--font-line-height-normal);
+    letter-spacing: var(--font-tracking-body);
+  }
+  .text-response__body { margin: 0; }
+
+  /* PRIMITIVES */
+  .discovery-view { display: flex; flex-direction: column; gap: var(--space-md); padding: 0 var(--space-lg); }
+  .subject-header__title { font-size: var(--font-size-title); font-weight: var(--font-weight-bold); margin: 0; line-height: var(--font-line-height-tight); letter-spacing: var(--font-tracking-headline); }
+  .subject-header__subtitle { font-size: var(--font-size-small); font-weight: var(--font-weight-medium); color: var(--color-text-secondary); margin: var(--space-xs) 0 0; line-height: var(--font-line-height-tight); }
+  .list-section-head { font-size: 11px; font-weight: var(--font-weight-bold); text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary); margin: 0 var(--space-lg) var(--space-sm); }
+  /* breathing room above any section that follows a collection */
+  .collection + .list-section-head { margin-top: var(--space-xl); }
+
+  .filter-chip-bar { display: flex; gap: var(--space-xs); padding: 0 var(--space-lg); overflow-x: auto; flex-wrap: wrap; scrollbar-width: none; }
+  .filter-chip-bar::-webkit-scrollbar { display: none; }
+  .filter-chip { flex-shrink: 0; background: transparent; border: 0.5px solid var(--color-border-strong); border-radius: var(--radius-pill); padding: var(--space-xs) var(--space-md); font-family: inherit; font-size: var(--font-size-small); color: var(--color-text-primary); cursor: pointer; white-space: nowrap; }
+  .filter-chip--selected { background: var(--color-action-primary); color: var(--color-text-on-primary); border-color: transparent; }
+
+  .collection { padding: 0 var(--space-lg); }
+  .collection--list { display: flex; flex-direction: column; gap: var(--space-md); }
+  .collection--grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-sm); }
+  .collection--carousel {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: var(--space-lg);
+    scroll-padding-right: var(--space-lg);
+    scrollbar-width: none;
+  }
+  .collection--carousel::-webkit-scrollbar { display: none; }
+
+  .place-card { background: var(--color-surface-primary); padding: 0; text-align: left; font-family: inherit; margin: 0 var(--space-lg); }
+  /* place-card in a carousel: drop the side margin, fix width, scroll-snap */
+  .collection--carousel > .place-card {
+    margin: 0;
+    width: var(--layout-card-width);
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+  /* trailing spacer so the last card has breathing room on the right edge */
+  .collection--carousel::after {
+    content: "";
+    flex-shrink: 0;
+    width: var(--space-xs);
+  }
+  .place-card__media { aspect-ratio: 16 / 9; border-radius: var(--radius-lg); background: var(--color-action-primary-surface); position: relative; overflow: hidden; display: grid; place-items: center; font-size: 36px; }
+  .place-card__media[data-emoji]::after { content: attr(data-emoji); }
+  .place-card__badge { position: absolute; top: var(--space-sm); left: var(--space-sm); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-pill); font-size: var(--font-size-caption); font-weight: var(--font-weight-bold); color: var(--color-text-on-primary); background: var(--color-action-primary); }
+  .place-card__status-badge { position: absolute; top: var(--space-sm); right: var(--space-sm); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-sm); font-size: var(--font-size-caption); font-weight: var(--font-weight-bold); color: var(--color-text-on-primary); background: var(--color-overlay-dark); }
+  .place-card__content { padding: var(--space-sm) 0 var(--space-md); }
+  .place-card__title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); margin: 0 0 var(--space-xs); line-height: var(--font-line-height-tight); letter-spacing: var(--font-tracking-body); }
+  .place-card__tags { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin: 0 0 var(--space-xs); }
+  .place-card__meta { display: flex; gap: var(--space-sm); font-size: var(--font-size-caption); color: var(--color-text-secondary); align-items: center; flex-wrap: wrap; }
+  .place-card__rating-value { color: var(--color-text-primary); font-weight: var(--font-weight-medium); margin-right: 2px; }
+
+  .catalog-card { appearance: none; background: var(--color-surface-primary); border: none; padding: 0; text-align: left; font-family: inherit; color: inherit; cursor: pointer; display: flex; flex-direction: column; }
+  .collection--list > .catalog-card { flex-direction: row; gap: var(--space-md); align-items: stretch; }
+  .collection--list > .catalog-card .catalog-card__media { width: 80px; min-width: 80px; aspect-ratio: 1; }
+  .catalog-card__media { aspect-ratio: 3 / 4; border-radius: var(--radius-lg); background: var(--color-action-primary-surface); position: relative; overflow: hidden; display: grid; place-items: center; font-size: 32px; }
+  .catalog-card__media[data-emoji]::after { content: attr(data-emoji); }
+  .catalog-card__content { padding: var(--space-sm) 0 0; display: flex; flex-direction: column; gap: var(--space-xs); flex: 1; min-width: 0; }
+  .catalog-card__title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); margin: 0; line-height: var(--font-line-height-tight); letter-spacing: var(--font-tracking-body); }
+  .catalog-card__subtitle { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin: 0; }
+  .catalog-card__meta { display: flex; gap: var(--space-sm); font-size: var(--font-size-caption); color: var(--color-text-secondary); flex-wrap: wrap; align-items: center; }
+  .catalog-card__price { color: var(--color-text-primary); font-weight: var(--font-weight-bold); }
+  .catalog-card__temporal { color: var(--color-action-primary); font-weight: var(--font-weight-medium); }
+
+  .compare-table { margin: 0 var(--space-lg); border: 0.5px solid var(--color-border-default); border-radius: var(--radius-lg); overflow: hidden; background: var(--color-surface-primary); }
+  .compare-table__scroller { display: grid; grid-template-columns: 96px 1fr; }
+  .compare-table__labels { display: flex; flex-direction: column; background: var(--color-surface-secondary); border-right: 0.5px solid var(--color-border-default); }
+  .compare-table__options { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .compare-table__options::-webkit-scrollbar { display: none; }
+  .compare-table__option { display: flex; flex-direction: column; min-width: 130px; scroll-snap-align: start; border-right: 0.5px solid var(--color-border-default); background: none; padding: 0; font-family: inherit; text-align: left; cursor: pointer; }
+  .compare-table__option:last-child { border-right: none; }
+  .compare-table__option--recommended { background: var(--color-action-primary-surface); }
+  .compare-table__header-label, .compare-table__header-cell { height: 88px; padding: var(--space-sm) var(--space-md); display: flex; flex-direction: column; gap: var(--space-xs); border-bottom: 0.5px solid var(--color-border-default); justify-content: flex-end; }
+  .compare-table__header-label { font-size: 11px; color: var(--color-text-tertiary); font-weight: var(--font-weight-bold); text-transform: uppercase; letter-spacing: 0.06em; }
+  .compare-table__header-title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-body); }
+  .compare-table__header-sub { font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+  .compare-table__label-cell, .compare-table__cell { padding: var(--space-sm) var(--space-md); font-size: var(--font-size-caption); line-height: var(--font-line-height-tight); height: 46px; display: flex; align-items: center; border-bottom: 0.5px solid var(--color-border-default); }
+  .compare-table__label-cell:last-child, .compare-table__cell:last-child { border-bottom: none; }
+  .compare-table__label-cell { font-weight: var(--font-weight-bold); color: var(--color-text-primary); padding-right: var(--space-lg); }
+  .compare-table__header-label { padding-right: var(--space-lg); }
+  .compare-table__cell { color: var(--color-text-primary); }
+  .compare-table__cell--best { color: var(--color-action-primary); font-weight: var(--font-weight-bold); }
+  .compare-table__cell--worst { color: var(--color-text-secondary); }
+
+  .timeline { padding: 0 var(--space-lg); display: flex; flex-direction: column; }
+  .tl-row { display: grid; grid-template-columns: 64px 1fr; gap: var(--space-md); padding: var(--space-md) 0; border-bottom: 0.5px solid var(--color-border-default); }
+  .tl-row:last-child { border-bottom: none; }
+  .tl-row[data-active="true"] { background: var(--color-action-primary-surface); border-radius: var(--radius-sm); padding-left: var(--space-md); padding-right: var(--space-md); margin: 0 calc(-1 * var(--space-md)); }
+  .tl-time { font-size: var(--font-size-caption); color: var(--color-text-secondary); font-family: var(--font-mono); }
+  .tl-title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-body); }
+  .tl-meta { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-top: 2px; }
+
+  /* Tracker — flat on the conversation surface, no solid background, no
+     tinted tile. Purple stage label, dark ETA, hairline progress, step trail. */
+  .tracker { margin: 0 var(--space-lg); }
+  .tracker__media {
+    background: transparent;
+    color: var(--color-text-primary);
+    padding: 0;
+    display: flex; flex-direction: column;
+  }
+  .tracker__stage {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-action-primary);
+  }
+  .tracker__eta {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: var(--font-tracking-headline);
+    line-height: 1;
+    margin-top: var(--space-xs);
+    color: var(--color-text-primary);
+  }
+  .tracker__detail {
+    font-size: var(--font-size-caption);
+    color: var(--color-text-secondary);
+    margin-top: var(--space-xs);
+  }
+  /* Progress bar — 6px pill, surface-minimal track, action-primary fill.
+     Matches Figma "Progress Status" pattern (shape/component/10xl = 46px). */
+  .tracker__progress {
+    height: 6px;
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-pill);
+    margin-top: var(--space-lg);
+    overflow: hidden;
+  }
+  .tracker__progress-fill {
+    height: 100%;
+    background: var(--color-action-primary);
+    width: 33%;
+    border-radius: var(--radius-pill);
+  }
+  /* Steps — 3 (or n) equal flex columns; first left-aligned, last right-aligned,
+     middle centered. Active step bold + text-primary. */
+  .tracker__steps {
+    padding: var(--space-sm) 0 0;
+    display: flex;
+    gap: 2px;
+    font-size: 10px;
+    font-weight: var(--font-weight-regular);
+    color: rgba(12,13,16,0.73);
+    line-height: 1.3;
+  }
+  .tracker__steps > span {
+    flex: 1 0 0;
+    min-width: 0;
+    text-align: center;
+  }
+  .tracker__steps > span:first-child { text-align: left; }
+  .tracker__steps > span:last-child  { text-align: right; }
+  .tracker__steps .done {
+    color: rgba(12,13,16,0.73);
+    font-weight: var(--font-weight-regular);
+  }
+  .tracker__steps .active {
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .map-panel { margin: 0 var(--space-lg); height: 132px; background: #E8EEF2; border-radius: var(--radius-lg); position: relative; overflow: hidden; }
+  .map-pin { position: absolute; width: 28px; height: 28px; border-radius: var(--radius-pill) var(--radius-pill) var(--radius-pill) 4px; background: var(--color-action-primary); color: var(--color-text-on-primary); transform: rotate(-45deg); display: grid; place-items: center; border: 2px solid var(--color-surface-primary); }
+  .map-pin > span { transform: rotate(45deg); font-size: 11px; font-weight: 700; }
+  .map-pin.start { width: 22px; height: 22px; background: var(--color-success); top: 55%; left: 14%; }
+  .map-pin.end   { top: 36%; right: 18%; }
+  .map-route { position: absolute; top: 60%; left: 18%; width: 60%; height: 2px; background: var(--color-action-primary); border-radius: var(--radius-pill); }
+
+  .cart-section { padding: 0 var(--space-lg); }
+  .cart-row { display: grid; grid-template-columns: 1fr auto; padding: var(--space-md) 0; border-bottom: 0.5px solid var(--color-border-default); align-items: center; }
+  .cart-name { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+  .cart-qty { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-top: 2px; }
+  .cart-price { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+  .cart-totals { background: var(--color-surface-secondary); border-radius: var(--radius-md); padding: var(--space-md); margin-top: var(--space-md); display: grid; grid-template-columns: 1fr auto; gap: 6px 0; font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+  .cart-totals .total-row { grid-column: span 2; display: grid; grid-template-columns: 1fr auto; border-top: 0.5px solid var(--color-border-default); padding-top: var(--space-sm); margin-top: var(--space-xs); font-size: var(--font-size-title); color: var(--color-text-primary); font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-headline); }
+  .cta-row { padding: var(--space-md) var(--space-lg) 0; }
+  .btn-primary { width: 100%; appearance: none; background: var(--color-action-primary); color: var(--color-text-on-primary); border: none; padding: var(--space-md) var(--space-lg); border-radius: var(--radius-pill); font: inherit; font-size: var(--font-size-body); font-weight: var(--font-weight-bold); cursor: pointer; }
+  .btn-primary:hover { background: var(--color-action-primary-hover); }
+  .btn-secondary { width: 100%; appearance: none; background: transparent; border: 0.5px solid var(--color-border-strong); color: var(--color-text-primary); padding: var(--space-md) var(--space-lg); border-radius: var(--radius-pill); font: inherit; font-size: var(--font-size-body); font-weight: var(--font-weight-bold); cursor: pointer; }
+
+  .confirm { margin: 0 var(--space-lg); padding: var(--space-lg); background: var(--color-surface-secondary); border-radius: var(--radius-lg); text-align: center; }
+  .confirm-prompt { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); margin-bottom: var(--space-xs); }
+  .confirm-summary { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-bottom: var(--space-md); }
+  .confirm-total { font-size: 32px; font-weight: 900; letter-spacing: var(--font-tracking-headline); line-height: 1; margin-bottom: var(--space-lg); }
+  .confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); }
+
+  .receipt { margin: 0 var(--space-lg); display: flex; flex-direction: column; gap: var(--space-md); }
+  .receipt-banner { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md) 0; border-bottom: 0.5px solid var(--color-border-default); }
+  .receipt-check { width: 32px; height: 32px; border-radius: var(--radius-pill); background: var(--color-action-primary); color: var(--color-text-on-primary); display: grid; place-items: center; font-weight: 900; font-size: 16px; flex-shrink: 0; }
+  .receipt-title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+  .receipt-sub { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-top: 2px; }
+  .receipt-line { display: grid; grid-template-columns: 1fr auto; padding: var(--space-xs) 0; font-size: var(--font-size-body); color: var(--color-text-secondary); }
+  .receipt-total { border-top: 0.5px solid var(--color-border-default); padding-top: var(--space-sm); margin-top: var(--space-xs); font-weight: var(--font-weight-bold); color: var(--color-text-primary); }
+
+  .chips-prompt { padding: 0 var(--space-lg) var(--space-sm); font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+
+  .player { margin: 0 var(--space-lg); display: grid; grid-template-columns: 80px 1fr; gap: var(--space-md); align-items: center; }
+  .player-art { aspect-ratio: 1; background: var(--color-action-primary-surface); border-radius: var(--radius-lg); display: grid; place-items: center; font-size: 32px; }
+  .player-title { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-body); }
+  .player-artist { font-size: var(--font-size-caption); color: var(--color-text-secondary); margin-top: 2px; }
+  .player-bar { height: 3px; background: var(--color-border-default); border-radius: var(--radius-pill); margin-top: var(--space-sm); overflow: hidden; }
+  .player-bar-fill { height: 100%; background: var(--color-action-primary); width: 38%; }
+  .player-controls { display: flex; gap: var(--space-md); margin-top: var(--space-sm); color: var(--color-text-secondary); font-size: var(--font-size-body); }
+
+  .gallery { padding: 0 var(--space-lg); }
+
+  .appendix { margin-top: var(--space-xxl); padding-top: var(--space-xl); border-top: 0.5px solid var(--color-border-default); }
+  .appendix h2 { font-size: 20px; font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-headline); margin: 0 0 var(--space-sm); }
+  .appendix p { font-size: var(--font-size-body); color: var(--color-text-secondary); max-width: 720px; margin: 0; }
+
+  /* Burger button + backdrop — hidden on desktop, shown on mobile */
+  .toc-burger {
+    display: none;
+    appearance: none;
+    background: var(--color-surface-primary);
+    border: 0.5px solid var(--color-border-default);
+    color: var(--color-text-primary);
+    width: 40px; height: 40px;
+    border-radius: var(--radius-pill);
+    position: fixed;
+    top: var(--space-md);
+    left: var(--space-md);
+    z-index: 20;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .toc-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(12,13,16,0.4);
+    z-index: 11;
+    opacity: 0;
+    transition: opacity 200ms ease;
+  }
+  .toc-backdrop.is-open { display: block; opacity: 1; }
+  .toc-close {
+    display: none;
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: 24px;
+    width: 32px; height: 32px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    margin-left: auto;
+  }
+
+  /* Mobile breakpoint — page gutters drop so showcase cards go full-bleed;
+     sidebar becomes a slide-over drawer triggered by the burger button. */
+  @media (max-width: 720px) {
+    body { padding-left: 0; }
+
+    .toc-burger { display: flex; }
+    .toc-close  { display: flex; }
+    .toc-brand  { padding-right: 0; }
+
+    .toc {
+      transform: translateX(-100%);
+      transition: transform 240ms ease;
+      width: 280px;
+      z-index: 12;
+    }
+    .toc.is-open { transform: translateX(0); }
+
+    .page { padding-left: 0; padding-right: 0; padding-top: 72px; }
+    .hero { margin: 0 var(--space-lg); }
+    .showcase-body { border-radius: 0; }
+    .home-grid, .home-hero, .page-header { padding-left: var(--space-lg); padding-right: var(--space-lg); }
+  }
+</style>
+</head>
+<body>
+
+<button class="toc-burger" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+</button>
+
+<aside id="sidebar" class="toc" role="navigation" aria-label="Components">
+  <div class="toc-brand">
+    <div class="toc-brand__dot">J</div>
+    <div class="toc-brand__name">JBIQ</div>
+    <button class="toc-close" aria-label="Close navigation">×</button>
+  </div>
+  <div class="toc-header">Pages</div>
+  <a href="#home">Home</a>
+  <div class="toc-header" style="margin-top: var(--space-md)">Components</div>
+  <a href="#entitycard">EntityCard</a>
+    <a href="#comparetable">CompareTable</a>
+    <a href="#list">List</a>
+    <a href="#timeline">Timeline</a>
+    <a href="#tracker">Tracker</a>
+    <a href="#map">Map</a>
+    <a href="#cartpanel">CartPanel</a>
+    <a href="#confirmpanel">ConfirmPanel</a>
+    <a href="#receiptpanel">ReceiptPanel</a>
+    <a href="#choicechips">ChoiceChips</a>
+    <a href="#mediaplayer">MediaPlayer</a>
+    <a href="#gallery">Gallery</a>
+</aside>
+
+<div class="toc-backdrop" aria-hidden="true"></div>
+
+<main class="page">
+
+  <section class="page-view" id="home">
+    <header class="home-hero">
+      <h1 class="home-title">Components across domains</h1>
+      <p class="home-lead">Every visual primitive shown across two or three different verticals. Same component, different content. Pick a component to see how it adapts.</p>
+    </header>
+    <div class="home-grid">
+      <a class="home-card" href="#entitycard">
+        <div class="home-card__tag">Place | Item | Person | Media (single) · or Collection in carousel</div>
+        <div class="home-card__name">EntityCard</div>
+        <p class="home-card__desc">Media-led card. No chrome on the card itself — only the media (16:9, rounded-lg) is rounded. Same primitive renders one thing in focus or a horizontal scroll of three-to-five things to browse. Switch by cardinality, not by component.</p>
+      </a>
+      <a class="home-card" href="#comparetable">
+        <div class="home-card__tag">Collection<*>, count 2–4</div>
+        <div class="home-card__name">CompareTable</div>
+        <p class="home-card__desc">2–4 options across shared axes. Sticky 76px label column on the left, scroll-snapped option columns. Recommended option tinted; best values picked out in primary.</p>
+      </a>
+      <a class="home-card" href="#list">
+        <div class="home-card__tag">Collection<*> · flat or sectioned · list | grid | carousel</div>
+        <div class="home-card__name">List</div>
+        <p class="home-card__desc">CatalogResultCard in list layout — square 80px media on the left, content on the right. Flat or sectioned. Same primitive renders a restaurant list, a restaurant's menu by category, a doctor list, job postings, news headlines.</p>
+      </a>
+      <a class="home-card" href="#timeline">
+        <div class="home-card__tag">Collection<Schedule></div>
+        <div class="home-card__name">Timeline</div>
+        <p class="home-card__desc">Vertical agenda. Time on the left, title + meta on the right. Active row highlighted with primary-surface. Same shape for table reservations, doctor slots, fixtures, calendar events.</p>
+      </a>
+      <a class="home-card" href="#tracker">
+        <div class="home-card__tag">Status | Status<Route></div>
+        <div class="home-card__name">Tracker</div>
+        <p class="home-card__desc">Primary-coloured tile sized like place-card media. Used for food delivery, package shipping, cricket innings, application processing — anything in motion.</p>
+      </a>
+      <a class="home-card" href="#map">
+        <div class="home-card__tag">Place | Collection<Place> | Route</div>
+        <div class="home-card__name">Map</div>
+        <p class="home-card__desc">Schematic plot — single pin, multiple pins, or a route. Pairs with List in split view, insets into Tracker when Status carries Route data.</p>
+      </a>
+      <a class="home-card" href="#cartpanel">
+        <div class="home-card__tag">Transaction.building</div>
+        <div class="home-card__name">CartPanel</div>
+        <p class="home-card__desc">Hairline-divided line items, totals block in secondary-surface, full-width primary CTA. Same shape for a restaurant order, a grocery basket, a service booking.</p>
+      </a>
+      <a class="home-card" href="#confirmpanel">
+        <div class="home-card__tag">Choice (system-injected)</div>
+        <div class="home-card__name">ConfirmPanel</div>
+        <p class="home-card__desc">The mandatory interrupt. Same secondary-surface card whether confirming a food order, a UPI transfer, a flight booking, or a medical appointment. Partners cannot bypass.</p>
+      </a>
+      <a class="home-card" href="#receiptpanel">
+        <div class="home-card__tag">Transaction.confirmed</div>
+        <div class="home-card__name">ReceiptPanel</div>
+        <p class="home-card__desc">The universal proof. Tick + title at the top, hairline-divided line items, totals row in bold. Same primitive for a food order, UPI transfer, appointment, Aadhaar SRN.</p>
+      </a>
+      <a class="home-card" href="#choicechips">
+        <div class="home-card__tag">Choice</div>
+        <div class="home-card__name">ChoiceChips</div>
+        <p class="home-card__desc">Pill chips with hairline borders, purple fill when selected. Same primitive for cuisine filter, zodiac, seat preference, or government sub-service.</p>
+      </a>
+      <a class="home-card" href="#mediaplayer">
+        <div class="home-card__tag">Media (single, now playing)</div>
+        <div class="home-card__name">MediaPlayer</div>
+        <p class="home-card__desc">Compact now-playing strip. 80px artwork, title and subtitle, hairline scrubber, transport row. Same primitive for a song, chant, podcast.</p>
+      </a>
+      <a class="home-card" href="#gallery">
+        <div class="home-card__tag">Collection<Media></div>
+        <div class="home-card__name">Gallery</div>
+        <p class="home-card__desc">CatalogResultCard at 3:4 media in a 2-column grid. Same primitive for menu items, movie posters, devotional collections, podcast covers.</p>
+      </a>
+    </div>
+  </section>
+
+
+  <section class="page-view" id="entitycard">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">EntityCard / PlaceResultCard</h1>
+        <p class="page-subtitle">Media-led card. No chrome on the card itself — only the media (16:9, rounded-lg) is rounded. Same primitive renders one thing in focus or a horizontal scroll of three-to-five things to browse. Switch by cardinality, not by component.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Place | Item | Person | Media (single) · or Collection in carousel</span>
+          <span class="picked-when">One in focus · or a few to browse</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Swiggy</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Food · carousel <span class="tab-partner">· Swiggy · 5 places</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Health <span class="tab-partner">· Practo</span></button><button class="tab-button" role="tab" data-idx="3" aria-selected="false">News & Affairs <span class="tab-partner">· Times of India</span></button><button class="tab-button" role="tab" data-idx="4" aria-selected="false">Finance <span class="tab-partner">· JioFinance</span></button>
+      </div>
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Pad thai nearby</span></div>
+            <div class="text-response"><p class="text-response__body">Drunken Monkey is open. 4.3 stars, ETA 32 minutes.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Top picks near me</span></div>
+            <div class="text-response"><p class="text-response__body">Five open now. Swipe to browse.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Dermatologist this week</span></div>
+            <div class="text-response"><p class="text-response__body">Dr. Aparna Rao has slots tomorrow.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Read me the budget story</span></div>
+            <div class="text-response"><p class="text-response__body">Five percent tax relief for the salaried middle class. Markets up.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="4" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Show my balance</span></div>
+            <div class="text-response"><p class="text-response__body">Savings ₹1,24,580. One pending bill due Wednesday.</p></div>
+          </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            
+        <div class="place-card">
+          <div class="place-card__media" data-emoji="🍜"><span class="place-card__badge">Open now</span><span class="place-card__status-badge">ETA 32 min</span></div>
+          <div class="place-card__content">
+            <h4 class="place-card__title">Drunken Monkey</h4>
+            <p class="place-card__tags">Pan-Asian · ₹₹₹ · Koramangala</p>
+            <div class="place-card__meta"><span><span class="place-card__rating-value">4.3</span>★ (1.8k)</span><span>·</span><span>₹800 for 2</span><span>·</span><span>32 min</span></div>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            
+        <div class="collection collection--carousel">
+        <div class="place-card">
+          <div class="place-card__media" data-emoji="🍜"><span class="place-card__badge">Top pick</span><span class="place-card__status-badge">25 min</span></div>
+          <div class="place-card__content">
+            <h4 class="place-card__title">Soi 7</h4>
+            <p class="place-card__tags">Thai · ₹₹</p>
+            <div class="place-card__meta"><span><span class="place-card__rating-value">4.5</span>★ (2.1k)</span><span>·</span><span>25 min</span><span>·</span><span>₹600 for 2</span></div>
+          </div>
+        </div>
+        <div class="place-card">
+          <div class="place-card__media" data-emoji="🥡"><span class="place-card__status-badge">32 min</span></div>
+          <div class="place-card__content">
+            <h4 class="place-card__title">Drunken Monkey</h4>
+            <p class="place-card__tags">Pan-Asian · ₹₹₹</p>
+            <div class="place-card__meta"><span><span class="place-card__rating-value">4.6</span>★ (1.8k)</span><span>·</span><span>32 min</span><span>·</span><span>₹800 for 2</span></div>
+          </div>
+        </div>
+        <div class="place-card">
+          <div class="place-card__media" data-emoji="🍲"><span class="place-card__badge">Fastest</span><span class="place-card__status-badge">18 min</span></div>
+          <div class="place-card__content">
+            <h4 class="place-card__title">Bangkok Bites</h4>
+            <p class="place-card__tags">Thai · ₹</p>
+            <div class="place-card__meta"><span><span class="place-card__rating-value">4.1</span>★ (640)</span><span>·</span><span>18 min</span><span>·</span><span>₹450 for 2</span></div>
+          </div>
+        </div>
+        <div class="place-card">
+          <div class="place-card__media" data-emoji="🍱"><span class="place-card__status-badge">28 min</span></div>
+          <div class="place-card__content">
+            <h4 class="place-card__title">Wok Tok</h4>
+            <p class="place-card__tags">Pan-Asian · ₹₹</p>
+            <div class="place-card__meta"><span><span class="place-card__rating-value">4.4</span>★ (980)</span><span>·</span><span>28 min</span><span>·</span><span>₹550 for 2</span></div>
+          </div>
+        </div>
+        <div class="place-card">
+          <div class="place-card__media" data-emoji="🌶"><span class="place-card__status-badge">35 min</span></div>
+          <div class="place-card__content">
+            <h4 class="place-card__title">Spice Route</h4>
+            <p class="place-card__tags">Thai · ₹₹</p>
+            <div class="place-card__meta"><span><span class="place-card__rating-value">4.3</span>★ (1.2k)</span><span>·</span><span>35 min</span><span>·</span><span>₹700 for 2</span></div>
+          </div>
+        </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            
+        <div class="place-card">
+          <div class="place-card__media" data-emoji="🩺"><span class="place-card__badge">Top match</span><span class="place-card__status-badge">Tmrw 11:00</span></div>
+          <div class="place-card__content">
+            <h4 class="place-card__title">Dr. Aparna Rao</h4>
+            <p class="place-card__tags">Dermatology · 14 yrs · Indiranagar</p>
+            <div class="place-card__meta"><span><span class="place-card__rating-value">4.8</span>★ (412)</span><span>·</span><span>₹1,200</span><span>·</span><span>2.4 km</span></div>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            
+        <div class="place-card">
+          <div class="place-card__media" data-emoji="📰"><span class="place-card__badge">Lead</span><span class="place-card__status-badge">42 min ago</span></div>
+          <div class="place-card__content">
+            <h4 class="place-card__title">Budget tabled with surprise tax revisions</h4>
+            <p class="place-card__tags">Politics · 4 min read · Times of India / PTI</p>
+            <div class="place-card__meta"><span>5% relief</span><span>·</span><span>New GST tiers</span><span>·</span><span>Sensex up</span></div>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="4" data-active="false" role="tabpanel">
+            
+        <div class="place-card">
+          <div class="place-card__media" data-emoji="₹"><span class="place-card__badge">Primary account</span></div>
+          <div class="place-card__content">
+            <h4 class="place-card__title">Savings · ₹1,24,580</h4>
+            <p class="place-card__tags">JioFinance · Account •••• 4421</p>
+            <div class="place-card__meta"><span>Last: ₹500 · Big Bazaar</span><span>·</span><span>Due Wed: ₹2,200</span></div>
+          </div>
+        </div>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="comparetable">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">CompareTable</h1>
+        <p class="page-subtitle">2–4 options across shared axes. Sticky 76px label column on the left, scroll-snapped option columns. Recommended option tinted; best values picked out in primary.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Collection<*>, count 2–4</span>
+          <span class="picked-when">"Which one"</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Swiggy</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Travel <span class="tab-partner">· Skyscanner</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Jobs & Skilling <span class="tab-partner">· Naukri Learning</span></button><button class="tab-button" role="tab" data-idx="3" aria-selected="false">Commerce <span class="tab-partner">· JioMart</span></button>
+      </div>
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Thai near me</span></div>
+            <div class="text-response"><p class="text-response__body">Soi 7 is recommended — top-rated and fast.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Flights to Lisbon</span></div>
+            <div class="text-response"><p class="text-response__body">TAP is recommended — fastest and direct.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Recommend a SQL course</span></div>
+            <div class="text-response"><p class="text-response__body">Coursera's specialization is most thorough.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Basmati rice, 5 kg</span></div>
+            <div class="text-response"><p class="text-response__body">India Gate is highest-rated. Daawat is on sale.</p></div>
+          </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            
+        <div class="compare-table">
+          <div class="compare-table__scroller">
+            <div class="compare-table__labels">
+              <div class="compare-table__header-label">Compare</div>
+              <div class="compare-table__label-cell">Rating</div><div class="compare-table__label-cell">ETA</div><div class="compare-table__label-cell">For two</div>
+            </div>
+            <div class="compare-table__options">
+              <div class="compare-table__option compare-table__option--recommended">
+                <div class="compare-table__header-cell">
+                  <div class="compare-table__header-title">Soi 7</div>
+                  <div class="compare-table__header-sub">Recommended</div>
+                </div><div class="compare-table__cell compare-table__cell--best">4.5 ★</div><div class="compare-table__cell">25 min</div><div class="compare-table__cell">₹600</div>
+              </div>
+              <div class="compare-table__option">
+                <div class="compare-table__header-cell">
+                  <div class="compare-table__header-title">Drunken Monkey</div>
+                  <div class="compare-table__header-sub">Highest rated</div>
+                </div><div class="compare-table__cell compare-table__cell--best">4.6 ★</div><div class="compare-table__cell compare-table__cell--worst">32 min</div><div class="compare-table__cell compare-table__cell--worst">₹800</div>
+              </div>
+              <div class="compare-table__option">
+                <div class="compare-table__header-cell">
+                  <div class="compare-table__header-title">Bangkok Bites</div>
+                  <div class="compare-table__header-sub">Fastest</div>
+                </div><div class="compare-table__cell compare-table__cell--worst">4.1 ★</div><div class="compare-table__cell compare-table__cell--best">18 min</div><div class="compare-table__cell compare-table__cell--best">₹450</div>
+              </div>
+            </div>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            
+        <div class="compare-table">
+          <div class="compare-table__scroller">
+            <div class="compare-table__labels">
+              <div class="compare-table__header-label">Compare</div>
+              <div class="compare-table__label-cell">Duration</div><div class="compare-table__label-cell">Stops</div><div class="compare-table__label-cell">Price</div>
+            </div>
+            <div class="compare-table__options">
+              <div class="compare-table__option compare-table__option--recommended">
+                <div class="compare-table__header-cell">
+                  <div class="compare-table__header-title">TAP</div>
+                  <div class="compare-table__header-sub">Recommended</div>
+                </div><div class="compare-table__cell compare-table__cell--best">8h 40m</div><div class="compare-table__cell compare-table__cell--best">Direct</div><div class="compare-table__cell">€389</div>
+              </div>
+              <div class="compare-table__option">
+                <div class="compare-table__header-cell">
+                  <div class="compare-table__header-title">KLM</div>
+                  <div class="compare-table__header-sub">via AMS</div>
+                </div><div class="compare-table__cell compare-table__cell--worst">10h 35m</div><div class="compare-table__cell compare-table__cell--worst">1 stop</div><div class="compare-table__cell compare-table__cell--best">€312</div>
+              </div>
+              <div class="compare-table__option">
+                <div class="compare-table__header-cell">
+                  <div class="compare-table__header-title">BA</div>
+                  <div class="compare-table__header-sub">Latest dep.</div>
+                </div><div class="compare-table__cell">8h 45m</div><div class="compare-table__cell">Direct</div><div class="compare-table__cell compare-table__cell--worst">€425</div>
+              </div>
+            </div>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            
+        <div class="compare-table">
+          <div class="compare-table__scroller">
+            <div class="compare-table__labels">
+              <div class="compare-table__header-label">Compare</div>
+              <div class="compare-table__label-cell">Rating</div><div class="compare-table__label-cell">Hours</div><div class="compare-table__label-cell">Price</div>
+            </div>
+            <div class="compare-table__options">
+              <div class="compare-table__option compare-table__option--recommended">
+                <div class="compare-table__header-cell">
+                  <div class="compare-table__header-title">Coursera</div>
+                  <div class="compare-table__header-sub">Most thorough</div>
+                </div><div class="compare-table__cell compare-table__cell--best">4.7 ★</div><div class="compare-table__cell">24h</div><div class="compare-table__cell">₹3,200</div>
+              </div>
+              <div class="compare-table__option">
+                <div class="compare-table__header-cell">
+                  <div class="compare-table__header-title">Udemy</div>
+                  <div class="compare-table__header-sub">Best value</div>
+                </div><div class="compare-table__cell">4.6 ★</div><div class="compare-table__cell">18h</div><div class="compare-table__cell compare-table__cell--best">₹499</div>
+              </div>
+              <div class="compare-table__option">
+                <div class="compare-table__header-cell">
+                  <div class="compare-table__header-title">W3Schools</div>
+                  <div class="compare-table__header-sub">Free</div>
+                </div><div class="compare-table__cell compare-table__cell--worst">4.4 ★</div><div class="compare-table__cell compare-table__cell--best">6h</div><div class="compare-table__cell compare-table__cell--best">Free</div>
+              </div>
+            </div>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            
+        <div class="compare-table">
+          <div class="compare-table__scroller">
+            <div class="compare-table__labels">
+              <div class="compare-table__header-label">Compare</div>
+              <div class="compare-table__label-cell">Rating</div><div class="compare-table__label-cell">Delivery</div><div class="compare-table__label-cell">Price</div>
+            </div>
+            <div class="compare-table__options">
+              <div class="compare-table__option compare-table__option--recommended">
+                <div class="compare-table__header-cell">
+                  <div class="compare-table__header-title">India Gate</div>
+                  <div class="compare-table__header-sub">Best rated</div>
+                </div><div class="compare-table__cell compare-table__cell--best">4.6 ★</div><div class="compare-table__cell">Tomorrow</div><div class="compare-table__cell">₹625</div>
+              </div>
+              <div class="compare-table__option">
+                <div class="compare-table__header-cell">
+                  <div class="compare-table__header-title">Daawat</div>
+                  <div class="compare-table__header-sub">On sale</div>
+                </div><div class="compare-table__cell">4.5 ★</div><div class="compare-table__cell">Tomorrow</div><div class="compare-table__cell compare-table__cell--best">₹545</div>
+              </div>
+              <div class="compare-table__option">
+                <div class="compare-table__header-cell">
+                  <div class="compare-table__header-title">Fortune</div>
+                  <div class="compare-table__header-sub">Fastest</div>
+                </div><div class="compare-table__cell compare-table__cell--worst">4.4 ★</div><div class="compare-table__cell compare-table__cell--best">Today</div><div class="compare-table__cell">₹599</div>
+              </div>
+            </div>
+          </div>
+        </div>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="list">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">List / CatalogResultCard</h1>
+        <p class="page-subtitle">CatalogResultCard in list layout — square 80px media on the left, content on the right. Flat or sectioned. Same primitive renders a restaurant list, a restaurant's menu by category, a doctor list, job postings, news headlines.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Collection<*> · flat or sectioned · list | grid | carousel</span>
+          <span class="picked-when">5+ items, browsable</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Swiggy</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Food · menu <span class="tab-partner">· Swiggy · Drunken Monkey</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Health <span class="tab-partner">· Practo</span></button><button class="tab-button" role="tab" data-idx="3" aria-selected="false">Jobs & Skilling <span class="tab-partner">· Naukri</span></button><button class="tab-button" role="tab" data-idx="4" aria-selected="false">News & Affairs <span class="tab-partner">· Times of India</span></button>
+      </div>
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Restaurants near me</span></div>
+            <div class="text-response"><p class="text-response__body">Three nearby. Soi 7 is the top match for Thai.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Show me the menu</span></div>
+            <div class="text-response"><p class="text-response__body">Two sections shown. Pad Thai is the most ordered.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Dermatologists this week</span></div>
+            <div class="text-response"><p class="text-response__body">Three available — sorted by earliest slot.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">PM jobs in Bangalore</span></div>
+            <div class="text-response"><p class="text-response__body">Four matches. Razorpay is the top match.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="4" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Top headlines</span></div>
+            <div class="text-response"><p class="text-response__body">Five top stories. Lead is the budget.</p></div>
+          </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            
+        <div class="list-section-head">Open now · 1.5 km</div>
+        <div class="collection collection--list">
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🍜"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Soi 7</h4>
+                <p class="catalog-card__subtitle">Thai · ★ 4.5 · ₹₹</p>
+                <div class="catalog-card__meta"><span class="catalog-card__temporal">25 min</span><span>·</span><span class="catalog-card__price">₹600 for 2</span></div>
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🥡"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Drunken Monkey</h4>
+                <p class="catalog-card__subtitle">Pan-Asian · ★ 4.3 · ₹₹₹</p>
+                <div class="catalog-card__meta"><span class="catalog-card__temporal">32 min</span><span>·</span><span class="catalog-card__price">₹800 for 2</span></div>
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🍲"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Bangkok Bites</h4>
+                <p class="catalog-card__subtitle">Thai · ★ 4.1 · ₹</p>
+                <div class="catalog-card__meta"><span class="catalog-card__temporal">18 min</span><span>·</span><span class="catalog-card__price">₹450 for 2</span></div>
+              </div>
+            </button>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            
+        <div class="list-section-head">Mains</div>
+        <div class="collection collection--list">
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🍜"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Pad Thai</h4>
+                <p class="catalog-card__subtitle">Stir-fried rice noodles, peanuts, lime · 🌶</p>
+                <div class="catalog-card__meta"><span class="catalog-card__price">₹345</span></div>
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🥡"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Pad See Ew</h4>
+                <p class="catalog-card__subtitle">Wide noodles, dark soy, broccoli, egg</p>
+                <div class="catalog-card__meta"><span class="catalog-card__price">₹325</span></div>
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🍛"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Basil Chicken</h4>
+                <p class="catalog-card__subtitle">Holy basil, chili, jasmine rice · 🌶🌶</p>
+                <div class="catalog-card__meta"><span class="catalog-card__price">₹340</span></div>
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🍤"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Prawn Green Curry</h4>
+                <p class="catalog-card__subtitle">Coconut milk, kaffir lime, jasmine rice · 🌶🌶</p>
+                <div class="catalog-card__meta"><span class="catalog-card__price">₹420</span></div>
+              </div>
+            </button>
+        </div>
+
+        <div class="list-section-head">Drinks</div>
+        <div class="collection collection--list">
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🧋"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Thai Iced Tea</h4>
+                <p class="catalog-card__subtitle">Sweetened condensed milk · cold</p>
+                <div class="catalog-card__meta"><span class="catalog-card__price">₹140</span></div>
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🥤"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Fresh Lime Soda</h4>
+                <p class="catalog-card__subtitle">Sweet, salt, or mixed</p>
+                <div class="catalog-card__meta"><span class="catalog-card__price">₹95</span></div>
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🧃"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Coconut Water</h4>
+                <p class="catalog-card__subtitle">Tender · chilled</p>
+                <div class="catalog-card__meta"><span class="catalog-card__price">₹120</span></div>
+              </div>
+            </button>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            
+        <div class="list-section-head">Available this week</div>
+        <div class="collection collection--list">
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🩺"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Dr. Aparna Rao</h4>
+                <p class="catalog-card__subtitle">Dermatology · 14 yrs · ★ 4.8</p>
+                <div class="catalog-card__meta"><span class="catalog-card__temporal">Tmrw 11:00</span><span>·</span><span class="catalog-card__price">₹1,200</span></div>
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🩺"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Dr. Vikram Iyer</h4>
+                <p class="catalog-card__subtitle">Dermatology · 9 yrs · ★ 4.7</p>
+                <div class="catalog-card__meta"><span class="catalog-card__temporal">Tmrw 16:00</span><span>·</span><span class="catalog-card__price">₹900</span></div>
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🩺"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Dr. Meera Krishnan</h4>
+                <p class="catalog-card__subtitle">Dermatology · 11 yrs · ★ 4.6</p>
+                <div class="catalog-card__meta"><span class="catalog-card__temporal">Thu 09:30</span><span>·</span><span class="catalog-card__price">₹1,100</span></div>
+              </div>
+            </button>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            
+        <div class="list-section-head">4 matches</div>
+        <div class="collection collection--list">
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="💼"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Senior PM · Razorpay</h4>
+                <p class="catalog-card__subtitle">Bangalore · 6–9 yrs · Strong match</p>
+                <div class="catalog-card__meta"><span class="catalog-card__temporal">Posted 2d</span><span>·</span><span class="catalog-card__price">₹40 LPA</span></div>
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="💼"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">PM II · PhonePe</h4>
+                <p class="catalog-card__subtitle">Bangalore · 4–7 yrs</p>
+                <div class="catalog-card__meta"><span class="catalog-card__temporal">Posted 5d</span><span>·</span><span class="catalog-card__price">₹32 LPA</span></div>
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="💼"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Group PM · Cred</h4>
+                <p class="catalog-card__subtitle">Bangalore · 8+ yrs</p>
+                <div class="catalog-card__meta"><span class="catalog-card__temporal">Posted 1d</span><span>·</span><span class="catalog-card__price">₹55 LPA</span></div>
+              </div>
+            </button>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="4" data-active="false" role="tabpanel">
+            
+        <div class="list-section-head">Top</div>
+        <div class="collection collection--list">
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="📰"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Budget tabled with surprise tax revisions</h4>
+                <p class="catalog-card__subtitle">Politics · 4 min read</p>
+                <div class="catalog-card__meta"><span class="catalog-card__temporal">42 min</span><span>·</span><span class="catalog-card__price">PTI</span></div>
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="📈"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Sensex closes at record high, 84,200</h4>
+                <p class="catalog-card__subtitle">Markets · 3 min read</p>
+                <div class="catalog-card__meta"><span class="catalog-card__temporal">1h 20m</span><span>·</span><span class="catalog-card__price">Mint</span></div>
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🏏"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">India 245/4 vs Australia at lunch</h4>
+                <p class="catalog-card__subtitle">Sports · 2 min read</p>
+                <div class="catalog-card__meta"><span class="catalog-card__temporal">25 min</span><span>·</span><span class="catalog-card__price">PTI</span></div>
+              </div>
+            </button>
+        </div>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="timeline">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">Timeline</h1>
+        <p class="page-subtitle">Vertical agenda. Time on the left, title + meta on the right. Active row highlighted with primary-surface. Same shape for table reservations, doctor slots, fixtures, calendar events.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Collection<Schedule></span>
+          <span class="picked-when">Time-anchored events</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Dineout</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Health <span class="tab-partner">· Practo</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Cricket <span class="tab-partner">· Cricbuzz</span></button><button class="tab-button" role="tab" data-idx="3" aria-selected="false">Daily Assistant <span class="tab-partner">· JBIQ</span></button>
+      </div>
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Reserve at Drunken Monkey tonight</span></div>
+            <div class="text-response"><p class="text-response__body">Four slots tonight. Earliest is 7:30.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Slots for Dr. Aparna Rao</span></div>
+            <div class="text-response"><p class="text-response__body">Five slots tomorrow. Earliest is 11:00.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Upcoming matches</span></div>
+            <div class="text-response"><p class="text-response__body">Three this week. India vs Australia Wednesday.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">What's on today?</span></div>
+            <div class="text-response"><p class="text-response__body">Three things. Biggest is the 11 AM team review.</p></div>
+          </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            
+        <div class="timeline">
+          <div class="tl-row" data-active="true">
+            <div class="tl-time">19:30</div>
+            <div><div class="tl-title">Table for 2</div><div class="tl-meta">Available · No fee</div></div>
+          </div>
+          <div class="tl-row" data-active="false">
+            <div class="tl-time">20:00</div>
+            <div><div class="tl-title">Table for 2</div><div class="tl-meta">Available</div></div>
+          </div>
+          <div class="tl-row" data-active="false">
+            <div class="tl-time">20:30</div>
+            <div><div class="tl-title">Table for 4</div><div class="tl-meta">Available</div></div>
+          </div>
+          <div class="tl-row" data-active="false">
+            <div class="tl-time">21:00</div>
+            <div><div class="tl-title">Table for 2</div><div class="tl-meta">Booked</div></div>
+          </div>
+          <div class="tl-row" data-active="false">
+            <div class="tl-time">21:30</div>
+            <div><div class="tl-title">Table for 2</div><div class="tl-meta">Available · 30% off</div></div>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            
+        <div class="timeline">
+          <div class="tl-row" data-active="true">
+            <div class="tl-time">11:00</div>
+            <div><div class="tl-title">Slot · 20 min</div><div class="tl-meta">Available</div></div>
+          </div>
+          <div class="tl-row" data-active="false">
+            <div class="tl-time">11:30</div>
+            <div><div class="tl-title">Slot · 20 min</div><div class="tl-meta">Available</div></div>
+          </div>
+          <div class="tl-row" data-active="false">
+            <div class="tl-time">14:00</div>
+            <div><div class="tl-title">Slot · 20 min</div><div class="tl-meta">Available</div></div>
+          </div>
+          <div class="tl-row" data-active="false">
+            <div class="tl-time">15:00</div>
+            <div><div class="tl-title">Slot · 20 min</div><div class="tl-meta">Booked</div></div>
+          </div>
+          <div class="tl-row" data-active="false">
+            <div class="tl-time">16:00</div>
+            <div><div class="tl-title">Slot · 20 min</div><div class="tl-meta">Available</div></div>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            
+        <div class="timeline">
+          <div class="tl-row" data-active="true">
+            <div class="tl-time">Wed</div>
+            <div><div class="tl-title">IND vs AUS · T20</div><div class="tl-meta">19:00 · Wankhede, Mumbai</div></div>
+          </div>
+          <div class="tl-row" data-active="false">
+            <div class="tl-time">Sat</div>
+            <div><div class="tl-title">IND vs ENG · ODI</div><div class="tl-meta">14:30 · MCA, Pune</div></div>
+          </div>
+          <div class="tl-row" data-active="false">
+            <div class="tl-time">Mon</div>
+            <div><div class="tl-title">AUS vs ENG · Test</div><div class="tl-meta">09:30 · Kotla, Delhi</div></div>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            
+        <div class="timeline">
+          <div class="tl-row" data-active="true">
+            <div class="tl-time">11:00</div>
+            <div><div class="tl-title">Team review</div><div class="tl-meta">30 min · Conf room</div></div>
+          </div>
+          <div class="tl-row" data-active="false">
+            <div class="tl-time">13:00</div>
+            <div><div class="tl-title">Lunch · Priya</div><div class="tl-meta">60 min · Café Coffee Day</div></div>
+          </div>
+          <div class="tl-row" data-active="false">
+            <div class="tl-time">19:00</div>
+            <div><div class="tl-title">Gym</div><div class="tl-meta">60 min · Cult Indiranagar</div></div>
+          </div>
+        </div>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="tracker">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">Tracker</h1>
+        <p class="page-subtitle">Primary-coloured tile sized like place-card media. Used for food delivery, package shipping, cricket innings, application processing — anything in motion.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Status | Status<Route></span>
+          <span class="picked-when">Live state</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Swiggy</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Commerce <span class="tab-partner">· JioMart</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Cricket <span class="tab-partner">· Cricbuzz</span></button><button class="tab-button" role="tab" data-idx="3" aria-selected="false">Government Services <span class="tab-partner">· UMANG</span></button>
+      </div>
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Where's my food?</span></div>
+            <div class="text-response"><p class="text-response__body">Driver picked up the order — 18 minutes away.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Where's my order?</span></div>
+            <div class="text-response"><p class="text-response__body">Out for delivery — arriving in twelve minutes.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Live India match</span></div>
+            <div class="text-response"><p class="text-response__body">India 245 for 4. Kohli on 67.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Aadhaar update status</span></div>
+            <div class="text-response"><p class="text-response__body">Under verification. Expected approval in 4–6 days.</p></div>
+          </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            
+        <div class="tracker">
+          <div class="tracker__media">
+            <div>
+              <div class="tracker__stage">Out for delivery</div>
+              <div class="tracker__eta">18 min</div>
+              <div class="tracker__detail">Amit · +91 ••• ••12 · Drunken Monkey</div>
+            </div>
+            <div class="tracker__progress"><div class="tracker__progress-fill" style="width: 50%"></div></div>
+          </div>
+          <div class="tracker__steps"><span class="done">placed</span> <span class="done">preparing</span> <span class="active">picked up</span> <span class="">on the way</span> <span class="">delivered</span></div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            
+        <div class="tracker">
+          <div class="tracker__media">
+            <div>
+              <div class="tracker__stage">Out for delivery</div>
+              <div class="tracker__eta">12 min</div>
+              <div class="tracker__detail">Amit · +91 ••• ••12</div>
+            </div>
+            <div class="tracker__progress"><div class="tracker__progress-fill" style="width: 62%"></div></div>
+          </div>
+          <div class="tracker__steps"><span class="done">packed</span> <span class="done">shipped</span> <span class="active">out for delivery</span> <span class="">delivered</span></div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            
+        <div class="tracker">
+          <div class="tracker__media">
+            <div>
+              <div class="tracker__stage">India vs Australia · 1st innings</div>
+              <div class="tracker__eta">245/4</div>
+              <div class="tracker__detail">38.2 overs · Kohli 67* · RRR 6.3</div>
+            </div>
+            <div class="tracker__progress"><div class="tracker__progress-fill" style="width: 30%"></div></div>
+          </div>
+          <div class="tracker__steps"><span class="done">pre-match</span> <span class="active">innings 1</span> <span class="">interval</span> <span class="">innings 2</span> <span class="">result</span></div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            
+        <div class="tracker">
+          <div class="tracker__media">
+            <div>
+              <div class="tracker__stage">SRN UID-784A2C</div>
+              <div class="tracker__eta">4–6 days</div>
+              <div class="tracker__detail">Address update · Online · UIDAI</div>
+            </div>
+            <div class="tracker__progress"><div class="tracker__progress-fill" style="width: 38%"></div></div>
+          </div>
+          <div class="tracker__steps"><span class="done">submitted</span> <span class="active">verification</span> <span class="">approval</span> <span class="">updated</span></div>
+        </div>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="map">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">Map</h1>
+        <p class="page-subtitle">Schematic plot — single pin, multiple pins, or a route. Pairs with List in split view, insets into Tracker when Status carries Route data.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Place | Collection<Place> | Route</span>
+          <span class="picked-when">Spatial entities</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Swiggy</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Local Services <span class="tab-partner">· UrbanCompany</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Travel <span class="tab-partner">· Skyscanner</span></button>
+      </div>
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Show me the delivery</span></div>
+            <div class="text-response"><p class="text-response__body">Driver Amit is 1.4 km away — turning onto Hosur Road.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Where's the plumber?</span></div>
+            <div class="text-response"><p class="text-response__body">Ravi is 12 minutes away. On Hosur Road.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Show my flight route</span></div>
+            <div class="text-response"><p class="text-response__body">Bangalore to Lisbon via Frankfurt.</p></div>
+          </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            
+        <div class="map-panel">
+          <div class="map-pin start"><span>🍴</span></div>
+          <div class="map-route"></div>
+          <div class="map-pin end"><span>🏠</span></div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            
+        <div class="map-panel">
+          <div class="map-pin start"><span>●</span></div>
+          <div class="map-route"></div>
+          <div class="map-pin end"><span>🔧</span></div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            
+        <div class="map-panel">
+          <div class="map-pin start"><span>BLR</span></div>
+          <div class="map-route"></div>
+          <div class="map-pin end"><span>LIS</span></div>
+        </div>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="cartpanel">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">CartPanel</h1>
+        <p class="page-subtitle">Hairline-divided line items, totals block in secondary-surface, full-width primary CTA. Same shape for a restaurant order, a grocery basket, a service booking.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Transaction.building</span>
+          <span class="picked-when">Items being assembled</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Swiggy</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Commerce <span class="tab-partner">· JioMart</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Local Services <span class="tab-partner">· UrbanCompany</span></button>
+      </div>
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Add pad thai and a thai iced tea</span></div>
+            <div class="text-response"><p class="text-response__body">Two items. ₹548 total with delivery.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Add rice and dal</span></div>
+            <div class="text-response"><p class="text-response__body">Two items. Total ₹939 with delivery.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Plumber + AC service</span></div>
+            <div class="text-response"><p class="text-response__body">Two services for tomorrow. ₹798 estimate.</p></div>
+          </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            
+        <div class="cart-section">
+          <div class="cart-row">
+            <div><div class="cart-name">Pad Thai</div><div class="cart-qty">× 1</div></div>
+            <div class="cart-price">₹345</div>
+          </div>
+          <div class="cart-row">
+            <div><div class="cart-name">Thai Iced Tea</div><div class="cart-qty">× 1</div></div>
+            <div class="cart-price">₹140</div>
+          </div>
+          <div class="cart-totals">
+            <div>Subtotal</div><div>₹485</div><div>Delivery</div><div>₹39</div><div>Taxes</div><div>₹24</div>
+            <div class="total-row"><div>Total</div><div>₹548</div></div>
+          </div>
+        </div>
+        <div class="cta-row"><button class="btn-primary">Review and checkout</button></div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            
+        <div class="cart-section">
+          <div class="cart-row">
+            <div><div class="cart-name">India Gate Classic 5kg</div><div class="cart-qty">× 1</div></div>
+            <div class="cart-price">₹625</div>
+          </div>
+          <div class="cart-row">
+            <div><div class="cart-name">Tata Sampann Arhar Dal 1kg</div><div class="cart-qty">× 2</div></div>
+            <div class="cart-price">₹298</div>
+          </div>
+          <div class="cart-totals">
+            <div>Subtotal</div><div>₹923</div><div>Delivery</div><div>₹4</div><div>Tax</div><div>₹12</div>
+            <div class="total-row"><div>Total</div><div>₹939</div></div>
+          </div>
+        </div>
+        <div class="cta-row"><button class="btn-primary">Place order</button></div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            
+        <div class="cart-section">
+          <div class="cart-row">
+            <div><div class="cart-name">Plumbing visit · Ravi</div><div class="cart-qty">Tomorrow 09:00</div></div>
+            <div class="cart-price">₹299</div>
+          </div>
+          <div class="cart-row">
+            <div><div class="cart-name">AC service · Naveen</div><div class="cart-qty">Tomorrow 14:00</div></div>
+            <div class="cart-price">₹499</div>
+          </div>
+          <div class="cart-totals">
+            <div>Subtotal</div><div>₹798</div><div>Visit fee</div><div>₹0</div>
+            <div class="total-row"><div>Estimated</div><div>₹798</div></div>
+          </div>
+        </div>
+        <div class="cta-row"><button class="btn-primary">Confirm bookings</button></div>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="confirmpanel">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">ConfirmPanel</h1>
+        <p class="page-subtitle">The mandatory interrupt. Same secondary-surface card whether confirming a food order, a UPI transfer, a flight booking, or a medical appointment. Partners cannot bypass.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Choice (system-injected)</span>
+          <span class="picked-when">Before every Transaction</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Swiggy</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Finance <span class="tab-partner">· JioFinance</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Travel <span class="tab-partner">· Skyscanner</span></button><button class="tab-button" role="tab" data-idx="3" aria-selected="false">Health & Wellness <span class="tab-partner">· Practo</span></button>
+      </div>
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Checkout</span></div>
+            <div class="text-response"><p class="text-response__body">Just to confirm — pad thai and thai iced tea.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Send 5000 to mom</span></div>
+            <div class="text-response"><p class="text-response__body">Just to confirm — five thousand to Mom.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Book the TAP</span></div>
+            <div class="text-response"><p class="text-response__body">Confirm — TAP TP1359 next Friday, 14A window.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Book the 11</span></div>
+            <div class="text-response"><p class="text-response__body">Confirm — Dr. Aparna Rao, tomorrow 11.</p></div>
+          </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            
+        <div class="confirm">
+          <div class="confirm-prompt">Place this order?</div>
+          <div class="confirm-summary">Drunken Monkey · Pad Thai, Thai Iced Tea · Visa •• 4421</div>
+          <div class="confirm-total">₹548</div>
+          <div class="confirm-actions">
+            <button class="btn-primary">Confirm</button>
+            <button class="btn-secondary">Cancel</button>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            
+        <div class="confirm">
+          <div class="confirm-prompt">Send this money?</div>
+          <div class="confirm-summary">Mom · Mrs. Sharma · ICICI •••• 4571</div>
+          <div class="confirm-total">₹5,000</div>
+          <div class="confirm-actions">
+            <button class="btn-primary">Send</button>
+            <button class="btn-secondary">Cancel</button>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            
+        <div class="confirm">
+          <div class="confirm-prompt">Book this flight?</div>
+          <div class="confirm-summary">TAP TP1359 · 14A Window · Visa •• 4421</div>
+          <div class="confirm-total">€389</div>
+          <div class="confirm-actions">
+            <button class="btn-primary">Book</button>
+            <button class="btn-secondary">Cancel</button>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            
+        <div class="confirm">
+          <div class="confirm-prompt">Book this appointment?</div>
+          <div class="confirm-summary">Dr. Aparna Rao · Tomorrow 11:00 · Pay at clinic</div>
+          <div class="confirm-total">₹1,200</div>
+          <div class="confirm-actions">
+            <button class="btn-primary">Book</button>
+            <button class="btn-secondary">Cancel</button>
+          </div>
+        </div>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="receiptpanel">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">ReceiptPanel</h1>
+        <p class="page-subtitle">The universal proof. Tick + title at the top, hairline-divided line items, totals row in bold. Same primitive for a food order, UPI transfer, appointment, Aadhaar SRN.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Transaction.confirmed</span>
+          <span class="picked-when">After every Transaction</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Swiggy</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Finance <span class="tab-partner">· JioFinance</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Health & Wellness <span class="tab-partner">· Practo</span></button><button class="tab-button" role="tab" data-idx="3" aria-selected="false">Government Services <span class="tab-partner">· UMANG</span></button>
+      </div>
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Yes, place it</span></div>
+            <div class="text-response"><p class="text-response__body">Done. Order placed. ETA 32 minutes.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Yes, send it</span></div>
+            <div class="text-response"><p class="text-response__body">Done. ₹5,000 sent.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Book the 11</span></div>
+            <div class="text-response"><p class="text-response__body">Booked. SMS reminder set.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Submit the form</span></div>
+            <div class="text-response"><p class="text-response__body">Submitted. SMS will arrive on approval.</p></div>
+          </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            
+        <div class="receipt">
+          <div class="receipt-banner">
+            <div class="receipt-check">✓</div>
+            <div>
+              <div class="receipt-title">Order placed</div>
+              <div class="receipt-sub">Drunken Monkey · #ord-44921</div>
+            </div>
+          </div>
+          <div><div class="receipt-line"><div>Pad Thai</div><div>₹345</div></div><div class="receipt-line"><div>Thai Iced Tea</div><div>₹140</div></div><div class="receipt-line"><div>Delivery + taxes</div><div>₹63</div></div>
+            <div class="receipt-line receipt-total"><div>Total charged</div><div>₹548</div></div>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            
+        <div class="receipt">
+          <div class="receipt-banner">
+            <div class="receipt-check">✓</div>
+            <div>
+              <div class="receipt-title">Money sent</div>
+              <div class="receipt-sub">UPI/445792/202605110730</div>
+            </div>
+          </div>
+          <div><div class="receipt-line"><div>To</div><div>Mom · Mrs. Sharma</div></div><div class="receipt-line"><div>Account</div><div>ICICI •••• 4571</div></div><div class="receipt-line"><div>Mode</div><div>UPI</div></div>
+            <div class="receipt-line receipt-total"><div>Amount</div><div>₹5,000</div></div>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            
+        <div class="receipt">
+          <div class="receipt-banner">
+            <div class="receipt-check">✓</div>
+            <div>
+              <div class="receipt-title">Appointment booked</div>
+              <div class="receipt-sub">Dr. Aparna Rao · #appt-7741</div>
+            </div>
+          </div>
+          <div><div class="receipt-line"><div>Date</div><div>Tomorrow</div></div><div class="receipt-line"><div>Time</div><div>11:00 – 11:20</div></div><div class="receipt-line"><div>Specialty</div><div>Dermatology</div></div>
+            <div class="receipt-line receipt-total"><div>Consultation fee</div><div>₹1,200</div></div>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            
+        <div class="receipt">
+          <div class="receipt-banner">
+            <div class="receipt-check">✓</div>
+            <div>
+              <div class="receipt-title">Application submitted</div>
+              <div class="receipt-sub">SRN UID-784A2C</div>
+            </div>
+          </div>
+          <div><div class="receipt-line"><div>Service</div><div>Aadhaar address update</div></div><div class="receipt-line"><div>Fee paid</div><div>₹50</div></div><div class="receipt-line"><div>Expected</div><div>5–10 days</div></div>
+            <div class="receipt-line receipt-total"><div>Status</div><div>Submitted</div></div>
+          </div>
+        </div>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="choicechips">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">ChoiceChips / FilterChipBar</h1>
+        <p class="page-subtitle">Pill chips with hairline borders, purple fill when selected. Same primitive for cuisine filter, zodiac, seat preference, or government sub-service.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Choice</span>
+          <span class="picked-when">Low-friction decisions</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Swiggy</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Astrology <span class="tab-partner">· AstroSage</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Travel <span class="tab-partner">· Skyscanner</span></button><button class="tab-button" role="tab" data-idx="3" aria-selected="false">Government Services <span class="tab-partner">· UMANG</span></button>
+      </div>
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Find me dinner</span></div>
+            <div class="text-response"><p class="text-response__body">What kind?</p></div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">My horoscope</span></div>
+            <div class="text-response"><p class="text-response__body">Which sign?</p></div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Book a flight</span></div>
+            <div class="text-response"><p class="text-response__body">Seat preference and cabin?</p></div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Update my Aadhaar</span></div>
+            <div class="text-response"><p class="text-response__body">Which detail?</p></div>
+          </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            <div class="chips-prompt">Cuisine</div><div class="filter-chip-bar"><button class="filter-chip filter-chip--selected">Thai</button><button class="filter-chip">Indian</button><button class="filter-chip">Chinese</button><button class="filter-chip">Italian</button><button class="filter-chip">Mexican</button><button class="filter-chip">Japanese</button></div>
+        <div class="chips-prompt">Dietary</div><div class="filter-chip-bar"><button class="filter-chip">Veg</button><button class="filter-chip filter-chip--selected">Non-veg</button><button class="filter-chip">Vegan</button><button class="filter-chip">Jain</button></div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            <div class="chips-prompt">Pick your sign</div><div class="filter-chip-bar"><button class="filter-chip">Aries</button><button class="filter-chip">Taurus</button><button class="filter-chip">Gemini</button><button class="filter-chip filter-chip--selected">Cancer</button><button class="filter-chip">Leo</button><button class="filter-chip">Virgo</button><button class="filter-chip">Libra</button><button class="filter-chip">Scorpio</button><button class="filter-chip">Sagittarius</button><button class="filter-chip">Capricorn</button><button class="filter-chip">Aquarius</button><button class="filter-chip">Pisces</button></div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            <div class="chips-prompt">Seat preference</div><div class="filter-chip-bar"><button class="filter-chip filter-chip--selected">Window</button><button class="filter-chip">Aisle</button><button class="filter-chip">No preference</button></div>
+        <div class="chips-prompt">Cabin</div><div class="filter-chip-bar"><button class="filter-chip filter-chip--selected">Economy</button><button class="filter-chip">Premium econ</button><button class="filter-chip">Business</button></div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            <div class="chips-prompt">What needs updating?</div><div class="filter-chip-bar"><button class="filter-chip filter-chip--selected">Address</button><button class="filter-chip">Mobile number</button><button class="filter-chip">Email</button><button class="filter-chip">Photo</button><button class="filter-chip">Date of birth</button></div>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="mediaplayer">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">MediaPlayer</h1>
+        <p class="page-subtitle">Compact now-playing strip. 80px artwork, title and subtitle, hairline scrubber, transport row. Same primitive for a song, chant, podcast.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Media (single, now playing)</span>
+          <span class="picked-when">Audio / video in playback</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Bollywood <span class="tab-partner">· JioCinema</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Devotion <span class="tab-partner">· Sri Mandir</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">News & Affairs <span class="tab-partner">· Times of India · audio</span></button>
+      </div>
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Play Zinda Banda</span></div>
+            <div class="text-response"><p class="text-response__body">Playing Zinda Banda from Jawan.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Play Hanuman Chalisa</span></div>
+            <div class="text-response"><p class="text-response__body">Playing Hanuman Chalisa by Hariharan.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Read me the budget story</span></div>
+            <div class="text-response"><p class="text-response__body">Audio summary, four minutes.</p></div>
+          </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            
+        <div class="player">
+          <div class="player-art">🎬</div>
+          <div>
+            <div class="player-title">Zinda Banda</div>
+            <div class="player-artist">Anirudh Ravichander · Jawan (2023)</div>
+            <div class="player-bar"><div class="player-bar-fill"></div></div>
+            <div class="player-controls">⏮  ⏸  ⏭   🔊</div>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            
+        <div class="player">
+          <div class="player-art">🪔</div>
+          <div>
+            <div class="player-title">Hanuman Chalisa</div>
+            <div class="player-artist">Hariharan · 12 min</div>
+            <div class="player-bar"><div class="player-bar-fill"></div></div>
+            <div class="player-controls">⏮  ⏸  ⏭   🔊</div>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            
+        <div class="player">
+          <div class="player-art">🎙</div>
+          <div>
+            <div class="player-title">Budget tabled with surprise tax revisions</div>
+            <div class="player-artist">Times of India · 4 min summary</div>
+            <div class="player-bar"><div class="player-bar-fill"></div></div>
+            <div class="player-controls">⏮  ⏸  ⏭   🔊</div>
+          </div>
+        </div>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="gallery">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">Gallery / CatalogResultCard grid</h1>
+        <p class="page-subtitle">CatalogResultCard at 3:4 media in a 2-column grid. Same primitive for menu items, movie posters, devotional collections, podcast covers.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Collection<Media></span>
+          <span class="picked-when">Browsable media</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Swiggy</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Bollywood <span class="tab-partner">· JioCinema</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Devotion <span class="tab-partner">· Sri Mandir</span></button>
+      </div>
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Top dishes at Drunken Monkey</span></div>
+            <div class="text-response"><p class="text-response__body">Four most-ordered.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">New Hindi movies</span></div>
+            <div class="text-response"><p class="text-response__body">Four big releases this week.</p></div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            <div class="you-line">YOU<span class="text">Hanuman Jayanti playlists</span></div>
+            <div class="text-response"><p class="text-response__body">Four collections for tomorrow's festival.</p></div>
+          </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        
+          <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+            
+        <div class="gallery">
+          <div class="collection collection--grid">
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🍜"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Pad Thai</h4>
+                <p class="catalog-card__subtitle">₹345 · ★ 4.6</p>
+                
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🥡"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Pad See Ew</h4>
+                <p class="catalog-card__subtitle">₹325 · ★ 4.5</p>
+                
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🍲"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Tom Yum Soup</h4>
+                <p class="catalog-card__subtitle">₹220 · ★ 4.7</p>
+                
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🌶"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Basil Chicken</h4>
+                <p class="catalog-card__subtitle">₹340 · ★ 4.4</p>
+                
+              </div>
+            </button>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+            
+        <div class="gallery">
+          <div class="collection collection--grid">
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🎬"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Jawan 2</h4>
+                <p class="catalog-card__subtitle">Action · ★ 8.2</p>
+                
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🐅"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Animal Park</h4>
+                <p class="catalog-card__subtitle">Drama · ★ 7.8</p>
+                
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🥻"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Laapata Ladies</h4>
+                <p class="catalog-card__subtitle">Comedy · ★ 8.5</p>
+                
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🚀"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Kalki 2898 AD</h4>
+                <p class="catalog-card__subtitle">Sci-Fi · ★ 8.0</p>
+                
+              </div>
+            </button>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+            
+        <div class="gallery">
+          <div class="collection collection--grid">
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🪔"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Hanuman Chalisa</h4>
+                <p class="catalog-card__subtitle">Hariharan · 12 min</p>
+                
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🕉"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Sundara Kanda</h4>
+                <p class="catalog-card__subtitle">42 min · 7 episodes</p>
+                
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🛕"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Tirupati live darshan</h4>
+                <p class="catalog-card__subtitle">Live · 1.2M watching</p>
+                
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🌺"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Bhajans for Jayanti</h4>
+                <p class="catalog-card__subtitle">28 tracks · 1h 12m</p>
+                
+              </div>
+            </button>
+          </div>
+        </div>
+          </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+/* ----- Tab switcher within a component page —
+   matches tabs to panels by data-idx so both the input card and the component
+   card switch together when a tab is clicked. ----- */
+document.querySelectorAll('.page-view').forEach(page => {
+  const tabs = page.querySelectorAll('.tab-button');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const idx = tab.dataset.idx;
+      tabs.forEach(t => t.setAttribute('aria-selected', t.dataset.idx === idx ? 'true' : 'false'));
+      page.querySelectorAll('.tab-panel').forEach(p => {
+        p.setAttribute('data-active', p.dataset.idx === idx ? 'true' : 'false');
+      });
+    });
+  });
+});
+
+/* ----- Hash routing — show one page view at a time ----- */
+function navigate(hash) {
+  const target = (hash || 'home').replace(/^#/, '');
+  const views = document.querySelectorAll('.page-view');
+  let matched = false;
+  views.forEach(v => {
+    const active = v.id === target;
+    v.classList.toggle('is-active', active);
+    if (active) matched = true;
+  });
+  if (!matched) {
+    const home = document.getElementById('home');
+    if (home) home.classList.add('is-active');
+  }
+  document.querySelectorAll('.toc a').forEach(a => {
+    a.classList.toggle('is-active', a.getAttribute('href') === '#' + (matched ? target : 'home'));
+  });
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', () => { navigate(location.hash); closeDrawer(); });
+navigate(location.hash);
+
+/* ----- Mobile drawer ----- */
+const sidebar = document.getElementById('sidebar');
+const burger  = document.querySelector('.toc-burger');
+const backdrop = document.querySelector('.toc-backdrop');
+const closeBtn = document.querySelector('.toc-close');
+function openDrawer() {
+  sidebar.classList.add('is-open');
+  backdrop.classList.add('is-open');
+  if (burger) burger.setAttribute('aria-expanded', 'true');
+}
+function closeDrawer() {
+  sidebar.classList.remove('is-open');
+  backdrop.classList.remove('is-open');
+  if (burger) burger.setAttribute('aria-expanded', 'false');
+}
+if (burger)  burger.addEventListener('click', openDrawer);
+if (backdrop) backdrop.addEventListener('click', closeDrawer);
+if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+sidebar.querySelectorAll('a').forEach(a => a.addEventListener('click', closeDrawer));
+</script>
+</body>
+</html>
