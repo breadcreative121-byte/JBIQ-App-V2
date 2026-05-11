@@ -172,9 +172,24 @@
   color: #ffffff;
   flex-shrink: 0;
 }
-.subject-header__brand-chip--swiggy { background: #FC8019; }
-.subject-header__brand-chip--zomato { background: #E23744; }
-.subject-header__brand-chip--vrl    { background: #C8102E; }
+.subject-header__brand-chip--swiggy {
+  background: url('assets/partners/swiggy.png') center / cover no-repeat;
+  color: transparent;
+  text-indent: -9999px;
+  overflow: hidden;
+}
+.subject-header__brand-chip--zomato {
+  background: url('assets/partners/zomato.png') center / cover no-repeat;
+  color: transparent;
+  text-indent: -9999px;
+  overflow: hidden;
+}
+.subject-header__brand-chip--vrl    {
+  background: url('assets/partners/vrl.png') center / cover no-repeat;
+  color: transparent;
+  text-indent: -9999px;
+  overflow: hidden;
+}
 
 .subject-header__title {
   font-size: var(--font-size-title);
@@ -208,7 +223,7 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--color-text-secondary);
-  margin: 0 var(--space-lg) var(--space-sm);
+  margin: 0 0 var(--space-sm);
 }
 .collection + .list-section-head { margin-top: var(--space-xl); }
 
@@ -246,6 +261,7 @@
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-bold);
 }
+.filter-chip-bar + .chips-prompt { padding-top: var(--space-md); }
 .filter-chip-bar {
   display: flex;
   gap: var(--space-xs);
@@ -589,7 +605,6 @@
    PRIMITIVE: CompareTable — sticky label column + scroll-snap option columns.
    ---------------------------------------------------------------------------- */
 .compare-table {
-  margin: 0 var(--space-lg);
   border: 0.5px solid var(--color-border-default);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -813,7 +828,6 @@
    (b) `.map-panel__svg` for the live SVG render in the app.
    ---------------------------------------------------------------------------- */
 .map-panel {
-  margin: 0 var(--space-lg);
   height: var(--layout-map-height);
   background: #E8EEF2;
   border-radius: var(--radius-lg);
@@ -923,7 +937,6 @@
    PRIMITIVE: ConfirmPanel — the system-owned interrupt before any Transaction.
    ---------------------------------------------------------------------------- */
 .confirm {
-  margin: 0 var(--space-lg);
   padding: var(--space-lg);
   background: var(--color-surface-secondary);
   border-radius: var(--radius-lg);
@@ -957,7 +970,6 @@
    PRIMITIVE: ReceiptPanel — Transaction.confirmed / .completed.
    ---------------------------------------------------------------------------- */
 .receipt {
-  margin: 0 var(--space-lg);
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
@@ -973,7 +985,7 @@
   width: 32px;
   height: 32px;
   border-radius: var(--radius-pill);
-  background: var(--color-action-primary);
+  background: var(--color-success);
   color: var(--color-text-on-primary);
   display: grid;
   place-items: center;
@@ -1003,11 +1015,10 @@
    PRIMITIVE: MediaPlayer
    ---------------------------------------------------------------------------- */
 .player {
-  margin: 0 var(--space-lg);
   display: grid;
   grid-template-columns: 80px 1fr;
   gap: var(--space-md);
-  align-items: center;
+  align-items: start;
 }
 .player-art {
   aspect-ratio: 1;
@@ -1028,8 +1039,8 @@
   margin-top: 2px;
 }
 .player-bar {
-  height: 3px;
-  background: var(--color-border-default);
+  height: 6px;
+  background: var(--color-surface-secondary);
   border-radius: var(--radius-pill);
   margin-top: var(--space-sm);
   overflow: hidden;
@@ -1038,14 +1049,49 @@
   height: 100%;
   background: var(--color-action-primary);
   width: 38%;
+  border-radius: var(--radius-pill);
+}
+.player-times {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
 }
 .player-controls {
+  grid-column: 1 / -1;
   display: flex;
-  gap: var(--space-md);
+  gap: 6px;
   margin-top: var(--space-sm);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-body);
+  align-items: center;
+  justify-content: center;
 }
+.player-controls button {
+  appearance: none;
+  border: none;
+  background: var(--color-action-primary-surface);
+  border-radius: var(--radius-pill);
+  padding: var(--space-sm);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.player-control__icon {
+  width: 26px;
+  height: 26px;
+  background: var(--color-action-primary);
+  -webkit-mask-position: center; mask-position: center;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-size: contain; mask-size: contain;
+  display: block;
+}
+.player-control__icon--next  { -webkit-mask-image: url("https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_next.svg");  mask-image: url("https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_next.svg"); }
+.player-control__icon--pause { -webkit-mask-image: url("https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_pause.svg"); mask-image: url("https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_pause.svg"); }
+.player-control__icon--play  { -webkit-mask-image: url("https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_play.svg");  mask-image: url("https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_play.svg"); }
+.player-control--prev .player-control__icon { transform: scaleX(-1); }
+.player-controls .player-control--play { background: var(--color-action-primary); }
+.player-controls .player-control--play .player-control__icon { background: var(--color-text-on-primary); }
 
 
 /* ----------------------------------------------------------------------------
@@ -1069,7 +1115,6 @@
   flex-direction: column;
   gap: var(--space-sm);
   padding: var(--space-md) var(--space-lg);
-  margin: 0 var(--space-lg);
   background: var(--color-surface-primary);
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-md);
@@ -1183,7 +1228,7 @@
 }
 
 .validator-banner {
-  margin: var(--space-md) var(--space-lg);
+  margin: var(--space-md) 0;
   padding: var(--space-sm) var(--space-md);
   background: var(--color-feedback-error-bg);
   border: 0.5px solid var(--color-feedback-error-border);

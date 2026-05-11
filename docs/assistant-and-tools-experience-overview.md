@@ -36,7 +36,7 @@ These are the design rules every other section in this document is downstream of
 
 | Tier | Examples | Gate | User-visible signal | Default pick-weight |
 | --- | --- | --- | --- | --- |
-| **T0 — 1P (Reliance)** | Jio Recharge, JioMart, JioPay, JioCinema | Internal — same anatomy + commitment rules apply | None (transparent by absence) | 100 |
+| **T0 — 1P (Reliance)** | Jio Recharge, JioMart, JioPay, JioHotstar | Internal — same anatomy + commitment rules apply | None (transparent by absence) | 100 |
 | **T1 — Certified** | Indane, Apollo, Urban Company | DPDP attestation, security audit, response-anatomy compliance ≥99%, native-language coverage ≥3, voice-disclosure agreement, complaint rate <2% | Subtle metadata badge; named in anchor beat where useful | 85 |
 | **T2 — Verified** | BigBasket, gov scheme APIs, regional aggregators | Schema validation, security scan, ≥1 native language, voice-disclosure, complaint rate <5% | Named in metadata only; surfaces when T0/T1 unavailable or user asks for them | 60 |
 | **T3 — Open / pilot** | New partners, MVPs | Schema only; 90-day trial; weekly review | None unless explicitly invoked | 20 |

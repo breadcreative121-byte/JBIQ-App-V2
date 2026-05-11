@@ -144,7 +144,7 @@ const INFO_PM_KISAN_STATUS = {
 - The card's primary CTA wires to the existing `handleConfirmAndPay()` flow at `index.html` ~line 4020. Reuse — do not duplicate the order‑confirmed UX.
 
 **Voice disclosure:**
-> "₹299 plan mil gaya — 28 din validity, 2GB rozaana, unlimited calls, JioCinema premium. Confirm karein? On screen — Confirm & Pay tap karein."
+> "₹299 plan mil gaya — 28 din validity, 2GB rozaana, unlimited calls, JioHotstar premium. Confirm karein? On screen — Confirm & Pay tap karein."
 
 **Critical:** This is irreversible (money leaves the wallet). Per §14, the confirmation must be an explicit on‑screen tap. **Never** treat a voice "haan" / "yes" as commit. Reuse the existing Confirm & Pay overlay so this safety contract is enforced consistently.
 

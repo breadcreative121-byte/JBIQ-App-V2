@@ -468,6 +468,12 @@
           <div class="user-turn">
             <div class="user-bubble" id="userTurn">—</div>
           </div>
+          <div class="subject-header" id="subjectHeader" hidden style="padding: 0 var(--space-lg);">
+            <div class="subject-header__partner">
+              <span class="subject-header__brand-chip" id="subjectHeaderChip" aria-hidden="true"></span>
+              <span class="subject-header__partner-name" id="subjectHeaderName"></span>
+            </div>
+          </div>
           <div class="text-response">
             <p class="text-response__body" id="assistantTurn">—</p>
           </div>
@@ -862,7 +868,7 @@ const FRAMES = {
 
   /* 3. BOLLYWOOD */
   bollywood: {
-    partner: "JioCinema",
+    partner: "JioHotstar",
     persona: "playful_energetic",
     mark: "B",
     frames: [
@@ -1190,7 +1196,7 @@ const FRAMES = {
         toolShape: "Collection<Item>",
         toolOutput: {
           questions:[
-            { id:"q1", category:"Strategy",   text:"Walk me through how you'd grow JioCinema's subscriber base." },
+            { id:"q1", category:"Strategy",   text:"Walk me through how you'd grow JioHotstar's subscriber base." },
             { id:"q2", category:"Strategy",   text:"How do you decide which features to deprecate?" },
             { id:"q3", category:"Behavioural",text:"Tell me about a time you disagreed with a senior leader." },
             { id:"q4", category:"Behavioural",text:"What's a project you'd do differently in hindsight?" }
@@ -1205,7 +1211,7 @@ const FRAMES = {
         replies: ["pick_category", "start_practice", "skip", "save_set"],
         component_render: { type: "ListSectioned", data: [
           { name:"Strategy", items:[
-            { name:"Grow JioCinema's subscriber base", desc:"15-min answer · Frameworks: AARRR", price:"" },
+            { name:"Grow JioHotstar's subscriber base", desc:"15-min answer · Frameworks: AARRR", price:"" },
             { name:"Deprecation decision-making",      desc:"10-min answer · Trade-offs", price:"" }
           ]},
           { name:"Behavioural", items:[
@@ -1856,12 +1862,17 @@ function renderMediaPlayer(d) {
   const x = d.data;
   return `
     <div class="player">
-      <div class="player-art">${x.emoji}</div>
+      <div class="player-art"></div>
       <div>
         <div class="player-title">${x.title}</div>
         <div class="player-artist">${x.artist}</div>
         <div class="player-bar"><div class="player-bar-fill"></div></div>
-        <div class="player-controls">⏮  ⏸  ⏭   🔊</div>
+        <div class="player-times"><span>1:22</span><span>3:35</span></div>
+      </div>
+      <div class="player-controls">
+        <button type="button" class="player-control--prev" aria-label="Previous"><span class="player-control__icon player-control__icon--next"></span></button>
+        <button type="button" class="player-control--play" aria-label="Pause"><span class="player-control__icon player-control__icon--pause"></span></button>
+        <button type="button" aria-label="Next"><span class="player-control__icon player-control__icon--next"></span></button>
       </div>
     </div>`;
 }
@@ -1907,6 +1918,21 @@ const COMPONENT_RENDERERS = {
   ChoiceChips:   (d) => renderChoiceChips(d)
 };
 
+const PARTNER_LOGOS = {
+  "Swiggy":         "assets/partners/swiggy.png",
+  "Cricbuzz":       "assets/partners/cricbuzz.png",
+  "JioHotstar":      "assets/partners/jiohotstar.png",
+  "Times of India": "assets/partners/times-of-india.png",
+  "Naukri":         "assets/partners/naukri.png",
+  "Sri Mandir":     "assets/partners/sri-mandir.png",
+  "AstroSage":      "assets/partners/astrosage.png",
+  "Practo":         "assets/partners/practo.png",
+  "JioFinance":     "assets/partners/jiofinance.png",
+  "JioMart":        "assets/partners/jiomart.png",
+  "UrbanCompany":   "assets/partners/urban-company.png",
+  "UMANG":          "assets/partners/umang.png"
+};
+
 function highlightJSON(obj) {
   const json = JSON.stringify(obj, null, 2);
   return json
@@ -1922,9 +1948,36 @@ function render() {
   const f = v.frames[state.step];
   document.body.dataset.vertical = state.vertical;
 
-  document.getElementById("partnerMark").textContent = v.mark;
+  const mark = document.getElementById("partnerMark");
+  const logo = PARTNER_LOGOS[v.partner];
+  if (logo) {
+    mark.style.backgroundImage = `url('${logo}')`;
+    mark.style.backgroundSize  = "cover";
+    mark.style.backgroundPosition = "center";
+    mark.style.backgroundColor = "transparent";
+    mark.textContent = "";
+  } else {
+    mark.style.backgroundImage = "";
+    mark.style.backgroundColor = "";
+    mark.textContent = v.mark;
+  }
   document.getElementById("partnerName").textContent = v.partner;
   document.getElementById("partnerMeta").textContent = v.persona;
+
+  const subjectHeaderEl   = document.getElementById("subjectHeader");
+  const subjectHeaderChip = document.getElementById("subjectHeaderChip");
+  const subjectHeaderName = document.getElementById("subjectHeaderName");
+  if (logo) {
+    subjectHeaderChip.style.backgroundImage = `url('${logo}')`;
+    subjectHeaderChip.style.backgroundSize = "cover";
+    subjectHeaderChip.style.backgroundPosition = "center";
+    subjectHeaderChip.style.color = "transparent";
+    subjectHeaderChip.textContent = "";
+    subjectHeaderName.textContent = v.partner;
+    subjectHeaderEl.hidden = false;
+  } else {
+    subjectHeaderEl.hidden = true;
+  }
   document.getElementById("personaMeta").textContent = v.persona;
   document.getElementById("stepNum").textContent = state.step + 1;
   document.getElementById("stepTotal").textContent = v.frames.length;
@@ -2004,6 +2057,19 @@ document.addEventListener("keydown", (e) => {
 });
 
 render();
+
+/* ----- MediaPlayer play/pause toggle — document-level delegate so it survives
+   the playground's re-renders. ----- */
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.player-control--play');
+  if (!btn) return;
+  const icon = btn.querySelector('.player-control__icon');
+  if (!icon) return;
+  const wasPause = icon.classList.contains('player-control__icon--pause');
+  icon.classList.toggle('player-control__icon--pause');
+  icon.classList.toggle('player-control__icon--play');
+  btn.setAttribute('aria-label', wasPause ? 'Play' : 'Pause');
+});
 </script>
 </body>
 </html>

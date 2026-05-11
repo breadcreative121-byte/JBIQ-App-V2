@@ -29,9 +29,11 @@
   }
   .page { max-width: 1100px; margin: 0 auto; padding: var(--space-xxl) var(--space-lg); }
 
-  /* Each component is its own routed view; only the active one is shown. */
+  /* Each component is its own routed view; only the active one is shown.
+     Flex column + min-height ensure the page-nav can pin to the bottom of
+     the viewport on short pages via `margin-top: auto`. */
   .page-view { display: none; }
-  .page-view.is-active { display: block; animation: pageIn 220ms ease; }
+  .page-view.is-active { display: flex; flex-direction: column; min-height: calc(100vh - 2 * var(--space-xxl)); animation: pageIn 220ms ease; }
   @keyframes pageIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
   .page-header {
@@ -294,6 +296,17 @@
      wrapping collection, so we re-introduce the side gutter at the panel
      level for those cases. */
   .component-card .tab-panel > .place-card { margin: 0 var(--space-lg); }
+  /* Primitives that used to bake in their own horizontal gutter now fill
+     their container. Re-add the gutter at the wrapper level so the showcase
+     keeps its visual breathing room. */
+  .component-card .compare-table,
+  .component-card .map-panel,
+  .component-card .confirm,
+  .component-card .receipt,
+  .component-card .player,
+  .component-card .info-list,
+  .component-card .list-section-head,
+  .component-card .validator-banner { margin-left: var(--space-lg); margin-right: var(--space-lg); }
   /* Gallery owns its own 16px padding — drop the component-card's vertical
      padding so the visible gap stays at 16px rather than stacking to 32px. */
   .component-card:has(.gallery) { padding: 0; }
@@ -301,6 +314,61 @@
   .appendix { margin-top: var(--space-xxl); padding-top: var(--space-xl); border-top: 0.5px solid var(--color-border-default); }
   .appendix h2 { font-size: 20px; font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-headline); margin: 0 0 var(--space-sm); }
   .appendix p { font-size: var(--font-size-body); color: var(--color-text-secondary); max-width: 720px; margin: 0; }
+
+  /* Page-foot prev/next nav — injected per page-view by JS.
+     `margin-top: auto` pins it to the bottom of the page-view (flex column);
+     `padding-top` keeps a minimum gap above when content overflows. */
+  .page-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+    margin-top: auto;
+    padding-top: var(--space-xxl);
+  }
+  .page-nav__card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-lg);
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: inherit;
+    min-height: 64px;
+    transition: background 140ms;
+  }
+  .page-nav__card:hover { background: var(--color-action-primary-surface); }
+  .page-nav__card--next { flex-direction: row-reverse; text-align: right; }
+  .page-nav__card--placeholder { background: transparent; cursor: default; pointer-events: none; }
+  .page-nav__icon {
+    width: 44px; height: 44px;
+    border-radius: var(--radius-pill);
+    background: var(--color-action-primary);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .page-nav__arrow {
+    width: 20px; height: 20px;
+    background: var(--color-text-on-primary);
+    -webkit-mask-image: url("https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_arrow_back.svg");
+    mask-image: url("https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_arrow_back.svg");
+    -webkit-mask-position: center; mask-position: center;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-size: contain; mask-size: contain;
+    display: block;
+  }
+  .page-nav__card--next .page-nav__arrow { transform: scaleX(-1); }
+  .page-nav__label {
+    font-size: var(--font-size-caption);
+    color: var(--color-text-secondary);
+    line-height: 1.2;
+  }
+  .page-nav__title {
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin-top: 2px;
+  }
 
   /* Burger button + backdrop — hidden on desktop, shown on mobile */
   .toc-burger {
@@ -1716,7 +1784,7 @@
         </div>
       </header>
       <div class="tabs" role="tablist">
-        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Bollywood <span class="tab-partner">· JioCinema</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Devotion <span class="tab-partner">· Sri Mandir</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">News & Affairs <span class="tab-partner">· Times of India · audio</span></button>
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Bollywood <span class="tab-partner">· JioHotstar</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Devotion <span class="tab-partner">· Sri Mandir</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">News & Affairs <span class="tab-partner">· Times of India · audio</span></button>
       </div>
       <div class="tab-panels">
         
@@ -1740,36 +1808,51 @@
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
             
         <div class="player">
-          <div class="player-art">🎬</div>
+          <div class="player-art"></div>
           <div>
             <div class="player-title">Zinda Banda</div>
             <div class="player-artist">Anirudh Ravichander · Jawan (2023)</div>
             <div class="player-bar"><div class="player-bar-fill"></div></div>
-            <div class="player-controls">⏮  ⏸  ⏭   🔊</div>
+            <div class="player-times"><span>1:22</span><span>3:35</span></div>
+          </div>
+          <div class="player-controls">
+            <button type="button" class="player-control--prev" aria-label="Previous"><span class="player-control__icon player-control__icon--next"></span></button>
+            <button type="button" class="player-control--play" aria-label="Pause"><span class="player-control__icon player-control__icon--pause"></span></button>
+            <button type="button" aria-label="Next"><span class="player-control__icon player-control__icon--next"></span></button>
           </div>
         </div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
             
         <div class="player">
-          <div class="player-art">🪔</div>
+          <div class="player-art"></div>
           <div>
             <div class="player-title">Hanuman Chalisa</div>
             <div class="player-artist">Hariharan · 12 min</div>
             <div class="player-bar"><div class="player-bar-fill"></div></div>
-            <div class="player-controls">⏮  ⏸  ⏭   🔊</div>
+            <div class="player-times"><span>4:34</span><span>12:00</span></div>
+          </div>
+          <div class="player-controls">
+            <button type="button" class="player-control--prev" aria-label="Previous"><span class="player-control__icon player-control__icon--next"></span></button>
+            <button type="button" class="player-control--play" aria-label="Pause"><span class="player-control__icon player-control__icon--pause"></span></button>
+            <button type="button" aria-label="Next"><span class="player-control__icon player-control__icon--next"></span></button>
           </div>
         </div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
             
         <div class="player">
-          <div class="player-art">🎙</div>
+          <div class="player-art"></div>
           <div>
             <div class="player-title">Budget tabled with surprise tax revisions</div>
             <div class="player-artist">Times of India · 4 min summary</div>
             <div class="player-bar"><div class="player-bar-fill"></div></div>
-            <div class="player-controls">⏮  ⏸  ⏭   🔊</div>
+            <div class="player-times"><span>1:31</span><span>4:00</span></div>
+          </div>
+          <div class="player-controls">
+            <button type="button" class="player-control--prev" aria-label="Previous"><span class="player-control__icon player-control__icon--next"></span></button>
+            <button type="button" class="player-control--play" aria-label="Pause"><span class="player-control__icon player-control__icon--pause"></span></button>
+            <button type="button" aria-label="Next"><span class="player-control__icon player-control__icon--next"></span></button>
           </div>
         </div>
           </div>
@@ -1789,7 +1872,7 @@
         </div>
       </header>
       <div class="tabs" role="tablist">
-        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Swiggy</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Bollywood <span class="tab-partner">· JioCinema</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Devotion <span class="tab-partner">· Sri Mandir</span></button>
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Swiggy</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Bollywood <span class="tab-partner">· JioHotstar</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Devotion <span class="tab-partner">· Sri Mandir</span></button>
       </div>
       <div class="tab-panels">
         
@@ -1991,6 +2074,49 @@ if (burger)  burger.addEventListener('click', openDrawer);
 if (backdrop) backdrop.addEventListener('click', closeDrawer);
 if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
 sidebar.querySelectorAll('a').forEach(a => a.addEventListener('click', closeDrawer));
+
+/* ----- Inject prev/next footer nav into each component page-view.
+   Source of truth is the sidebar TOC; first entry (Overview/home) does
+   not get a nav, but is reachable as the "previous" of SubjectHeader. ----- */
+(function injectPageNav() {
+  const links = Array.from(document.querySelectorAll('.toc a'))
+    .map(a => ({ id: a.getAttribute('href').replace(/^#/, ''), label: a.textContent.trim() }));
+  const indexById = Object.fromEntries(links.map((l, i) => [l.id, i]));
+  const placeholder = '<span class="page-nav__card page-nav__card--placeholder" aria-hidden="true"></span>';
+  const cardHtml = (link, dir) => `
+    <a class="page-nav__card page-nav__card--${dir}" href="#${link.id}">
+      <div class="page-nav__icon"><span class="page-nav__arrow"></span></div>
+      <div>
+        <div class="page-nav__label">${dir === 'prev' ? 'Previous' : 'Next'}</div>
+        <div class="page-nav__title">${link.label}</div>
+      </div>
+    </a>`;
+  document.querySelectorAll('.page-view').forEach(view => {
+    if (view.id === 'home') return;
+    const idx = indexById[view.id];
+    if (idx === undefined) return;
+    const prev = idx > 0 ? links[idx - 1] : null;
+    const next = idx < links.length - 1 ? links[idx + 1] : null;
+    const nav = document.createElement('nav');
+    nav.className = 'page-nav';
+    nav.setAttribute('aria-label', 'Page navigation');
+    nav.innerHTML = (prev ? cardHtml(prev, 'prev') : placeholder) + (next ? cardHtml(next, 'next') : placeholder);
+    view.appendChild(nav);
+  });
+})();
+
+/* ----- MediaPlayer play/pause toggle — document-level delegate so it survives
+   any re-render of the player markup. ----- */
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.player-control--play');
+  if (!btn) return;
+  const icon = btn.querySelector('.player-control__icon');
+  if (!icon) return;
+  const wasPause = icon.classList.contains('player-control__icon--pause');
+  icon.classList.toggle('player-control__icon--pause');
+  icon.classList.toggle('player-control__icon--play');
+  btn.setAttribute('aria-label', wasPause ? 'Play' : 'Pause');
+});
 </script>
 </body>
 </html>

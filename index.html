@@ -1390,10 +1390,10 @@
        chips already ship inline; Z (Zomato) and V (VRL) are added here so
        Zomato + bus scenarios stop borrowing the Swiggy / generic-Places
        chip. Treatment matches the existing JM and Sw chips. */
-    .searching-logo.swiggy-chip   { background: #FC8019; color: white; font: 600 9px/1 sans-serif; }
-    .searching-logo.jiomart-chip  { background: #2E5DAB; color: white; font: 600 8px/1 sans-serif; }
-    .searching-logo.zomato-chip   { background: #E23744; color: white; font: 600 10px/1 sans-serif; }
-    .searching-logo.vrl-chip      { background: #1F4E8C; color: white; font: 700 8px/1 sans-serif; letter-spacing: 0.3px; }
+    .searching-logo.swiggy-chip   { background: url('assets/partners/swiggy.png')  center / cover no-repeat; color: transparent; text-indent: -9999px; overflow: hidden; }
+    .searching-logo.jiomart-chip  { background: url('assets/partners/jiomart.png') center / cover no-repeat; color: transparent; text-indent: -9999px; overflow: hidden; }
+    .searching-logo.zomato-chip   { background: url('assets/partners/zomato.png')  center / cover no-repeat; color: transparent; text-indent: -9999px; overflow: hidden; }
+    .searching-logo.vrl-chip      { background: url('assets/partners/vrl.png')     center / cover no-repeat; color: transparent; text-indent: -9999px; overflow: hidden; }
 
     /* AI response bubble */
     .ai-response {
@@ -1711,20 +1711,18 @@
     /* ============ Shopping journey (JioMart) ============ */
     /* JioMart chip used in the searching indicator */
     .jiomart-chip {
-      background: #0a3478 !important;
-      color: white;
-      font-size: 9px;
-      font-weight: 900;
-      letter-spacing: 0.2px;
+      background: url('assets/partners/jiomart.png') center / cover no-repeat !important;
+      color: transparent;
+      text-indent: -9999px;
+      overflow: hidden;
     }
 
     /* Swiggy chip used in the connecting indicator (mirrors jiomart-chip) */
     .swiggy-chip {
-      background: #FC8019 !important;
-      color: white;
-      font-size: 9px;
-      font-weight: 900;
-      letter-spacing: 0.2px;
+      background: url('assets/partners/swiggy.png') center / cover no-repeat !important;
+      color: transparent;
+      text-indent: -9999px;
+      overflow: hidden;
     }
 
     /* Shopping product card (state A — initial confirm) */
@@ -8137,7 +8135,7 @@
       brand: 'Jio',
       storefront: 'Jio',
       name: '₹299 prepaid plan · 28 days',
-      qty: '2 GB/day · Unlimited calls · JioCinema Premium',
+      qty: '2 GB/day · Unlimited calls · JioHotstar Premium',
       price: 299,
       eta: 'Activates in 1 min',
       img: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=400&h=400&fit=crop',
