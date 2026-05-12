@@ -74,6 +74,9 @@
 
   /* Homepage hero + preview grid */
   .home-hero {
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-lg);
+    padding: 96px var(--space-xl);
     margin-bottom: var(--space-xxl);
   }
   .brand-dot {
@@ -82,7 +85,7 @@
     display: grid; place-items: center;
     font-weight: 900; font-size: 18px; letter-spacing: -0.02em;
   }
-  .home-title { font-size: 44px; font-weight: 900; letter-spacing: var(--font-tracking-headline); line-height: 1.05; margin: 0 0 var(--space-xs); }
+  .home-title { font-size: 44px; font-weight: 900; letter-spacing: var(--font-tracking-headline); line-height: 1.05; margin: 0 0 var(--space-md); }
   .home-lead { font-size: var(--font-size-hero); font-weight: 400; color: var(--color-text-secondary); margin: 0; max-width: 720px; line-height: 1.4; }
 
   .home-grid {
@@ -120,18 +123,53 @@
     line-height: var(--font-line-height-normal);
     margin: 0;
   }
-  /* Sidebar TOC — pinned to the left of the viewport on desktop.
+  /* 2x2 feature grid on the top-level Home — larger, more presence than the
+     component-index grid */
+  .home-grid--features {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-lg);
+  }
+  .home-card--feature {
+    padding: var(--space-xl);
+    min-height: 220px;
+    gap: var(--space-md);
+  }
+  .home-card--feature .home-card__name {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: var(--font-tracking-headline);
+    line-height: 1.1;
+  }
+  .home-card--feature .home-card__desc { font-size: var(--font-size-hero); }
+  .home-card__feature-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-lg);
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .home-card__feature-icon svg { display: block; }
+  .home-card__external {
+    margin-left: var(--space-sm);
+    color: var(--color-text-tertiary);
+    font-weight: var(--font-weight-medium);
+  }
+  /* Sidebar TOC — Material-3-style two-level expandable left rail.
      Body gets matching padding so the page content shifts right. */
-  body { padding-left: 220px; }
+  body { padding-left: 280px; }
   .toc {
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
-    width: 220px;
+    width: 280px;
     background: var(--color-surface-primary);
     border-right: 0.5px solid var(--color-border-default);
-    padding: var(--space-xxl) var(--space-lg);
+    padding: var(--space-lg) var(--space-sm);
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -151,24 +189,60 @@
     padding: var(--space-sm) var(--space-md);
     margin-bottom: var(--space-xs);
   }
-  .toc a {
+  /* Shared row style — top-level items + sub-items both look like M3 nav rails */
+  .toc__item,
+  .toc__sub a {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: 10px var(--space-md);
     font-size: var(--font-size-body);
     font-weight: var(--font-weight-medium);
-    padding: var(--space-sm) var(--space-md);
-    border-radius: var(--radius-sm);
     color: var(--color-text-secondary);
     text-decoration: none;
+    border-radius: var(--radius-pill);
     transition: background 140ms, color 140ms;
   }
-  .toc a:hover {
-    background: var(--color-action-primary-surface);
-    color: var(--color-action-primary);
+  .toc__item:hover,
+  .toc__sub a:hover {
+    background: var(--color-surface-secondary);
+    color: var(--color-text-primary);
   }
-  .toc a.is-active {
+  .toc__item.is-active,
+  .toc__sub a.is-active {
     background: var(--color-action-primary-surface);
     color: var(--color-action-primary);
     font-weight: var(--font-weight-bold);
   }
+  /* Group summary uses the same row style; native disclosure marker is hidden
+     so we can render a custom chevron on the right. */
+  .toc__group { width: 100%; }
+  .toc__group > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+  .toc__group > summary::-webkit-details-marker { display: none; }
+  .toc__chevron {
+    margin-left: auto;
+    width: 16px;
+    height: 16px;
+    background: currentColor;
+    -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M4 6l4 4 4-4' stroke='black' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+            mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M4 6l4 4 4-4' stroke='black' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-position: center; mask-position: center;
+    transition: transform 180ms ease;
+  }
+  .toc__group[open] > summary .toc__chevron { transform: rotate(180deg); }
+  .toc__sub {
+    display: flex;
+    flex-direction: column;
+    padding-left: var(--space-lg);
+    margin: 2px 0 var(--space-sm);
+  }
+  .toc__sub a { padding: 8px var(--space-md); font-size: 13px; }
+  /* Subtle affordance when the group contains the active page */
+  .toc__group:has(a.is-active) > summary { color: var(--color-text-primary); }
   /* Brand block at the top of the sidebar */
   .toc-brand {
     display: flex;
@@ -315,6 +389,15 @@
      padding so the visible gap stays at 16px rather than stacking to 32px. */
   .component-card:has(.gallery) { padding: 0; }
 
+  /* Overview-only: neutralise coloured text inside rendered components so the
+     gallery reads as a calm mono-toned set of primitives. Page chrome
+     (eyebrow, tabs, page-nav, entity-tag) keeps its brand colour. */
+  .component-card .compare-table__cell--best,
+  .component-card .catalog-card__temporal,
+  .component-card .tracker__stage {
+    color: var(--color-text-primary);
+  }
+
   .appendix { margin-top: var(--space-xxl); padding-top: var(--space-xl); border-top: 0.5px solid var(--color-border-default); }
   .appendix h2 { font-size: 20px; font-weight: var(--font-weight-bold); letter-spacing: var(--font-tracking-headline); margin: 0 0 var(--space-sm); }
   .appendix p { font-size: var(--font-size-body); color: var(--color-text-secondary); max-width: 720px; margin: 0; }
@@ -438,6 +521,565 @@
     .hero { margin: 0 var(--space-lg); }
     .showcase-body { border-radius: 0; }
     .home-grid, .home-hero, .page-header { padding-left: var(--space-lg); padding-right: var(--space-lg); }
+    .home-hero { padding: var(--space-lg); }
+    .home-grid--features { grid-template-columns: 1fr; }
+    .page-header--with-action { flex-direction: column; align-items: stretch; }
+    .download-btn { align-self: flex-start; }
+  }
+
+  /* ----- DetailSheet (overview-only) -----
+     Static render of the .booking-sheet primitive from index.html. Drops the
+     position:absolute, backdrop and slide-up animation — keeps just the
+     visual shape (rounded top, grabber, title + ref, hairline rows, note,
+     pill buttons) so partners can read the component standalone. */
+  .detail-sheet {
+    background: var(--color-surface-primary);
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    padding: 8px 20px 28px;
+    box-shadow: 0 -12px 32px rgba(12,13,16,0.04);
+    max-width: 380px;
+    margin: 0 auto;
+  }
+  .detail-sheet__grabber {
+    width: 36px; height: 4px;
+    border-radius: var(--radius-pill);
+    background: rgba(12,13,16,0.18);
+    margin: 6px auto 14px;
+  }
+  .detail-sheet__title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    line-height: 1.2;
+    margin-bottom: 2px;
+  }
+  .detail-sheet__ref {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    letter-spacing: 0.04em;
+    margin-bottom: 16px;
+  }
+  .detail-sheet__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 0;
+    border-top: 1px solid var(--color-border-default);
+    border-bottom: 1px solid var(--color-border-default);
+  }
+  .detail-sheet__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-size: 14px;
+  }
+  .detail-sheet__row-label { color: var(--color-text-secondary); flex-shrink: 0; }
+  .detail-sheet__row-value { color: var(--color-text-primary); font-weight: 600; text-align: right; }
+  .detail-sheet__row--total { font-weight: 800; font-size: 16px; padding-top: 4px; }
+  .detail-sheet__note {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+    padding: 14px 0 4px;
+  }
+  .detail-sheet__btn {
+    width: 100%;
+    padding: 14px 20px;
+    margin-top: 12px;
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    border: none;
+    border-radius: var(--radius-pill);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .detail-sheet__btn--primary {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    margin-top: 16px;
+    margin-bottom: 4px;
+  }
+
+  /* Optional image carousel — slotted between the grabber and the title.
+     Used for Shopping (product shots) and Place (venue shots). Bleeds to
+     the sheet edges; first slide aligns to the 20px sheet padding; native
+     scroll-snap drives swipe on touch, trackpad and mouse-drag. Dots below
+     update on scroll and are clickable. */
+  .detail-sheet__carousel {
+    margin: 4px -20px 18px;
+  }
+  .detail-sheet__carousel-track {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding: 0 20px 10px;
+    scroll-padding-left: 20px;
+  }
+  .detail-sheet__carousel-track::-webkit-scrollbar { display: none; }
+  .detail-sheet__carousel-slide {
+    flex: 0 0 280px;
+    height: 200px;
+    border-radius: 16px;
+    scroll-snap-align: start;
+    display: flex;
+    align-items: flex-end;
+    padding: 12px;
+    position: relative;
+  }
+  .detail-sheet__carousel-label {
+    background: rgba(12,13,16,0.45);
+    color: rgba(255,255,255,0.96);
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .detail-sheet__dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding-top: 2px;
+  }
+  .detail-sheet__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-pill);
+    background: rgba(12,13,16,0.18);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: background 160ms ease, transform 160ms ease;
+  }
+  .detail-sheet__dot:hover { background: rgba(12,13,16,0.32); }
+  .detail-sheet__dot--active {
+    background: var(--color-action-primary);
+    transform: scale(1.2);
+  }
+
+  /* Carousel slide → tap-to-expand affordance. */
+  .detail-sheet__carousel-slide { cursor: zoom-in; }
+
+  /* Full-screen lightbox — opens when a carousel slide is tapped. Slides are
+     cloned in on open; swipe behaviour reuses scroll-snap. Closes via the X
+     button, Escape, or backdrop click. */
+  .detail-sheet-lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(12, 13, 16, 0.94);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    animation: lightboxIn 180ms ease;
+  }
+  .detail-sheet-lightbox[hidden] { display: none; }
+  @keyframes lightboxIn { from { opacity: 0; } to { opacity: 1; } }
+  .detail-sheet-lightbox__close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.14);
+    color: white;
+    border: none;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: background 160ms ease;
+  }
+  .detail-sheet-lightbox__close:hover { background: rgba(255, 255, 255, 0.24); }
+  .detail-sheet-lightbox__track {
+    flex: 1;
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding: 24px 24px 0;
+    align-items: stretch;
+  }
+  .detail-sheet-lightbox__track::-webkit-scrollbar { display: none; }
+  .detail-sheet-lightbox__slide {
+    flex: 0 0 calc(100% - 0px);
+    scroll-snap-align: center;
+    border-radius: 16px;
+    display: flex;
+    align-items: flex-end;
+    padding: 20px;
+    position: relative;
+    min-height: 100%;
+  }
+  .detail-sheet-lightbox__dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 18px 0 28px;
+  }
+  .detail-sheet-lightbox__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.32);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: background 160ms ease, transform 160ms ease;
+  }
+  .detail-sheet-lightbox__dot:hover { background: rgba(255, 255, 255, 0.5); }
+  .detail-sheet-lightbox__dot--active {
+    background: #ffffff;
+    transform: scale(1.25);
+  }
+
+  /* ===== Voice section — lifted from voice-playground.html ===== */
+  .context-block { padding: 0 var(--space-lg); margin-bottom: var(--space-md); }
+  .you-line {
+    font-size: var(--font-size-caption);
+    color: var(--color-text-tertiary);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: var(--space-sm);
+  }
+  .you-line .text {
+    text-transform: none;
+    letter-spacing: var(--font-tracking-body);
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin-left: var(--space-sm);
+  }
+  .situation-line {
+    font-size: var(--font-size-body);
+    color: var(--color-text-primary);
+    line-height: var(--font-line-height-normal);
+    letter-spacing: var(--font-tracking-body);
+    font-weight: var(--font-weight-medium);
+  }
+  .situation-label {
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--space-xs);
+    margin-top: var(--space-md);
+  }
+  .voice-card {
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    padding: var(--space-lg) var(--space-lg);
+    margin-top: var(--space-md);
+  }
+  .voice-card .tab-panel { display: none; padding: 0; }
+  .voice-card .tab-panel[data-active="true"] { display: block; animation: pageIn 220ms ease; }
+  .voice-meta { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md); }
+  .voice-avatar-inline {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;
+  }
+  .voice-label {
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-tertiary);
+  }
+  .voice-persona-pill {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 2px var(--space-sm);
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    border-radius: var(--radius-sm);
+    font-weight: var(--font-weight-medium);
+  }
+  .voice-script {
+    font-size: 20px;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.4;
+    color: var(--color-text-primary);
+    letter-spacing: var(--font-tracking-body);
+    margin: 0;
+  }
+  .voice-script::before { content: '\201C'; color: var(--color-action-primary); margin-right: 2px; font-weight: 900; }
+  .voice-script::after  { content: '\201D'; color: var(--color-action-primary); margin-left: 2px; font-weight: 900; }
+  .voice-note {
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-caption);
+    color: var(--color-text-secondary);
+    line-height: var(--font-line-height-normal);
+  }
+  .voice-note strong { color: var(--color-text-primary); font-weight: var(--font-weight-bold); }
+  .home-section { padding: 0 var(--space-lg); margin-bottom: var(--space-xxl); }
+  .home-section-head {
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--space-md);
+  }
+  .home-card__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-action-primary);
+    margin-bottom: var(--space-xs);
+  }
+  .persona-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-md);
+  }
+  .persona-card {
+    background: var(--color-surface-primary);
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+  .persona-card__name {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-action-primary);
+  }
+  .persona-card__when {
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    line-height: var(--font-line-height-tight);
+  }
+  .persona-card__desc {
+    font-size: var(--font-size-caption);
+    color: var(--color-text-secondary);
+    line-height: var(--font-line-height-normal);
+    margin: 0;
+  }
+
+  /* ===== Styles section ===== */
+  .page-header--with-action {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-lg);
+  }
+  .page-header__main { flex: 1; min-width: 0; }
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: 10px var(--space-lg);
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: var(--font-weight-bold);
+    text-decoration: none;
+    transition: background 140ms, transform 140ms;
+    white-space: nowrap;
+  }
+  .download-btn:hover { background: var(--color-action-primary-hover); transform: translateY(-1px); }
+  .download-btn__icon { display: inline-flex; align-items: center; }
+
+  .styles-card {
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    margin: 0 var(--space-lg);
+  }
+  .styles-group {
+    font-size: var(--font-size-title);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--font-tracking-headline);
+    margin: var(--space-xl) 0 var(--space-md);
+  }
+  .styles-group:first-child { margin-top: 0; }
+  .swatch-row {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: var(--space-md);
+    align-items: center;
+    padding: var(--space-sm) 0;
+    border-bottom: 0.5px solid var(--color-border-default);
+  }
+  .swatch-row:last-child { border-bottom: none; }
+  .swatch {
+    width: 56px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--color-border-default);
+  }
+  .swatch-name {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-text-primary);
+  }
+  .swatch-value {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-secondary);
+  }
+  .type-row {
+    padding: var(--space-md) 0;
+    border-bottom: 0.5px solid var(--color-border-default);
+  }
+  .type-row:last-child { border-bottom: none; }
+  .type-sample { margin: 0 0 var(--space-xs); color: var(--color-text-primary); }
+  .type-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-secondary);
+  }
+  .space-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    padding: var(--space-sm) 0;
+  }
+  .space-bar {
+    height: 24px;
+    background: var(--color-action-primary-surface);
+    border-radius: var(--radius-sm);
+  }
+  .space-meta {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+  .radius-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-lg);
+  }
+  .radius-tile {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: var(--color-action-primary-surface);
+    border: 0.5px solid var(--color-border-default);
+  }
+  .radius-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    text-align: center;
+    margin-top: var(--space-sm);
+  }
+  .radius-cell { display: flex; flex-direction: column; }
+  .elev-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-xl);
+    padding: var(--space-lg) 0;
+  }
+  .elev-tile {
+    height: 120px;
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--color-border-default);
+    margin-bottom: var(--space-sm);
+  }
+  .elev-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+  .page-note {
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin: 0 0 var(--space-lg);
+    font-size: var(--font-size-caption);
+    color: var(--color-text-secondary);
+    line-height: var(--font-line-height-normal);
+  }
+  .page-note code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    padding: 1px 6px;
+    border-radius: var(--radius-sm);
+  }
+  .component-index {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-md) 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-sm);
+  }
+  .component-index a {
+    display: block;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-medium);
+  }
+  .component-index a:hover {
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+  }
+  .text-link {
+    color: var(--color-action-primary);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+  }
+  .text-link:hover { text-decoration: underline; }
+  .dodont-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+    padding: 0 var(--space-lg);
+  }
+  .dodont {
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    min-height: 200px;
+  }
+  .dodont--do  { border-top: 3px solid var(--color-success); }
+  .dodont--dont { border-top: 3px solid var(--color-error); }
+  .dodont__eyebrow {
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--space-sm);
+  }
+  .dodont__body {
+    font-size: var(--font-size-body);
+    color: var(--color-text-secondary);
+    line-height: var(--font-line-height-normal);
   }
 </style>
 </head>
@@ -449,28 +1091,63 @@
   </svg>
 </button>
 
-<aside id="sidebar" class="toc" role="navigation" aria-label="Components">
+<aside id="sidebar" class="toc" role="navigation" aria-label="JBIQ">
   <div class="toc-brand">
     <img src="assets/logo.svg" alt="Jio" class="toc-brand__mark" width="28" height="28">
     <div class="toc-brand__name">JBIQ</div>
     <button class="toc-close" aria-label="Close navigation">×</button>
   </div>
-  <div class="toc-header">Pages</div>
-  <a href="#home">Overview</a>
-  <div class="toc-header" style="margin-top: var(--space-md)">Components</div>
-  <a href="#subjectheader">SubjectHeader</a>
-    <a href="#entitycard">EntityCard</a>
-    <a href="#comparetable">CompareTable</a>
-    <a href="#list">List</a>
-    <a href="#timeline">Timeline</a>
-    <a href="#tracker">Tracker</a>
-    <a href="#map">Map</a>
-    <a href="#cartpanel">CartPanel</a>
-    <a href="#confirmpanel">ConfirmPanel</a>
-    <a href="#receiptpanel">ReceiptPanel</a>
-    <a href="#choicechips">ChoiceChips</a>
-    <a href="#mediaplayer">MediaPlayer</a>
-    <a href="#gallery">Gallery</a>
+
+  <a class="toc__item toc__item--top" href="#home">Home</a>
+
+  <details class="toc__group" data-group="styles">
+    <summary class="toc__item toc__item--top">Styles<span class="toc__chevron" aria-hidden="true"></span></summary>
+    <div class="toc__sub">
+      <a href="#styles-home">Overview</a>
+      <a href="#styles-colors">Colors</a>
+      <a href="#styles-typography">Typography</a>
+      <a href="#styles-spacing">Spacing</a>
+      <a href="#styles-radius">Radius</a>
+      <a href="#styles-elevation">Elevation</a>
+      <a href="#styles-components">Components</a>
+      <a href="#styles-guidelines">Guidelines</a>
+    </div>
+  </details>
+
+  <details class="toc__group" data-group="components" open>
+    <summary class="toc__item toc__item--top">Components<span class="toc__chevron" aria-hidden="true"></span></summary>
+    <div class="toc__sub">
+      <a href="#components-home">Overview</a>
+      <a href="#components-subjectheader">Subject Header</a>
+      <a href="#components-entitycard">Entity Card</a>
+      <a href="#components-comparetable">Compare Table</a>
+      <a href="#components-list">List</a>
+      <a href="#components-timeline">Timeline</a>
+      <a href="#components-tracker">Tracker</a>
+      <a href="#components-map">Map</a>
+      <a href="#components-cartpanel">Cart Panel</a>
+      <a href="#components-confirmpanel">Confirm Panel</a>
+      <a href="#components-receiptpanel">Receipt Panel</a>
+      <a href="#components-detailsheet">Detail Sheet</a>
+      <a href="#components-choicechips">Choice Chips</a>
+      <a href="#components-mediaplayer">Media Player</a>
+      <a href="#components-gallery">Gallery</a>
+    </div>
+  </details>
+
+  <details class="toc__group" data-group="voice">
+    <summary class="toc__item toc__item--top">Voice<span class="toc__chevron" aria-hidden="true"></span></summary>
+    <div class="toc__sub">
+      <a href="#voice-home">Overview</a>
+      <a href="#voice-returning-options">Returning options</a>
+      <a href="#voice-confirming-a-transaction">Confirming a transaction</a>
+      <a href="#voice-live-status-update">Live status update</a>
+      <a href="#voice-asking-for-a-choice">Asking for a choice</a>
+      <a href="#voice-delivering-bad-news">Delivering bad news</a>
+      <a href="#voice-confirming-completion">Confirming completion</a>
+      <a href="#voice-greeting-open">Greeting / open</a>
+    </div>
+  </details>
 </aside>
 
 <div class="toc-backdrop" aria-hidden="true"></div>
@@ -479,71 +1156,156 @@
 
   <section class="page-view" id="home">
     <header class="home-hero">
-      <h1 class="home-title">Components across domains</h1>
+      <h1 class="home-title">JioBharatIQ Experience System.</h1>
+      <p class="home-lead">A single home for the JBIQ design language: brand styles, voice across personas, and visual components shown across verticals.</p>
+    </header>
+    <div class="home-grid home-grid--features">
+      <a class="home-card home-card--feature" href="#styles-home">
+        <div class="home-card__feature-icon" data-feature="styles">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="9" cy="9" r="4.5"/>
+            <circle cx="15" cy="9" r="4.5"/>
+            <circle cx="12" cy="15" r="4.5"/>
+          </svg>
+        </div>
+        <div class="home-card__name">Styles</div>
+        <p class="home-card__desc">Colors, typography, spacing, radius. The tokens that hold the system together.</p>
+      </a>
+      <a class="home-card home-card--feature" href="#voice-home">
+        <div class="home-card__feature-icon" data-feature="voice">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 10v4"/>
+            <path d="M10 7v10"/>
+            <path d="M14 5v14"/>
+            <path d="M18 9v6"/>
+          </svg>
+        </div>
+        <div class="home-card__name">Voice</div>
+        <p class="home-card__desc">Seven scenarios, four personas. How JBIQ sounds when it speaks.</p>
+      </a>
+      <a class="home-card home-card--feature" href="#components-home">
+        <div class="home-card__feature-icon" data-feature="components">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="4" y="4" width="7" height="7" rx="1.5"/>
+            <rect x="13" y="4" width="7" height="7" rx="1.5"/>
+            <rect x="4" y="13" width="7" height="7" rx="1.5"/>
+            <rect x="13" y="13" width="7" height="7" rx="1.5"/>
+          </svg>
+        </div>
+        <div class="home-card__name">Components</div>
+        <p class="home-card__desc">Every visual primitive across two or three verticals. Same component, different content.</p>
+      </a>
+      <a class="home-card home-card--feature" href="#styles-guidelines">
+        <div class="home-card__feature-icon" data-feature="guidelines">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 4h11a2 2 0 0 1 2 2v12.5a1.5 1.5 0 0 0-1.5-1.5H6z"/>
+            <path d="M6 4v13"/>
+            <path d="M9.5 10.5l2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="home-card__name">Guidelines</div>
+        <p class="home-card__desc">How to use the system — coming soon.</p>
+      </a>
+      <a class="home-card home-card--feature" href="/components-playground.html" target="_blank" rel="noopener">
+        <div class="home-card__feature-icon" data-feature="sandpit">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="4" y1="7" x2="20" y2="7"/>
+            <circle cx="9" cy="7" r="2.2" fill="currentColor"/>
+            <line x1="4" y1="13" x2="20" y2="13"/>
+            <circle cx="15" cy="13" r="2.2" fill="currentColor"/>
+            <line x1="4" y1="19" x2="20" y2="19"/>
+            <circle cx="11" cy="19" r="2.2" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="home-card__name">Partner Sandpit<span class="home-card__external" aria-hidden="true">↗</span></div>
+        <p class="home-card__desc">Interactive pipeline prototype for partners — tune intents and watch the rendered response.</p>
+      </a>
+      <a class="home-card home-card--feature" href="http://localhost:3000/place-playground.html" target="_blank" rel="noopener">
+        <div class="home-card__feature-icon" data-feature="demo">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="7" y="3" width="10" height="18" rx="2.5"/>
+            <line x1="10.5" y1="18" x2="13.5" y2="18"/>
+          </svg>
+        </div>
+        <div class="home-card__name">Experience Demo<span class="home-card__external" aria-hidden="true">↗</span></div>
+        <p class="home-card__desc">The live discovery experience — mobile-framed prototype showing JBIQ end-to-end.</p>
+      </a>
+    </div>
+  </section>
+
+
+  <section class="page-view" id="components-home">
+    <header class="home-hero">
+      <h1 class="home-title">Components.</h1>
       <p class="home-lead">Every visual primitive shown across two or three different verticals. Same component, different content. Pick a component to see how it adapts.</p>
     </header>
     <div class="home-grid">
-      <a class="home-card" href="#subjectheader">
+      <a class="home-card" href="#components-subjectheader">
         <div class="home-card__tag">Title + subtitle · optional partner row above</div>
         <div class="home-card__name">SubjectHeader</div>
         <p class="home-card__desc">The frame's title block. Optional partner attribution row (logo chip + partner name) sits above the title — used wherever a single partner owns the answer (Swiggy food, VRL bus seats, Zomato deals). Brand chip swatches are part of the canonical library.</p>
       </a>
-      <a class="home-card" href="#entitycard">
+      <a class="home-card" href="#components-entitycard">
         <div class="home-card__tag">Place | Item | Person | Media (single) · or Collection in carousel</div>
         <div class="home-card__name">EntityCard</div>
         <p class="home-card__desc">Media-led card. No chrome on the card itself — only the media (16:9, rounded-lg) is rounded. Same primitive renders one thing in focus or a horizontal scroll of three-to-five things to browse. Switch by cardinality, not by component.</p>
       </a>
-      <a class="home-card" href="#comparetable">
+      <a class="home-card" href="#components-comparetable">
         <div class="home-card__tag">Collection<*>, count 2–4</div>
         <div class="home-card__name">CompareTable</div>
         <p class="home-card__desc">2–4 options across shared axes. Sticky 76px label column on the left, scroll-snapped option columns. Recommended option tinted; best values picked out in primary.</p>
       </a>
-      <a class="home-card" href="#list">
+      <a class="home-card" href="#components-list">
         <div class="home-card__tag">Collection<*> · flat or sectioned · list | grid | carousel</div>
         <div class="home-card__name">List</div>
         <p class="home-card__desc">CatalogResultCard in list layout — square 80px media on the left, content on the right. Flat or sectioned. Same primitive renders a restaurant list, a restaurant's menu by category, a doctor list, job postings, news headlines.</p>
       </a>
-      <a class="home-card" href="#timeline">
+      <a class="home-card" href="#components-timeline">
         <div class="home-card__tag">Collection<Schedule></div>
         <div class="home-card__name">Timeline</div>
         <p class="home-card__desc">Vertical agenda. Time on the left, title + meta on the right. Active row highlighted with primary-surface. Same shape for table reservations, doctor slots, fixtures, calendar events.</p>
       </a>
-      <a class="home-card" href="#tracker">
+      <a class="home-card" href="#components-tracker">
         <div class="home-card__tag">Status | Status<Route></div>
         <div class="home-card__name">Tracker</div>
         <p class="home-card__desc">Primary-coloured tile sized like place-card media. Used for food delivery, package shipping, cricket innings, application processing — anything in motion.</p>
       </a>
-      <a class="home-card" href="#map">
+      <a class="home-card" href="#components-map">
         <div class="home-card__tag">Place | Collection<Place> | Route</div>
         <div class="home-card__name">Map</div>
         <p class="home-card__desc">Schematic plot — single pin, multiple pins, or a route. Pairs with List in split view, insets into Tracker when Status carries Route data.</p>
       </a>
-      <a class="home-card" href="#cartpanel">
+      <a class="home-card" href="#components-cartpanel">
         <div class="home-card__tag">Transaction.building</div>
         <div class="home-card__name">CartPanel</div>
         <p class="home-card__desc">Hairline-divided line items, totals block in secondary-surface, full-width primary CTA. Same shape for a restaurant order, a grocery basket, a service booking.</p>
       </a>
-      <a class="home-card" href="#confirmpanel">
+      <a class="home-card" href="#components-confirmpanel">
         <div class="home-card__tag">Choice (system-injected)</div>
         <div class="home-card__name">ConfirmPanel</div>
         <p class="home-card__desc">The mandatory interrupt. Same secondary-surface card whether confirming a food order, a UPI transfer, a flight booking, or a medical appointment. Partners cannot bypass.</p>
       </a>
-      <a class="home-card" href="#receiptpanel">
+      <a class="home-card" href="#components-receiptpanel">
         <div class="home-card__tag">Transaction.confirmed</div>
         <div class="home-card__name">ReceiptPanel</div>
         <p class="home-card__desc">The universal proof. Tick + title at the top, hairline-divided line items, totals row in bold. Same primitive for a food order, UPI transfer, appointment, Aadhaar SRN.</p>
       </a>
-      <a class="home-card" href="#choicechips">
+      <a class="home-card" href="#components-detailsheet">
+        <div class="home-card__tag">Detail surface · invoked from EntityCard / List / Gallery</div>
+        <div class="home-card__name">DetailSheet</div>
+        <p class="home-card__desc">The single bottom-sheet primitive surfaced from any discovery view to show one entity's details before commit. Grabber, title + reference, hairline-divided rows, helper note, primary CTA over a secondary Close. Same shape for a product, a place, or a booking-in-progress.</p>
+      </a>
+      <a class="home-card" href="#components-choicechips">
         <div class="home-card__tag">Choice</div>
         <div class="home-card__name">ChoiceChips</div>
         <p class="home-card__desc">Pill chips with hairline borders, purple fill when selected. Same primitive for cuisine filter, zodiac, seat preference, or government sub-service.</p>
       </a>
-      <a class="home-card" href="#mediaplayer">
+      <a class="home-card" href="#components-mediaplayer">
         <div class="home-card__tag">Media (single, now playing)</div>
         <div class="home-card__name">MediaPlayer</div>
         <p class="home-card__desc">Compact now-playing strip. 80px artwork, title and subtitle, hairline scrubber, transport row. Same primitive for a song, chant, podcast.</p>
       </a>
-      <a class="home-card" href="#gallery">
+      <a class="home-card" href="#components-gallery">
         <div class="home-card__tag">Collection<Media></div>
         <div class="home-card__name">Gallery</div>
         <p class="home-card__desc">CatalogResultCard at 3:4 media in a 2-column grid. Same primitive for menu items, movie posters, devotional collections, podcast covers.</p>
@@ -552,11 +1314,11 @@
   </section>
 
 
-  <section class="page-view" id="subjectheader">
+  <section class="page-view" id="components-subjectheader">
     <div class="showcase-body">
       <header class="page-header">
         <div class="page-eyebrow">Component</div>
-        <h1 class="page-title">SubjectHeader</h1>
+        <h1 class="page-title">Subject Header.</h1>
         <p class="page-subtitle">The frame's title block. When a single partner owns the answer, the partner logo chip + name sit ABOVE the title in a dedicated row. The brand chip swatch lives in the canonical library — every partner adds their colour here once.</p>
         <div class="page-tag-row">
           <span class="entity-tag">title · subtitle · optional partner row</span>
@@ -628,11 +1390,11 @@
   </section>
 
 
-  <section class="page-view" id="entitycard">
+  <section class="page-view" id="components-entitycard">
     <div class="showcase-body">
       <header class="page-header">
         <div class="page-eyebrow">Component</div>
-        <h1 class="page-title">EntityCard / PlaceResultCard</h1>
+        <h1 class="page-title">Entity Card / Place Result Card.</h1>
         <p class="page-subtitle">Media-led card. No chrome on the card itself — only the media (16:9, rounded-lg) is rounded. Same primitive renders one thing in focus or a horizontal scroll of three-to-five things to browse. Switch by cardinality, not by component.</p>
         <div class="page-tag-row">
           <span class="entity-tag">Place | Item | Person | Media (single) · or Collection in carousel</span>
@@ -762,11 +1524,11 @@
     </div>
   </section>
 
-  <section class="page-view" id="comparetable">
+  <section class="page-view" id="components-comparetable">
     <div class="showcase-body">
       <header class="page-header">
         <div class="page-eyebrow">Component</div>
-        <h1 class="page-title">CompareTable</h1>
+        <h1 class="page-title">Compare Table.</h1>
         <p class="page-subtitle">2–4 options across shared axes. Sticky 76px label column on the left, scroll-snapped option columns. Recommended option tinted; best values picked out in primary.</p>
         <div class="page-tag-row">
           <span class="entity-tag">Collection<*>, count 2–4</span>
@@ -927,11 +1689,11 @@
     </div>
   </section>
 
-  <section class="page-view" id="list">
+  <section class="page-view" id="components-list">
     <div class="showcase-body">
       <header class="page-header">
         <div class="page-eyebrow">Component</div>
-        <h1 class="page-title">List / CatalogResultCard</h1>
+        <h1 class="page-title">List / Catalog Result Card.</h1>
         <p class="page-subtitle">CatalogResultCard in list layout — square 80px media on the left, content on the right. Flat or sectioned. Same primitive renders a restaurant list, a restaurant's menu by category, a doctor list, job postings, news headlines.</p>
         <div class="page-tag-row">
           <span class="entity-tag">Collection<*> · flat or sectioned · list | grid | carousel</span>
@@ -1158,11 +1920,11 @@
     </div>
   </section>
 
-  <section class="page-view" id="timeline">
+  <section class="page-view" id="components-timeline">
     <div class="showcase-body">
       <header class="page-header">
         <div class="page-eyebrow">Component</div>
-        <h1 class="page-title">Timeline</h1>
+        <h1 class="page-title">Timeline.</h1>
         <p class="page-subtitle">Vertical agenda. Time on the left, title + meta on the right. Active row highlighted with primary-surface. Same shape for table reservations, doctor slots, fixtures, calendar events.</p>
         <div class="page-tag-row">
           <span class="entity-tag">Collection<Schedule></span>
@@ -1283,11 +2045,11 @@
     </div>
   </section>
 
-  <section class="page-view" id="tracker">
+  <section class="page-view" id="components-tracker">
     <div class="showcase-body">
       <header class="page-header">
         <div class="page-eyebrow">Component</div>
-        <h1 class="page-title">Tracker</h1>
+        <h1 class="page-title">Tracker.</h1>
         <p class="page-subtitle">Primary-coloured tile sized like place-card media. Used for food delivery, package shipping, cricket innings, application processing — anything in motion.</p>
         <div class="page-tag-row">
           <span class="entity-tag">Status | Status<Route></span>
@@ -1331,7 +2093,7 @@
             </div>
             <div class="tracker__progress"><div class="tracker__progress-fill" style="width: 50%"></div></div>
           </div>
-          <div class="tracker__steps"><span class="done">placed</span> <span class="done">preparing</span> <span class="active">picked up</span> <span class="">on the way</span> <span class="">delivered</span></div>
+          <div class="tracker__steps"><span class="done">Placed</span> <span class="done">Preparing</span> <span class="active">Picked up</span> <span class="">On the way</span> <span class="">Delivered</span></div>
         </div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
@@ -1345,7 +2107,7 @@
             </div>
             <div class="tracker__progress"><div class="tracker__progress-fill" style="width: 62%"></div></div>
           </div>
-          <div class="tracker__steps"><span class="done">packed</span> <span class="done">shipped</span> <span class="active">out for delivery</span> <span class="">delivered</span></div>
+          <div class="tracker__steps"><span class="done">Packed</span> <span class="done">Shipped</span> <span class="active">Out for delivery</span> <span class="">Delivered</span></div>
         </div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
@@ -1359,7 +2121,7 @@
             </div>
             <div class="tracker__progress"><div class="tracker__progress-fill" style="width: 30%"></div></div>
           </div>
-          <div class="tracker__steps"><span class="done">pre-match</span> <span class="active">innings 1</span> <span class="">interval</span> <span class="">innings 2</span> <span class="">result</span></div>
+          <div class="tracker__steps"><span class="done">Pre-match</span> <span class="active">Innings 1</span> <span class="">Interval</span> <span class="">Innings 2</span> <span class="">Result</span></div>
         </div>
           </div>
           <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
@@ -1373,18 +2135,18 @@
             </div>
             <div class="tracker__progress"><div class="tracker__progress-fill" style="width: 38%"></div></div>
           </div>
-          <div class="tracker__steps"><span class="done">submitted</span> <span class="active">verification</span> <span class="">approval</span> <span class="">updated</span></div>
+          <div class="tracker__steps"><span class="done">Submitted</span> <span class="active">Verification</span> <span class="">Approval</span> <span class="">Updated</span></div>
         </div>
           </div>
       </div>
     </div>
   </section>
 
-  <section class="page-view" id="map">
+  <section class="page-view" id="components-map">
     <div class="showcase-body">
       <header class="page-header">
         <div class="page-eyebrow">Component</div>
-        <h1 class="page-title">Map</h1>
+        <h1 class="page-title">Map.</h1>
         <p class="page-subtitle">Schematic plot — single pin, multiple pins, or a route. Pairs with List in split view, insets into Tracker when Status carries Route data.</p>
         <div class="page-tag-row">
           <span class="entity-tag">Place | Collection<Place> | Route</span>
@@ -1441,11 +2203,11 @@
     </div>
   </section>
 
-  <section class="page-view" id="cartpanel">
+  <section class="page-view" id="components-cartpanel">
     <div class="showcase-body">
       <header class="page-header">
         <div class="page-eyebrow">Component</div>
-        <h1 class="page-title">CartPanel</h1>
+        <h1 class="page-title">Cart Panel.</h1>
         <p class="page-subtitle">Hairline-divided line items, totals block in secondary-surface, full-width primary CTA. Same shape for a restaurant order, a grocery basket, a service booking.</p>
         <div class="page-tag-row">
           <span class="entity-tag">Transaction.building</span>
@@ -1532,11 +2294,11 @@
     </div>
   </section>
 
-  <section class="page-view" id="confirmpanel">
+  <section class="page-view" id="components-confirmpanel">
     <div class="showcase-body">
       <header class="page-header">
         <div class="page-eyebrow">Component</div>
-        <h1 class="page-title">ConfirmPanel</h1>
+        <h1 class="page-title">Confirm Panel.</h1>
         <p class="page-subtitle">The mandatory interrupt. Same secondary-surface card whether confirming a food order, a UPI transfer, a flight booking, or a medical appointment. Partners cannot bypass.</p>
         <div class="page-tag-row">
           <span class="entity-tag">Choice (system-injected)</span>
@@ -1621,11 +2383,11 @@
     </div>
   </section>
 
-  <section class="page-view" id="receiptpanel">
+  <section class="page-view" id="components-receiptpanel">
     <div class="showcase-body">
       <header class="page-header">
         <div class="page-eyebrow">Component</div>
-        <h1 class="page-title">ReceiptPanel</h1>
+        <h1 class="page-title">Receipt Panel.</h1>
         <p class="page-subtitle">The universal proof. Tick + title at the top, hairline-divided line items, totals row in bold. Same primitive for a food order, UPI transfer, appointment, Aadhaar SRN.</p>
         <div class="page-tag-row">
           <span class="entity-tag">Transaction.confirmed</span>
@@ -1722,11 +2484,120 @@
     </div>
   </section>
 
-  <section class="page-view" id="choicechips">
+  <section class="page-view" id="components-detailsheet">
     <div class="showcase-body">
       <header class="page-header">
         <div class="page-eyebrow">Component</div>
-        <h1 class="page-title">ChoiceChips / FilterChipBar</h1>
+        <h1 class="page-title">Detail Sheet.</h1>
+        <p class="page-subtitle">The single bottom-sheet primitive surfaced from EntityCard / List / Gallery to show one entity's details before commit. Grabber, title + reference, hairline-divided rows, helper note, then a primary CTA over a secondary Close. Same shape for a product, a place, or a booking-in-progress.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Detail surface · invoked from discovery views</span>
+          <span class="picked-when">Tap any EntityCard / list row / gallery tile</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Shopping <span class="tab-partner">· FabIndia</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Place <span class="tab-partner">· Practo</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Booking <span class="tab-partner">· UrbanCompany</span></button>
+      </div>
+      <div class="tab-panels">
+        <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+          <div class="user-turn"><div class="user-bubble">Shop for a kurta for Diwali</div></div>
+          <div class="text-response"><p class="text-response__body">FabIndia's silk Nehru kurta is top — ₹1,499, 4.4 stars, silk.</p></div>
+        </div>
+        <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+          <div class="user-turn"><div class="user-bubble">Dermatologist near me tomorrow</div></div>
+          <div class="text-response"><p class="text-response__body">Dr. Aparna Rao has an 11 am slot, 4.8 stars.</p></div>
+        </div>
+        <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+          <div class="user-turn"><div class="user-bubble">Track my plumber</div></div>
+          <div class="text-response"><p class="text-response__body">Confirmed for 6:30 pm — Ramesh is on his way.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+          <div class="detail-sheet">
+            <div class="detail-sheet__grabber"></div>
+            <div class="detail-sheet__carousel">
+              <div class="detail-sheet__carousel-track" data-carousel>
+                <div class="detail-sheet__carousel-slide" style="background: #D4B896;"><span class="detail-sheet__carousel-label">1 / 4 · Front</span></div>
+                <div class="detail-sheet__carousel-slide" style="background: #A8835F;"><span class="detail-sheet__carousel-label">2 / 4 · Back</span></div>
+                <div class="detail-sheet__carousel-slide" style="background: #7B5A3F;"><span class="detail-sheet__carousel-label">3 / 4 · Detail</span></div>
+                <div class="detail-sheet__carousel-slide" style="background: #5C3D2E;"><span class="detail-sheet__carousel-label">4 / 4 · On model</span></div>
+              </div>
+              <div class="detail-sheet__dots" data-dots>
+                <button class="detail-sheet__dot detail-sheet__dot--active" type="button" aria-label="Show image 1"></button>
+                <button class="detail-sheet__dot" type="button" aria-label="Show image 2"></button>
+                <button class="detail-sheet__dot" type="button" aria-label="Show image 3"></button>
+                <button class="detail-sheet__dot" type="button" aria-label="Show image 4"></button>
+              </div>
+            </div>
+            <div class="detail-sheet__title">Silk blend Nehru kurta</div>
+            <div class="detail-sheet__ref">FabIndia</div>
+            <div class="detail-sheet__rows">
+              <div class="detail-sheet__row"><span class="detail-sheet__row-label">Price</span><span class="detail-sheet__row-value">₹1,499</span></div>
+              <div class="detail-sheet__row"><span class="detail-sheet__row-label">Rating</span><span class="detail-sheet__row-value">4.4★ (1,820)</span></div>
+              <div class="detail-sheet__row"><span class="detail-sheet__row-label">Details</span><span class="detail-sheet__row-value">Silk · Men</span></div>
+            </div>
+            <div class="detail-sheet__note">More photos, fit notes and reviews are TODO. For now, tap Buy now to commit.</div>
+            <button class="detail-sheet__btn detail-sheet__btn--primary" type="button">Buy now</button>
+            <button class="detail-sheet__btn" type="button">Close</button>
+          </div>
+        </div>
+        <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+          <div class="detail-sheet">
+            <div class="detail-sheet__grabber"></div>
+            <div class="detail-sheet__carousel">
+              <div class="detail-sheet__carousel-track" data-carousel>
+                <div class="detail-sheet__carousel-slide" style="background: #D6E2D8;"><span class="detail-sheet__carousel-label">1 / 3 · Exterior</span></div>
+                <div class="detail-sheet__carousel-slide" style="background: #B5C9C0;"><span class="detail-sheet__carousel-label">2 / 3 · Reception</span></div>
+                <div class="detail-sheet__carousel-slide" style="background: #7A938A;"><span class="detail-sheet__carousel-label">3 / 3 · Consult room</span></div>
+              </div>
+              <div class="detail-sheet__dots" data-dots>
+                <button class="detail-sheet__dot detail-sheet__dot--active" type="button" aria-label="Show image 1"></button>
+                <button class="detail-sheet__dot" type="button" aria-label="Show image 2"></button>
+                <button class="detail-sheet__dot" type="button" aria-label="Show image 3"></button>
+              </div>
+            </div>
+            <div class="detail-sheet__title">Dr. Aparna Rao</div>
+            <div class="detail-sheet__ref">Dermatologist · Fever &amp; flu</div>
+            <div class="detail-sheet__rows">
+              <div class="detail-sheet__row"><span class="detail-sheet__row-label">Status</span><span class="detail-sheet__row-value">Open</span></div>
+              <div class="detail-sheet__row"><span class="detail-sheet__row-label">Rating</span><span class="detail-sheet__row-value">4.8★ (240)</span></div>
+              <div class="detail-sheet__row"><span class="detail-sheet__row-label">Distance</span><span class="detail-sheet__row-value">1.2 km · 8 min</span></div>
+              <div class="detail-sheet__row"><span class="detail-sheet__row-label">Price</span><span class="detail-sheet__row-value">₹1,200 first visit</span></div>
+            </div>
+            <div class="detail-sheet__note">Slot list and clinic photos are TODO. For now, tap Book to confirm.</div>
+            <button class="detail-sheet__btn detail-sheet__btn--primary" type="button">Book the 11:00 slot</button>
+            <button class="detail-sheet__btn" type="button">Close</button>
+          </div>
+        </div>
+        <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+          <div class="detail-sheet">
+            <div class="detail-sheet__grabber"></div>
+            <div class="detail-sheet__title">Tap leak fix</div>
+            <div class="detail-sheet__ref">UrbanCompany</div>
+            <div class="detail-sheet__rows">
+              <div class="detail-sheet__row"><span class="detail-sheet__row-label">Placed</span><span class="detail-sheet__row-value">Today, 4:12 pm</span></div>
+              <div class="detail-sheet__row"><span class="detail-sheet__row-label">UrbanCompany — Tap leak fix</span><span class="detail-sheet__row-value">₹449</span></div>
+              <div class="detail-sheet__row"><span class="detail-sheet__row-label">For</span><span class="detail-sheet__row-value">12B Indira Nagar</span></div>
+              <div class="detail-sheet__row"><span class="detail-sheet__row-label">Payment</span><span class="detail-sheet__row-value">Pending</span></div>
+              <div class="detail-sheet__row detail-sheet__row--total"><span class="detail-sheet__row-label">Total</span><span class="detail-sheet__row-value">₹449</span></div>
+            </div>
+            <div class="detail-sheet__note">Live status pings are TODO. Tap Track booking to follow the technician.</div>
+            <button class="detail-sheet__btn detail-sheet__btn--primary" type="button">Track booking</button>
+            <button class="detail-sheet__btn" type="button">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="components-choicechips">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">Choice Chips / Filter Chip Bar.</h1>
         <p class="page-subtitle">Pill chips with hairline borders, purple fill when selected. Same primitive for cuisine filter, zodiac, seat preference, or government sub-service.</p>
         <div class="page-tag-row">
           <span class="entity-tag">Choice</span>
@@ -1777,11 +2648,11 @@
     </div>
   </section>
 
-  <section class="page-view" id="mediaplayer">
+  <section class="page-view" id="components-mediaplayer">
     <div class="showcase-body">
       <header class="page-header">
         <div class="page-eyebrow">Component</div>
-        <h1 class="page-title">MediaPlayer</h1>
+        <h1 class="page-title">Media Player.</h1>
         <p class="page-subtitle">Compact now-playing strip. 80px artwork, title and subtitle, hairline scrubber, transport row. Same primitive for a song, chant, podcast.</p>
         <div class="page-tag-row">
           <span class="entity-tag">Media (single, now playing)</span>
@@ -1865,11 +2736,11 @@
     </div>
   </section>
 
-  <section class="page-view" id="gallery">
+  <section class="page-view" id="components-gallery">
     <div class="showcase-body">
       <header class="page-header">
         <div class="page-eyebrow">Component</div>
-        <h1 class="page-title">Gallery / CatalogResultCard grid</h1>
+        <h1 class="page-title">Gallery / Catalog Result Card grid.</h1>
         <p class="page-subtitle">CatalogResultCard at 3:4 media in a 2-column grid. Same primitive for menu items, movie posters, devotional collections, podcast covers.</p>
         <div class="page-tag-row">
           <span class="entity-tag">Collection<Media></span>
@@ -2019,7 +2890,840 @@
     </div>
   </section>
 
+
+  <!-- ===== Styles section ===== -->
+  <section class="page-view" id="styles-home">
+    <header class="page-header page-header--with-action">
+      <div class="page-header__main">
+        <div class="page-eyebrow">Styles</div>
+        <h1 class="page-title">Styles.</h1>
+        <p class="page-subtitle">The JBIQ design system — colours, typography, spacing, radius. The tokens that hold the system together.</p>
+      </div>
+      <a class="download-btn" href="#" id="designMdDownload" title="Download the JBIQ design system as markdown — generated live from this page so it can't drift out of sync">
+        <span class="download-btn__icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 2v8m0 0L4.5 6.5M8 10l3.5-3.5M3 13h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        DESIGN.md
+      </a>
+    </header>
+    <div class="home-grid">
+      <a class="home-card" href="#styles-colors">
+        <div class="home-card__eyebrow">Tokens · 23 swatches</div>
+        <div class="home-card__name">Colors</div>
+        <p class="home-card__desc">Semantic colour tokens — surface, text, action, border, overlay, status, feedback, semantic.</p>
+      </a>
+      <a class="home-card" href="#styles-typography">
+        <div class="home-card__eyebrow">Type scale · 5 sizes</div>
+        <div class="home-card__name">Typography</div>
+        <p class="home-card__desc">Hero to caption, weights, tracking. JioType is loaded by the consumer.</p>
+      </a>
+      <a class="home-card" href="#styles-spacing">
+        <div class="home-card__eyebrow">Scale · xs → xxl</div>
+        <div class="home-card__name">Spacing</div>
+        <p class="home-card__desc">Modular spacing from 4 to 32 pixels.</p>
+      </a>
+      <a class="home-card" href="#styles-radius">
+        <div class="home-card__eyebrow">Scale · sm → pill</div>
+        <div class="home-card__name">Radius</div>
+        <p class="home-card__desc">Four corner radii from soft to fully rounded.</p>
+      </a>
+      <a class="home-card" href="#styles-elevation">
+        <div class="home-card__eyebrow">Depth · 4 levels</div>
+        <div class="home-card__name">Elevation</div>
+        <p class="home-card__desc">Proposed shadow tokens — not yet promoted into <code>components.css</code>.</p>
+      </a>
+      <a class="home-card" href="#styles-components">
+        <div class="home-card__eyebrow">Index</div>
+        <div class="home-card__name">Components</div>
+        <p class="home-card__desc">Pointers to every visual primitive, shown across verticals.</p>
+      </a>
+      <a class="home-card" href="#styles-guidelines">
+        <div class="home-card__eyebrow">Coming soon</div>
+        <div class="home-card__name">Guidelines</div>
+        <p class="home-card__desc">The how-and-why behind the system.</p>
+      </a>
+    </div>
+  </section>
+
+  <section class="page-view" id="styles-colors">
+    <header class="page-header">
+      <div class="page-eyebrow">Styles</div>
+      <h1 class="page-title">Colors.</h1>
+      <p class="page-subtitle">The full JBIQ palette — primary · secondary · sparkle · neutral · semantic · surface · text · stroke · icon.</p>
+    </header>
+    <div class="styles-card">
+      <h2 class="styles-group">Primary (Purple)</h2>
+      <div class="swatch-row"><span class="swatch" style="background:#f6f3ff"></span><div><div class="swatch-name">primary-20</div><div class="swatch-value">#f6f3ff</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#ede7ff"></span><div><div class="swatch-name">primary-30</div><div class="swatch-value">#ede7ff</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#e4dbff"></span><div><div class="swatch-name">primary-40</div><div class="swatch-value">#e4dbff</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#6d17ce"></span><div><div class="swatch-name">primary-50</div><div class="swatch-value">#6d17ce</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#310064"></span><div><div class="swatch-name">primary-60</div><div class="swatch-value">#310064</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#13002d"></span><div><div class="swatch-name">primary-70</div><div class="swatch-value">#13002d</div></div></div>
+
+      <h2 class="styles-group">Secondary (Green-Teal)</h2>
+      <div class="swatch-row"><span class="swatch" style="background:#ddfef2"></span><div><div class="swatch-name">secondary-20</div><div class="swatch-value">#ddfef2</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#c0fae6"></span><div><div class="swatch-name">secondary-30</div><div class="swatch-value">#c0fae6</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#a6f4db"></span><div><div class="swatch-name">secondary-40</div><div class="swatch-value">#a6f4db</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#00ad8b"></span><div><div class="swatch-name">secondary-50</div><div class="swatch-value">#00ad8b</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#014c3b"></span><div><div class="swatch-name">secondary-60</div><div class="swatch-value">#014c3b</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#05100c"></span><div><div class="swatch-name">secondary-70</div><div class="swatch-value">#05100c</div></div></div>
+
+      <h2 class="styles-group">Sparkle (Blue)</h2>
+      <div class="swatch-row"><span class="swatch" style="background:#ecf7ff"></span><div><div class="swatch-name">sparkle-20</div><div class="swatch-value">#ecf7ff</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#d8effe"></span><div><div class="swatch-name">sparkle-30</div><div class="swatch-value">#d8effe</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#c4e7ff"></span><div><div class="swatch-name">sparkle-40</div><div class="swatch-value">#c4e7ff</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#0078ad"></span><div><div class="swatch-name">sparkle-50</div><div class="swatch-value">#0078ad</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#004566"></span><div><div class="swatch-name">sparkle-60</div><div class="swatch-value">#004566</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#000f1a"></span><div><div class="swatch-name">sparkle-70</div><div class="swatch-value">#000f1a</div></div></div>
+
+      <h2 class="styles-group">Neutral</h2>
+      <div class="swatch-row"><span class="swatch" style="background:#ffffff"></span><div><div class="swatch-name">neutral-white</div><div class="swatch-value">#ffffff</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#f5f5f5"></span><div><div class="swatch-name">neutral-20</div><div class="swatch-value">#f5f5f5</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#eeeeef"></span><div><div class="swatch-name">neutral-30</div><div class="swatch-value">#eeeeef</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#e3e3e4"></span><div><div class="swatch-name">neutral-40</div><div class="swatch-value">#e3e3e4</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#3c4047"></span><div><div class="swatch-name">neutral-70</div><div class="swatch-value">#3c4047</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#0c0d10"></span><div><div class="swatch-name">neutral-100</div><div class="swatch-value">#0c0d10</div></div></div>
+
+      <h2 class="styles-group">Semantic</h2>
+      <div class="swatch-row"><span class="swatch" style="background:#25ab21"></span><div><div class="swatch-name">success</div><div class="swatch-value">#25ab21</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#f06d0f"></span><div><div class="swatch-name">warning</div><div class="swatch-value">#f06d0f</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#fa2f40"></span><div><div class="swatch-name">error</div><div class="swatch-value">#fa2f40</div></div></div>
+
+      <h2 class="styles-group">Surface</h2>
+      <div class="swatch-row"><span class="swatch" style="background:#ffffff"></span><div><div class="swatch-name">surface-default</div><div class="swatch-value">#ffffff</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#f5f5f5"></span><div><div class="swatch-name">surface-minimal</div><div class="swatch-value">#f5f5f5</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#eeeeef"></span><div><div class="swatch-name">surface-ghost</div><div class="swatch-value">#eeeeef</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#e3e3e4"></span><div><div class="swatch-name">surface-moderate</div><div class="swatch-value">#e3e3e4</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#ede7ff"></span><div><div class="swatch-name">surface-ghost-icon</div><div class="swatch-value">#ede7ff</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#6d17ce"></span><div><div class="swatch-name">surface-bold</div><div class="swatch-value">#6d17ce</div></div></div>
+
+      <h2 class="styles-group">Text</h2>
+      <div class="swatch-row"><span class="swatch" style="background:#0c0d10"></span><div><div class="swatch-name">text-high</div><div class="swatch-value">#0c0d10</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:rgba(12,13,16,0.65)"></span><div><div class="swatch-name">text-low</div><div class="swatch-value">rgba(12,13,16,0.65)</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:rgba(12,13,16,0.38)"></span><div><div class="swatch-name">text-disabled</div><div class="swatch-value">rgba(12,13,16,0.38)</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#ffffff"></span><div><div class="swatch-name">text-on-bold</div><div class="swatch-value">#ffffff</div></div></div>
+
+      <h2 class="styles-group">Stroke</h2>
+      <div class="swatch-row"><span class="swatch" style="background:rgba(12,13,16,0.08)"></span><div><div class="swatch-name">stroke-minimal</div><div class="swatch-value">rgba(12,13,16,0.08)</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:rgba(12,13,16,0.12)"></span><div><div class="swatch-name">stroke-subtle</div><div class="swatch-value">rgba(12,13,16,0.12)</div></div></div>
+
+      <h2 class="styles-group">Icon · Primary</h2>
+      <div class="swatch-row"><span class="swatch" style="background:#9c65fe"></span><div><div class="swatch-name">icon-primary-light</div><div class="swatch-value">#9c65fe</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#6d17ce"></span><div><div class="swatch-name">icon-primary-default</div><div class="swatch-value">#6d17ce</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#3f007f"></span><div><div class="swatch-name">icon-primary-dark</div><div class="swatch-value">#3f007f</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#22004a"></span><div><div class="swatch-name">icon-primary-darkest</div><div class="swatch-value">#22004a</div></div></div>
+
+      <h2 class="styles-group">Icon · Secondary</h2>
+      <div class="swatch-row"><span class="swatch" style="background:#028c70"></span><div><div class="swatch-name">icon-secondary-light</div><div class="swatch-value">#028c70</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#028c70"></span><div><div class="swatch-name">icon-secondary-default</div><div class="swatch-value">#028c70</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#015947"></span><div><div class="swatch-name">icon-secondary-dark</div><div class="swatch-value">#015947</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#072019"></span><div><div class="swatch-name">icon-secondary-darkest</div><div class="swatch-value">#072019</div></div></div>
+
+      <h2 class="styles-group">Icon · Sparkle</h2>
+      <div class="swatch-row"><span class="swatch" style="background:#3596cc"></span><div><div class="swatch-name">icon-sparkle-light</div><div class="swatch-value">#3596cc</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#0078ad"></span><div><div class="swatch-name">icon-sparkle-default</div><div class="swatch-value">#0078ad</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#004566"></span><div><div class="swatch-name">icon-sparkle-dark</div><div class="swatch-value">#004566</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#002a40"></span><div><div class="swatch-name">icon-sparkle-on-bold</div><div class="swatch-value">#002a40</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#013752"></span><div><div class="swatch-name">icon-sparkle-darkest</div><div class="swatch-value">#013752</div></div></div>
+
+      <h2 class="styles-group">Icon · Neutral</h2>
+      <div class="swatch-row"><span class="swatch" style="background:#9c65fe"></span><div><div class="swatch-name">icon-neutral-light</div><div class="swatch-value">#9c65fe</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#6d17ce"></span><div><div class="swatch-name">icon-neutral-default</div><div class="swatch-value">#6d17ce</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#3f007f"></span><div><div class="swatch-name">icon-neutral-dark</div><div class="swatch-value">#3f007f</div></div></div>
+      <div class="swatch-row"><span class="swatch" style="background:#22004a"></span><div><div class="swatch-name">icon-neutral-darkest</div><div class="swatch-value">#22004a</div></div></div>
+
+      <p class="page-note" style="margin-top: var(--space-lg)">Palette mirrors the public JBIQ design system at <a href="https://breadcreative121-byte.github.io/design-systems/" class="text-link" target="_blank" rel="noopener">breadcreative121-byte.github.io/design-systems</a>. Hex values are inlined here for one-to-one parity; tokens marked in <code>components.css</code> use the same values under JBIQ-specific aliases.</p>
+    </div>
+  </section>
+
+  <section class="page-view" id="styles-typography">
+    <header class="page-header">
+      <div class="page-eyebrow">Styles</div>
+      <h1 class="page-title">Typography.</h1>
+      <p class="page-subtitle">The full JBIQ type scale — Display · Headline · Title · Body · Label.</p>
+    </header>
+    <div class="styles-card">
+      <h2 class="styles-group">Display</h2>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:52px; font-weight:900; letter-spacing:-0.03em; line-height:1.05;">Display L</p>
+        <div class="type-meta">display-l · 52px / 900 / -3%</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:44px; font-weight:900; letter-spacing:-0.03em; line-height:1.05;">Display M</p>
+        <div class="type-meta">display-m · 44px / 900 / -3%</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:36px; font-weight:900; letter-spacing:-0.03em; line-height:1.05;">Display S</p>
+        <div class="type-meta">display-s · 36px / 900 / -3%</div>
+      </div>
+
+      <h2 class="styles-group">Headline</h2>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:32px; font-weight:900; letter-spacing:-0.03em; line-height:1.1;">Headline L</p>
+        <div class="type-meta">headline-l · 32px / 900 / -3%</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:28px; font-weight:900; letter-spacing:-0.03em; line-height:1.1;">Headline M</p>
+        <div class="type-meta">headline-m · 28px / 900 / -3%</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:24px; font-weight:900; letter-spacing:-0.03em; line-height:1.15;">Headline S</p>
+        <div class="type-meta">headline-s · 24px / 900 / -3%</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:22px; font-weight:900; line-height:1.15;">Headline XS</p>
+        <div class="type-meta">headline-xs · 22px / 900</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:20px; font-weight:900; line-height:1.2;">Headline 2XS</p>
+        <div class="type-meta">headline-2xs · 20px / 900</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:18px; font-weight:900; line-height:1.2;">Headline 3XS</p>
+        <div class="type-meta">headline-3xs · 18px / 900</div>
+      </div>
+
+      <h2 class="styles-group">Title</h2>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:20px; font-weight:700; line-height:1.25;">Title L</p>
+        <div class="type-meta">title-l · 20px / 700</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:18px; font-weight:700; line-height:1.25;">Title M</p>
+        <div class="type-meta">title-m · 18px / 700</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:16px; font-weight:700; line-height:1.3;">Title S</p>
+        <div class="type-meta">title-s · 16px / 700</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:14px; font-weight:700; line-height:1.3;">Title 2XS</p>
+        <div class="type-meta">title-2xs · 14px / 700</div>
+      </div>
+
+      <h2 class="styles-group">Body</h2>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:20px; font-weight:500; letter-spacing:-0.005em; line-height:1.4;">Body 2XL — the largest body size for emotional, decision-anchoring copy.</p>
+        <div class="type-meta">body-2xl · 20px / 500 / -0.5%</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:16px; font-weight:500; letter-spacing:-0.005em; line-height:1.4;">Body L — reading paragraphs at a comfortable size.</p>
+        <div class="type-meta">body-l · 16px / 500 / -0.5%</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:15px; font-weight:500; line-height:1.4;">Body M — secondary paragraph sizing.</p>
+        <div class="type-meta">body-m · 15px / 500</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:14px; font-weight:500; line-height:1.4;">Body S — the default paragraph size. Most prose lives here.</p>
+        <div class="type-meta">body-s · 14px / 500</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:13px; font-weight:500; line-height:1.4;">Body XS — supporting metadata copy.</p>
+        <div class="type-meta">body-xs · 13px / 500</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:12px; font-weight:500; letter-spacing:0.005em; line-height:1.4;">Body 2XS — the smallest body size for legal, footnotes, ultra-tight metadata.</p>
+        <div class="type-meta">body-2xs · 12px / 500 / +0.5%</div>
+      </div>
+
+      <h2 class="styles-group">Label</h2>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:14px; font-weight:700; line-height:1.2;">Label L</p>
+        <div class="type-meta">label-l · 14px / 700</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:12px; font-weight:700; line-height:1.2;">Label S</p>
+        <div class="type-meta">label-s · 12px / 700</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:14px; font-weight:700; line-height:1.2;">Button</p>
+        <div class="type-meta">button · 14px / 700</div>
+      </div>
+      <div class="type-row">
+        <p class="type-sample" style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.005em; line-height:1.2;">OVERLINE</p>
+        <div class="type-meta">overline · 10px / 700 UPPER / +0.5%</div>
+      </div>
+
+      <p class="page-note" style="margin-top: var(--space-lg)">Scale mirrors the public JBIQ design system at <a href="https://breadcreative121-byte.github.io/design-systems/" class="text-link" target="_blank" rel="noopener">breadcreative121-byte.github.io/design-systems</a>. JioType is loaded by the consumer; this site falls back to system sans where JioType isn't available.</p>
+    </div>
+  </section>
+
+  <section class="page-view" id="styles-spacing">
+    <header class="page-header">
+      <div class="page-eyebrow">Styles</div>
+      <h1 class="page-title">Spacing.</h1>
+      <p class="page-subtitle">A 14-step modular scale on a 2px base — from 4xs (2px) to massive (80px). 16px horizontal screen margins on all screens.</p>
+    </header>
+    <div class="styles-card">
+      <div class="space-row"><div class="space-bar" style="width:2px"></div><div class="space-meta">4xs · 2px</div></div>
+      <div class="space-row"><div class="space-bar" style="width:4px"></div><div class="space-meta">3xs · 4px</div></div>
+      <div class="space-row"><div class="space-bar" style="width:6px"></div><div class="space-meta">2xs · 6px</div></div>
+      <div class="space-row"><div class="space-bar" style="width:8px"></div><div class="space-meta">xs · 8px</div></div>
+      <div class="space-row"><div class="space-bar" style="width:12px"></div><div class="space-meta">s · 12px</div></div>
+      <div class="space-row"><div class="space-bar" style="width:14px"></div><div class="space-meta">base · 14px</div></div>
+      <div class="space-row"><div class="space-bar" style="width:16px"></div><div class="space-meta">m · 16px</div></div>
+      <div class="space-row"><div class="space-bar" style="width:20px"></div><div class="space-meta">l · 20px</div></div>
+      <div class="space-row"><div class="space-bar" style="width:24px"></div><div class="space-meta">xl · 24px</div></div>
+      <div class="space-row"><div class="space-bar" style="width:32px"></div><div class="space-meta">2xl · 32px</div></div>
+      <div class="space-row"><div class="space-bar" style="width:40px"></div><div class="space-meta">3xl · 40px</div></div>
+      <div class="space-row"><div class="space-bar" style="width:48px"></div><div class="space-meta">4xl · 48px</div></div>
+      <div class="space-row"><div class="space-bar" style="width:64px"></div><div class="space-meta">huge · 64px</div></div>
+      <div class="space-row"><div class="space-bar" style="width:80px"></div><div class="space-meta">massive · 80px</div></div>
+
+      <p class="page-note" style="margin-top: var(--space-lg)">Scale mirrors the public JBIQ design system at <a href="https://breadcreative121-byte.github.io/design-systems/" class="text-link" target="_blank" rel="noopener">breadcreative121-byte.github.io/design-systems</a>. <code>components.css</code> currently aliases a subset of these (xs / sm / md / lg / xl / xxl); the full official scale is shown here for reference.</p>
+    </div>
+  </section>
+
+  <section class="page-view" id="styles-radius">
+    <header class="page-header">
+      <div class="page-eyebrow">Styles</div>
+      <h1 class="page-title">Radius.</h1>
+      <p class="page-subtitle">Four corner radii — soft to fully rounded.</p>
+    </header>
+    <div class="styles-card">
+      <div class="radius-grid">
+        <div class="radius-cell"><div class="radius-tile" style="border-radius:var(--radius-sm)"></div><div class="radius-label">sm · 8px</div></div>
+        <div class="radius-cell"><div class="radius-tile" style="border-radius:var(--radius-md)"></div><div class="radius-label">md · 12px</div></div>
+        <div class="radius-cell"><div class="radius-tile" style="border-radius:var(--radius-lg)"></div><div class="radius-label">lg · 16px</div></div>
+        <div class="radius-cell"><div class="radius-tile" style="border-radius:var(--radius-pill)"></div><div class="radius-label">pill · 999px</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="styles-elevation" style="--shadow-1: 0 1px 2px rgba(12,13,16,0.04), 0 1px 1px rgba(12,13,16,0.06); --shadow-2: 0 2px 4px rgba(12,13,16,0.04), 0 4px 8px rgba(12,13,16,0.06); --shadow-3: 0 4px 8px rgba(12,13,16,0.04), 0 8px 24px rgba(12,13,16,0.08); --shadow-overlay: 0 -12px 32px rgba(12,13,16,0.04);">
+    <header class="page-header">
+      <div class="page-eyebrow">Styles</div>
+      <h1 class="page-title">Elevation.</h1>
+      <p class="page-subtitle">Four proposed depth levels.</p>
+    </header>
+    <div class="styles-card">
+      <p class="page-note">Shadows are not yet tokenised in <code>components.css</code>. The four levels shown here are proposals; the existing baked-in shadows live inline in the focus-ring (<code>components.css:601</code>) and the detail-sheet overhang. To promote, add to the <code>:root</code> block.</p>
+      <div class="elev-grid">
+        <div><div class="elev-tile" style="box-shadow:var(--shadow-1)"></div><div class="elev-label">--shadow-1 · cards at rest</div></div>
+        <div><div class="elev-tile" style="box-shadow:var(--shadow-2)"></div><div class="elev-label">--shadow-2 · cards hovered</div></div>
+        <div><div class="elev-tile" style="box-shadow:var(--shadow-3)"></div><div class="elev-label">--shadow-3 · raised surfaces</div></div>
+        <div><div class="elev-tile" style="box-shadow:var(--shadow-overlay)"></div><div class="elev-label">--shadow-overlay · sheets, modals</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="styles-components">
+    <header class="page-header">
+      <div class="page-eyebrow">Styles</div>
+      <h1 class="page-title">Components.</h1>
+      <p class="page-subtitle">The visual primitives — see them in use in the <a href="#components-home" class="text-link">Components</a> section.</p>
+    </header>
+    <div class="styles-card">
+      <p>Each component is shown across two or three verticals so the same primitive is visible in different content. Jump straight to any one:</p>
+      <ul class="component-index">
+        <li><a href="#components-subjectheader">Subject Header</a></li>
+        <li><a href="#components-entitycard">Entity Card</a></li>
+        <li><a href="#components-comparetable">Compare Table</a></li>
+        <li><a href="#components-list">List</a></li>
+        <li><a href="#components-timeline">Timeline</a></li>
+        <li><a href="#components-tracker">Tracker</a></li>
+        <li><a href="#components-map">Map</a></li>
+        <li><a href="#components-cartpanel">Cart Panel</a></li>
+        <li><a href="#components-confirmpanel">Confirm Panel</a></li>
+        <li><a href="#components-receiptpanel">Receipt Panel</a></li>
+        <li><a href="#components-detailsheet">Detail Sheet</a></li>
+        <li><a href="#components-choicechips">Choice Chips</a></li>
+        <li><a href="#components-mediaplayer">Media Player</a></li>
+        <li><a href="#components-gallery">Gallery</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="page-view" id="styles-guidelines">
+    <header class="page-header">
+      <div class="page-eyebrow">Styles</div>
+      <h1 class="page-title">Guidelines.</h1>
+      <p class="page-subtitle">Coming soon. The how-and-why behind the system.</p>
+    </header>
+    <div class="dodont-grid">
+      <div class="dodont dodont--do">
+        <div class="dodont__eyebrow">Do</div>
+        <div class="dodont__body">Placeholder — content to come. Examples of correct system usage will live here.</div>
+      </div>
+      <div class="dodont dodont--dont">
+        <div class="dodont__eyebrow">Don't</div>
+        <div class="dodont__body">Placeholder — content to come. Common pitfalls and anti-patterns will live here.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Voice section — lifted from voice-playground.html ===== -->
+  <section class="page-view" id="voice-home">
+    <header class="home-hero">
+      <h1 class="home-title">Voice across personas</h1>
+      <p class="home-lead">Same scenario, four personas, four different ways of speaking. Pick a scenario to see how each persona handles it — and where the system overrides personality for sensitive moments.</p>
+    </header>
+
+    <div class="home-section">
+      <div class="home-section-head">Personas</div>
+      <div class="persona-grid">
+      <div class="persona-card">
+        <div class="persona-card__name">casual_friendly</div>
+        <div class="persona-card__when">Casual, warm</div>
+        <p class="persona-card__desc">food, commerce, daily life</p>
+      </div>
+      <div class="persona-card">
+        <div class="persona-card__name">concise_neutral</div>
+        <div class="persona-card__when">Clipped, professional</div>
+        <p class="persona-card__desc">travel, finance, news</p>
+      </div>
+      <div class="persona-card">
+        <div class="persona-card__name">warm_clinical</div>
+        <div class="persona-card__when">Gentle, precise</div>
+        <p class="persona-card__desc">health, devotion, government</p>
+      </div>
+      <div class="persona-card">
+        <div class="persona-card__name">playful_energetic</div>
+        <div class="persona-card__when">Upbeat, exclamatory</div>
+        <p class="persona-card__desc">entertainment, sports, fitness</p>
+      </div>
+      </div>
+    </div>
+
+    <div class="home-section">
+      <div class="home-section-head">Scenarios</div>
+      <div class="home-grid">
+      <a class="home-card" href="#voice-returning-options">
+        <div class="home-card__eyebrow">Scenario</div>
+        <div class="home-card__name">Returning options</div>
+        <p class="home-card__desc">A search came back with a small set of results. The system has to summarize and offer the top pick — fast.</p>
+      </a>
+      <a class="home-card" href="#voice-confirming-a-transaction">
+        <div class="home-card__eyebrow">Scenario</div>
+        <div class="home-card__name">Confirming a transaction</div>
+        <p class="home-card__desc">Money is about to leave the user's account. The system reads back the full payee and amount before charging — partner can't bypass this.</p>
+      </a>
+      <a class="home-card" href="#voice-live-status-update">
+        <div class="home-card__eyebrow">Scenario</div>
+        <div class="home-card__name">Live status update</div>
+        <p class="home-card__desc">User is eyes-busy (driving, cooking, in a meeting). Voice-only delivery — must be parsable on first listen, no on-screen detail.</p>
+      </a>
+      <a class="home-card" href="#voice-asking-for-a-choice">
+        <div class="home-card__eyebrow">Scenario</div>
+        <div class="home-card__name">Asking for a choice</div>
+        <p class="home-card__desc">The user's request is missing a parameter the partner needs. The system disambiguates fast — one short question, two-to-four options.</p>
+      </a>
+      <a class="home-card" href="#voice-delivering-bad-news">
+        <div class="home-card__eyebrow">Scenario</div>
+        <div class="home-card__name">Delivering bad news</div>
+        <p class="home-card__desc">Something went wrong — a slot filled, a payment declined, a flight cancelled. The persona has to acknowledge gracefully and offer the next move.</p>
+      </a>
+      <a class="home-card" href="#voice-confirming-completion">
+        <div class="home-card__eyebrow">Scenario</div>
+        <div class="home-card__name">Confirming completion</div>
+        <p class="home-card__desc">An action finished — order placed, money sent, appointment booked. The system acks, shares the reference, and tells the user what happens next.</p>
+      </a>
+      <a class="home-card" href="#voice-greeting-open">
+        <div class="home-card__eyebrow">Scenario</div>
+        <div class="home-card__name">Greeting / open</div>
+        <p class="home-card__desc">User invokes JBIQ but hasn't yet said what they want. The system opens — short, inviting, doesn't presume.</p>
+      </a>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="page-view" id="voice-returning-options">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Scenario</div>
+        <h1 class="page-title">Returning options</h1>
+        <p class="page-subtitle">A search came back with a small set of results. The system has to summarize and offer the top pick — fast.</p>
+      </header>
+      <div class="context-block">
+        <div class="you-line">YOU<span class="text">Find me Thai near me</span></div>
+        <div class="situation-label">Situation</div>
+        <div class="situation-line">Three results returned, ranked by match. Soi 7 (top), Drunken Monkey, Bangkok Bites.</div>
+      </div>
+      <div class="tabs" role="tablist"><button class="tab-button" data-idx="0" aria-selected="true">casual friendly</button><button class="tab-button" data-idx="1" aria-selected="false">concise neutral</button><button class="tab-button" data-idx="2" aria-selected="false">warm clinical</button><button class="tab-button" data-idx="3" aria-selected="false">playful energetic</button></div>
+    </div>
+    <div class="voice-card">
+      
+          <div class="tab-panel" data-idx="0" data-active="true">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">casual_friendly</div>
+            </div>
+            <p class="voice-script">Three near you. Soi 7 is the top pick — 4.5 stars, 25 minutes.</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">concise_neutral</div>
+            </div>
+            <p class="voice-script">Three results. Soi 7: 4.5 stars, 25 minutes.</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">warm_clinical</div>
+            </div>
+            <p class="voice-script">I found three places that match. Soi 7 is well-reviewed at 4.5 stars, with a 25-minute delivery.</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">playful_energetic</div>
+            </div>
+            <p class="voice-script">Three great picks! Soi 7's the winner — 4.5 stars, just 25 mins away.</p>
+            
+          </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="voice-confirming-a-transaction">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Scenario</div>
+        <h1 class="page-title">Confirming a transaction</h1>
+        <p class="page-subtitle">Money is about to leave the user's account. The system reads back the full payee and amount before charging — partner can't bypass this.</p>
+      </header>
+      <div class="context-block">
+        <div class="you-line">YOU<span class="text">Send 5000 to mom</span></div>
+        <div class="situation-label">Situation</div>
+        <div class="situation-line">About to execute a UPI transfer. Platform-owned confirm interrupt active.</div>
+      </div>
+      <div class="tabs" role="tablist"><button class="tab-button" data-idx="0" aria-selected="true">casual friendly</button><button class="tab-button" data-idx="1" aria-selected="false">concise neutral</button><button class="tab-button" data-idx="2" aria-selected="false">warm clinical</button><button class="tab-button" data-idx="3" aria-selected="false">playful energetic</button></div>
+    </div>
+    <div class="voice-card">
+      
+          <div class="tab-panel" data-idx="0" data-active="true">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">casual_friendly</div>
+            </div>
+            <p class="voice-script">Just to confirm — five thousand to Mom, ICICI ending 4571. Sound good?</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">concise_neutral</div>
+            </div>
+            <p class="voice-script">Confirm: five thousand rupees to Misses Sharma, ICICI ending 4571.</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">warm_clinical</div>
+            </div>
+            <p class="voice-script">Before I send this — five thousand rupees to Mom, the ICICI account ending 4571. Should I go ahead?</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">playful_energetic</div>
+            </div>
+            <p class="voice-script">All set! Five thousand to Mom, ICICI ending 4571 — ready to send?</p>
+            <div class="voice-note">Even in playful contexts, money-movement readbacks <strong>do not get more casual</strong>. The persona keeps energy but never softens the readback content.</div>
+          </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="voice-live-status-update">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Scenario</div>
+        <h1 class="page-title">Live status update</h1>
+        <p class="page-subtitle">User is eyes-busy (driving, cooking, in a meeting). Voice-only delivery — must be parsable on first listen, no on-screen detail.</p>
+      </header>
+      <div class="context-block">
+        <div class="you-line">YOU<span class="text">(eyes-busy — driving)</span></div>
+        <div class="situation-label">Situation</div>
+        <div class="situation-line">Order is out for delivery. Driver assigned. ETA 12 minutes. Voice-only mode active.</div>
+      </div>
+      <div class="tabs" role="tablist"><button class="tab-button" data-idx="0" aria-selected="true">casual friendly</button><button class="tab-button" data-idx="1" aria-selected="false">concise neutral</button><button class="tab-button" data-idx="2" aria-selected="false">warm clinical</button><button class="tab-button" data-idx="3" aria-selected="false">playful energetic</button></div>
+    </div>
+    <div class="voice-card">
+      
+          <div class="tab-panel" data-idx="0" data-active="true">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">casual_friendly</div>
+            </div>
+            <p class="voice-script">Your food's twelve minutes out. Amit's on the way.</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">concise_neutral</div>
+            </div>
+            <p class="voice-script">ETA twelve minutes. Driver Amit.</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">warm_clinical</div>
+            </div>
+            <p class="voice-script">Your order is twelve minutes away. Amit is on his way to you.</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">playful_energetic</div>
+            </div>
+            <p class="voice-script">Twelve minutes till food arrives — Amit's almost there!</p>
+            
+          </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="voice-asking-for-a-choice">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Scenario</div>
+        <h1 class="page-title">Asking for a choice</h1>
+        <p class="page-subtitle">The user's request is missing a parameter the partner needs. The system disambiguates fast — one short question, two-to-four options.</p>
+      </header>
+      <div class="context-block">
+        <div class="you-line">YOU<span class="text">Book the TAP flight</span></div>
+        <div class="situation-label">Situation</div>
+        <div class="situation-line">Booking requires seat preference + cabin. System surfaces a ChoiceChips moment.</div>
+      </div>
+      <div class="tabs" role="tablist"><button class="tab-button" data-idx="0" aria-selected="true">casual friendly</button><button class="tab-button" data-idx="1" aria-selected="false">concise neutral</button><button class="tab-button" data-idx="2" aria-selected="false">warm clinical</button><button class="tab-button" data-idx="3" aria-selected="false">playful energetic</button></div>
+    </div>
+    <div class="voice-card">
+      
+          <div class="tab-panel" data-idx="0" data-active="true">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">casual_friendly</div>
+            </div>
+            <p class="voice-script">Window or aisle?</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">concise_neutral</div>
+            </div>
+            <p class="voice-script">Seat preference?</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">warm_clinical</div>
+            </div>
+            <p class="voice-script">Would you prefer a window or an aisle seat?</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">playful_energetic</div>
+            </div>
+            <p class="voice-script">Window or aisle — pick your spot!</p>
+            
+          </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="voice-delivering-bad-news">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Scenario</div>
+        <h1 class="page-title">Delivering bad news</h1>
+        <p class="page-subtitle">Something went wrong — a slot filled, a payment declined, a flight cancelled. The persona has to acknowledge gracefully and offer the next move.</p>
+      </header>
+      <div class="context-block">
+        <div class="you-line">YOU<span class="text">Book Dr. Aparna Rao at 11</span></div>
+        <div class="situation-label">Situation</div>
+        <div class="situation-line">The 11 a.m. slot just filled. Next available is 11:30.</div>
+      </div>
+      <div class="tabs" role="tablist"><button class="tab-button" data-idx="0" aria-selected="true">casual friendly</button><button class="tab-button" data-idx="1" aria-selected="false">concise neutral</button><button class="tab-button" data-idx="2" aria-selected="false">warm clinical</button><button class="tab-button" data-idx="3" aria-selected="false">playful energetic</button></div>
+    </div>
+    <div class="voice-card">
+      
+          <div class="tab-panel" data-idx="0" data-active="true">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">casual_friendly</div>
+            </div>
+            <p class="voice-script">Ah, that slot just got taken. Want 11:30 instead?</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">concise_neutral</div>
+            </div>
+            <p class="voice-script">Slot unavailable. 11:30 open.</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">warm_clinical</div>
+            </div>
+            <p class="voice-script">I'm sorry — that slot has filled. There's another at 11:30 if that works for you.</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">playful_energetic</div>
+            </div>
+            <p class="voice-script">Sorry, that slot just filled. There's another at 11:30 if you'd like.</p>
+            <div class="voice-note"><strong>Persona override:</strong> playful_energetic suppresses to warm_clinical for this turn. Enthusiastic tone is wrong for problems. Same rule fires on payment failures, medical bad-news, low-balance alerts.</div>
+          </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="voice-confirming-completion">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Scenario</div>
+        <h1 class="page-title">Confirming completion</h1>
+        <p class="page-subtitle">An action finished — order placed, money sent, appointment booked. The system acks, shares the reference, and tells the user what happens next.</p>
+      </header>
+      <div class="context-block">
+        <div class="you-line">YOU<span class="text">Yes, send it</span></div>
+        <div class="situation-label">Situation</div>
+        <div class="situation-line">UPI transfer completed. Reference UPI/445792. SMS dispatched to Mom.</div>
+      </div>
+      <div class="tabs" role="tablist"><button class="tab-button" data-idx="0" aria-selected="true">casual friendly</button><button class="tab-button" data-idx="1" aria-selected="false">concise neutral</button><button class="tab-button" data-idx="2" aria-selected="false">warm clinical</button><button class="tab-button" data-idx="3" aria-selected="false">playful energetic</button></div>
+    </div>
+    <div class="voice-card">
+      
+          <div class="tab-panel" data-idx="0" data-active="true">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">casual_friendly</div>
+            </div>
+            <p class="voice-script">Done. Five thousand sent. UPI ref four-four-five-seven-nine-two. Mom will get an SMS.</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">concise_neutral</div>
+            </div>
+            <p class="voice-script">Sent. UPI ref four-four-five-seven-nine-two. SMS dispatched.</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">warm_clinical</div>
+            </div>
+            <p class="voice-script">Done — five thousand rupees sent to Mom. The UPI reference is four-four-five-seven-nine-two. She'll receive an SMS shortly.</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">playful_energetic</div>
+            </div>
+            <p class="voice-script">Money's on its way! Five thousand to Mom, UPI ref 445792. Done.</p>
+            
+          </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="voice-greeting-open">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Scenario</div>
+        <h1 class="page-title">Greeting / open</h1>
+        <p class="page-subtitle">User invokes JBIQ but hasn't yet said what they want. The system opens — short, inviting, doesn't presume.</p>
+      </header>
+      <div class="context-block">
+        <div class="you-line">YOU<span class="text">Hey JBIQ</span></div>
+        <div class="situation-label">Situation</div>
+        <div class="situation-line">Session opened, no intent inferred yet.</div>
+      </div>
+      <div class="tabs" role="tablist"><button class="tab-button" data-idx="0" aria-selected="true">casual friendly</button><button class="tab-button" data-idx="1" aria-selected="false">concise neutral</button><button class="tab-button" data-idx="2" aria-selected="false">warm clinical</button><button class="tab-button" data-idx="3" aria-selected="false">playful energetic</button></div>
+    </div>
+    <div class="voice-card">
+      
+          <div class="tab-panel" data-idx="0" data-active="true">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">casual_friendly</div>
+            </div>
+            <p class="voice-script">Hey — what can I do?</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="1" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">concise_neutral</div>
+            </div>
+            <p class="voice-script">Yes — how can I help?</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="2" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">warm_clinical</div>
+            </div>
+            <p class="voice-script">Hello. How can I help you today?</p>
+            
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false">
+            <div class="voice-meta">
+              <video class="voice-avatar-inline" src="assets/speaking-avatar.mp4" autoplay muted playsinline loop aria-hidden="true"></video>
+              <div class="voice-label">Voice</div>
+              <div class="voice-persona-pill">playful_energetic</div>
+            </div>
+            <p class="voice-script">Hey there! What’s on?</p>
+            
+          </div>
+    </div>
+  </section>
+
+
 </main>
+
+<div class="detail-sheet-lightbox" data-lightbox hidden role="dialog" aria-modal="true" aria-label="Image viewer">
+  <button class="detail-sheet-lightbox__close" type="button" aria-label="Close image viewer">×</button>
+  <div class="detail-sheet-lightbox__track" data-lightbox-track></div>
+  <div class="detail-sheet-lightbox__dots" data-lightbox-dots></div>
+</div>
 
 <script>
 /* ----- Tab switcher within a component page —
@@ -2038,7 +3742,7 @@ document.querySelectorAll('.page-view').forEach(page => {
   });
 });
 
-/* ----- Hash routing — show one page view at a time ----- */
+/* ----- Hash routing — show one page view at a time, auto-expand the active group ----- */
 function navigate(hash) {
   const target = (hash || 'home').replace(/^#/, '');
   const views = document.querySelectorAll('.page-view');
@@ -2052,9 +3756,13 @@ function navigate(hash) {
     const home = document.getElementById('home');
     if (home) home.classList.add('is-active');
   }
+  const activeHref = '#' + (matched ? target : 'home');
   document.querySelectorAll('.toc a').forEach(a => {
-    a.classList.toggle('is-active', a.getAttribute('href') === '#' + (matched ? target : 'home'));
+    a.classList.toggle('is-active', a.getAttribute('href') === activeHref);
   });
+  const activeLink = document.querySelector('.toc a.is-active');
+  const parentGroup = activeLink && activeLink.closest('.toc__group');
+  if (parentGroup) parentGroup.open = true;
   window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', () => { navigate(location.hash); closeDrawer(); });
@@ -2080,13 +3788,10 @@ if (backdrop) backdrop.addEventListener('click', closeDrawer);
 if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
 sidebar.querySelectorAll('a').forEach(a => a.addEventListener('click', closeDrawer));
 
-/* ----- Inject prev/next footer nav into each component page-view.
-   Source of truth is the sidebar TOC; first entry (Overview/home) does
-   not get a nav, but is reachable as the "previous" of SubjectHeader. ----- */
+/* ----- Inject prev/next footer nav into each page-view, scoped per nav group.
+   Voice → Voice, Components → Components, Styles → Styles. Each group's
+   first sub-item gets a null Previous; the last gets a null Next. ----- */
 (function injectPageNav() {
-  const links = Array.from(document.querySelectorAll('.toc a'))
-    .map(a => ({ id: a.getAttribute('href').replace(/^#/, ''), label: a.textContent.trim() }));
-  const indexById = Object.fromEntries(links.map((l, i) => [l.id, i]));
   const placeholder = '<span class="page-nav__card page-nav__card--placeholder" aria-hidden="true"></span>';
   const cardHtml = (link, dir) => `
     <a class="page-nav__card page-nav__card--${dir}" href="#${link.id}">
@@ -2096,17 +3801,288 @@ sidebar.querySelectorAll('a').forEach(a => a.addEventListener('click', closeDraw
         <div class="page-nav__title">${link.label}</div>
       </div>
     </a>`;
-  document.querySelectorAll('.page-view').forEach(view => {
-    if (view.id === 'home') return;
-    const idx = indexById[view.id];
-    if (idx === undefined) return;
-    const prev = idx > 0 ? links[idx - 1] : null;
-    const next = idx < links.length - 1 ? links[idx + 1] : null;
-    const nav = document.createElement('nav');
-    nav.className = 'page-nav';
-    nav.setAttribute('aria-label', 'Page navigation');
-    nav.innerHTML = (prev ? cardHtml(prev, 'prev') : placeholder) + (next ? cardHtml(next, 'next') : placeholder);
-    view.appendChild(nav);
+  document.querySelectorAll('.toc__group').forEach(group => {
+    const links = Array.from(group.querySelectorAll('.toc__sub a'))
+      .map(a => ({ id: a.getAttribute('href').replace(/^#/, ''), label: a.textContent.trim() }));
+    links.forEach((link, idx) => {
+      const view = document.getElementById(link.id);
+      if (!view || view.querySelector('.page-nav')) return;
+      const prev = idx > 0 ? links[idx - 1] : null;
+      const next = idx < links.length - 1 ? links[idx + 1] : null;
+      if (!prev && !next) return;
+      const nav = document.createElement('nav');
+      nav.className = 'page-nav';
+      nav.setAttribute('aria-label', 'Page navigation');
+      nav.innerHTML = (prev ? cardHtml(prev, 'prev') : placeholder) + (next ? cardHtml(next, 'next') : placeholder);
+      view.appendChild(nav);
+    });
+  });
+})();
+
+/* ----- DESIGN.md generator — builds the markdown live from the DOM at click
+   time so the downloaded file can never drift from the showcase. Data-driven
+   sections (Colors, Typography, Spacing, Radius, Elevation, Components) are
+   read from their respective page-views; authored prose (intro, brand voice,
+   voice personas/scenarios, guidelines) is the only static content here. ----- */
+function generateDesignMd() {
+  const out = [];
+  const push = (...lines) => out.push(...lines);
+
+  push(
+    '# JBIQ Design System — DESIGN.md',
+    '',
+    '> This file is the canonical brief for the **JBIQ** design language, optimised',
+    '> for ingestion by AI coding assistants and design tools. Feed it to your',
+    "> agent so its suggestions stay on-brand without needing screenshots, the",
+    '> live component library, or the public design-system site.',
+    '>',
+    '> Live reference: https://breadcreative121-byte.github.io/design-systems/',
+    '> Showcase: `/components-overview.html` (this repo)',
+    '>',
+    '> Generated live from the showcase DOM at download time — cannot drift.',
+    '',
+    '---',
+    '',
+    '## Brand voice',
+    '',
+    "JBIQ is the conversational layer of Jio's super-app — born in India, made for",
+    "Bharat. The tone draws on Jio's brand DNA:",
+    '',
+    '- **We care** — every message acknowledges the person, not just the task.',
+    '- **We connect** — speak with users, not at them.',
+    '- **Always smart, simple, secure** — concise, jargon-free, trustworthy.',
+    '- **We dream big** — ambition expressed plainly, not with hype.',
+    '- **Emotion before utility** — lead with the feeling, then the action.',
+    '- **Actions over words** — short replies, confident verbs, no filler.',
+    '- **Consistency** — every persona keeps the same brand fingerprint.',
+    '- **Celebrate India** — culturally fluent, code-mix aware, Tier-1/2/3 inclusive.',
+    '',
+    'When in doubt: short, warm, specific. No exclamation marks unless celebrating.',
+    '',
+    '---',
+    '',
+    '## Colors',
+    '',
+    'All colour tokens from the JBIQ palette, organised by family. Format: `token-name · value`.'
+  );
+
+  // ----- Colors: walk #styles-colors -----
+  const colorsView = document.getElementById('styles-colors');
+  if (colorsView) {
+    let node = colorsView.querySelector('.styles-card')?.firstElementChild;
+    while (node) {
+      if (node.matches('.styles-group')) {
+        push('', `### ${node.textContent.trim()}`);
+      } else if (node.matches('.swatch-row')) {
+        const name = node.querySelector('.swatch-name')?.textContent.trim();
+        const value = node.querySelector('.swatch-value')?.textContent.trim();
+        if (name && value) push(`- \`${name}\` · \`${value}\``);
+      }
+      node = node.nextElementSibling;
+    }
+  }
+
+  push(
+    '',
+    '---',
+    '',
+    '## Typography',
+    '',
+    'JBIQ uses the **JioType** variable font. The face is loaded by the consumer.',
+    'When unavailable, fall back to system sans-serif. Type styles in five buckets.',
+    'Format: `name · size / weight / tracking`.'
+  );
+
+  // ----- Typography: walk #styles-typography -----
+  const typoView = document.getElementById('styles-typography');
+  if (typoView) {
+    let node = typoView.querySelector('.styles-card')?.firstElementChild;
+    while (node) {
+      if (node.matches('.styles-group')) {
+        push('', `### ${node.textContent.trim()}`);
+      } else if (node.matches('.type-row')) {
+        const meta = node.querySelector('.type-meta')?.textContent.trim();
+        if (meta) push(`- \`${meta.replace(/ · /, '\` · ')}`);
+      }
+      node = node.nextElementSibling;
+    }
+  }
+
+  push(
+    '',
+    '---',
+    '',
+    '## Spacing',
+    '',
+    'Modular spacing scale. **Screen margins are always 16px on every screen.**',
+    ''
+  );
+
+  // ----- Spacing: walk #styles-spacing -----
+  document.querySelectorAll('#styles-spacing .space-meta').forEach(el => {
+    const text = el.textContent.trim();
+    const [name, value] = text.split(' · ');
+    if (name && value) push(`- \`${name}\` · ${value}`);
+  });
+
+  push(
+    '',
+    '---',
+    '',
+    '## Radius',
+    '',
+    'Four corner radii — soft surfaces to fully rounded pills.',
+    ''
+  );
+
+  // ----- Radius: walk #styles-radius -----
+  document.querySelectorAll('#styles-radius .radius-label').forEach(el => {
+    const text = el.textContent.trim();
+    const [name, value] = text.split(' · ');
+    if (name && value) push(`- \`radius-${name}\` · ${value}`);
+  });
+
+  push(
+    '',
+    '---',
+    '',
+    '## Elevation',
+    '',
+    'Proposed shadow levels. **Not yet promoted into `components.css`.**',
+    ''
+  );
+
+  // ----- Elevation: read inline --shadow-* tokens from #styles-elevation -----
+  const elevView = document.getElementById('styles-elevation');
+  if (elevView) {
+    const elevCells = elevView.querySelectorAll('.elev-grid > div');
+    elevCells.forEach(cell => {
+      const label = cell.querySelector('.elev-label')?.textContent.trim();
+      const tile = cell.querySelector('.elev-tile');
+      const shadow = tile ? getComputedStyle(tile).boxShadow : '';
+      if (label) push(`- \`${label.split(' · ')[0]}\` · \`${shadow}\` — ${label.split(' · ')[1] || ''}`);
+    });
+  }
+
+  push(
+    '',
+    '---',
+    '',
+    '## Components',
+    '',
+    'Visual primitives. Each is content-led and shape-stable — the same component',
+    'renders different verticals by swapping the data, not by branching on type.',
+    '',
+    '| Component | Content shape | Description |',
+    '|---|---|---|'
+  );
+
+  // ----- Components: walk #components-home .home-card entries -----
+  document.querySelectorAll('#components-home .home-card').forEach(card => {
+    const tag  = card.querySelector('.home-card__tag')?.textContent.trim() || '';
+    const name = card.querySelector('.home-card__name')?.textContent.trim() || '';
+    const desc = card.querySelector('.home-card__desc')?.textContent.trim().replace(/\s+/g, ' ') || '';
+    if (name) push(`| **${name}** | ${tag} | ${desc} |`);
+  });
+
+  push(
+    '',
+    '---',
+    '',
+    '## Voice — personas',
+    '',
+    'JBIQ speaks in one of four personas depending on the moment. The persona is',
+    'chosen by the system, not by the partner, and **safety-critical scenarios**',
+    '(money movement, medical, bad news) always suppress the persona in favour of',
+    'a calm, neutral readback.',
+    '',
+    '| Persona | When | Example |',
+    '|---|---|---|',
+    '| **casual_friendly** | Default. Day-to-day discovery, browsing, casual queries. | "Pad thai nearby — Drunken Monkey\'s open, 4.3 stars, 32 minutes away." |',
+    '| **concise_neutral** | When speed matters more than warmth — money confirmations, status updates, anything eyes-busy. | "Sent ₹5,000 to Mum. Reference UPI/445792." |',
+    '| **warm_clinical** | Medical, governmental, anything requiring care without false cheer. Also the fallback when delivering bad news. | "Dr. Aparna Rao\'s 11 am slot is filled. The next open one is at 11:30." |',
+    '| **playful_energetic** | Celebrations, wins, festive moments — used sparingly. Suppressed in safety-critical scenarios. | "Bowled out for 4 — and India\'s home. ₹2,400 cashback\'s in." |',
+    '',
+    '---',
+    '',
+    '## Voice — scenarios',
+    '',
+    'Canonical scenarios. Each names the persona that handles it.',
+    '',
+    '| Scenario | Persona | id |',
+    '|---|---|---|'
+  );
+
+  // ----- Voice scenarios: walk the Voice TOC group for the live list of scenarios -----
+  const voiceGroup = document.querySelector('.toc__group[data-group="voice"]');
+  if (voiceGroup) {
+    const personaMap = {
+      'voice-greeting-open': 'casual_friendly',
+      'voice-returning-options': 'casual_friendly',
+      'voice-asking-for-a-choice': 'casual_friendly',
+      'voice-live-status-update': 'concise_neutral',
+      'voice-confirming-a-transaction': 'concise_neutral',
+      'voice-confirming-completion': 'concise_neutral',
+      'voice-delivering-bad-news': 'warm_clinical (override)'
+    };
+    voiceGroup.querySelectorAll('.toc__sub a').forEach(a => {
+      const id = a.getAttribute('href').replace(/^#/, '');
+      if (id === 'voice-home') return;
+      const label = a.textContent.trim();
+      const persona = personaMap[id] || '—';
+      push(`| ${label} | ${persona} | \`#${id}\` |`);
+    });
+  }
+
+  push(
+    '',
+    "**The override rule**: any safety-critical or emotionally heavy scenario",
+    'overrides the active persona. Money → concise_neutral. Bad news →',
+    'warm_clinical. Medical → warm_clinical. The brand pillars come first; the',
+    'persona is a colour, never a cost.',
+    '',
+    '---',
+    '',
+    '## Guidelines',
+    '',
+    "Detailed do's and don'ts are a future addition. Until then, the core rules:",
+    '',
+    '- **Use real values from this file.** Never invent token names. If something',
+    "  isn't here, ask before creating it.",
+    '- **Components are content-led.** Don\'t branch on type — swap the data and',
+    '  let the component handle it.',
+    '- **Confirm before destructive or financial actions.** That\'s a',
+    '  ConfirmPanel, every time.',
+    '- **Match the persona to the moment.** When in doubt, drop to',
+    "  `concise_neutral` — it's the safest fallback.",
+    '- **India first.** Default to local context (UPI, ₹, AM/PM, Hindi names) and',
+    '  let the partner override only when their vertical genuinely demands it.',
+    '',
+    '---',
+    '',
+    `*Generated from the live JBIQ showcase on ${new Date().toISOString().slice(0, 10)}.*`,
+    ''
+  );
+
+  return out.join('\n');
+}
+
+/* Wire the DESIGN.md download button to the generator. */
+(function bindDesignMdDownload() {
+  const btn = document.getElementById('designMdDownload');
+  if (!btn) return;
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const md = generateDesignMd();
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'DESIGN.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   });
 })();
 
@@ -2122,6 +4098,130 @@ document.addEventListener('click', (e) => {
   icon.classList.toggle('player-control__icon--play');
   btn.setAttribute('aria-label', wasPause ? 'Play' : 'Pause');
 });
+
+/* ----- DetailSheet carousel — update active dot on scroll, jump to slide on
+   dot click. Native scroll-snap drives the swipe; this only syncs the pager
+   indicator. ----- */
+(function initDetailSheetCarousels() {
+  document.querySelectorAll('.detail-sheet__carousel').forEach(carousel => {
+    const track = carousel.querySelector('[data-carousel]');
+    const dots = Array.from(carousel.querySelectorAll('.detail-sheet__dot'));
+    if (!track || !dots.length) return;
+    const slides = Array.from(track.children);
+    function updateActive() {
+      const trackRect = track.getBoundingClientRect();
+      const anchor = trackRect.left + 24;
+      let nearest = 0;
+      let nearestDist = Infinity;
+      slides.forEach((slide, i) => {
+        const r = slide.getBoundingClientRect();
+        const dist = Math.abs(r.left - anchor);
+        if (dist < nearestDist) { nearestDist = dist; nearest = i; }
+      });
+      dots.forEach((d, i) => d.classList.toggle('detail-sheet__dot--active', i === nearest));
+    }
+    track.addEventListener('scroll', updateActive, { passive: true });
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', () => {
+        dots.forEach((d, j) => d.classList.toggle('detail-sheet__dot--active', i === j));
+        track.scrollLeft = slides[i].offsetLeft - track.offsetLeft;
+      });
+    });
+  });
+})();
+
+/* ----- DetailSheet lightbox — tap a carousel slide to expand it full-screen,
+   swipe through the rest, close via the X, Escape, or backdrop click. The
+   lightbox shell is shared across all carousels; slides are cloned in on
+   open. On close, the source carousel scrolls to the slide the user landed
+   on so the two views stay in sync. ----- */
+(function initDetailSheetLightbox() {
+  const lb = document.querySelector('[data-lightbox]');
+  if (!lb) return;
+  const lbTrack = lb.querySelector('[data-lightbox-track]');
+  const lbDots = lb.querySelector('[data-lightbox-dots]');
+  const closeBtn = lb.querySelector('.detail-sheet-lightbox__close');
+  let sourceTrack = null;
+
+  function activeIndex(track) {
+    const trackRect = track.getBoundingClientRect();
+    const anchor = trackRect.left + 24;
+    const slides = Array.from(track.children);
+    let nearest = 0;
+    let nearestDist = Infinity;
+    slides.forEach((slide, i) => {
+      const r = slide.getBoundingClientRect();
+      const dist = Math.abs(r.left - anchor);
+      if (dist < nearestDist) { nearestDist = dist; nearest = i; }
+    });
+    return nearest;
+  }
+
+  function paintDots(activeIdx) {
+    Array.from(lbDots.children).forEach((d, i) => {
+      d.classList.toggle('detail-sheet-lightbox__dot--active', i === activeIdx);
+    });
+  }
+
+  function open(track, idx) {
+    sourceTrack = track;
+    lbTrack.innerHTML = '';
+    lbDots.innerHTML = '';
+    Array.from(track.children).forEach((src, i) => {
+      const slide = src.cloneNode(true);
+      slide.className = 'detail-sheet-lightbox__slide';
+      slide.style.background = src.style.background;
+      lbTrack.appendChild(slide);
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'detail-sheet-lightbox__dot';
+      dot.setAttribute('aria-label', `Show image ${i + 1}`);
+      lbDots.appendChild(dot);
+    });
+    lb.hidden = false;
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => {
+      const slide = lbTrack.children[idx];
+      if (slide) {
+        lbTrack.scrollLeft = slide.offsetLeft - lbTrack.offsetLeft;
+      }
+      paintDots(idx);
+    }, 0);
+    document.addEventListener('keydown', onKey);
+  }
+
+  function close() {
+    if (sourceTrack) {
+      const idx = activeIndex(lbTrack);
+      const slide = sourceTrack.children[idx];
+      if (slide) sourceTrack.scrollLeft = slide.offsetLeft - sourceTrack.offsetLeft;
+      sourceTrack.dispatchEvent(new Event('scroll'));
+    }
+    lb.hidden = true;
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', onKey);
+    sourceTrack = null;
+  }
+
+  function onKey(e) { if (e.key === 'Escape') close(); }
+
+  lbTrack.addEventListener('scroll', () => paintDots(activeIndex(lbTrack)), { passive: true });
+  lbDots.addEventListener('click', (e) => {
+    const dot = e.target.closest('.detail-sheet-lightbox__dot');
+    if (!dot) return;
+    const i = Array.from(lbDots.children).indexOf(dot);
+    const slide = lbTrack.children[i];
+    if (slide) lbTrack.scrollLeft = slide.offsetLeft - lbTrack.offsetLeft;
+  });
+  closeBtn.addEventListener('click', close);
+  lb.addEventListener('click', (e) => { if (e.target === lb) close(); });
+
+  document.querySelectorAll('.detail-sheet__carousel-track').forEach(track => {
+    Array.from(track.children).forEach((slide, idx) => {
+      slide.addEventListener('click', () => open(track, idx));
+    });
+  });
+})();
 </script>
 </body>
 </html>

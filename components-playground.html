@@ -717,7 +717,7 @@ const FRAMES = {
         replies: ["notify_when(arrived)", "share", "contact_driver"],
         component_render: { type: "Tracker", data: {
           stage:"Out for delivery", eta:"12 min", detail:"Amit · +91 ••• ••12 · Soi 7",
-          steps:[["accepted","done"],["preparing","done"],["picked up","done"],["out for delivery","active"],["delivered","pending"]]
+          steps:[["Accepted","done"],["Preparing","done"],["Picked up","done"],["Out for delivery","active"],["Delivered","pending"]]
         }}
       }
     ]
@@ -1724,11 +1724,9 @@ function renderEntityCard(d) {
           </div>
         </div>
       </div>
-      <div style="padding: 0 16px;">
-        ${x.actions.map(a =>
-          `<div style="margin-top:8px"><button class="${a[1] === 'primary' ? 'btn-primary' : 'btn-secondary'}">${a[0]}</button></div>`
-        ).join('')}
-      </div>
+      ${x.actions.map(a =>
+        `<div style="margin-top:8px"><button class="${a[1] === 'primary' ? 'btn-primary' : 'btn-secondary'}">${a[0]}</button></div>`
+      ).join('')}
     </div>`;
 }
 
