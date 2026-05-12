@@ -67,6 +67,17 @@
       margin: 0;
       padding: 0 var(--space-md);
     }
+    .page__canonical-link {
+      font-size: var(--font-size-caption);
+      margin: var(--space-xs) 0 0;
+      padding: 0 var(--space-md);
+    }
+    .page__canonical-link a {
+      color: var(--color-action-primary);
+      text-decoration: none;
+      font-weight: var(--font-weight-medium);
+    }
+    .page__canonical-link a:hover { text-decoration: underline; }
 
     /* Left rail — matches .toc on components-overview.html */
     .page__title-block {
@@ -810,12 +821,26 @@
       return node;
     }
 
-    /** @param {{ title: string, subtitle?: string }} props */
-    function renderSubjectHeader({ title, subtitle }) {
-      return el('header', { class: 'subject-header' }, [
-        el('h2', { class: 'subject-header__title', text: title }),
-        subtitle ? el('p', { class: 'subject-header__subtitle', text: subtitle }) : null,
-      ]);
+    /** @param {{ title: string, subtitle?: string, brand_chip?: { label: string, variant: string, name?: string } }} props */
+    function renderSubjectHeader({ title, subtitle, brand_chip }) {
+      const children = [];
+      if (brand_chip) {
+        const partner = [
+          el('span', {
+            class: `subject-header__brand-chip subject-header__brand-chip--${brand_chip.variant}`,
+            text: brand_chip.label,
+          }),
+        ];
+        if (brand_chip.name) {
+          partner.push(el('span', { class: 'subject-header__partner-name', text: brand_chip.name }));
+        }
+        children.push(el('div', { class: 'subject-header__partner' }, partner));
+      }
+      children.push(el('h2', { class: 'subject-header__title', text: title }));
+      if (subtitle) {
+        children.push(el('p', { class: 'subject-header__subtitle', text: subtitle }));
+      }
+      return el('header', { class: 'subject-header' }, children);
     }
 
     /** @param {{ area: string, changeLabel?: string, changeEvent: string }} props */
@@ -1019,7 +1044,7 @@
 
       // Content area — title, tags, meta, optional specs.
       const content = el('div', { class: 'place-card__content' });
-      content.appendChild(el('h3', { class: 'place-card__title', text: card.title }));
+      content.appendChild(el('h4', { class: 'place-card__title', text: card.title }));
 
       if (card.tags?.length) {
         content.appendChild(el('p', {
@@ -1090,7 +1115,7 @@
       }
 
       const content = el('div', { class: 'catalog-card__content' });
-      content.appendChild(el('h3', { class: 'catalog-card__title', text: card.title }));
+      content.appendChild(el('h4', { class: 'catalog-card__title', text: card.title }));
       if (card.subtitle) {
         content.appendChild(el('p', { class: 'catalog-card__subtitle', text: card.subtitle }));
       }
@@ -3964,6 +3989,203 @@
       },
     };
 
+    /* ---- Canonical transactional primitives — confirm → receipt → tracker.
+       Each carries `advance_to` so the on-card primary action chains the next
+       stage via window.advanceTransactionalStage (implemented in index.html).
+       Mocks here mirror the ones in discovery.js so the inspector panel can
+       show the payload; rendering inside the iframe is driven by discovery.js. */
+
+    const MOCK_KIRANA_CONFIRM = {
+      kind: 'confirm_view',
+      meta: { query: 'Sharma Kirana — confirm reorder' },
+      prompt: 'Place this reorder?',
+      summary: 'Sharma Kirana · Atta, Tea, Oil, Butter · Andheri West · COD',
+      total: '₹1,800',
+      actions: {
+        primary:   { label: 'Confirm', advance_to: 'kirana_receipt' },
+        secondary: { label: 'Cancel',  event: 'transactional.confirm.cancel' },
+      },
+    };
+
+    const MOCK_KIRANA_RECEIPT = {
+      kind: 'receipt_view',
+      meta: { query: 'Sharma Kirana — receipt' },
+      banner: { title: 'Order placed', sub: 'Sharma Kirana · #ord-44921' },
+      lines: [
+        { label: 'Atta · Tea · Oil · Butter (4 items)', value: '₹1,800' },
+        { label: 'Delivery',                            value: 'Free' },
+        { label: 'Paid via',                            value: 'UPI · @sharma' },
+      ],
+      total: { label: 'Total paid', value: '₹1,800' },
+      cta: { label: 'Track order →', advance_to: 'kirana_tracker' },
+    };
+
+    const MOCK_KIRANA_TRACKER = {
+      kind: 'tracker_view',
+      meta: { query: 'Sharma Kirana — track delivery' },
+      stage: 'Out for delivery',
+      eta: '18 min',
+      detail: 'Ramesh · +91 ••• ••12 · Sharma Kirana',
+      progress: 65,
+      steps: [
+        { label: 'Placed',           done: true },
+        { label: 'Packed',           done: true },
+        { label: 'Out for delivery', active: true },
+        { label: 'Delivered' },
+      ],
+    };
+
+    const MOCK_RECHARGE_TX_CONFIRM = {
+      kind: 'confirm_view',
+      meta: { query: 'Jio ₹299 — confirm plan' },
+      prompt: 'Recharge now with ₹299?',
+      summary: 'Jio prepaid · 2GB/day · 28 days · UPI ending 4421',
+      total: '₹299',
+      actions: {
+        primary:   { label: 'Confirm', advance_to: 'recharge_tx_receipt' },
+        secondary: { label: 'Cancel',  event: 'transactional.confirm.cancel' },
+      },
+    };
+
+    const MOCK_RECHARGE_TX_RECEIPT = {
+      kind: 'receipt_view',
+      meta: { query: 'Jio ₹299 — receipt' },
+      banner: { title: 'Recharge successful', sub: 'Jio prepaid · activates in under a minute' },
+      lines: [
+        { label: '₹299 prepaid plan', value: '₹299' },
+        { label: 'Validity',          value: '28 days' },
+        { label: 'Paid via',          value: 'UPI · @9999••@upi' },
+      ],
+      total: { label: 'Total paid', value: '₹299' },
+    };
+
+    /* ---- Picker primitives — option-sheet (pick-one) and timeline (slot pick). ---- */
+
+    const MOCK_OPTION_SHEET_LANGUAGE_PG = {
+      kind: 'option_sheet_view',
+      meta: { query: 'Pick voice language' },
+      subject: { title: 'Voice Language', subtitle: 'Pick how JBIQ will talk to you' },
+      title: 'Voice Language',
+      subtitle: "Pick how I'll talk to you. You can change this anytime in settings.",
+      options: [
+        { id: 'en', name: 'English',   native: 'English' },
+        { id: 'hi', name: 'Hindi',     native: 'हिन्दी' },
+        { id: 'ta', name: 'Tamil',     native: 'தமிழ்' },
+        { id: 'te', name: 'Telugu',    native: 'తెలుగు' },
+        { id: 'gu', name: 'Gujarati',  native: 'ગુજરાતી' },
+        { id: 'mr', name: 'Marathi',   native: 'मराठी' },
+        { id: 'bn', name: 'Bengali',   native: 'বাংলা' },
+      ],
+      commit:  { label: 'Set language', event: 'option_sheet.language.commit' },
+      closeLabel: 'Close',
+    };
+
+    const MOCK_OPTION_SHEET_UPI_PG = {
+      kind: 'option_sheet_view',
+      meta: { query: 'Pick default UPI account' },
+      subject: {
+        title: 'Default UPI account',
+        subtitle: 'Chosen for one-tap payments',
+        brand_chip: { label: 'J', variant: 'jio', name: 'JioPay' },
+      },
+      title: 'Default UPI account',
+      subtitle: 'JBIQ will charge this account when you confirm a payment.',
+      options: [
+        { id: 'sbi',  name: 'SBI · ••• 4421',  native: '@9999@sbi',   selected: true },
+        { id: 'hdfc', name: 'HDFC · ••• 8812', native: '@9999@hdfc' },
+        { id: 'paytm', name: 'Paytm wallet',   native: '@9999@paytm' },
+      ],
+      commit:  { label: 'Set as default', event: 'option_sheet.upi.commit' },
+      closeLabel: 'Close',
+    };
+
+    const MOCK_TIMELINE_RESTAURANT_PG = {
+      kind: 'timeline_view',
+      meta: { query: 'Restaurant slots tonight' },
+      subject: {
+        title: 'Drunken Monkey · tonight',
+        subtitle: '4 slots available · Koramangala',
+        brand_chip: { label: 'D', variant: 'dineout', name: 'Dineout' },
+      },
+      rows: [
+        { id: '1930', time: '19:30', title: 'Table for 2', meta: 'Available · No fee', active: true },
+        { id: '2000', time: '20:00', title: 'Table for 2', meta: 'Available' },
+        { id: '2030', time: '20:30', title: 'Table for 2', meta: 'Available · Window' },
+        { id: '2100', time: '21:00', title: 'Table for 2', meta: 'Last slot · Pre-pay only' },
+      ],
+    };
+
+    const MOCK_TIMELINE_DOCTOR_PG = {
+      kind: 'timeline_view',
+      meta: { query: 'Doctor slots tomorrow' },
+      subject: {
+        title: 'Dr. Aparna Rao · tomorrow',
+        subtitle: 'Dermatology · 14 yrs · Indiranagar',
+        brand_chip: { label: 'P', variant: 'practo', name: 'Practo' },
+      },
+      rows: [
+        { id: '1100', time: '11:00', title: 'Slot · 20 min', meta: 'Available', active: true },
+        { id: '1130', time: '11:30', title: 'Slot · 20 min', meta: 'Available' },
+        { id: '1200', time: '12:00', title: 'Slot · 20 min', meta: 'Available' },
+        { id: '1430', time: '14:30', title: 'Slot · 20 min', meta: 'Available · Tele-consult' },
+        { id: '1500', time: '15:00', title: 'Slot · 20 min', meta: 'Available' },
+      ],
+    };
+
+    /* ---- Detail-sheet primitives — full-screen detail with carousel. ---- */
+
+    const MOCK_DETAIL_SHEET_KURTA_PG = {
+      kind: 'detail_sheet_view',
+      meta: { query: 'Kurta detail' },
+      subject: {
+        title: 'Silk blend Nehru kurta',
+        subtitle: 'FabIndia · ₹1,499 · Men · Silk',
+        brand_chip: { label: 'F', variant: 'fabindia', name: 'FabIndia' },
+      },
+      title: 'Silk blend Nehru kurta',
+      ref: 'FabIndia',
+      carousel: [
+        { color: '#D4B896', label: '1 / 4 · Front' },
+        { color: '#A8835F', label: '2 / 4 · Back' },
+        { color: '#7B5A3F', label: '3 / 4 · Detail' },
+        { color: '#5C3D2E', label: '4 / 4 · On model' },
+      ],
+      rows: [
+        { label: 'Price',   value: '₹1,499' },
+        { label: 'Rating',  value: '4.4★ (1,820)' },
+        { label: 'Details', value: 'Silk · Men' },
+      ],
+      note: 'More photos, fit notes and reviews are TODO. For now, tap Buy now to commit.',
+      primary: { label: 'Buy now', event: 'detail_sheet.kurta.buy' },
+      closeLabel: 'Close',
+    };
+
+    const MOCK_DETAIL_SHEET_DOCTOR_PG = {
+      kind: 'detail_sheet_view',
+      meta: { query: 'Doctor detail' },
+      subject: {
+        title: 'Dr. Aparna Rao',
+        subtitle: 'Dermatologist · Fever & flu',
+        brand_chip: { label: 'P', variant: 'practo', name: 'Practo' },
+      },
+      title: 'Dr. Aparna Rao',
+      ref: 'Dermatologist · Fever & flu',
+      carousel: [
+        { color: '#D6E2D8', label: '1 / 3 · Exterior' },
+        { color: '#B5C9C0', label: '2 / 3 · Reception' },
+        { color: '#7A938A', label: '3 / 3 · Consult room' },
+      ],
+      rows: [
+        { label: 'Status',   value: 'Open' },
+        { label: 'Rating',   value: '4.8★ (240)' },
+        { label: 'Distance', value: '1.2 km · 8 min' },
+        { label: 'Price',    value: '₹1,200 first visit' },
+      ],
+      note: 'Slot list and clinic photos are TODO. For now, tap Book to confirm.',
+      primary: { label: 'Book the 11:00 slot', advance_to: 'timeline_doctor' },
+      closeLabel: 'Close',
+    };
+
     /* ---- §10.1 Informational responses — single-status answer (no card collection) ---- */
     const INFO_PM_KISAN_STATUS = {
       kind: 'informational_response',
@@ -4361,6 +4583,46 @@
             demonstrates: 'Edit-existing flow; modify-subscription affordances.' },
         ],
       },
+      {
+        group: 'Order flow (transactional)',
+        description: 'Canonical Confirm → Receipt → Tracker rhythm. Each card is a bare canonical primitive (no subject-header above, no cart embedded) — matching the Swiggy Food worked example in components-playground. Primary action on each stage chains the next via window.advanceTransactionalStage; pick any stage to enter the flow at that point.',
+        items: [
+          { key: 'kirana_confirm',      label: 'Kirana — confirm',  view: MOCK_KIRANA_CONFIRM,
+            demonstrates: 'Bare canonical Confirm panel (prompt · summary · total · Confirm/Cancel) — matches the Swiggy flow in components-playground. Primary action chains the receipt.' },
+          { key: 'kirana_receipt',      label: 'Kirana — receipt',  view: MOCK_KIRANA_RECEIPT,
+            demonstrates: 'Receipt panel with line items + total; Track CTA chains the tracker.' },
+          { key: 'kirana_tracker',      label: 'Kirana — tracker',  view: MOCK_KIRANA_TRACKER,
+            demonstrates: 'Tracker with stage, ETA, progress and step list (placed → packed → out → delivered).' },
+          { key: 'recharge_tx_confirm', label: '₹299 recharge — confirm',  view: MOCK_RECHARGE_TX_CONFIRM,
+            demonstrates: 'Same canonical Confirm panel applied to a digital recharge; primary chains the receipt.' },
+          { key: 'recharge_tx_receipt', label: '₹299 recharge — receipt',  view: MOCK_RECHARGE_TX_RECEIPT,
+            demonstrates: 'Receipt panel for a digital good (no tracker chain — recharge is instant).' },
+        ],
+      },
+      {
+        group: 'Picker flow',
+        description: 'Single-select primitives — Option Sheet (pick-one from many, commit) and Timeline (slot pick by time). Used for settings, payment accounts, reservation slots, doctor bookings.',
+        items: [
+          { key: 'option_sheet_language', label: 'Voice language pick',     view: MOCK_OPTION_SHEET_LANGUAGE_PG,
+            demonstrates: 'Long list (7 languages) with native script labels; radio-group semantics; commit button disabled until a pick is made.' },
+          { key: 'option_sheet_upi',      label: 'Default UPI account pick', view: MOCK_OPTION_SHEET_UPI_PG,
+            demonstrates: 'Short list with one pre-selected option; commit button enabled immediately.' },
+          { key: 'timeline_restaurant',   label: 'Restaurant slots tonight', view: MOCK_TIMELINE_RESTAURANT_PG,
+            demonstrates: 'Vertical agenda; first row active; meta text varies (No fee, Window, Pre-pay).' },
+          { key: 'timeline_doctor',       label: 'Doctor slots tomorrow',    view: MOCK_TIMELINE_DOCTOR_PG,
+            demonstrates: 'Mixed-availability slots; tele-consult marker on one row.' },
+        ],
+      },
+      {
+        group: 'Detail sheet',
+        description: 'Full-screen Detail Sheet — image carousel + dots, label/value rows, note, primary action. Used for product detail, service detail, place detail.',
+        items: [
+          { key: 'detail_sheet_kurta',  label: 'Kurta detail (carousel)',  view: MOCK_DETAIL_SHEET_KURTA_PG,
+            demonstrates: '4-slide carousel with dot navigation; scroll-snap track; product detail rows.' },
+          { key: 'detail_sheet_doctor', label: 'Doctor detail (carousel)', view: MOCK_DETAIL_SHEET_DOCTOR_PG,
+            demonstrates: '3-slide carousel; place/service detail rows; primary action chains the doctor timeline.' },
+        ],
+      },
     ];
 
     // Flat lookup: key -> { label, view }.
@@ -4620,6 +4882,12 @@
           class: 'page__subtitle',
           text: 'Pick a dataset to drive the real chat surface',
         }),
+        el('p', { class: 'page__canonical-link' }, [
+          el('a', {
+            href: 'components-overview.html#components-home',
+            text: 'View canonical components →',
+          }),
+        ]),
       ]);
 
       const homeStateSelect = el('select', { class: 'dataset-select__control' });

@@ -589,7 +589,7 @@ function renderPlaceResultCard(card) {
 
   // Content area — title, tags, meta, optional specs.
   const content = el('div', { class: 'place-card__content' });
-  content.appendChild(el('h3', { class: 'place-card__title', text: card.title }));
+  content.appendChild(el('h4', { class: 'place-card__title', text: card.title }));
 
   if (card.tags?.length) {
     content.appendChild(el('p', {
@@ -660,7 +660,7 @@ function renderCatalogResultCard(card) {
   }
 
   const content = el('div', { class: 'catalog-card__content' });
-  content.appendChild(el('h3', { class: 'catalog-card__title', text: card.title }));
+  content.appendChild(el('h4', { class: 'catalog-card__title', text: card.title }));
   if (card.subtitle) {
     content.appendChild(el('p', { class: 'catalog-card__subtitle', text: card.subtitle }));
   }
@@ -1071,6 +1071,543 @@ function renderInformationalResponse(view) {
 
   wrapper.appendChild(container);
   return wrapper;
+}
+
+/* ========================================================================
+   SECTION: transactional primitives — Cart, Confirm, Receipt, Tracker
+   Each renders the canonical primitive from components-overview.html using
+   classes already defined in components.css. Action buttons can advance to
+   another stage via window.advanceTransactionalStage(nextKey), which the
+   host page implements to append a new chat turn with the next view.
+   ======================================================================== */
+
+/**
+ * @param {{ rows: Array<{ name: string, qty?: string, price: string }>,
+ *           totals?: Array<{ label: string, value: string, total?: boolean }>,
+ *           cta?: { label: string, event: string } }} props
+ */
+function renderCartSection({ rows = [], totals = [], cta }) {
+  const section = el('div', { class: 'cart-section' });
+  for (const r of rows) {
+    section.appendChild(el('div', { class: 'cart-row' }, [
+      el('div', {}, [
+        el('div', { class: 'cart-name', text: r.name }),
+        r.qty ? el('div', { class: 'cart-qty', text: r.qty }) : null,
+      ]),
+      el('div', { class: 'cart-price', text: r.price }),
+    ]));
+  }
+  if (totals.length > 0) {
+    const totalsEl = el('div', { class: 'cart-totals' });
+    for (const t of totals) {
+      totalsEl.appendChild(el('div', {
+        class: 'total-row' + (t.total ? ' total-row--grand' : ''),
+      }, [
+        el('span', { text: t.label }),
+        el('span', { text: t.value }),
+      ]));
+    }
+    section.appendChild(totalsEl);
+  }
+  if (cta) {
+    section.appendChild(el('div', { class: 'cta-row' }, [
+      el('button', { class: 'btn-primary', type: 'button', 'data-event': cta.event, text: cta.label }),
+    ]));
+  }
+  return section;
+}
+
+/**
+ * Canonical Confirm Panel — bare `.confirm` card with prompt / summary / total
+ * / two actions. Matches the demo in components-playground.html (Swiggy Food
+ * flow): no subject-header, no cart-section above. The chat bubble preceding
+ * the card carries any narrative context.
+ * @param {{ kind: 'confirm_view',
+ *           prompt: string, summary: string, total: string,
+ *           actions: { primary: { label: string, advance_to?: string, event?: string },
+ *                      secondary?: { label: string, event?: string } } }} view
+ */
+function renderConfirmPanel(view) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'jbiq-discovery';
+  wrapper.__jbiqView = view;
+
+  const primary = el('button', {
+    class: 'btn-primary',
+    type: 'button',
+    'data-event': view.actions.primary.event || 'transactional.confirm.pay',
+    text: view.actions.primary.label,
+  });
+  if (view.actions.primary.advance_to) {
+    const nextKey = view.actions.primary.advance_to;
+    primary.addEventListener('click', () => {
+      if (typeof window.advanceTransactionalStage === 'function') {
+        window.advanceTransactionalStage(nextKey);
+      }
+    });
+  }
+  const secondary = view.actions.secondary
+    ? el('button', {
+        class: 'btn-secondary',
+        type: 'button',
+        'data-event': view.actions.secondary.event || 'transactional.confirm.cancel',
+        text: view.actions.secondary.label,
+      })
+    : null;
+
+  wrapper.appendChild(el('div', { class: 'confirm' }, [
+    el('div', { class: 'confirm-prompt', text: view.prompt }),
+    el('div', { class: 'confirm-summary', text: view.summary }),
+    el('div', { class: 'confirm-total', text: view.total }),
+    el('div', { class: 'confirm-actions' }, [primary, secondary].filter(Boolean)),
+  ]));
+  return wrapper;
+}
+
+/**
+ * Canonical Receipt Panel — bare `.receipt` card with banner / line items /
+ * total. Matches components-playground.html: no subject-header above.
+ * @param {{ kind: 'receipt_view',
+ *           banner: { title: string, sub: string },
+ *           lines: Array<{ label: string, value: string }>,
+ *           total: { label: string, value: string },
+ *           cta?: { label: string, advance_to?: string, event?: string } }} view
+ */
+function renderReceiptPanel(view) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'jbiq-discovery';
+  wrapper.__jbiqView = view;
+
+  const lines = (view.lines || []).map((l) => el('div', { class: 'receipt-line' }, [
+    el('div', { text: l.label }),
+    el('div', { text: l.value }),
+  ]));
+  const totalLine = el('div', { class: 'receipt-line receipt-total' }, [
+    el('div', { text: view.total.label }),
+    el('div', { text: view.total.value }),
+  ]);
+
+  wrapper.appendChild(el('div', { class: 'receipt' }, [
+    el('div', { class: 'receipt-banner' }, [
+      el('div', { class: 'receipt-check', text: '✓' }),
+      el('div', {}, [
+        el('div', { class: 'receipt-title', text: view.banner.title }),
+        el('div', { class: 'receipt-sub', text: view.banner.sub }),
+      ]),
+    ]),
+    el('div', {}, [...lines, totalLine]),
+  ]));
+
+  if (view.cta) {
+    const cta = el('button', {
+      class: 'btn-primary',
+      type: 'button',
+      style: { margin: 'var(--space-md) var(--space-lg) 0' },
+      'data-event': view.cta.event || 'transactional.receipt.track',
+      text: view.cta.label,
+    });
+    if (view.cta.advance_to) {
+      const nextKey = view.cta.advance_to;
+      cta.addEventListener('click', () => {
+        if (typeof window.advanceTransactionalStage === 'function') {
+          window.advanceTransactionalStage(nextKey);
+        }
+      });
+    }
+    wrapper.appendChild(el('div', { class: 'cta-row' }, [cta]));
+  }
+
+  return wrapper;
+}
+
+/**
+ * Canonical Tracker — bare `.tracker` card. Matches components-playground.html.
+ * @param {{ kind: 'tracker_view',
+ *           stage: string, eta: string, detail: string, progress: number,
+ *           steps?: Array<{ label: string, done?: boolean, active?: boolean }> }} view
+ */
+function renderTracker(view) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'jbiq-discovery';
+  wrapper.__jbiqView = view;
+
+  const media = el('div', { class: 'tracker__media' }, [
+    el('div', {}, [
+      el('div', { class: 'tracker__stage', text: view.stage }),
+      el('div', { class: 'tracker__eta', text: view.eta }),
+      el('div', { class: 'tracker__detail', text: view.detail }),
+    ]),
+    el('div', { class: 'tracker__progress' }, [
+      el('div', {
+        class: 'tracker__progress-fill',
+        style: { width: `${Math.max(0, Math.min(100, view.progress || 0))}%` },
+      }),
+    ]),
+  ]);
+
+  const trackerChildren = [media];
+  if (Array.isArray(view.steps) && view.steps.length > 0) {
+    const steps = el('div', { class: 'tracker__steps' });
+    for (const s of view.steps) {
+      const mod = s.active ? ' tracker__step--active' : (s.done ? ' tracker__step--done' : '');
+      steps.appendChild(el('div', { class: `tracker__step${mod}`, text: s.label }));
+    }
+    trackerChildren.push(steps);
+  }
+  wrapper.appendChild(el('div', { class: 'tracker' }, trackerChildren));
+
+  return wrapper;
+}
+
+/**
+ * Top-level transactional dispatcher. Routes by `kind` to the right renderer.
+ * @param {{ kind: 'confirm_view' | 'receipt_view' | 'tracker_view' }} view
+ */
+function renderTransactionalView(view) {
+  const result = validateTransactionalView(view);
+  if (!result.valid) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'jbiq-discovery';
+    wrapper.appendChild(renderValidatorBanner(result.errors));
+    return wrapper;
+  }
+  switch (view.kind) {
+    case 'confirm_view':       return renderConfirmPanel(view);
+    case 'receipt_view':       return renderReceiptPanel(view);
+    case 'tracker_view':       return renderTracker(view);
+    case 'option_sheet_view':  return renderOptionSheet(view);
+    case 'timeline_view':      return renderTimeline(view);
+    case 'detail_sheet_view':  return renderDetailSheet(view);
+    default: {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'jbiq-discovery';
+      wrapper.appendChild(renderValidatorBanner([`unknown transactional kind "${view.kind}"`]));
+      return wrapper;
+    }
+  }
+}
+
+/* ========================================================================
+   SECTION: picker primitives — Option Sheet, Timeline
+   ======================================================================== */
+
+/**
+ * @param {{ kind: 'option_sheet_view', subject: { title: string, subtitle?: string,
+ *           brand_chip?: { label: string, variant: string, name?: string } },
+ *           title: string, subtitle?: string,
+ *           options: Array<{ id: string, name: string, native?: string, selected?: boolean }>,
+ *           commit: { label: string, advance_to?: string, event?: string },
+ *           closeLabel?: string }} view
+ */
+function renderOptionSheet(view) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'jbiq-discovery';
+  wrapper.__jbiqView = view;
+
+  const container = el('div', { class: 'discovery-view' });
+  container.appendChild(renderSubjectHeader(view.subject));
+
+  const sheet = el('div', { class: 'option-sheet', 'data-option-sheet': '' }, [
+    el('div', { class: 'option-sheet__grabber' }),
+    el('div', { class: 'option-sheet__title', text: view.title }),
+    view.subtitle ? el('div', { class: 'option-sheet__subtitle', text: view.subtitle }) : null,
+  ]);
+
+  const list = el('div', {
+    class: 'option-sheet__list',
+    role: 'radiogroup',
+    'aria-label': view.title,
+  });
+  let selectedId = view.options.find((o) => o.selected)?.id || null;
+  const optionButtons = [];
+
+  const commit = el('button', {
+    class: 'option-sheet__btn option-sheet__btn--primary',
+    type: 'button',
+    'data-option-sheet-commit': '',
+    text: view.commit.label,
+  });
+  if (!selectedId) commit.setAttribute('disabled', '');
+
+  for (const opt of view.options) {
+    const isSelected = opt.id === selectedId;
+    const btn = el('button', {
+      class: 'option-sheet__option',
+      type: 'button',
+      role: 'radio',
+      'aria-checked': isSelected ? 'true' : 'false',
+      'data-option-id': opt.id,
+    }, [
+      el('span', { class: 'option-sheet__option-text' }, [
+        el('span', { class: 'option-sheet__option-name', text: opt.name }),
+        opt.native ? el('span', { class: 'option-sheet__option-native', text: opt.native }) : null,
+      ]),
+      // SVG check — visible when --selected modifier is present
+      (function () {
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(svgNS, 'svg');
+        svg.setAttribute('class', 'option-sheet__option-check');
+        svg.setAttribute('viewBox', '0 0 18 18');
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('aria-hidden', 'true');
+        const path = document.createElementNS(svgNS, 'path');
+        path.setAttribute('d', 'M3.5 9.5l3.5 3.5 7.5-8');
+        path.setAttribute('stroke', 'currentColor');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke-linecap', 'round');
+        path.setAttribute('stroke-linejoin', 'round');
+        svg.appendChild(path);
+        return svg;
+      })(),
+    ]);
+    if (isSelected) btn.classList.add('option-sheet__option--selected');
+    btn.addEventListener('click', () => {
+      selectedId = opt.id;
+      for (const b of optionButtons) {
+        const id = b.getAttribute('data-option-id');
+        const sel = id === selectedId;
+        b.setAttribute('aria-checked', sel ? 'true' : 'false');
+        b.classList.toggle('option-sheet__option--selected', sel);
+      }
+      commit.removeAttribute('disabled');
+    });
+    optionButtons.push(btn);
+    list.appendChild(btn);
+  }
+  sheet.appendChild(list);
+
+  if (view.commit.advance_to) {
+    const nextKey = view.commit.advance_to;
+    commit.addEventListener('click', () => {
+      if (!selectedId) return;
+      if (typeof window.advanceTransactionalStage === 'function') {
+        window.advanceTransactionalStage(nextKey);
+      }
+    });
+  }
+  sheet.appendChild(commit);
+
+  if (view.closeLabel) {
+    sheet.appendChild(el('button', {
+      class: 'option-sheet__btn',
+      type: 'button',
+      text: view.closeLabel,
+    }));
+  }
+
+  container.appendChild(sheet);
+  wrapper.appendChild(container);
+  return wrapper;
+}
+
+/**
+ * @param {{ kind: 'timeline_view', subject: { title: string, subtitle?: string,
+ *           brand_chip?: { label: string, variant: string, name?: string } },
+ *           rows: Array<{ id: string, time: string, title: string, meta?: string,
+ *                         active?: boolean, advance_to?: string, event?: string }> }} view
+ */
+function renderTimeline(view) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'jbiq-discovery';
+  wrapper.__jbiqView = view;
+
+  const container = el('div', { class: 'discovery-view' });
+  container.appendChild(renderSubjectHeader(view.subject));
+
+  const tl = el('div', { class: 'timeline' });
+  for (const r of (view.rows || [])) {
+    // Use button when the row is bookable (has advance_to or event), div otherwise.
+    const interactive = !!(r.advance_to || r.event);
+    const row = el(interactive ? 'button' : 'div', {
+      class: 'tl-row',
+      type: interactive ? 'button' : null,
+      'data-active': r.active ? 'true' : 'false',
+      'data-event': r.event,
+    }, [
+      el('div', { class: 'tl-time', text: r.time }),
+      el('div', {}, [
+        el('div', { class: 'tl-title', text: r.title }),
+        r.meta ? el('div', { class: 'tl-meta', text: r.meta }) : null,
+      ]),
+    ]);
+    if (r.advance_to) {
+      const nextKey = r.advance_to;
+      row.addEventListener('click', () => {
+        if (typeof window.advanceTransactionalStage === 'function') {
+          window.advanceTransactionalStage(nextKey);
+        }
+      });
+    }
+    tl.appendChild(row);
+  }
+  container.appendChild(tl);
+
+  wrapper.appendChild(container);
+  return wrapper;
+}
+
+/**
+ * @param {{ kind: 'detail_sheet_view', subject: { title: string, subtitle?: string,
+ *           brand_chip?: { label: string, variant: string, name?: string } },
+ *           title: string, ref?: string,
+ *           carousel?: Array<{ label: string, color?: string, image?: string }>,
+ *           rows: Array<{ label: string, value: string, total?: boolean }>,
+ *           note?: string,
+ *           primary: { label: string, advance_to?: string, event?: string },
+ *           closeLabel?: string }} view
+ */
+function renderDetailSheet(view) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'jbiq-discovery';
+  wrapper.__jbiqView = view;
+
+  const container = el('div', { class: 'discovery-view' });
+  container.appendChild(renderSubjectHeader(view.subject));
+
+  const sheet = el('div', { class: 'detail-sheet' });
+  sheet.appendChild(el('div', { class: 'detail-sheet__grabber' }));
+
+  if (Array.isArray(view.carousel) && view.carousel.length > 0) {
+    const track = el('div', { class: 'detail-sheet__carousel-track', 'data-carousel': '' });
+    const slides = view.carousel.map((s, idx) => {
+      const slide = el('div', {
+        class: 'detail-sheet__carousel-slide',
+        style: s.color ? { background: s.color }
+              : s.image ? { backgroundImage: `url(${s.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+              : {},
+      }, [
+        el('span', { class: 'detail-sheet__carousel-label', text: s.label || `${idx + 1} / ${view.carousel.length}` }),
+      ]);
+      track.appendChild(slide);
+      return slide;
+    });
+    const dotsEl = el('div', { class: 'detail-sheet__dots', 'data-dots': '' });
+    const dotButtons = view.carousel.map((_, idx) => {
+      const dot = el('button', {
+        class: 'detail-sheet__dot' + (idx === 0 ? ' detail-sheet__dot--active' : ''),
+        type: 'button',
+        'aria-label': `Show image ${idx + 1}`,
+      });
+      dot.addEventListener('click', () => {
+        slides[idx].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        for (const d of dotButtons) d.classList.remove('detail-sheet__dot--active');
+        dot.classList.add('detail-sheet__dot--active');
+      });
+      dotsEl.appendChild(dot);
+      return dot;
+    });
+    // Sync active dot when the user scrolls/swipes the track.
+    track.addEventListener('scroll', () => {
+      const trackRect = track.getBoundingClientRect();
+      const center = trackRect.left + trackRect.width / 2;
+      let bestIdx = 0;
+      let bestDist = Infinity;
+      slides.forEach((s, idx) => {
+        const r = s.getBoundingClientRect();
+        const sc = r.left + r.width / 2;
+        const d = Math.abs(sc - center);
+        if (d < bestDist) { bestDist = d; bestIdx = idx; }
+      });
+      for (const d of dotButtons) d.classList.remove('detail-sheet__dot--active');
+      dotButtons[bestIdx]?.classList.add('detail-sheet__dot--active');
+    }, { passive: true });
+    sheet.appendChild(el('div', { class: 'detail-sheet__carousel' }, [track, dotsEl]));
+  }
+
+  sheet.appendChild(el('div', { class: 'detail-sheet__title', text: view.title }));
+  if (view.ref) sheet.appendChild(el('div', { class: 'detail-sheet__ref', text: view.ref }));
+
+  if (Array.isArray(view.rows) && view.rows.length > 0) {
+    const rowsEl = el('div', { class: 'detail-sheet__rows' });
+    for (const r of view.rows) {
+      rowsEl.appendChild(el('div', {
+        class: 'detail-sheet__row' + (r.total ? ' detail-sheet__row--total' : ''),
+      }, [
+        el('span', { class: 'detail-sheet__row-label', text: r.label }),
+        el('span', { class: 'detail-sheet__row-value', text: r.value }),
+      ]));
+    }
+    sheet.appendChild(rowsEl);
+  }
+
+  if (view.note) sheet.appendChild(el('div', { class: 'detail-sheet__note', text: view.note }));
+
+  const primary = el('button', {
+    class: 'detail-sheet__btn detail-sheet__btn--primary',
+    type: 'button',
+    'data-event': view.primary.event,
+    text: view.primary.label,
+  });
+  if (view.primary.advance_to) {
+    const nextKey = view.primary.advance_to;
+    primary.addEventListener('click', () => {
+      if (typeof window.advanceTransactionalStage === 'function') {
+        window.advanceTransactionalStage(nextKey);
+      }
+    });
+  }
+  sheet.appendChild(primary);
+
+  if (view.closeLabel) {
+    sheet.appendChild(el('button', { class: 'detail-sheet__btn', type: 'button', text: view.closeLabel }));
+  }
+
+  container.appendChild(sheet);
+  wrapper.appendChild(container);
+  return wrapper;
+}
+
+/* ----- Validators for transactional shapes ----- */
+function validateTransactionalView(view) {
+  const errors = [];
+  if (!view || typeof view !== 'object') {
+    return { valid: false, errors: ['view is not an object'] };
+  }
+  if (!view.kind) errors.push('missing kind');
+  // Canonical primitives (confirm/receipt/tracker) intentionally have no
+  // subject header — context comes from the chat bubble preceding the card.
+  // Picker and detail-sheet kinds still carry a subject for the inspector
+  // context, but it's not required at runtime.
+  switch (view.kind) {
+    case 'confirm_view':
+      if (!view.prompt) errors.push('confirm: missing prompt');
+      if (!view.summary) errors.push('confirm: missing summary');
+      if (!view.total) errors.push('confirm: missing total');
+      if (!view.actions || !view.actions.primary || !view.actions.primary.label) {
+        errors.push('confirm: missing actions.primary.label');
+      }
+      break;
+    case 'receipt_view':
+      if (!view.banner || !view.banner.title) errors.push('receipt: missing banner.title');
+      if (!Array.isArray(view.lines)) errors.push('receipt: lines must be an array');
+      if (!view.total || !view.total.value) errors.push('receipt: missing total.value');
+      break;
+    case 'tracker_view':
+      if (!view.stage) errors.push('tracker: missing stage');
+      if (typeof view.progress !== 'number') errors.push('tracker: progress must be a number');
+      break;
+    case 'option_sheet_view':
+      if (!view.title) errors.push('option_sheet: missing title');
+      if (!Array.isArray(view.options) || view.options.length === 0) {
+        errors.push('option_sheet: options must be a non-empty array');
+      }
+      if (!view.commit || !view.commit.label) errors.push('option_sheet: missing commit.label');
+      break;
+    case 'timeline_view':
+      if (!Array.isArray(view.rows) || view.rows.length === 0) {
+        errors.push('timeline: rows must be a non-empty array');
+      }
+      break;
+    case 'detail_sheet_view':
+      if (!view.title) errors.push('detail_sheet: missing title');
+      if (!view.primary || !view.primary.label) errors.push('detail_sheet: missing primary.label');
+      if (view.carousel && !Array.isArray(view.carousel)) errors.push('detail_sheet: carousel must be an array');
+      if (view.rows && !Array.isArray(view.rows)) errors.push('detail_sheet: rows must be an array');
+      break;
+    default:
+      errors.push(`unknown transactional kind "${view.kind}"`);
+  }
+  return { valid: errors.length === 0, errors };
 }
 
 /**
@@ -5091,6 +5628,192 @@ const DATASET_GROUPS = [
   },
 ];
 
+/* ------------------------------------------------------------------------
+   Transactional flow mocks — confirm → receipt → tracker chains.
+   Each stage carries `advance_to` pointing at the next stage's dataset key,
+   wired through window.advanceTransactionalStage in the host.
+   ------------------------------------------------------------------------ */
+
+const MOCK_CONFIRM_KIRANA = {
+  kind: 'confirm_view',
+  prompt: 'Place this reorder?',
+  summary: 'Sharma Kirana · Atta, Tea, Oil, Butter · Andheri West · COD',
+  total: '₹1,800',
+  actions: {
+    primary:   { label: 'Confirm', advance_to: 'kirana_receipt' },
+    secondary: { label: 'Cancel',  event: 'transactional.confirm.cancel' },
+  },
+};
+
+const MOCK_RECEIPT_KIRANA = {
+  kind: 'receipt_view',
+  banner: { title: 'Order placed', sub: 'Sharma Kirana · #ord-44921' },
+  lines: [
+    { label: 'Atta · Tea · Oil · Butter (4 items)', value: '₹1,800' },
+    { label: 'Delivery',                            value: 'Free' },
+    { label: 'Paid via',                            value: 'UPI · @sharma' },
+  ],
+  total: { label: 'Total paid', value: '₹1,800' },
+  cta: { label: 'Track order →', advance_to: 'kirana_tracker' },
+};
+
+const MOCK_TRACKER_KIRANA = {
+  kind: 'tracker_view',
+  stage: 'Out for delivery',
+  eta: '18 min',
+  detail: 'Ramesh · +91 ••• ••12 · Sharma Kirana',
+  progress: 65,
+  steps: [
+    { label: 'Placed',           done: true },
+    { label: 'Packed',           done: true },
+    { label: 'Out for delivery', active: true },
+    { label: 'Delivered' },
+  ],
+};
+
+const MOCK_CONFIRM_RECHARGE_TX = {
+  kind: 'confirm_view',
+  prompt: 'Recharge now with ₹299?',
+  summary: 'Jio prepaid · 2GB/day · 28 days · UPI ending 4421',
+  total: '₹299',
+  actions: {
+    primary:   { label: 'Confirm', advance_to: 'recharge_tx_receipt' },
+    secondary: { label: 'Cancel',  event: 'transactional.confirm.cancel' },
+  },
+};
+
+const MOCK_RECEIPT_RECHARGE_TX = {
+  kind: 'receipt_view',
+  banner: { title: 'Recharge successful', sub: 'Jio prepaid · activates in under a minute' },
+  lines: [
+    { label: '₹299 prepaid plan',  value: '₹299' },
+    { label: 'Validity',           value: '28 days' },
+    { label: 'Paid via',           value: 'UPI · @9999••@upi' },
+  ],
+  total: { label: 'Total paid', value: '₹299' },
+};
+
+/* ----- Picker primitives — Option Sheet and Timeline mocks. ----- */
+
+const MOCK_OPTION_SHEET_LANGUAGE = {
+  kind: 'option_sheet_view',
+  subject: { title: 'Voice Language', subtitle: 'Pick how JBIQ will talk to you' },
+  title: 'Voice Language',
+  subtitle: "Pick how I'll talk to you. You can change this anytime in settings.",
+  options: [
+    { id: 'en', name: 'English',   native: 'English' },
+    { id: 'hi', name: 'Hindi',     native: 'हिन्दी' },
+    { id: 'ta', name: 'Tamil',     native: 'தமிழ்' },
+    { id: 'te', name: 'Telugu',    native: 'తెలుగు' },
+    { id: 'gu', name: 'Gujarati',  native: 'ગુજરાતી' },
+    { id: 'mr', name: 'Marathi',   native: 'मराठी' },
+    { id: 'bn', name: 'Bengali',   native: 'বাংলা' },
+  ],
+  commit:  { label: 'Set language', event: 'option_sheet.language.commit' },
+  closeLabel: 'Close',
+};
+
+const MOCK_OPTION_SHEET_UPI = {
+  kind: 'option_sheet_view',
+  subject: {
+    title: 'Default UPI account',
+    subtitle: 'Chosen for one-tap payments',
+    brand_chip: { label: 'J', variant: 'jio', name: 'JioPay' },
+  },
+  title: 'Default UPI account',
+  subtitle: 'JBIQ will charge this account when you confirm a payment.',
+  options: [
+    { id: 'sbi',  name: 'SBI · ••• 4421',   native: '@9999@sbi',     selected: true },
+    { id: 'hdfc', name: 'HDFC · ••• 8812',  native: '@9999@hdfc' },
+    { id: 'paytm', name: 'Paytm wallet',    native: '@9999@paytm' },
+  ],
+  commit:  { label: 'Set as default', event: 'option_sheet.upi.commit' },
+  closeLabel: 'Close',
+};
+
+const MOCK_TIMELINE_RESTAURANT_SLOTS = {
+  kind: 'timeline_view',
+  subject: {
+    title: 'Drunken Monkey · tonight',
+    subtitle: '4 slots available · Koramangala',
+    brand_chip: { label: 'D', variant: 'dineout', name: 'Dineout' },
+  },
+  rows: [
+    { id: '1930', time: '19:30', title: 'Table for 2', meta: 'Available · No fee', active: true },
+    { id: '2000', time: '20:00', title: 'Table for 2', meta: 'Available' },
+    { id: '2030', time: '20:30', title: 'Table for 2', meta: 'Available · Window' },
+    { id: '2100', time: '21:00', title: 'Table for 2', meta: 'Last slot · Pre-pay only' },
+  ],
+};
+
+const MOCK_TIMELINE_DOCTOR_SLOTS = {
+  kind: 'timeline_view',
+  subject: {
+    title: 'Dr. Aparna Rao · tomorrow',
+    subtitle: 'Dermatology · 14 yrs · Indiranagar',
+    brand_chip: { label: 'P', variant: 'practo', name: 'Practo' },
+  },
+  rows: [
+    { id: '1100', time: '11:00', title: 'Slot · 20 min', meta: 'Available', active: true },
+    { id: '1130', time: '11:30', title: 'Slot · 20 min', meta: 'Available' },
+    { id: '1200', time: '12:00', title: 'Slot · 20 min', meta: 'Available' },
+    { id: '1430', time: '14:30', title: 'Slot · 20 min', meta: 'Available · Tele-consult' },
+    { id: '1500', time: '15:00', title: 'Slot · 20 min', meta: 'Available' },
+  ],
+};
+
+/* ----- Detail-sheet mocks (carousel + rows + primary action) ----- */
+
+const MOCK_DETAIL_SHEET_KURTA = {
+  kind: 'detail_sheet_view',
+  subject: {
+    title: 'Silk blend Nehru kurta',
+    subtitle: 'FabIndia · ₹1,499 · Men · Silk',
+    brand_chip: { label: 'F', variant: 'fabindia', name: 'FabIndia' },
+  },
+  title: 'Silk blend Nehru kurta',
+  ref: 'FabIndia',
+  carousel: [
+    { color: '#D4B896', label: '1 / 4 · Front' },
+    { color: '#A8835F', label: '2 / 4 · Back' },
+    { color: '#7B5A3F', label: '3 / 4 · Detail' },
+    { color: '#5C3D2E', label: '4 / 4 · On model' },
+  ],
+  rows: [
+    { label: 'Price',   value: '₹1,499' },
+    { label: 'Rating',  value: '4.4★ (1,820)' },
+    { label: 'Details', value: 'Silk · Men' },
+  ],
+  note: 'More photos, fit notes and reviews are TODO. For now, tap Buy now to commit.',
+  primary: { label: 'Buy now', event: 'detail_sheet.kurta.buy' },
+  closeLabel: 'Close',
+};
+
+const MOCK_DETAIL_SHEET_DOCTOR = {
+  kind: 'detail_sheet_view',
+  subject: {
+    title: 'Dr. Aparna Rao',
+    subtitle: 'Dermatologist · Fever & flu',
+    brand_chip: { label: 'P', variant: 'practo', name: 'Practo' },
+  },
+  title: 'Dr. Aparna Rao',
+  ref: 'Dermatologist · Fever & flu',
+  carousel: [
+    { color: '#D6E2D8', label: '1 / 3 · Exterior' },
+    { color: '#B5C9C0', label: '2 / 3 · Reception' },
+    { color: '#7A938A', label: '3 / 3 · Consult room' },
+  ],
+  rows: [
+    { label: 'Status',   value: 'Open' },
+    { label: 'Rating',   value: '4.8★ (240)' },
+    { label: 'Distance', value: '1.2 km · 8 min' },
+    { label: 'Price',    value: '₹1,200 first visit' },
+  ],
+  note: 'Slot list and clinic photos are TODO. For now, tap Book to confirm.',
+  primary: { label: 'Book the 11:00 slot', advance_to: 'timeline_doctor' },
+  closeLabel: 'Close',
+};
+
 /**
  * Voice-first use cases (Path A) — registry of new DiscoveryView mocks. Kept
  * separate from DATASET_GROUPS so the existing prototype-panel grouping (Place
@@ -5123,6 +5846,24 @@ const PARTNER_DATASET_ENTRIES = [
   { key: 'bus_vrl_booking_confirm', label: 'Confirm bus booking',            view: MOCK_BUS_VRL_BOOKING_CONFIRM },
 ];
 
+// Transactional flow entries (confirm → receipt → tracker). Routed by
+// renderTransactionalView in the host page, not renderDiscoveryView. Each
+// stage carries an `advance_to` key pointing at the next stage, which the
+// host resolves via DATASETS[key].view → renderTransactionalView.
+const TRANSACTIONAL_DATASET_ENTRIES = [
+  { key: 'kirana_confirm',         label: 'Kirana reorder — confirm', view: MOCK_CONFIRM_KIRANA },
+  { key: 'kirana_receipt',         label: 'Kirana reorder — receipt', view: MOCK_RECEIPT_KIRANA },
+  { key: 'kirana_tracker',         label: 'Kirana reorder — tracker', view: MOCK_TRACKER_KIRANA },
+  { key: 'recharge_tx_confirm',    label: '₹299 recharge — confirm',  view: MOCK_CONFIRM_RECHARGE_TX },
+  { key: 'recharge_tx_receipt',    label: '₹299 recharge — receipt',  view: MOCK_RECEIPT_RECHARGE_TX },
+  { key: 'option_sheet_language',  label: 'Pick voice language',      view: MOCK_OPTION_SHEET_LANGUAGE },
+  { key: 'option_sheet_upi',       label: 'Pick default UPI account', view: MOCK_OPTION_SHEET_UPI },
+  { key: 'timeline_restaurant',    label: 'Restaurant slots — tonight', view: MOCK_TIMELINE_RESTAURANT_SLOTS },
+  { key: 'timeline_doctor',        label: 'Doctor slots — tomorrow',  view: MOCK_TIMELINE_DOCTOR_SLOTS },
+  { key: 'detail_sheet_kurta',     label: 'Kurta detail (carousel)',  view: MOCK_DETAIL_SHEET_KURTA },
+  { key: 'detail_sheet_doctor',    label: 'Doctor detail (carousel)', view: MOCK_DETAIL_SHEET_DOCTOR },
+];
+
 // Flat lookup: key -> { label, view }. Includes the 20 legacy mocks plus the
 // new pillar-keyed DiscoveryView mocks. Informational responses live in their
 // own registry (INFORMATIONAL_RESPONSES) — keep that lookup separate so the
@@ -5131,6 +5872,7 @@ const DATASETS = Object.fromEntries([
   ...DATASET_GROUPS.flatMap((g) => g.items.map((it) => [it.key, it])),
   ...PILLAR_DATASET_ENTRIES.map((it) => [it.key, it]),
   ...PARTNER_DATASET_ENTRIES.map((it) => [it.key, it]),
+  ...TRANSACTIONAL_DATASET_ENTRIES.map((it) => [it.key, it]),
 ]);
 
 /**
@@ -5181,7 +5923,9 @@ const PILLAR_GROUPS = [
 window.renderDiscoveryView = renderDiscoveryView;
 window.renderInformationalResponse = renderInformationalResponse;
 window.renderSuggestedPrompts = renderSuggestedPrompts;
+window.renderTransactionalView = renderTransactionalView;
 window.validateDiscoveryView = validateDiscoveryView;
+window.validateTransactionalView = validateTransactionalView;
 window.DATASETS = DATASETS;
 window.DATASET_GROUPS = DATASET_GROUPS;
 window.PILLAR_GROUPS = PILLAR_GROUPS;

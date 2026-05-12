@@ -290,6 +290,26 @@
   /* Component card's tab panels don't need the default 24px top/bottom pad */
   .component-card .tab-panel { padding: 0; }
 
+  /* Supporting-primitives layout: stack mini-examples vertically with light
+     dividers and a small label above each. Used only on
+     #components-supportingprimitives. */
+  .component-card__section { padding: var(--space-md) var(--space-lg); border-bottom: 1px solid var(--color-border-default); }
+  .component-card__section:last-child { border-bottom: none; }
+  .component-card__section-title {
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--space-sm);
+  }
+  /* Inner primitives shouldn't double-pad inside __section. */
+  .component-card__section .location-context,
+  .component-card__section .sort-control,
+  .component-card__section .info-list,
+  .component-card__section .empty-state { padding-left: 0; padding-right: 0; }
+  .component-card__section .info-list { margin: 0; }
+
   /* Tabs sit on the page surface above the white content card, not inside it */
   .tabs {
     display: flex;
@@ -1260,6 +1280,7 @@
       <a href="#components-optionsheet">Option Sheet</a>
       <a href="#components-mediaplayer">Media Player</a>
       <a href="#components-gallery">Gallery</a>
+      <a href="#components-supportingprimitives">Supporting primitives</a>
     </div>
   </details>
 
@@ -1705,20 +1726,20 @@
             <div class="compare-table__options">
               <div class="compare-table__option compare-table__option--recommended">
                 <div class="compare-table__header-cell">
-                  <div class="compare-table__header-title">Soi 7</div>
-                  <div class="compare-table__header-sub">Recommended</div>
+                  <div class="compare-table__option-title">Soi 7</div>
+                  <div class="compare-table__option-subtitle">Recommended</div>
                 </div><div class="compare-table__cell compare-table__cell--best">4.5 ★</div><div class="compare-table__cell">25 min</div><div class="compare-table__cell">₹600</div>
               </div>
               <div class="compare-table__option">
                 <div class="compare-table__header-cell">
-                  <div class="compare-table__header-title">Drunken Monkey</div>
-                  <div class="compare-table__header-sub">Highest rated</div>
+                  <div class="compare-table__option-title">Drunken Monkey</div>
+                  <div class="compare-table__option-subtitle">Highest rated</div>
                 </div><div class="compare-table__cell compare-table__cell--best">4.6 ★</div><div class="compare-table__cell compare-table__cell--worst">32 min</div><div class="compare-table__cell compare-table__cell--worst">₹800</div>
               </div>
               <div class="compare-table__option">
                 <div class="compare-table__header-cell">
-                  <div class="compare-table__header-title">Bangkok Bites</div>
-                  <div class="compare-table__header-sub">Fastest</div>
+                  <div class="compare-table__option-title">Bangkok Bites</div>
+                  <div class="compare-table__option-subtitle">Fastest</div>
                 </div><div class="compare-table__cell compare-table__cell--worst">4.1 ★</div><div class="compare-table__cell compare-table__cell--best">18 min</div><div class="compare-table__cell compare-table__cell--best">₹450</div>
               </div>
             </div>
@@ -1736,20 +1757,20 @@
             <div class="compare-table__options">
               <div class="compare-table__option compare-table__option--recommended">
                 <div class="compare-table__header-cell">
-                  <div class="compare-table__header-title">TAP</div>
-                  <div class="compare-table__header-sub">Recommended</div>
+                  <div class="compare-table__option-title">TAP</div>
+                  <div class="compare-table__option-subtitle">Recommended</div>
                 </div><div class="compare-table__cell compare-table__cell--best">8h 40m</div><div class="compare-table__cell compare-table__cell--best">Direct</div><div class="compare-table__cell">€389</div>
               </div>
               <div class="compare-table__option">
                 <div class="compare-table__header-cell">
-                  <div class="compare-table__header-title">KLM</div>
-                  <div class="compare-table__header-sub">via AMS</div>
+                  <div class="compare-table__option-title">KLM</div>
+                  <div class="compare-table__option-subtitle">via AMS</div>
                 </div><div class="compare-table__cell compare-table__cell--worst">10h 35m</div><div class="compare-table__cell compare-table__cell--worst">1 stop</div><div class="compare-table__cell compare-table__cell--best">€312</div>
               </div>
               <div class="compare-table__option">
                 <div class="compare-table__header-cell">
-                  <div class="compare-table__header-title">BA</div>
-                  <div class="compare-table__header-sub">Latest dep.</div>
+                  <div class="compare-table__option-title">BA</div>
+                  <div class="compare-table__option-subtitle">Latest dep.</div>
                 </div><div class="compare-table__cell">8h 45m</div><div class="compare-table__cell">Direct</div><div class="compare-table__cell compare-table__cell--worst">€425</div>
               </div>
             </div>
@@ -1767,20 +1788,20 @@
             <div class="compare-table__options">
               <div class="compare-table__option compare-table__option--recommended">
                 <div class="compare-table__header-cell">
-                  <div class="compare-table__header-title">Coursera</div>
-                  <div class="compare-table__header-sub">Most thorough</div>
+                  <div class="compare-table__option-title">Coursera</div>
+                  <div class="compare-table__option-subtitle">Most thorough</div>
                 </div><div class="compare-table__cell compare-table__cell--best">4.7 ★</div><div class="compare-table__cell">24h</div><div class="compare-table__cell">₹3,200</div>
               </div>
               <div class="compare-table__option">
                 <div class="compare-table__header-cell">
-                  <div class="compare-table__header-title">Udemy</div>
-                  <div class="compare-table__header-sub">Best value</div>
+                  <div class="compare-table__option-title">Udemy</div>
+                  <div class="compare-table__option-subtitle">Best value</div>
                 </div><div class="compare-table__cell">4.6 ★</div><div class="compare-table__cell">18h</div><div class="compare-table__cell compare-table__cell--best">₹499</div>
               </div>
               <div class="compare-table__option">
                 <div class="compare-table__header-cell">
-                  <div class="compare-table__header-title">W3Schools</div>
-                  <div class="compare-table__header-sub">Free</div>
+                  <div class="compare-table__option-title">W3Schools</div>
+                  <div class="compare-table__option-subtitle">Free</div>
                 </div><div class="compare-table__cell compare-table__cell--worst">4.4 ★</div><div class="compare-table__cell compare-table__cell--best">6h</div><div class="compare-table__cell compare-table__cell--best">Free</div>
               </div>
             </div>
@@ -1798,20 +1819,20 @@
             <div class="compare-table__options">
               <div class="compare-table__option compare-table__option--recommended">
                 <div class="compare-table__header-cell">
-                  <div class="compare-table__header-title">India Gate</div>
-                  <div class="compare-table__header-sub">Best rated</div>
+                  <div class="compare-table__option-title">India Gate</div>
+                  <div class="compare-table__option-subtitle">Best rated</div>
                 </div><div class="compare-table__cell compare-table__cell--best">4.6 ★</div><div class="compare-table__cell">Tomorrow</div><div class="compare-table__cell">₹625</div>
               </div>
               <div class="compare-table__option">
                 <div class="compare-table__header-cell">
-                  <div class="compare-table__header-title">Daawat</div>
-                  <div class="compare-table__header-sub">On sale</div>
+                  <div class="compare-table__option-title">Daawat</div>
+                  <div class="compare-table__option-subtitle">On sale</div>
                 </div><div class="compare-table__cell">4.5 ★</div><div class="compare-table__cell">Tomorrow</div><div class="compare-table__cell compare-table__cell--best">₹545</div>
               </div>
               <div class="compare-table__option">
                 <div class="compare-table__header-cell">
-                  <div class="compare-table__header-title">Fortune</div>
-                  <div class="compare-table__header-sub">Fastest</div>
+                  <div class="compare-table__option-title">Fortune</div>
+                  <div class="compare-table__option-subtitle">Fastest</div>
                 </div><div class="compare-table__cell compare-table__cell--worst">4.4 ★</div><div class="compare-table__cell compare-table__cell--best">Today</div><div class="compare-table__cell">₹599</div>
               </div>
             </div>
@@ -3110,6 +3131,73 @@
     </div>
   </section>
 
+  <section class="page-view" id="components-supportingprimitives">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">Supporting primitives.</h1>
+        <p class="page-subtitle">Smaller building blocks that compose into the larger views — location context, sort control, empty state, info list and edge affordance. None of these are full views on their own; they sit inside or alongside the primary components.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Auxiliary · in-view chrome</span>
+          <span class="picked-when">Composed into other components</span>
+        </div>
+      </header>
+    </div>
+    <div class="component-card">
+      <div class="component-card__section">
+        <div class="component-card__section-title">Location context</div>
+        <div class="location-context">
+          <span class="location-context__area">Koramangala · Bangalore</span>
+          <span class="location-context__separator">·</span>
+          <button class="location-context__change" type="button">change</button>
+        </div>
+      </div>
+      <div class="component-card__section">
+        <div class="component-card__section-title">Sort control</div>
+        <div class="sort-control">
+          <label class="sort-control__label" for="ssort">Sort</label>
+          <select class="sort-control__select" id="ssort">
+            <option>Recommended</option>
+            <option>Rating</option>
+            <option>Delivery time</option>
+            <option>Price</option>
+          </select>
+        </div>
+      </div>
+      <div class="component-card__section">
+        <div class="component-card__section-title">Empty state</div>
+        <div class="empty-state">
+          <p class="empty-state__title">No matches in Koramangala tonight</p>
+          <p class="empty-state__body">All five places that fit your filter are closed right now.</p>
+          <p class="empty-state__prompt">Try widening to 5 km or removing the rating filter.</p>
+        </div>
+      </div>
+      <div class="component-card__section">
+        <div class="component-card__section-title">Info list</div>
+        <div class="info-list">
+          <div class="info-row">
+            <span class="info-row__label">Pickup</span>
+            <span class="info-row__value">Drunken Monkey · Koramangala</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row__label">Drop</span>
+            <span class="info-row__value">Home · 5th Block</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row__label">ETA</span>
+            <span class="info-row__value">18 min</span>
+          </div>
+        </div>
+      </div>
+      <div class="component-card__section">
+        <div class="component-card__section-title">Edge affordance</div>
+        <div class="edge-affordance">
+          <button class="edge-affordance__btn edge-affordance__btn--see_more" type="button">See 12 more →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
 
   <!-- ===== Styles section ===== -->
   <section class="page-view" id="styles-home">
@@ -3454,6 +3542,7 @@
         <li><a href="#components-optionsheet">Option Sheet</a></li>
         <li><a href="#components-mediaplayer">Media Player</a></li>
         <li><a href="#components-gallery">Gallery</a></li>
+        <li><a href="#components-supportingprimitives">Supporting primitives</a></li>
       </ul>
     </div>
   </section>
@@ -3560,7 +3649,7 @@
         <p class="page-subtitle">A search came back with a small set of results. The system has to summarize and offer the top pick — fast.</p>
       </header>
       <div class="context-block">
-        <div class="you-line">YOU<span class="text">Find me Thai near me</span></div>
+        <div class="user-turn"><div class="user-bubble">Find me Thai near me</div></div>
         <div class="situation-label">Situation</div>
         <div class="situation-line">Three results returned, ranked by match. Soi 7 (top), Drunken Monkey, Bangkok Bites.</div>
       </div>
@@ -3615,7 +3704,7 @@
         <p class="page-subtitle">Money is about to leave the user's account. The system reads back the full payee and amount before charging — partner can't bypass this.</p>
       </header>
       <div class="context-block">
-        <div class="you-line">YOU<span class="text">Send 5000 to mom</span></div>
+        <div class="user-turn"><div class="user-bubble">Send 5000 to mom</div></div>
         <div class="situation-label">Situation</div>
         <div class="situation-line">About to execute a UPI transfer. Platform-owned confirm interrupt active.</div>
       </div>
@@ -3670,7 +3759,7 @@
         <p class="page-subtitle">User is eyes-busy (driving, cooking, in a meeting). Voice-only delivery — must be parsable on first listen, no on-screen detail.</p>
       </header>
       <div class="context-block">
-        <div class="you-line">YOU<span class="text">(eyes-busy — driving)</span></div>
+        <div class="user-turn"><div class="user-bubble">(eyes-busy — driving)</div></div>
         <div class="situation-label">Situation</div>
         <div class="situation-line">Order is out for delivery. Driver assigned. ETA 12 minutes. Voice-only mode active.</div>
       </div>
@@ -3725,7 +3814,7 @@
         <p class="page-subtitle">The user's request is missing a parameter the partner needs. The system disambiguates fast — one short question, two-to-four options.</p>
       </header>
       <div class="context-block">
-        <div class="you-line">YOU<span class="text">Book the TAP flight</span></div>
+        <div class="user-turn"><div class="user-bubble">Book the TAP flight</div></div>
         <div class="situation-label">Situation</div>
         <div class="situation-line">Booking requires seat preference + cabin. System surfaces a ChoiceChips moment.</div>
       </div>
@@ -3780,7 +3869,7 @@
         <p class="page-subtitle">Something went wrong — a slot filled, a payment declined, a flight cancelled. The persona has to acknowledge gracefully and offer the next move.</p>
       </header>
       <div class="context-block">
-        <div class="you-line">YOU<span class="text">Book Dr. Aparna Rao at 11</span></div>
+        <div class="user-turn"><div class="user-bubble">Book Dr. Aparna Rao at 11</div></div>
         <div class="situation-label">Situation</div>
         <div class="situation-line">The 11 a.m. slot just filled. Next available is 11:30.</div>
       </div>
@@ -3835,7 +3924,7 @@
         <p class="page-subtitle">An action finished — order placed, money sent, appointment booked. The system acks, shares the reference, and tells the user what happens next.</p>
       </header>
       <div class="context-block">
-        <div class="you-line">YOU<span class="text">Yes, send it</span></div>
+        <div class="user-turn"><div class="user-bubble">Yes, send it</div></div>
         <div class="situation-label">Situation</div>
         <div class="situation-line">UPI transfer completed. Reference UPI/445792. SMS dispatched to Mom.</div>
       </div>
@@ -3890,7 +3979,7 @@
         <p class="page-subtitle">User invokes JBIQ but hasn't yet said what they want. The system opens — short, inviting, doesn't presume.</p>
       </header>
       <div class="context-block">
-        <div class="you-line">YOU<span class="text">Hey JBIQ</span></div>
+        <div class="user-turn"><div class="user-bubble">Hey JBIQ</div></div>
         <div class="situation-label">Situation</div>
         <div class="situation-line">Session opened, no intent inferred yet.</div>
       </div>

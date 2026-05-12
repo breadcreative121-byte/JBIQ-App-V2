@@ -7991,6 +7991,26 @@
   // in discovery.js (restaurants stays on the existing carousel journey).
   // First match wins — more specific patterns first.
   const DISCOVERY_QUERY_PATTERNS = [
+    // Canonical transactional stages (kirana / recharge confirm → receipt → tracker).
+    // These run first so the very specific "sharma kirana — confirm reorder" beats
+    // the broader `kirana_reorder` matcher below. Each stage carries an `advance_to`
+    // ref so the on-card buttons chain via window.advanceTransactionalStage.
+    { re: /\bsharma\s+kirana\b.{0,30}\bconfirm\b/i, view: 'kirana_confirm' },
+    { re: /\bsharma\s+kirana\b.{0,30}\breceipt\b/i, view: 'kirana_receipt' },
+    { re: /\bsharma\s+kirana\b.{0,30}\btrack\b/i,   view: 'kirana_tracker' },
+    { re: /\bjio\s+₹?\s*299\b.{0,30}\bconfirm\b/i,  view: 'recharge_tx_confirm' },
+    { re: /\bjio\s+₹?\s*299\b.{0,30}\breceipt\b/i,  view: 'recharge_tx_receipt' },
+
+    // Picker primitives — option-sheet (pick-one) and timeline (slot pick).
+    { re: /\bpick\b.{0,30}\bvoice\s+language\b/i,                                view: 'option_sheet_language' },
+    { re: /\bpick\b.{0,30}\bdefault\s+upi\b/i,                                   view: 'option_sheet_upi' },
+    { re: /\brestaurant\s+slots\b.{0,15}\btonight\b/i,                           view: 'timeline_restaurant' },
+    { re: /\bdoctor\s+slots\b.{0,15}\btomorrow\b/i,                              view: 'timeline_doctor' },
+
+    // Detail-sheet primitives — full-screen detail view with carousel.
+    { re: /\b(?:kurta|fabindia)\s+detail\b/i,                                    view: 'detail_sheet_kurta' },
+    { re: /\bdoctor\s+detail\b/i,                                                view: 'detail_sheet_doctor' },
+
     // Partner experiences — Swiggy MCP Food. Brand qualifier MUST come first
     // so `\bswiggy\b` wins over `\bbiryani\b → biryani_hyderabad`. Within the
     // Swiggy set, order patterns (verb + Swiggy) win over menu patterns
@@ -9793,6 +9813,30 @@
     return turn;
   }
 
+  // Chain transactional stages — called by renderConfirmPanel / renderReceiptPanel
+  // when the user taps an action with `advance_to: <next_key>`. Starts a new
+  // chat turn with a synthetic user echo ("Confirmed" / "Track order") and
+  // renders the next stage's view directly. Bypasses showResponse / the LLM
+  // round-trip — chaining is deterministic, doesn't need intent classification.
+  window.advanceTransactionalStage = function(nextKey) {
+    if (!nextKey || !window.DATASETS) return;
+    const entry = window.DATASETS[nextKey];
+    if (!entry || !entry.view) return;
+    overlay.classList.add('chat-active');
+    const echo = nextKey.endsWith('_receipt') ? 'Confirmed.'
+               : nextKey.endsWith('_tracker') ? 'Track order'
+               : 'Continue';
+    const userEl = document.createElement('div');
+    userEl.className = 'user-bubble';
+    userEl.textContent = echo;
+    const turn = startTurn();
+    turn.appendChild(userEl);
+    pinActiveTurnToTop();
+    if (typeof window.renderTransactionalView === 'function') {
+      turn.appendChild(window.renderTransactionalView(entry.view));
+    }
+  };
+
   function pinActiveTurnToTop() {
     if (!currentTurnEl) return;
     const scrollContainer = chatMessages.closest('.voice-container');
@@ -10289,12 +10333,16 @@
       ? (advisoryFixture ? 'advisory' : classifyTextResponseType(text)) : null;
     const textFixture = advisoryFixture || (textType ? lookupTextResponseFixture(text, textType) : null);
     if (!voiceTitleLocked) {
+      // Canonical transactional primitives (confirm/receipt/tracker) have no
+      // .subject — they're bare component cards. Fall back to the chat text.
+      const discoverySubjectTitle = discoveryView?.subject?.title;
+      const informationalSubjectTitle = informationalView?.subject?.title;
       voiceTitle.textContent = isRestaurantQuery
         ? 'Top restaurants'
         : (isShoppingQuery ? `Order ${shoppingItemText}`
           : (bookingIntent ? bookingIntent.subject.title
-            : (discoveryView ? discoveryView.subject.title
-              : (informationalView ? informationalView.subject.title
+            : (discoverySubjectTitle ? discoverySubjectTitle
+              : (informationalSubjectTitle ? informationalSubjectTitle
                 : extractTitle(text)))));
       voiceTitleLocked = true;
     }
@@ -10644,7 +10692,16 @@
     // all the plan/cart detail and the §14 commit surface, so showing the
     // DiscoveryView card too would be a redundant double widget.
     const isTransactional = !!(discoveryDs && TRANSACTIONAL_VIEW_PRODUCTS[discoveryKey]);
-    if (discoveryView && window.renderDiscoveryView && !isTransactional) {
+
+    // Canonical transactional primitives (confirm_view / receipt_view /
+    // tracker_view) route to renderTransactionalView and bypass the
+    // DiscoveryView render below. Action buttons inside emit a chain via
+    // window.advanceTransactionalStage(nextKey) — see below.
+    const isCanonicalTransactional = !!(discoveryView && typeof discoveryView.kind === 'string' &&
+      ['confirm_view', 'receipt_view', 'tracker_view', 'option_sheet_view', 'timeline_view', 'detail_sheet_view'].includes(discoveryView.kind));
+    if (isCanonicalTransactional && typeof window.renderTransactionalView === 'function') {
+      currentTurnEl.appendChild(window.renderTransactionalView(discoveryView));
+    } else if (discoveryView && window.renderDiscoveryView && !isTransactional) {
       // The MCP source state is still tracked on `discoveryLiveSource` for
       // console / telemetry consumers; we just don't render a visible badge.
       if (discoveryLiveSource) {
