@@ -2025,127 +2025,8 @@
       font-size: 13px;
     }
 
-    /* Booking detail / receipt bottom sheet. Shown when the user taps Track
-       booking or View receipt on the order-confirmed card. Surfaces only the
-       data we already hold on `product` — no fake live status, no fake API. */
-    .booking-sheet-backdrop {
-      position: absolute; inset: 0;
-      background: rgba(12, 13, 16, 0.45);
-      z-index: 110;
-      opacity: 0;
-      animation: bookingSheetBackdropIn 0.2s ease forwards;
-    }
-    .booking-sheet-backdrop.is-closing { animation: bookingSheetBackdropOut 0.2s ease forwards; }
-    @keyframes bookingSheetBackdropIn { to { opacity: 1; } }
-    @keyframes bookingSheetBackdropOut { to { opacity: 0; } }
-    .booking-sheet {
-      position: absolute; left: 0; right: 0; bottom: 0;
-      background: #fff;
-      border-top-left-radius: 24px;
-      border-top-right-radius: 24px;
-      padding: 8px 20px 28px;
-      z-index: 111;
-      max-height: 80%;
-      overflow-y: auto;
-      transform: translateY(100%);
-      animation: bookingSheetIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    }
-    .booking-sheet.is-closing { animation: bookingSheetOut 0.22s ease forwards; }
-    @keyframes bookingSheetIn { to { transform: translateY(0); } }
-    @keyframes bookingSheetOut { to { transform: translateY(100%); } }
-    .booking-sheet-grabber {
-      width: 36px; height: 4px;
-      border-radius: 999px;
-      background: rgba(12, 13, 16, 0.18);
-      margin: 6px auto 14px;
-    }
-    .booking-sheet-media {
-      height: 96px;
-      margin: 4px 0 14px;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: rgba(12, 13, 16, 0.7);
-    }
-    .booking-sheet-media svg {
-      width: 36px;
-      height: 36px;
-      opacity: 0.85;
-    }
-    .booking-sheet-title {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--text-high);
-      line-height: 1.2;
-      margin-bottom: 2px;
-    }
-    .booking-sheet-ref {
-      font-size: 12px;
-      color: var(--text-medium);
-      letter-spacing: 0.04em;
-      margin-bottom: 16px;
-    }
-    .booking-sheet-rows {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 14px 0;
-      border-top: 1px solid rgba(12, 13, 16, 0.08);
-      border-bottom: 1px solid rgba(12, 13, 16, 0.08);
-    }
-    .booking-sheet-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 12px;
-      font-size: 14px;
-    }
-    .booking-sheet-row-label {
-      color: var(--text-medium);
-      flex-shrink: 0;
-    }
-    .booking-sheet-row-value {
-      color: var(--text-high);
-      font-weight: 600;
-      text-align: right;
-    }
-    .booking-sheet-total {
-      font-weight: 800;
-      font-size: 16px;
-      padding-top: 4px;
-    }
-    .booking-sheet-note {
-      font-size: 13px;
-      color: var(--text-medium);
-      line-height: 1.4;
-      padding: 14px 0 4px;
-    }
-    .booking-sheet-close {
-      width: 100%;
-      padding: 14px 20px;
-      margin-top: 12px;
-      background: var(--surface-subtle);
-      color: var(--text-high-tinted);
-      border: none;
-      border-radius: var(--shape-pill);
-      font-family: var(--font-family);
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      line-height: 1;
-    }
-    .booking-sheet-close:active { transform: scale(0.98); }
-    .booking-sheet-close--primary {
-      background: var(--surface-bold);
-      color: white;
-      margin-top: 16px;
-      margin-bottom: 4px;
-    }
-    .booking-sheet-close--primary:hover { opacity: 0.92; }
-
     /* Long-press → Edit / Copy on the most recent user bubble.
-       Reuses the booking-sheet motion tokens so the action sheet feels
+       Reuses the detail-sheet motion tokens so the action sheet feels
        like the same family of native modal already in the app. */
     .user-bubble.is-pressing {
       transform: scale(0.97);
@@ -2157,9 +2038,9 @@
       background: rgba(12, 13, 16, 0.45);
       z-index: 120;
       opacity: 0;
-      animation: bookingSheetBackdropIn 0.2s ease forwards;
+      animation: detailSheetBackdropIn 0.2s ease forwards;
     }
-    .action-sheet-backdrop.is-closing { animation: bookingSheetBackdropOut 0.2s ease forwards; }
+    .action-sheet-backdrop.is-closing { animation: detailSheetBackdropOut 0.2s ease forwards; }
     .action-sheet {
       position: absolute; left: 0; right: 0; bottom: 0;
       background: #fff;
@@ -2168,9 +2049,9 @@
       padding: 8px 16px 22px;
       z-index: 121;
       transform: translateY(100%);
-      animation: bookingSheetIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      animation: detailSheetIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
-    .action-sheet.is-closing { animation: bookingSheetOut 0.22s ease forwards; }
+    .action-sheet.is-closing { animation: detailSheetOut 0.22s ease forwards; }
     .action-sheet-grabber {
       width: 36px; height: 4px;
       border-radius: 999px;
@@ -3896,6 +3777,144 @@
       letter-spacing: 0.04em;
       text-transform: uppercase;
     }
+
+    /* First-time voice-language picker — modal Option Sheet over the voice
+       overlay. Sits inside .phone-frame so it's clipped to the phone width. */
+    .lang-sheet-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(12,13,16,0.45);
+      z-index: 1000;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms cubic-bezier(0.2, 0, 0, 1);
+    }
+    .lang-sheet-backdrop[hidden] { display: none; }
+    .lang-sheet-backdrop.visible { opacity: 1; pointer-events: auto; }
+    .lang-sheet-backdrop .option-sheet {
+      transform: translateY(100%);
+      transition: transform 280ms cubic-bezier(0.2, 0, 0, 1);
+    }
+    .lang-sheet-backdrop.visible .option-sheet { transform: translateY(0); }
+
+    .option-sheet {
+      background: #ffffff;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      padding: 8px 20px 28px;
+      box-shadow: 0 -12px 32px rgba(12,13,16,0.04);
+      width: 100%;
+    }
+    .option-sheet__grabber {
+      width: 36px; height: 4px;
+      border-radius: var(--shape-pill);
+      background: rgba(12,13,16,0.18);
+      margin: 6px auto 14px;
+    }
+    .option-sheet__title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0c0d10;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+    .option-sheet__subtitle {
+      font-size: 13px;
+      color: #6a6c70;
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+    .option-sheet__list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 360px;
+      overflow-y: auto;
+      scrollbar-width: none;
+      padding: 2px 0;
+    }
+    .option-sheet__list::-webkit-scrollbar { display: none; }
+    .option-sheet__option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      background: transparent;
+      border: 0.5px solid #d8d8da;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-family: inherit;
+      color: #0c0d10;
+      text-align: left;
+      cursor: pointer;
+      transition: background-color 180ms cubic-bezier(0.2, 0, 0, 1),
+                  color 180ms cubic-bezier(0.2, 0, 0, 1),
+                  border-color 180ms cubic-bezier(0.2, 0, 0, 1);
+    }
+    .option-sheet__option-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .option-sheet__option-name {
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+    .option-sheet__option-native {
+      font-size: 13px;
+      color: #6a6c70;
+      line-height: 1.2;
+    }
+    .option-sheet__option-check {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 180ms cubic-bezier(0.2, 0, 0, 1);
+    }
+    .option-sheet__option--selected {
+      background: #6d17ce;
+      color: #ffffff;
+      border-color: transparent;
+    }
+    .option-sheet__option--selected .option-sheet__option-native {
+      color: rgba(255,255,255,0.78);
+    }
+    .option-sheet__option--selected .option-sheet__option-check {
+      opacity: 1;
+    }
+    .option-sheet__btn {
+      width: 100%;
+      padding: 14px 20px;
+      margin-top: 6px;
+      background: #ede7ff;
+      color: #6d17ce;
+      border: none;
+      border-radius: var(--shape-pill);
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .option-sheet__btn--primary {
+      background: #6d17ce;
+      color: #ffffff;
+      margin-top: 16px;
+      margin-bottom: 4px;
+    }
+    .option-sheet__btn--primary[disabled] {
+      background: #ede7ff;
+      color: #6d17ce;
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -4630,6 +4649,70 @@
       </button>
     </div>
     <div class="tools-content" id="statesList"></div>
+  </div>
+
+  <!-- First-time voice-language picker. Shown by openVoiceMode() on the very
+       first voice open (unless silent/resume). Selection persisted to
+       localStorage.jbiq_voice_language; dismissal flagged so we don't re-ask. -->
+  <div class="lang-sheet-backdrop" id="langSheetBackdrop" role="dialog" aria-modal="true" aria-labelledby="langSheetTitle" hidden>
+    <div class="option-sheet" data-option-sheet>
+      <div class="option-sheet__grabber"></div>
+      <div class="option-sheet__title" id="langSheetTitle">Voice Language</div>
+      <div class="option-sheet__subtitle">Pick how I'll talk to you. You can change this anytime in settings.</div>
+      <div class="option-sheet__list" role="radiogroup" aria-label="Voice Language">
+        <button class="option-sheet__option" type="button" role="radio" aria-checked="false" data-lang="en">
+          <span class="option-sheet__option-text">
+            <span class="option-sheet__option-name">English</span>
+            <span class="option-sheet__option-native">English</span>
+          </span>
+          <svg class="option-sheet__option-check" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="option-sheet__option" type="button" role="radio" aria-checked="false" data-lang="hi">
+          <span class="option-sheet__option-text">
+            <span class="option-sheet__option-name">Hindi</span>
+            <span class="option-sheet__option-native">हिन्दी</span>
+          </span>
+          <svg class="option-sheet__option-check" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="option-sheet__option" type="button" role="radio" aria-checked="false" data-lang="ta">
+          <span class="option-sheet__option-text">
+            <span class="option-sheet__option-name">Tamil</span>
+            <span class="option-sheet__option-native">தமிழ்</span>
+          </span>
+          <svg class="option-sheet__option-check" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="option-sheet__option" type="button" role="radio" aria-checked="false" data-lang="te">
+          <span class="option-sheet__option-text">
+            <span class="option-sheet__option-name">Telugu</span>
+            <span class="option-sheet__option-native">తెలుగు</span>
+          </span>
+          <svg class="option-sheet__option-check" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="option-sheet__option" type="button" role="radio" aria-checked="false" data-lang="gu">
+          <span class="option-sheet__option-text">
+            <span class="option-sheet__option-name">Gujarati</span>
+            <span class="option-sheet__option-native">ગુજરાતી</span>
+          </span>
+          <svg class="option-sheet__option-check" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="option-sheet__option" type="button" role="radio" aria-checked="false" data-lang="mr">
+          <span class="option-sheet__option-text">
+            <span class="option-sheet__option-name">Marathi</span>
+            <span class="option-sheet__option-native">मराठी</span>
+          </span>
+          <svg class="option-sheet__option-check" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="option-sheet__option" type="button" role="radio" aria-checked="false" data-lang="kn">
+          <span class="option-sheet__option-text">
+            <span class="option-sheet__option-name">Kannada</span>
+            <span class="option-sheet__option-native">ಕನ್ನಡ</span>
+          </span>
+          <svg class="option-sheet__option-check" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <button class="option-sheet__btn option-sheet__btn--primary" type="button" data-option-sheet-commit disabled>Set language</button>
+      <button class="option-sheet__btn" type="button" data-option-sheet-close>Close</button>
+    </div>
   </div>
 </div>
 
@@ -6414,6 +6497,75 @@
     document.body.dataset.homeState = p === 'return-user' ? 'return-user' : 'new-user';
   })();
 
+  // First-time voice-language picker keys. Reset both to replay:
+  //   localStorage.removeItem('jbiq_voice_language');
+  //   localStorage.removeItem('jbiq_voice_lang_dismissed');
+  const VOICE_LANG_KEY = 'jbiq_voice_language';            // 'en' | 'hi' | 'ta' | 'te' | 'gu' | 'mr' | 'kn'
+  const VOICE_LANG_DISMISSED_KEY = 'jbiq_voice_lang_dismissed'; // '1' if user closed without picking
+
+  // Shown by openVoiceMode on first voice open. Returns a Promise that resolves
+  // once the user commits (Set language) or dismisses (Close). Welcome sequence
+  // resumes after resolve — language choice is parked in localStorage for
+  // downstream features but doesn't alter audio/copy in this change.
+  function showLangSheet() {
+    return new Promise(resolve => {
+      const backdrop = document.getElementById('langSheetBackdrop');
+      if (!backdrop) return resolve();
+      const sheet   = backdrop.querySelector('[data-option-sheet]');
+      const options = sheet.querySelectorAll('.option-sheet__option');
+      const commit  = sheet.querySelector('[data-option-sheet-commit]');
+      const close   = sheet.querySelector('[data-option-sheet-close]');
+      let pickedLang = null;
+
+      // Reset state in case the sheet is being re-shown (e.g. after a wipe).
+      options.forEach(o => {
+        o.classList.remove('option-sheet__option--selected');
+        o.setAttribute('aria-checked', 'false');
+      });
+      commit.disabled = true;
+
+      backdrop.hidden = false;
+      requestAnimationFrame(() => backdrop.classList.add('visible'));
+
+      const onOption = (e) => {
+        const opt = e.currentTarget;
+        options.forEach(o => {
+          o.classList.remove('option-sheet__option--selected');
+          o.setAttribute('aria-checked', 'false');
+        });
+        opt.classList.add('option-sheet__option--selected');
+        opt.setAttribute('aria-checked', 'true');
+        pickedLang = opt.dataset.lang;
+        commit.disabled = false;
+      };
+      options.forEach(opt => opt.addEventListener('click', onOption));
+
+      const finish = (committed) => {
+        options.forEach(opt => opt.removeEventListener('click', onOption));
+        backdrop.classList.remove('visible');
+        setTimeout(() => { backdrop.hidden = true; resolve(committed); }, 280);
+      };
+
+      const onCommit = () => {
+        if (!pickedLang) return;
+        try { localStorage.setItem(VOICE_LANG_KEY, pickedLang); } catch (_) {}
+        console.log(`voice.language.set.${pickedLang}`);
+        commit.removeEventListener('click', onCommit);
+        close.removeEventListener('click', onClose);
+        finish(true);
+      };
+      const onClose = () => {
+        try { localStorage.setItem(VOICE_LANG_DISMISSED_KEY, '1'); } catch (_) {}
+        console.log('voice.language.dismissed');
+        commit.removeEventListener('click', onCommit);
+        close.removeEventListener('click', onClose);
+        finish(false);
+      };
+      commit.addEventListener('click', onCommit);
+      close.addEventListener('click', onClose);
+    });
+  }
+
   // First-launch tooltip pointing at the home Speak button. Dismissed via the
   // × close button or the first tap of the Speak button itself. Console reset:
   //   localStorage.removeItem('jbiq_seen_speak_tooltip')
@@ -6723,6 +6875,14 @@
     voiceSessionId++;
     await acquireMic(); // Get mic permission once — stays cached
     resetKeyboardMode();
+    // Language picker — shown on every voice open from the new-user home,
+    // never on the return-user home. Skipped on resume (silent) too. If the
+    // user closes the sheet without picking, abort voice mode — they go back
+    // to home, no welcome plays.
+    if (!silent && document.body.dataset.homeState === 'new-user') {
+      const committed = await showLangSheet();
+      if (!committed) return;
+    }
     if (!silent) {
       spinner.classList.add('visible');
       spinner.currentTime = 0;
@@ -9088,9 +9248,9 @@
     if (!product.bookingPlacedAt) product.bookingPlacedAt = new Date();
 
     const backdrop = document.createElement('div');
-    backdrop.className = 'booking-sheet-backdrop';
+    backdrop.className = 'detail-sheet-backdrop';
     const sheet = document.createElement('div');
-    sheet.className = 'booking-sheet';
+    sheet.className = 'detail-sheet detail-sheet--floating';
     sheet.setAttribute('role', 'dialog');
     sheet.setAttribute('aria-modal', 'true');
 
@@ -9106,35 +9266,35 @@
     if (mode === 'receipt') {
       title = 'Receipt';
       rowsHtml = `
-        <div class="booking-sheet-row"><span class="booking-sheet-row-label">Placed</span><span class="booking-sheet-row-value">${placedLabel}</span></div>
-        <div class="booking-sheet-row"><span class="booking-sheet-row-label">${product.brand || 'Service'} — ${product.name}</span><span class="booking-sheet-row-value">${priceText}</span></div>
-        ${product.serviceAddress ? `<div class="booking-sheet-row"><span class="booking-sheet-row-label">For</span><span class="booking-sheet-row-value">${product.serviceAddress}</span></div>` : ''}
-        <div class="booking-sheet-row"><span class="booking-sheet-row-label">Payment</span><span class="booking-sheet-row-value">${paid ? 'Paid' : 'Pending'}</span></div>
-        <div class="booking-sheet-row booking-sheet-total"><span class="booking-sheet-row-label">Total</span><span class="booking-sheet-row-value">${priceText}</span></div>
+        <div class="detail-sheet__row"><span class="detail-sheet__row-label">Placed</span><span class="detail-sheet__row-value">${placedLabel}</span></div>
+        <div class="detail-sheet__row"><span class="detail-sheet__row-label">${product.brand || 'Service'} — ${product.name}</span><span class="detail-sheet__row-value">${priceText}</span></div>
+        ${product.serviceAddress ? `<div class="detail-sheet__row"><span class="detail-sheet__row-label">For</span><span class="detail-sheet__row-value">${product.serviceAddress}</span></div>` : ''}
+        <div class="detail-sheet__row"><span class="detail-sheet__row-label">Payment</span><span class="detail-sheet__row-value">${paid ? 'Paid' : 'Pending'}</span></div>
+        <div class="detail-sheet__row detail-sheet__row--total"><span class="detail-sheet__row-label">Total</span><span class="detail-sheet__row-value">${priceText}</span></div>
       `;
-      footerHtml = `<div class="booking-sheet-note">A copy will be emailed once email is added to your account.</div>`;
+      footerHtml = `<div class="detail-sheet__note">A copy will be emailed once email is added to your account.</div>`;
     } else {
       title = 'Booking details';
       const proLine = product.proName
         ? `${product.proName} will ${product.arrivalVerb || 'arrive'} ${product.arrivalLabel || ''}`.trim()
         : 'A professional will be assigned shortly';
       rowsHtml = `
-        <div class="booking-sheet-row"><span class="booking-sheet-row-label">Status</span><span class="booking-sheet-row-value">Confirmed</span></div>
-        <div class="booking-sheet-row"><span class="booking-sheet-row-label">Service</span><span class="booking-sheet-row-value">${product.brand || ''} — ${product.name}</span></div>
-        ${product.scheduledLabel ? `<div class="booking-sheet-row"><span class="booking-sheet-row-label">When</span><span class="booking-sheet-row-value">${product.scheduledLabel}</span></div>` : ''}
-        ${product.serviceAddress ? `<div class="booking-sheet-row"><span class="booking-sheet-row-label">Where</span><span class="booking-sheet-row-value">${product.serviceAddress}</span></div>` : ''}
-        <div class="booking-sheet-row"><span class="booking-sheet-row-label">Payment</span><span class="booking-sheet-row-value">${priceText}${paid ? ' · Paid' : ''}</span></div>
+        <div class="detail-sheet__row"><span class="detail-sheet__row-label">Status</span><span class="detail-sheet__row-value">Confirmed</span></div>
+        <div class="detail-sheet__row"><span class="detail-sheet__row-label">Service</span><span class="detail-sheet__row-value">${product.brand || ''} — ${product.name}</span></div>
+        ${product.scheduledLabel ? `<div class="detail-sheet__row"><span class="detail-sheet__row-label">When</span><span class="detail-sheet__row-value">${product.scheduledLabel}</span></div>` : ''}
+        ${product.serviceAddress ? `<div class="detail-sheet__row"><span class="detail-sheet__row-label">Where</span><span class="detail-sheet__row-value">${product.serviceAddress}</span></div>` : ''}
+        <div class="detail-sheet__row"><span class="detail-sheet__row-label">Payment</span><span class="detail-sheet__row-value">${priceText}${paid ? ' · Paid' : ''}</span></div>
       `;
-      footerHtml = `<div class="booking-sheet-note">${proLine}. We'll send an SMS with live updates once that integration is live.</div>`;
+      footerHtml = `<div class="detail-sheet__note">${proLine}. We'll send an SMS with live updates once that integration is live.</div>`;
     }
 
     sheet.innerHTML = `
-      <div class="booking-sheet-grabber"></div>
-      <div class="booking-sheet-title">${title}</div>
-      <div class="booking-sheet-ref">Ref · ${product.bookingRef}</div>
-      <div class="booking-sheet-rows">${rowsHtml}</div>
+      <div class="detail-sheet__grabber"></div>
+      <div class="detail-sheet__title">${title}</div>
+      <div class="detail-sheet__ref">Ref · ${product.bookingRef}</div>
+      <div class="detail-sheet__rows">${rowsHtml}</div>
       ${footerHtml}
-      <button class="booking-sheet-close" type="button">Close</button>
+      <button class="detail-sheet__btn" type="button">Close</button>
     `;
 
     function close() {
@@ -9150,7 +9310,7 @@
     function onKey(e) { if (e.key === 'Escape') close(); }
 
     backdrop.addEventListener('click', close);
-    sheet.querySelector('.booking-sheet-close').addEventListener('click', close);
+    sheet.querySelector('.detail-sheet__btn').addEventListener('click', close);
     document.addEventListener('keydown', onKey);
 
     const frame = document.querySelector('.phone-frame');
@@ -9164,7 +9324,7 @@
 
   // Catalog card detail sheet (G5) — when the user taps a catalog card, surface
   // the card's data in a bottom sheet with a Buy now CTA that drops them into
-  // the §14 SHOPPING_CATALOG flow. Reuses the .booking-sheet CSS for visual
+  // the §14 SHOPPING_CATALOG flow. Reuses the .detail-sheet CSS for visual
   // consistency. The buy phrase is "Order the {brand} {title}" so the existing
   // shopping resolver picks the right SKU.
   function showCatalogDetailSheet(card) {
@@ -9174,27 +9334,27 @@
     const tagsText = (card.tags || []).join(' \u00b7 ');
 
     const backdrop = document.createElement('div');
-    backdrop.className = 'booking-sheet-backdrop';
+    backdrop.className = 'detail-sheet-backdrop';
     const sheet = document.createElement('div');
-    sheet.className = 'booking-sheet';
+    sheet.className = 'detail-sheet detail-sheet--floating';
     sheet.setAttribute('role', 'dialog');
     sheet.setAttribute('aria-modal', 'true');
 
     const rowsHtml = [
-      card.price_label && `<div class="booking-sheet-row"><span class="booking-sheet-row-label">Price</span><span class="booking-sheet-row-value">${card.price_label}</span></div>`,
-      ratingText && `<div class="booking-sheet-row"><span class="booking-sheet-row-label">Rating</span><span class="booking-sheet-row-value">${ratingText}</span></div>`,
-      tagsText && `<div class="booking-sheet-row"><span class="booking-sheet-row-label">Details</span><span class="booking-sheet-row-value">${tagsText}</span></div>`,
-      card.badge && `<div class="booking-sheet-row"><span class="booking-sheet-row-label">Badge</span><span class="booking-sheet-row-value">${card.badge}</span></div>`,
+      card.price_label && `<div class="detail-sheet__row"><span class="detail-sheet__row-label">Price</span><span class="detail-sheet__row-value">${card.price_label}</span></div>`,
+      ratingText && `<div class="detail-sheet__row"><span class="detail-sheet__row-label">Rating</span><span class="detail-sheet__row-value">${ratingText}</span></div>`,
+      tagsText && `<div class="detail-sheet__row"><span class="detail-sheet__row-label">Details</span><span class="detail-sheet__row-value">${tagsText}</span></div>`,
+      card.badge && `<div class="detail-sheet__row"><span class="detail-sheet__row-label">Badge</span><span class="detail-sheet__row-value">${card.badge}</span></div>`,
     ].filter(Boolean).join('');
 
     sheet.innerHTML = `
-      <div class="booking-sheet-grabber"></div>
-      <div class="booking-sheet-title">${card.title || ''}</div>
-      <div class="booking-sheet-ref">${card.subtitle || ''}</div>
-      <div class="booking-sheet-rows">${rowsHtml}</div>
-      <div class="booking-sheet-note">More photos, fit notes and reviews are TODO. For now, tap Buy now to commit.</div>
-      <button class="booking-sheet-close booking-sheet-close--primary" type="button" data-action="buy">Buy now</button>
-      <button class="booking-sheet-close" type="button" data-action="close">Close</button>
+      <div class="detail-sheet__grabber"></div>
+      <div class="detail-sheet__title">${card.title || ''}</div>
+      <div class="detail-sheet__ref">${card.subtitle || ''}</div>
+      <div class="detail-sheet__rows">${rowsHtml}</div>
+      <div class="detail-sheet__note">More photos, fit notes and reviews are TODO. For now, tap Buy now to commit.</div>
+      <button class="detail-sheet__btn detail-sheet__btn--primary" type="button" data-action="buy">Buy now</button>
+      <button class="detail-sheet__btn" type="button" data-action="close">Close</button>
     `;
 
     function close() {
@@ -9229,7 +9389,7 @@
   // Place card detail sheet — when the user taps a place card (doctor /
   // restaurant / apartment / plumber / etc.), surface the card's data in a
   // bottom sheet with a primary CTA that drops them into the appropriate
-  // booking journey via showResponse. Reuses the .booking-sheet CSS for
+  // booking journey via showResponse. Reuses the .detail-sheet CSS for
   // visual consistency with the catalog and shopping flows.
   //
   // The sheet adapts to the place type (derived from the event prefix —
@@ -9321,27 +9481,27 @@
     }
 
     const rowsHtml = rows
-      .map(r => `<div class="booking-sheet-row"><span class="booking-sheet-row-label">${r.label}</span><span class="booking-sheet-row-value">${r.value}</span></div>`)
+      .map(r => `<div class="detail-sheet__row"><span class="detail-sheet__row-label">${r.label}</span><span class="detail-sheet__row-value">${r.value}</span></div>`)
       .join('');
 
     const tint = (card.media && card.media.fallback_color) || '#E5E7EB';
 
     const backdrop = document.createElement('div');
-    backdrop.className = 'booking-sheet-backdrop';
+    backdrop.className = 'detail-sheet-backdrop';
     const sheet = document.createElement('div');
-    sheet.className = 'booking-sheet';
+    sheet.className = 'detail-sheet detail-sheet--floating';
     sheet.setAttribute('role', 'dialog');
     sheet.setAttribute('aria-modal', 'true');
 
     sheet.innerHTML = `
-      <div class="booking-sheet-grabber"></div>
-      <div class="booking-sheet-media" style="background: ${tint}">${cfg.icon}</div>
-      <div class="booking-sheet-title">${card.title || ''}</div>
-      <div class="booking-sheet-ref">${subline}</div>
-      <div class="booking-sheet-rows">${rowsHtml}</div>
-      <div class="booking-sheet-note">${cfg.note}</div>
-      <button class="booking-sheet-close booking-sheet-close--primary" type="button" data-action="cta">${cfg.ctaLabel}</button>
-      <button class="booking-sheet-close" type="button" data-action="close">Close</button>
+      <div class="detail-sheet__grabber"></div>
+      <div class="detail-sheet__media" style="background: ${tint}">${cfg.icon}</div>
+      <div class="detail-sheet__title">${card.title || ''}</div>
+      <div class="detail-sheet__ref">${subline}</div>
+      <div class="detail-sheet__rows">${rowsHtml}</div>
+      <div class="detail-sheet__note">${cfg.note}</div>
+      <button class="detail-sheet__btn detail-sheet__btn--primary" type="button" data-action="cta">${cfg.ctaLabel}</button>
+      <button class="detail-sheet__btn" type="button" data-action="close">Close</button>
     `;
 
     function close() {

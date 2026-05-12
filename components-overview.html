@@ -507,6 +507,7 @@
     body { padding-left: 0; }
 
     .toc-burger { display: flex; }
+    .toc-burger[aria-expanded="true"] { display: none; }
     .toc-close  { display: flex; }
     .toc-brand  { padding-right: 0; }
 
@@ -588,7 +589,7 @@
   .detail-sheet__btn {
     width: 100%;
     padding: 14px 20px;
-    margin-top: 12px;
+    margin-top: 6px;
     background: var(--color-action-primary-surface);
     color: var(--color-action-primary);
     border: none;
@@ -1082,6 +1083,128 @@
     color: var(--color-text-secondary);
     line-height: var(--font-line-height-normal);
   }
+
+  /* ----- OptionSheet -----
+     Single-select bottom-sheet picker. Reuses the .detail-sheet shell shape;
+     swaps the entity rows for a vertical list of full-width tappable options.
+     One option can be selected at a time — purple fill + tick on the active
+     row. Scales to N items via overflow-y on .option-sheet__list. */
+  .option-sheet {
+    background: var(--color-surface-primary);
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    padding: 8px 20px 28px;
+    box-shadow: 0 -12px 32px rgba(12,13,16,0.04);
+    max-width: 380px;
+    margin: 0 auto;
+  }
+  .option-sheet__grabber {
+    width: 36px; height: 4px;
+    border-radius: var(--radius-pill);
+    background: rgba(12,13,16,0.18);
+    margin: 6px auto 14px;
+  }
+  .option-sheet__title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .option-sheet__subtitle {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+    margin-bottom: 14px;
+  }
+  .option-sheet__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 360px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    padding: 2px 0;
+  }
+  .option-sheet__list::-webkit-scrollbar { display: none; }
+  .option-sheet__option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    background: transparent;
+    border: 0.5px solid var(--color-border-strong);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-family: inherit;
+    color: var(--color-text-primary);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 180ms cubic-bezier(0.2, 0, 0, 1),
+                color 180ms cubic-bezier(0.2, 0, 0, 1),
+                border-color 180ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .option-sheet__option-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .option-sheet__option-name {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .option-sheet__option-native {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.2;
+  }
+  .option-sheet__option-check {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 180ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .option-sheet__option--selected {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    border-color: transparent;
+  }
+  .option-sheet__option--selected .option-sheet__option-native {
+    color: rgba(255,255,255,0.78);
+  }
+  .option-sheet__option--selected .option-sheet__option-check {
+    opacity: 1;
+  }
+  .option-sheet__btn {
+    width: 100%;
+    padding: 14px 20px;
+    margin-top: 6px;
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    border: none;
+    border-radius: var(--radius-pill);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .option-sheet__btn--primary {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    margin-top: 16px;
+    margin-bottom: 4px;
+  }
+  .option-sheet__btn--primary[disabled] {
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
 </style>
 </head>
 <body>
@@ -1131,6 +1254,7 @@
       <a href="#components-receiptpanel">Receipt Panel</a>
       <a href="#components-detailsheet">Detail Sheet</a>
       <a href="#components-choicechips">Choice Chips</a>
+      <a href="#components-optionsheet">Option Sheet</a>
       <a href="#components-mediaplayer">Media Player</a>
       <a href="#components-gallery">Gallery</a>
     </div>
@@ -1300,6 +1424,11 @@
         <div class="home-card__tag">Choice</div>
         <div class="home-card__name">ChoiceChips</div>
         <p class="home-card__desc">Pill chips with hairline borders, purple fill when selected. Same primitive for cuisine filter, zodiac, seat preference, or government sub-service.</p>
+      </a>
+      <a class="home-card" href="#components-optionsheet">
+        <div class="home-card__tag">Choice · single-select</div>
+        <div class="home-card__name">OptionSheet</div>
+        <p class="home-card__desc">A bottom-sheet shell around a vertical list. One row can be selected at a time — purple fill on the active option. Same primitive for app language, theme, default UPI account, or any settings-style pick-one.</p>
       </a>
       <a class="home-card" href="#components-mediaplayer">
         <div class="home-card__tag">Media (single, now playing)</div>
@@ -2649,6 +2778,93 @@
     </div>
   </section>
 
+  <section class="page-view" id="components-optionsheet">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">Option Sheet.</h1>
+        <p class="page-subtitle">A bottom-sheet shell around a vertical list of full-width rows. One option can be selected at a time — hairline border by default, purple fill with a tick once chosen. Scales to any number of items. Same primitive for app language, theme, default UPI account, or any settings-style pick-one.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Choice · single-select</span>
+          <span class="picked-when">Pick one from many, then commit</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Settings <span class="tab-partner">· JBIQ</span></button>
+      </div>
+      <div class="tab-panels">
+        <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+          <div class="user-turn"><div class="user-bubble">Speak to me in Hindi</div></div>
+          <div class="text-response"><p class="text-response__body">Pick your app language. You can change this anytime.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+          <div class="option-sheet" data-option-sheet>
+            <div class="option-sheet__grabber"></div>
+            <div class="option-sheet__title">Voice Language</div>
+            <div class="option-sheet__subtitle">Pick how I'll talk to you. You can change this anytime in settings.</div>
+            <div class="option-sheet__list" role="radiogroup" aria-label="Voice Language">
+              <button class="option-sheet__option" type="button" role="radio" aria-checked="false">
+                <span class="option-sheet__option-text">
+                  <span class="option-sheet__option-name">English</span>
+                  <span class="option-sheet__option-native">English</span>
+                </span>
+                <svg class="option-sheet__option-check" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="option-sheet__option" type="button" role="radio" aria-checked="false">
+                <span class="option-sheet__option-text">
+                  <span class="option-sheet__option-name">Hindi</span>
+                  <span class="option-sheet__option-native">हिन्दी</span>
+                </span>
+                <svg class="option-sheet__option-check" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="option-sheet__option" type="button" role="radio" aria-checked="false">
+                <span class="option-sheet__option-text">
+                  <span class="option-sheet__option-name">Tamil</span>
+                  <span class="option-sheet__option-native">தமிழ்</span>
+                </span>
+                <svg class="option-sheet__option-check" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="option-sheet__option" type="button" role="radio" aria-checked="false">
+                <span class="option-sheet__option-text">
+                  <span class="option-sheet__option-name">Telugu</span>
+                  <span class="option-sheet__option-native">తెలుగు</span>
+                </span>
+                <svg class="option-sheet__option-check" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="option-sheet__option" type="button" role="radio" aria-checked="false">
+                <span class="option-sheet__option-text">
+                  <span class="option-sheet__option-name">Gujarati</span>
+                  <span class="option-sheet__option-native">ગુજરાતી</span>
+                </span>
+                <svg class="option-sheet__option-check" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="option-sheet__option" type="button" role="radio" aria-checked="false">
+                <span class="option-sheet__option-text">
+                  <span class="option-sheet__option-name">Marathi</span>
+                  <span class="option-sheet__option-native">मराठी</span>
+                </span>
+                <svg class="option-sheet__option-check" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="option-sheet__option" type="button" role="radio" aria-checked="false">
+                <span class="option-sheet__option-text">
+                  <span class="option-sheet__option-name">Kannada</span>
+                  <span class="option-sheet__option-native">ಕನ್ನಡ</span>
+                </span>
+                <svg class="option-sheet__option-check" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+            <button class="option-sheet__btn option-sheet__btn--primary" type="button" data-option-sheet-commit disabled>Set language</button>
+            <button class="option-sheet__btn" type="button">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="page-view" id="components-mediaplayer">
     <div class="showcase-body">
       <header class="page-header">
@@ -3232,6 +3448,7 @@
         <li><a href="#components-receiptpanel">Receipt Panel</a></li>
         <li><a href="#components-detailsheet">Detail Sheet</a></li>
         <li><a href="#components-choicechips">Choice Chips</a></li>
+        <li><a href="#components-optionsheet">Option Sheet</a></li>
         <li><a href="#components-mediaplayer">Media Player</a></li>
         <li><a href="#components-gallery">Gallery</a></li>
       </ul>
@@ -4220,6 +4437,25 @@ document.addEventListener('click', (e) => {
   document.querySelectorAll('.detail-sheet__carousel-track').forEach(track => {
     Array.from(track.children).forEach((slide, idx) => {
       slide.addEventListener('click', () => open(track, idx));
+    });
+  });
+})();
+
+// ----- OptionSheet single-select behaviour -----
+(function() {
+  document.querySelectorAll('[data-option-sheet]').forEach(sheet => {
+    const options = sheet.querySelectorAll('.option-sheet__option');
+    const commit = sheet.querySelector('[data-option-sheet-commit]');
+    options.forEach(opt => {
+      opt.addEventListener('click', () => {
+        options.forEach(o => {
+          o.classList.remove('option-sheet__option--selected');
+          o.setAttribute('aria-checked', 'false');
+        });
+        opt.classList.add('option-sheet__option--selected');
+        opt.setAttribute('aria-checked', 'true');
+        if (commit) commit.disabled = false;
+      });
     });
   });
 })();

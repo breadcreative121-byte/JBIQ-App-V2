@@ -1015,6 +1015,270 @@
 
 
 /* ----------------------------------------------------------------------------
+   PRIMITIVE: DetailSheet — bottom sheet surfaced from EntityCard / List /
+   Gallery when the user taps an item to see its details before commit. Same
+   shape across shopping (product detail), place (clinic / restaurant /
+   service), and booking (in-progress service). Optional image carousel at
+   top supports swipe + tap-to-expand (lightbox below).
+   ---------------------------------------------------------------------------- */
+.detail-sheet {
+  background: var(--color-surface-primary);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 8px 20px 28px;
+  max-width: 380px;
+  margin: 0 auto;
+  box-shadow: 0 -12px 32px rgba(12, 13, 16, 0.04);
+}
+.detail-sheet__grabber {
+  width: 36px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: rgba(12, 13, 16, 0.18);
+  margin: 6px auto 14px;
+}
+.detail-sheet__title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+.detail-sheet__ref {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.04em;
+  margin-bottom: 16px;
+}
+.detail-sheet__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 0;
+  border-top: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--color-border-default);
+}
+.detail-sheet__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 14px;
+}
+.detail-sheet__row-label { color: var(--color-text-secondary); flex-shrink: 0; }
+.detail-sheet__row-value { color: var(--color-text-primary); font-weight: 600; text-align: right; }
+.detail-sheet__row--total { font-weight: 800; font-size: 16px; padding-top: 4px; }
+.detail-sheet__note {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  padding: 14px 0 4px;
+}
+.detail-sheet__btn {
+  width: 100%;
+  padding: 14px 20px;
+  margin-top: 12px;
+  background: var(--color-action-primary-surface);
+  color: var(--color-action-primary);
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+.detail-sheet__btn--primary {
+  background: var(--color-action-primary);
+  color: var(--color-text-on-primary);
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+.detail-sheet__carousel { margin: 4px -20px 18px; }
+.detail-sheet__carousel-track {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: 0 20px 10px;
+  scroll-padding-left: 20px;
+}
+.detail-sheet__carousel-track::-webkit-scrollbar { display: none; }
+.detail-sheet__carousel-slide {
+  flex: 0 0 280px;
+  height: 200px;
+  border-radius: 16px;
+  scroll-snap-align: start;
+  display: flex;
+  align-items: flex-end;
+  padding: 12px;
+  position: relative;
+  cursor: zoom-in;
+}
+.detail-sheet__carousel-label {
+  background: rgba(12, 13, 16, 0.45);
+  color: rgba(255, 255, 255, 0.96);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.detail-sheet__dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding-top: 2px;
+}
+.detail-sheet__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(12, 13, 16, 0.18);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+.detail-sheet__dot:hover { background: rgba(12, 13, 16, 0.32); }
+.detail-sheet__dot--active {
+  background: var(--color-action-primary);
+  transform: scale(1.2);
+}
+
+.detail-sheet-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 13, 16, 0.94);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  animation: detailSheetLightboxIn 180ms ease;
+}
+.detail-sheet-lightbox[hidden] { display: none; }
+@keyframes detailSheetLightboxIn { from { opacity: 0; } to { opacity: 1; } }
+.detail-sheet-lightbox__close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.14);
+  color: white;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 2;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 160ms ease;
+}
+.detail-sheet-lightbox__close:hover { background: rgba(255, 255, 255, 0.24); }
+.detail-sheet-lightbox__track {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: 24px 24px 0;
+  align-items: stretch;
+}
+.detail-sheet-lightbox__track::-webkit-scrollbar { display: none; }
+.detail-sheet-lightbox__slide {
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  border-radius: 16px;
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+  position: relative;
+  min-height: 100%;
+}
+.detail-sheet-lightbox__dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 0 28px;
+}
+.detail-sheet-lightbox__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.32);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+.detail-sheet-lightbox__dot:hover { background: rgba(255, 255, 255, 0.5); }
+.detail-sheet-lightbox__dot--active {
+  background: #ffffff;
+  transform: scale(1.25);
+}
+
+/* Optional place-variant media tile shown above the title — used when the
+   sheet has no carousel but still needs a visual anchor (icon over a tint). */
+.detail-sheet__media {
+  height: 96px;
+  margin: 4px 0 14px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(12, 13, 16, 0.7);
+}
+.detail-sheet__media svg {
+  width: 36px;
+  height: 36px;
+  opacity: 0.85;
+}
+
+/* Tap feedback on sheet buttons. */
+.detail-sheet__btn:active { transform: scale(0.98); }
+
+/* Floating modifier — bottom-anchored modal with slide-up animation. Used
+   inside a positioned phone-frame in the live build. The base .detail-sheet
+   is laid out in flow for showcase / playground; this modifier overrides
+   the max-width / margin centering and pins the sheet to the bottom edge. */
+.detail-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(12, 13, 16, 0.45);
+  z-index: 110;
+  opacity: 0;
+  animation: detailSheetBackdropIn 0.2s ease forwards;
+}
+.detail-sheet-backdrop.is-closing { animation: detailSheetBackdropOut 0.2s ease forwards; }
+@keyframes detailSheetBackdropIn { to { opacity: 1; } }
+@keyframes detailSheetBackdropOut { to { opacity: 0; } }
+
+.detail-sheet--floating {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 111;
+  max-width: none;
+  margin: 0;
+  max-height: 80%;
+  overflow-y: auto;
+  transform: translateY(100%);
+  animation: detailSheetIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.detail-sheet--floating.is-closing { animation: detailSheetOut 0.22s ease forwards; }
+@keyframes detailSheetIn { to { transform: translateY(0); } }
+@keyframes detailSheetOut { to { transform: translateY(100%); } }
+
+
+/* ----------------------------------------------------------------------------
    PRIMITIVE: MediaPlayer
    ---------------------------------------------------------------------------- */
 .player {
