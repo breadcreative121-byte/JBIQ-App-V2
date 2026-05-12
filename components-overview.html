@@ -152,8 +152,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background 140ms, color 140ms;
   }
   .home-card__feature-icon svg { display: block; }
+  .home-card--feature:hover .home-card__feature-icon {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+  }
   .home-card__external {
     margin-left: var(--space-sm);
     color: var(--color-text-tertiary);
@@ -794,8 +799,6 @@
   .voice-avatar-inline {
     width: 32px;
     height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
     display: block;
     flex-shrink: 0;
   }
@@ -3944,6 +3947,47 @@
 </div>
 
 <script>
+/* ----- Tracker on-reveal animation — bar fills 0 → target, step labels light
+   up in sequence as the bar passes each one. Re-plays on every reveal (tab
+   switch, hash route change, initial load). ----- */
+function animateTracker(el) {
+  const fill = el.querySelector('.tracker__progress-fill');
+  const steps = Array.from(el.querySelectorAll('.tracker__steps > span'));
+  if (!fill || !steps.length) return;
+  let target = parseFloat(fill.style.width);
+  if (!target || target <= 0) {
+    const activeIdx = steps.findIndex(s => s.classList.contains('active'));
+    if (activeIdx < 0 || steps.length < 2) return;
+    target = (activeIdx / (steps.length - 1)) * 100;
+  }
+  const targetClasses = steps.map(s => s.className);
+  const n = steps.length;
+  const duration = 1200;
+  fill.style.transition = 'none';
+  fill.style.width = '0%';
+  steps.forEach(s => { s.className = ''; });
+  void fill.offsetWidth;
+  fill.style.transition = '';
+  void fill.offsetWidth;
+  fill.style.width = target + '%';
+  steps.forEach((s, i) => {
+    const pos = n > 1 ? (i / (n - 1)) * 100 : 0;
+    const t = pos >= target ? duration : (pos / target) * duration;
+    window.setTimeout(() => { s.className = targetClasses[i]; }, t);
+  });
+  el.dataset.trackerAnimated = 'true';
+}
+function animateVisibleTrackers(root) {
+  if (!root) return;
+  const scope = root.querySelectorAll ? root : document;
+  scope.querySelectorAll('.tracker').forEach(t => {
+    const hiddenTab = t.closest('.tab-panel[data-active="false"]');
+    const hiddenView = t.closest('.page-view:not(.is-active)');
+    if (hiddenTab || hiddenView) return;
+    animateTracker(t);
+  });
+}
+
 /* ----- Tab switcher within a component page —
    matches tabs to panels by data-idx so both the input card and the component
    card switch together when a tab is clicked. ----- */
@@ -3956,6 +4000,7 @@ document.querySelectorAll('.page-view').forEach(page => {
       page.querySelectorAll('.tab-panel').forEach(p => {
         p.setAttribute('data-active', p.dataset.idx === idx ? 'true' : 'false');
       });
+      animateVisibleTrackers(page);
     });
   });
 });
@@ -3982,6 +4027,8 @@ function navigate(hash) {
   const parentGroup = activeLink && activeLink.closest('.toc__group');
   if (parentGroup) parentGroup.open = true;
   window.scrollTo(0, 0);
+  const activeView = document.querySelector('.page-view.is-active');
+  if (activeView) animateVisibleTrackers(activeView);
 }
 window.addEventListener('hashchange', () => { navigate(location.hash); closeDrawer(); });
 navigate(location.hash);
