@@ -16,6 +16,7 @@
   :root {
     --font-family: 'JioType', 'JioTypeVar', -apple-system, BlinkMacSystemFont, sans-serif;
     --layout-mobile-frame-width: 390px;
+    --layout-mobile-frame-height: 720px;
   }
 
   *, *::before, *::after { box-sizing: border-box; }
@@ -120,6 +121,9 @@
   .mobile-frame {
     width: var(--layout-mobile-frame-width);
     max-width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: var(--layout-mobile-frame-height);
     background: var(--color-surface-primary);
     border: 0.5px solid var(--color-border-default);
     border-radius: var(--radius-lg);
@@ -388,6 +392,39 @@
   }
   .ctl.primary:hover { background: var(--color-action-primary-hover); }
   .ctl:disabled { opacity: 0.38; cursor: not-allowed; }
+
+  /* Circular progress ring around the Next button — fills clockwise during playback */
+  #btnNext { position: relative; overflow: visible; }
+  .next-ring {
+    position: absolute;
+    inset: -6px;
+    width: 52px;
+    height: 52px;
+    pointer-events: none;
+    opacity: 0;
+    transform: rotate(-90deg);
+    transition: opacity 160ms ease;
+    overflow: visible;
+  }
+  .next-ring__track {
+    fill: none;
+    stroke: var(--color-action-primary);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 144.51;
+    stroke-dashoffset: 144.51;
+  }
+  body.is-playing .next-ring { opacity: 1; }
+  body.is-playing .next-ring__track {
+    animation: ringFill 3500ms linear infinite;
+  }
+  @keyframes ringFill {
+    from { stroke-dashoffset: 144.51px; }
+    to   { stroke-dashoffset: 0px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .next-ring { display: none; }
+  }
   .controls-right {
     text-align: right;
     color: var(--color-text-secondary);
@@ -447,6 +484,10 @@
      ============================================================ */
   .discovery-view {
     padding: 0 var(--space-lg);
+  }
+  .visual-area .player {
+    margin-left: var(--space-lg);
+    margin-right: var(--space-lg);
   }
 </style>
 </head>
@@ -584,7 +625,7 @@
       <div class="play-tooltip" id="playTooltip" role="tooltip">Walk through how a partner's MCP output becomes a conversation.</div>
       <button class="ctl" id="btnPrev" aria-label="Previous">‹</button>
       <button class="ctl primary" id="btnPlay" aria-label="Play" aria-describedby="playTooltip">▶</button>
-      <button class="ctl" id="btnNext" aria-label="Next">›</button>
+      <button class="ctl" id="btnNext" aria-label="Next"><svg class="next-ring" viewBox="0 0 50 50" aria-hidden="true"><circle class="next-ring__track" cx="25" cy="25" r="23"/></svg>›</button>
     </div>
     <div class="controls-right" id="controlsRight">daily · 1/2</div>
   </footer>
@@ -2180,14 +2221,17 @@ document.getElementById("btnPlay").addEventListener("click", function () {
   if (playInterval) {
     clearInterval(playInterval); playInterval = null;
     this.textContent = "▶";
+    document.body.classList.remove("is-playing");
     return;
   }
   this.textContent = "⏸";
+  document.body.classList.add("is-playing");
   playInterval = setInterval(() => {
     const max = FRAMES[state.vertical].frames.length - 1;
     if (state.step >= max) {
       clearInterval(playInterval); playInterval = null;
       document.getElementById("btnPlay").textContent = "▶";
+      document.body.classList.remove("is-playing");
       return;
     }
     state.step++;
