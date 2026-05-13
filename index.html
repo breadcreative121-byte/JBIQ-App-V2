@@ -9113,11 +9113,12 @@
     // matches storefront — keeps the canonical one-liner from looking like
     // "Jio · ₹299 plan · 28 days · Jio · 1 min".
     const partner = product.storefront || 'JioMart';
+    const partnerLogo = `assets/partners/${partner.toLowerCase().replace(/\s+/g, '-')}.png`;
     const brandRedundant = !product.brand
       || product.brand === partner
       || (product.name && product.name.toLowerCase().includes(product.brand.toLowerCase()));
+    // Partner is shown via .confirm-partner chip, so it's omitted from the summary.
     const summary = [
-      partner,
       brandRedundant ? null : product.brand,
       product.name,
       product.qty,
@@ -9130,6 +9131,11 @@
     card.className = 'jbiq-discovery';
     card.innerHTML = `
       <div class="confirm">
+        <div class="confirm-partner">
+          <span class="confirm-partner-logo" style="background-image:url('${partnerLogo}')"></span>
+          <span class="confirm-partner-name">${partner}</span>
+        </div>
+        ${product.img ? `<div class="confirm-image"><img src="${product.img}" alt="" loading="lazy"></div>` : ''}
         <div class="confirm-prompt">Place this order?</div>
         <div class="confirm-summary"></div>
         <div class="confirm-total">₹${product.price}</div>

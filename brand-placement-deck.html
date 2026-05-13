@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JBIQ Where partner brand lives</title>
+<style>
+  @font-face {
+    font-family: 'JioType';
+    font-weight: 100 900;
+    font-style: normal;
+    src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Regular.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'JioType';
+    font-weight: 100 900;
+    font-style: italic;
+    src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Italic.woff2') format('woff2');
+  }
+  :root {
+    --color-surface-primary: #ffffff;
+    --color-surface-secondary: #f5f5f5;
+    --color-surface-tertiary: #eeeeef;
+    --color-text-primary: #0c0d10;
+    --color-text-secondary: rgba(12,13,16,0.65);
+    --color-text-tertiary: rgba(12,13,16,0.38);
+    --color-text-on-primary: #ffffff;
+    --color-action-primary: #6d17ce;
+    --color-action-primary-hover: #310064;
+    --color-action-primary-surface: #ede7ff;
+    --color-border-default: rgba(12,13,16,0.08);
+    --color-border-strong: rgba(12,13,16,0.12);
+    --color-success: #25ab21;
+    --color-warning: #f06d0f;
+    --color-error: #fa2f40;
+
+    --space-xs: 4px; --space-sm: 8px; --space-md: 12px;
+    --space-lg: 16px;--space-xl: 24px;--space-xxl: 32px;
+    --space-huge: 56px;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-pill:999px;
+    --font-family: 'JioType', 'JioTypeVar', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', Menlo, 'Roboto Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: var(--space-xl); }
+  body {
+    background: var(--color-surface-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-family);
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.005em;
+    padding-left: 220px;
+  }
+
+  /* Sidebar */
+  .toc {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 220px;
+    background: var(--color-surface-primary);
+    border-right: 0.5px solid var(--color-border-default);
+    padding: var(--space-xxl) var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 10;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .toc::-webkit-scrollbar { display: none; }
+  .toc-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  .toc-brand__dot {
+    width: 28px; height: 28px;
+    border-radius: var(--radius-pill);
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    display: grid; place-items: center;
+    font-weight: 900; font-size: 13px;
+  }
+  .toc-brand__name {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  .toc-header {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-xs);
+  }
+  .toc a {
+    font-size: 14px;
+    font-weight: 500;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: background 140ms, color 140ms;
+    line-height: 1.3;
+  }
+  .toc a:hover {
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+  }
+  .toc a.is-active {
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    font-weight: 700;
+  }
+  .toc-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    margin-right: var(--space-xs);
+  }
+  .toc a.is-active .toc-num { color: var(--color-action-primary); }
+
+  /* Mobile burger / drawer */
+  .toc-burger {
+    display: none;
+    appearance: none;
+    background: var(--color-surface-primary);
+    border: 0.5px solid var(--color-border-default);
+    color: var(--color-text-primary);
+    width: 40px; height: 40px;
+    border-radius: var(--radius-pill);
+    position: fixed;
+    top: var(--space-md);
+    left: var(--space-md);
+    z-index: 20;
+    align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .toc-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(12,13,16,0.4);
+    z-index: 11;
+    opacity: 0;
+    transition: opacity 200ms ease;
+  }
+  .toc-backdrop.is-open { display: block; opacity: 1; }
+  .toc-close {
+    display: none;
+    appearance: none; background: transparent; border: none;
+    color: var(--color-text-secondary);
+    font-size: 24px;
+    width: 32px; height: 32px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    align-items: center; justify-content: center;
+    line-height: 1;
+    margin-left: auto;
+  }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--space-huge) var(--space-lg) var(--space-huge);
+  }
+
+  /* ------ Hero ------ */
+  .hero {
+    margin-bottom: var(--space-huge);
+    scroll-margin-top: var(--space-xl);
+  }
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-action-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--space-md);
+  }
+  .hero-title {
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    margin: 0 0 var(--space-lg);
+    max-width: 900px;
+  }
+  .hero-lead {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+    margin: 0 0 var(--space-huge);
+    max-width: 720px;
+    letter-spacing: -0.005em;
+  }
+
+  /* Full-width hero image illustrative collage of brand placements */
+  .hero-image {
+    margin: 0 0 var(--space-huge);
+    width: 100%;
+    background: var(--color-action-primary-surface);
+    border-radius: var(--radius-lg);
+    padding: 96px var(--space-huge);
+    overflow: hidden;
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+  }
+  .hero-image__row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-lg);
+    width: 100%;
+  }
+  .hero-image__row .mini-card { max-width: none; }
+  .hero-image .mini-card__media { aspect-ratio: 4 / 3; font-size: 56px; }
+
+  /* ---- Partner card (hero banner) ---- */
+  .partner-card {
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    font-size: 13px;
+  }
+  .partner-card__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .partner-card__head-mark {
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    color: var(--color-text-on-primary);
+    font-size: 8px;
+    font-weight: 900;
+    overflow: hidden;
+    line-height: 1.05;
+    text-align: center;
+  }
+  .partner-card__head-mark img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
+  .partner-card__head-mark--expedia { background: #FECC0A; color: #0F2C73; font-size: 14px; }
+  .partner-card__head-mark--flixbus { background: #73D700; color: #154500; font-size: 7px; }
+  .partner-card__head-mark--uber    { background: #000; font-size: 9px; }
+  .partner-card__head-mark--swiggy  { background: #FC8019; }
+
+  .partner-card__title {
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+  .partner-card__meta {
+    display: flex; align-items: center; gap: var(--space-sm);
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    margin-top: 2px;
+  }
+  .partner-card__meta-strike { text-decoration: line-through; }
+
+  .rating-badge {
+    background: #00ad8b;
+    color: #fff;
+    padding: 3px var(--space-sm);
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex; align-items: center; gap: 3px;
+    margin-left: auto;
+  }
+
+  /* Item list (Swiggy menu rows) */
+  .partner-card__items { display: flex; flex-direction: column; gap: var(--space-md); }
+  .partner-card__item {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    gap: var(--space-sm);
+    align-items: center;
+  }
+  .partner-card__item-thumb {
+    width: 44px; height: 44px;
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-secondary);
+    display: grid; place-items: center;
+    font-size: 22px;
+  }
+  .partner-card__item-name {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .partner-card__item-price {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    text-decoration: line-through;
+    margin-top: 3px;
+  }
+  .partner-card__item-add {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--color-surface-secondary);
+    display: grid; place-items: center;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    font-weight: 700;
+  }
+
+  /* Flight / bus legs */
+  .leg + .leg { padding-top: var(--space-sm); border-top: 0.5px dashed var(--color-border-default); }
+  .leg__row { display: flex; align-items: center; gap: var(--space-sm); }
+  .leg__icon {
+    width: 26px; height: 26px;
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-sm);
+    display: grid; place-items: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .leg__time { font-size: 13px; font-weight: 700; }
+  .leg__line { flex: 1; height: 1px; background: var(--color-text-primary); margin: 0 var(--space-xs); }
+  .leg__details {
+    margin-top: var(--space-xs);
+    margin-left: 34px;
+    line-height: 1.4;
+  }
+  .leg__details-title { font-size: 13px; font-weight: 700; }
+  .leg__details-sub   { font-size: 11px; color: var(--color-text-primary); font-weight: 500; }
+
+  /* Total row */
+  .partner-card__total {
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .partner-card__total-label-main { font-size: 13px; font-weight: 700; }
+  .partner-card__total-label-sub  { font-size: 10px; color: var(--color-text-secondary); margin-top: 1px; }
+  .partner-card__total-amount {
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+
+  /* Ride option (Uber rows) */
+  .ride-option {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    gap: var(--space-sm);
+    align-items: center;
+  }
+  .ride-option__thumb {
+    width: 56px; height: 40px;
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-sm);
+    display: grid; place-items: center;
+    font-size: 20px;
+  }
+  .ride-option__name { font-size: 13px; font-weight: 700; }
+  .ride-option__time { font-size: 11px; color: var(--color-text-secondary); text-decoration: line-through; margin-top: 2px; }
+  .ride-option__price { font-size: 13px; font-weight: 700; }
+  .ride-option__badge {
+    display: inline-block;
+    background: #80E5C1;
+    color: #003228;
+    padding: 2px var(--space-sm);
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 900;
+    margin-bottom: 3px;
+  }
+
+  /* Primary CTA */
+  .partner-card__cta {
+    width: 100%;
+    padding: var(--space-md);
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    border: none;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-family);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: auto;
+  }
+
+  /* Jio brand mark same image asset as place-playground.html */
+  .toc-brand__mark {
+    width: 28px;
+    height: 28px;
+    display: block;
+    flex-shrink: 0;
+  }
+
+  /* ------ Section editorial: full-width, key line on top, no card chrome ------ */
+  .section {
+    padding: 96px 0;
+    border-top: 0.5px solid var(--color-border-default);
+    scroll-margin-top: var(--space-xl);
+  }
+  /* No key line between the hero and the first section */
+  .hero + .section { border-top: none; }
+  .section-title {
+    font-size: 40px;
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin: 0 0 80px;
+    max-width: 880px;
+  }
+  .section-lead {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin: 0 0 var(--space-huge);
+    max-width: 760px;
+    letter-spacing: -0.005em;
+  }
+  .section h2 { margin: 0; }
+
+  /* ------ Bullet list ------ */
+  ul.clean { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-md); }
+  ul.clean li {
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--color-text-primary);
+    padding-left: var(--space-xl);
+    position: relative;
+    letter-spacing: -0.005em;
+  }
+  ul.clean li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 11px;
+    width: 6px; height: 6px;
+    background: var(--color-action-primary);
+    border-radius: 50%;
+  }
+  ul.clean li em { font-style: italic; color: var(--color-text-secondary); }
+
+  /* ------ Beneficiaries row ------ */
+  .beneficiaries {
+    margin-top: var(--space-xl);
+    padding-top: var(--space-lg);
+    border-top: 0.5px solid var(--color-border-default);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+  }
+  .beneficiaries .key {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--space-xs);
+    display: block;
+  }
+  .beneficiaries .val {
+    font-size: 16px;
+    color: var(--color-text-primary);
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  /* ------ Eight surfaces list ------ */
+  .surface-list {
+    list-style: none; padding: 0; margin: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg) var(--space-xxl);
+  }
+  .surface-list li {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    letter-spacing: -0.02em;
+    display: flex; align-items: baseline; gap: var(--space-md);
+    padding: var(--space-sm) 0;
+    border-bottom: 0.5px solid var(--color-border-default);
+  }
+  .surface-list li .num {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--color-action-primary);
+    flex-shrink: 0;
+    width: 24px;
+  }
+
+  /* ------ Inside-the-component visual ------ */
+  .demo-row {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: var(--space-huge);
+    align-items: center;
+    margin-top: var(--space-xl);
+  }
+  .demo-card {
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+  }
+  .demo-card__media {
+    aspect-ratio: 16/9;
+    background: var(--color-action-primary-surface);
+    border-radius: var(--radius-lg);
+    position: relative;
+    display: grid; place-items: center;
+    font-size: 40px;
+  }
+  .demo-badge {
+    position: absolute;
+    padding: 2px var(--space-sm);
+    border-radius: var(--radius-pill);
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .demo-badge.tl { top: var(--space-sm); left: var(--space-sm); }
+  .demo-badge.tr { top: var(--space-sm); right: var(--space-sm); border-radius: var(--radius-sm); background: rgba(12,13,16,0.6); }
+  .demo-card__title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: var(--space-sm);
+  }
+  .demo-card__footer {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    margin-top: var(--space-xs);
+  }
+  .demo-card__footer strong { color: var(--color-action-primary); }
+  .demo-callouts { display: flex; flex-direction: column; gap: var(--space-md); font-size: 15px; color: var(--color-text-secondary); }
+  .demo-callouts b { color: var(--color-action-primary); display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+
+  /* ------ Tension diagram ------ */
+  .tension {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: var(--space-xl);
+    align-items: stretch;
+    margin-top: var(--space-md);
+  }
+  .tension-col {
+    padding: var(--space-xl);
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-md);
+  }
+  .tension-col.primary { background: var(--color-action-primary-surface); }
+  .tension-vs {
+    align-self: center;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--color-text-tertiary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .tension-title {
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin: 0 0 var(--space-sm);
+  }
+  .tension-col.primary .tension-title { color: var(--color-action-primary); }
+  .tension-sub {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin: 0;
+  }
+  .tension-coda {
+    font-size: 17px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin: var(--space-xl) 0 0;
+    max-width: 720px;
+  }
+
+  /* ------ Rules ladder ------ */
+  .rules { display: flex; flex-direction: column; }
+  .rule-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: var(--space-xl);
+    padding: var(--space-lg) 0;
+    border-bottom: 0.5px solid var(--color-border-default);
+    align-items: baseline;
+  }
+  .rule-row:last-child { border-bottom: none; }
+  .rule-name {
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    font-family: var(--font-mono);
+  }
+  .rule-name.required { color: var(--color-error); }
+  .rule-name.default-on { color: var(--color-action-primary); }
+  .rule-name.opt-in { color: var(--color-success); }
+  .rule-name.capped { color: var(--color-warning); }
+  .rule-name.forbidden { color: var(--color-text-tertiary); }
+  .rule-body {
+    font-size: 17px;
+    color: var(--color-text-primary);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  /* ------ The dark "one rule" section editorial breakout ------ */
+  .big-rule {
+    background: var(--color-text-primary);
+    color: var(--color-text-on-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-huge);
+    margin-top: 96px;
+    margin-bottom: 96px;
+    text-align: center;
+  }
+  .big-rule .eyebrow { color: rgba(255,255,255,0.6); }
+  .big-rule .section-title { color: var(--color-text-on-primary); max-width: 880px; margin-left: auto; margin-right: auto; }
+  .big-rule .section-lead { color: rgba(255,255,255,0.7); max-width: 720px; margin-left: auto; margin-right: auto; margin-bottom: 0; }
+
+  /* ------ 2×2 example grid (visual mockups within a section) ------ */
+  .example-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl) var(--space-xxl);
+    margin-top: var(--space-xl);
+  }
+  .example-tile { display: flex; flex-direction: column; gap: var(--space-md); }
+  .example-tile__image {
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-lg);
+    aspect-ratio: 4 / 3;
+    padding: var(--space-xl);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .example-tile__caption { margin-top: var(--space-xs); }
+  .example-tile__label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-action-primary);
+    margin-bottom: var(--space-xs);
+  }
+  .example-tile__title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 var(--space-xs);
+  }
+  .example-tile__body {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* Mini place-card mockups inside example tiles */
+  .mini-card { width: 100%; background: var(--color-surface-primary); border-radius: var(--radius-md); overflow: hidden; }
+  .mini-card__media {
+    aspect-ratio: 16 / 9;
+    background: var(--color-action-primary-surface);
+    position: relative;
+    display: grid; place-items: center;
+    font-size: 32px;
+    border-radius: var(--radius-md);
+  }
+  .mini-card__strip {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 18px;
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: flex; align-items: center;
+    padding-left: var(--space-sm);
+  }
+  .mini-card__badge {
+    position: absolute;
+    bottom: var(--space-xs);
+    right: var(--space-xs);
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    font-size: 11px;
+    font-weight: 900;
+    width: 22px; height: 22px;
+    border-radius: var(--radius-pill);
+    display: grid; place-items: center;
+    border: 2px solid var(--color-surface-primary);
+  }
+  .mini-card__body { padding: var(--space-xs) var(--space-sm) var(--space-sm); }
+  .mini-card__title-row { display: flex; align-items: center; gap: 6px; }
+  .mini-card__brand-dot {
+    width: 14px; height: 14px;
+    border-radius: var(--radius-pill);
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    font-size: 8px;
+    font-weight: 900;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    object-fit: cover;
+  }
+  img.mini-card__brand-dot { background: var(--color-surface-secondary); }
+  .mini-card__title { font-size: 12px; font-weight: 700; color: var(--color-text-primary); }
+  .mini-card__meta { font-size: 10px; color: var(--color-text-secondary); margin-top: 2px; }
+  .mini-card__footer {
+    font-size: 10px;
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 0.5px solid var(--color-border-default);
+  }
+  .mini-card__footer strong { color: var(--color-action-primary); }
+
+  /* ---- Additional mini-mockup patterns for example-grid cells ---- */
+
+  /* Mini horizontal row icon + name + meta */
+  .mini-row {
+    display: flex; align-items: center; gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    width: 100%; max-width: 280px;
+  }
+  .mini-row + .mini-row { margin-top: 6px; }
+  .mini-row__logo {
+    width: 24px; height: 24px;
+    border-radius: var(--radius-pill);
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    display: grid; place-items: center;
+    font-size: 11px; font-weight: 900; letter-spacing: -0.02em;
+    flex-shrink: 0;
+    overflow: hidden;
+    object-fit: cover;
+  }
+  img.mini-row__logo { background: var(--color-surface-secondary); }
+  .mini-row__logo.alt-1 { background: #f06d0f; }
+  .mini-row__logo.alt-2 { background: #00ad8b; }
+  .mini-row__logo.alt-3 { background: #0078ad; }
+  .mini-row__name { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+  .mini-row__meta { font-size: 11px; color: var(--color-text-secondary); font-weight: 500; }
+  .mini-row__toggle {
+    width: 26px; height: 14px;
+    background: var(--color-action-primary);
+    border-radius: var(--radius-pill);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .mini-row__toggle::after {
+    content: ""; position: absolute;
+    right: 1px; top: 1px;
+    width: 12px; height: 12px;
+    background: var(--color-text-on-primary);
+    border-radius: 50%;
+  }
+
+  /* Mini-stack group label + rows */
+  .mini-stack { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 280px; }
+  .mini-stack__head {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--color-text-tertiary);
+    padding: 0 var(--space-sm);
+    margin-bottom: 2px;
+  }
+
+  /* Mini-banner partner-coloured header strip */
+  .mini-banner {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    font-size: 12px;
+    width: 100%; max-width: 280px;
+    display: flex; align-items: center; gap: var(--space-sm);
+  }
+  .mini-banner__check {
+    width: 22px; height: 22px;
+    background: rgba(255,255,255,0.95);
+    color: var(--color-action-primary);
+    border-radius: var(--radius-pill);
+    display: grid; place-items: center;
+    font-weight: 900; font-size: 12px;
+  }
+  .mini-banner__title { font-weight: 700; font-size: 12px; }
+  .mini-banner__sub { font-size: 10px; color: rgba(255,255,255,0.85); margin-top: 1px; }
+
+  /* Mini-confirm panel */
+  .mini-confirm {
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    width: 100%; max-width: 240px;
+    text-align: center;
+  }
+  .mini-confirm__head {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 11px; font-weight: 700;
+    color: var(--color-text-secondary);
+    margin-bottom: 6px;
+  }
+  .mini-confirm__head .mini-row__logo { width: 16px; height: 16px; font-size: 9px; }
+  .mini-confirm__total {
+    font-size: 22px; font-weight: 900;
+    letter-spacing: -0.03em;
+    margin: 4px 0 var(--space-sm);
+  }
+  .mini-confirm__btn {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    font-size: 11px; font-weight: 700;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    display: inline-block;
+  }
+
+  /* Mini-quote voice script */
+  .mini-quote {
+    text-align: left;
+    max-width: 280px;
+  }
+  .mini-quote__attr {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-action-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+  }
+  .mini-quote__text {
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--color-text-primary);
+    font-weight: 500;
+    margin: 0;
+  }
+  .mini-quote__text::before { content: '\201C'; color: var(--color-action-primary); margin-right: 2px; font-weight: 900; }
+  .mini-quote__text::after { content: '\201D'; color: var(--color-action-primary); margin-left: 2px; font-weight: 900; }
+  .mini-quote__text strong { color: var(--color-action-primary); font-weight: 900; }
+
+  /* Mini-pill partner chip */
+  .mini-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    font-size: 11px; font-weight: 700;
+  }
+  .mini-pill .mini-row__logo { width: 14px; height: 14px; font-size: 9px; }
+
+  /* Mini-badge verification / regulator */
+  .mini-badge-row { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .mini-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px 4px 4px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface-primary);
+    border: 0.5px solid var(--color-border-default);
+    font-size: 11px;
+    color: var(--color-text-primary);
+    font-weight: 700;
+  }
+  .mini-badge__check {
+    width: 18px; height: 18px;
+    border-radius: var(--radius-pill);
+    background: var(--color-success);
+    color: white;
+    display: grid; place-items: center;
+    font-size: 11px; font-weight: 900;
+  }
+  .mini-badge__abbr {
+    width: 18px; height: 18px;
+    border-radius: var(--radius-pill);
+    background: var(--color-action-primary);
+    color: white;
+    display: grid; place-items: center;
+    font-size: 8px; font-weight: 900; letter-spacing: -0.02em;
+  }
+
+  /* Mini-notification card */
+  .mini-notification {
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    font-size: 11px;
+    width: 100%; max-width: 280px;
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: var(--space-sm);
+    align-items: start;
+  }
+  .mini-notification__icon {
+    width: 28px; height: 28px;
+    background: var(--color-action-primary);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-on-primary);
+    display: grid; place-items: center;
+    font-size: 12px; font-weight: 900;
+  }
+  .mini-notification__head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 10px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+  }
+  .mini-notification__title { font-weight: 700; color: var(--color-text-primary); font-size: 12px; margin-top: 2px; line-height: 1.3; }
+  .mini-notification__body { color: var(--color-text-secondary); font-size: 10px; margin-top: 2px; line-height: 1.3; }
+
+  /* Mini-tab for browser tab mockup */
+  .mini-tab {
+    background: var(--color-surface-primary);
+    border-top-left-radius: var(--radius-md);
+    border-top-right-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 500;
+    color: var(--color-text-primary);
+    width: 100%; max-width: 220px;
+    border-bottom: 2px solid var(--color-action-primary);
+  }
+  .mini-tab__close {
+    margin-left: auto;
+    width: 14px; height: 14px;
+    color: var(--color-text-tertiary);
+    font-size: 12px; line-height: 1;
+    display: grid; place-items: center;
+  }
+  .mini-tab__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Mini-chat header to anchor session chrome mockups */
+  .mini-chat {
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    width: 100%; max-width: 280px;
+  }
+  .mini-chat__head {
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 0.5px solid var(--color-border-default);
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px;
+  }
+  .mini-chat__pill {
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    font-size: 10px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .mini-chat__body {
+    padding: var(--space-sm) var(--space-md) var(--space-md);
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+  }
+
+  /* Mini-compare partner logos in row */
+  .mini-compare {
+    display: flex; gap: var(--space-xs);
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm);
+    width: 100%; max-width: 280px;
+  }
+  .mini-compare__col {
+    flex: 1;
+    text-align: center;
+    padding: var(--space-xs);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-secondary);
+  }
+  .mini-compare__col.best { background: var(--color-action-primary-surface); }
+  .mini-compare__logo {
+    width: 24px; height: 24px;
+    margin: 0 auto var(--space-xs);
+    border-radius: var(--radius-pill);
+    background: var(--color-text-primary);
+    color: var(--color-text-on-primary);
+    display: grid; place-items: center;
+    font-size: 11px; font-weight: 900;
+  }
+  .mini-compare__col.best .mini-compare__logo { background: var(--color-action-primary); }
+  .mini-compare__col.alt-1 .mini-compare__logo { background: #f06d0f; }
+  .mini-compare__col.alt-2 .mini-compare__logo { background: #0078ad; }
+  .mini-compare__name { font-size: 10px; font-weight: 700; color: var(--color-text-primary); }
+  .mini-compare__val { font-size: 9px; color: var(--color-text-secondary); margin-top: 2px; }
+
+  /* Mini-source aggregated source line */
+  .mini-source {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    max-width: 280px;
+    text-align: left;
+  }
+  .mini-source strong { color: var(--color-action-primary); font-weight: 700; }
+
+  /* Mini-coin loyalty rewards */
+  .mini-coin {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+  .mini-coin__icon {
+    width: 24px; height: 24px;
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    border-radius: var(--radius-pill);
+    display: grid; place-items: center;
+    font-size: 11px; font-weight: 900;
+  }
+  .mini-coin__count strong { color: var(--color-action-primary); font-size: 14px; }
+
+  /* Mobile breakpoint */
+  @media (max-width: 720px) {
+    body { padding-left: 0; }
+    .toc-burger { display: flex; }
+    .toc-close { display: flex; }
+    .toc {
+      transform: translateX(-100%);
+      transition: transform 240ms ease;
+      width: 280px;
+      z-index: 12;
+    }
+    .toc.is-open { transform: translateX(0); }
+    .page { padding: 72px var(--space-lg) var(--space-huge); }
+    .hero-title { font-size: 44px; }
+    .section-title { font-size: 32px; }
+    .section { padding: var(--space-xxl) 0; }
+    .big-rule { padding: var(--space-xxl) var(--space-lg); margin: var(--space-xxl) 0; }
+    .surface-list { grid-template-columns: 1fr; }
+    .demo-row { grid-template-columns: 1fr; }
+    .tension { grid-template-columns: 1fr; }
+    .tension-vs { text-align: center; }
+    .beneficiaries { grid-template-columns: 1fr; gap: var(--space-md); }
+    .rule-row { grid-template-columns: 1fr; gap: var(--space-xs); }
+    .example-grid { grid-template-columns: 1fr; }
+    .hero-image { padding: var(--space-lg); }
+    .hero-image__row { grid-template-columns: 1fr 1fr; gap: var(--space-md); }
+  }
+</style>
+</head>
+<body>
+
+<button class="toc-burger" aria-label="Open navigation">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+</button>
+
+<aside id="sidebar" class="toc" role="navigation" aria-label="Brand placement sections">
+  <div class="toc-brand">
+    <img class="toc-brand__mark" src="assets/logo.svg" alt="Jio" width="28" height="28">
+    <div class="toc-brand__name">JBIQ</div>
+    <button class="toc-close" aria-label="Close navigation">×</button>
+  </div>
+  <div class="toc-header">Contents</div>
+  <a href="#top">Overview</a>
+  <a href="#question">The question</a>
+  <a href="#surfaces">Eight surfaces</a>
+
+  <div class="toc-header" style="margin-top: var(--space-md)">Zones</div>
+  <a href="#zone-1"><span class="toc-num">01</span> Pre-conversation</a>
+  <a href="#zone-2"><span class="toc-num">02</span> Session chrome</a>
+  <a href="#zone-3"><span class="toc-num">03</span> Inside the component</a>
+  <a href="#zone-4"><span class="toc-num">04</span> Voice attribution</a>
+  <a href="#zone-5"><span class="toc-num">05</span> Transactional moments</a>
+  <a href="#zone-6"><span class="toc-num">06</span> History &amp; re-engagement</a>
+  <a href="#zone-7"><span class="toc-num">07</span> Trust &amp; compliance</a>
+  <a href="#zone-8"><span class="toc-num">08</span> Cross-partner views</a>
+
+  <div class="toc-header" style="margin-top: var(--space-md)">Rules of the road</div>
+  <a href="#tension">The tension</a>
+  <a href="#rules">The ladder</a>
+  <a href="#big-rule">The one rule</a>
+</aside>
+
+<div class="toc-backdrop" aria-hidden="true"></div>
+
+<main class="page">
+
+  <!-- Hero -->
+  <header class="hero" id="top">
+    <div class="eyebrow">JBIQ design system</div>
+    <h1 class="hero-title">Where partner brand lives.</h1>
+    <p class="hero-lead">A map of every surface where a business and a user sees brand presence in the JBIQ conversation.</p>
+
+    <figure class="hero-image" aria-hidden="true">
+      <div class="hero-image__row">
+
+        <!-- Swiggy -->
+        <div class="partner-card">
+          <div class="partner-card__head">
+            <span class="partner-card__head-mark partner-card__head-mark--swiggy"><img src="assets/partners/swiggy.png" alt="Swiggy"></span>
+            <span>Swiggy</span>
+          </div>
+          <div>
+            <div class="partner-card__title">Garvaa Biryani</div>
+            <div class="partner-card__meta">
+              <span><span class="partner-card__meta-strike">10 15 mins</span> · 1km · <span class="partner-card__meta-strike">Mumbai</span></span>
+              <span class="rating-badge">3.8 ★</span>
+            </div>
+          </div>
+          <div class="partner-card__items">
+            <div class="partner-card__item">
+              <div class="partner-card__item-thumb">🍛</div>
+              <div>
+                <div class="partner-card__item-name">Tandoori Chicken Dum Biriyani</div>
+                <div class="partner-card__item-price">₹360</div>
+              </div>
+              <div class="partner-card__item-add">+</div>
+            </div>
+            <div class="partner-card__item">
+              <div class="partner-card__item-thumb">🥘</div>
+              <div>
+                <div class="partner-card__item-name">Vegetable Dum Biriyani</div>
+                <div class="partner-card__item-price">₹300</div>
+              </div>
+              <div class="partner-card__item-add">+</div>
+            </div>
+            <div class="partner-card__item">
+              <div class="partner-card__item-thumb">🍲</div>
+              <div>
+                <div class="partner-card__item-name">Paneer Tika Biriyani</div>
+                <div class="partner-card__item-price">₹250</div>
+              </div>
+              <div class="partner-card__item-add">+</div>
+            </div>
+          </div>
+          <button class="partner-card__cta">View in Swiggy</button>
+        </div>
+
+        <!-- Expedia -->
+        <div class="partner-card">
+          <div class="partner-card__head">
+            <span class="partner-card__head-mark partner-card__head-mark--expedia">✈</span>
+            <span>Expedia</span>
+          </div>
+          <div class="leg">
+            <div class="leg__row">
+              <div class="leg__icon">✈</div>
+              <div class="leg__time">11:25</div>
+              <div class="leg__line"></div>
+              <div class="leg__time">13:15</div>
+            </div>
+            <div class="leg__details">
+              <div class="leg__details-title">BLR BOM</div>
+              <div class="leg__details-sub">1h 50m · Direct</div>
+              <div class="leg__details-sub">Indigo · Economy</div>
+            </div>
+          </div>
+          <div class="leg">
+            <div class="leg__row">
+              <div class="leg__icon">✈</div>
+              <div class="leg__time">22:15</div>
+              <div class="leg__line"></div>
+              <div class="leg__time">14:35</div>
+            </div>
+            <div class="leg__details">
+              <div class="leg__details-title">BLR BOM</div>
+              <div class="leg__details-sub">1h 50m · Direct</div>
+              <div class="leg__details-sub">Indigo · Economy</div>
+            </div>
+          </div>
+          <div class="partner-card__total">
+            <div>
+              <div class="partner-card__total-label-main">Total</div>
+              <div class="partner-card__total-label-sub">Return per traveler</div>
+            </div>
+            <div class="partner-card__total-amount">₹9,758</div>
+          </div>
+          <button class="partner-card__cta">Book on Expedia</button>
+        </div>
+
+        <!-- Flixbus -->
+        <div class="partner-card">
+          <div class="partner-card__head">
+            <span class="partner-card__head-mark partner-card__head-mark--flixbus">FLIX<br>BUS</span>
+            <span>Flixbus</span>
+          </div>
+          <div class="leg">
+            <div class="leg__row">
+              <div class="leg__icon">🚌</div>
+              <div class="leg__time">11:25</div>
+              <div class="leg__line"></div>
+              <div class="leg__time">13:15</div>
+            </div>
+            <div class="leg__details">
+              <div class="leg__details-title">Bangalore Chennai</div>
+              <div class="leg__details-sub">5h 25m · 2 Transfer</div>
+              <div class="leg__details-sub">Free WiFi 🚻 📶</div>
+            </div>
+          </div>
+          <div class="partner-card__total">
+            <div>
+              <div class="partner-card__total-label-main">Total</div>
+              <div class="partner-card__total-label-sub">Return per traveler</div>
+            </div>
+            <div class="partner-card__total-amount">₹350</div>
+          </div>
+          <button class="partner-card__cta">Book on Flexibus</button>
+        </div>
+
+        <!-- Uber -->
+        <div class="partner-card">
+          <div class="partner-card__head">
+            <span class="partner-card__head-mark partner-card__head-mark--uber">Uber</span>
+            <span>Uber</span>
+          </div>
+          <div class="partner-card__items">
+            <div class="ride-option">
+              <div class="ride-option__thumb">🚗</div>
+              <div>
+                <div class="ride-option__badge">Fastest</div>
+                <div class="ride-option__name">UberX</div>
+                <div class="ride-option__time">1:58PM · 4 min</div>
+              </div>
+              <div class="ride-option__price">₹658</div>
+            </div>
+            <div class="ride-option">
+              <div class="ride-option__thumb">🚗</div>
+              <div>
+                <div class="ride-option__name">Comfort</div>
+                <div class="ride-option__time">1:58PM · 6 min</div>
+              </div>
+              <div class="ride-option__price">₹758</div>
+            </div>
+            <div class="ride-option">
+              <div class="ride-option__thumb">🚙</div>
+              <div>
+                <div class="ride-option__name">Uber XL</div>
+                <div class="ride-option__time">1:58PM · 8 min</div>
+              </div>
+              <div class="ride-option__price">₹858</div>
+            </div>
+          </div>
+          <button class="partner-card__cta">View in Uber</button>
+        </div>
+
+      </div>
+    </figure>
+  </header>
+
+  <!-- The question -->
+  <section class="section" id="question">
+    <div class="eyebrow">The question</div>
+    <h2 class="section-title">When a partner connects to JBIQ where does their brand show up?</h2>
+    <p class="section-lead">The user needs trust signals. The business needs attribution. The system needs cohesion. Three things to balance, eight surfaces to balance them across.</p>
+  </section>
+
+  <!-- Eight surfaces -->
+  <section class="section" id="surfaces">
+    <div class="eyebrow">Eight surfaces</div>
+    <h2 class="section-title">The map.</h2>
+    <ol class="surface-list">
+      <li><span class="num">01</span>Pre-conversation</li>
+      <li><span class="num">02</span>Session chrome</li>
+      <li><span class="num">03</span>Inside the component</li>
+      <li><span class="num">04</span>Voice attribution</li>
+      <li><span class="num">05</span>Transactional moments</li>
+      <li><span class="num">06</span>History &amp; re-engagement</li>
+      <li><span class="num">07</span>Trust &amp; compliance</li>
+      <li><span class="num">08</span>Cross-partner views</li>
+    </ol>
+  </section>
+
+  <!-- Zone 1 -->
+  <section class="section" id="zone-1">
+    <div class="eyebrow">01 Pre-conversation</div>
+    <h2 class="section-title">Where users decide which partners they trust.</h2>
+    <p class="section-lead">The very first impression a partner makes before any tool has fired or any data has been touched.</p>
+    <ul class="clean">
+      <li>Partner picker / capability registry <em>"Swiggy, Zomato, or Eatsure for food?"</em></li>
+      <li>First-use consent screen partner logo, data scope, allowed actions</li>
+      <li>Settings → Connected partners the user's mental model of what's plugged in</li>
+      <li>"Discover partners" surface app-store-like, high real estate</li>
+    </ul>
+    <div class="example-grid">
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-stack">
+            <div class="mini-stack__head">Pick a partner</div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/swiggy.png" alt="Swiggy"><div class="mini-row__name">Swiggy</div><div class="mini-row__meta">Top rated</div></div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/zomato.png" alt="Zomato"><div class="mini-row__name">Zomato</div></div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/jiomart.png" alt="JioMart"><div class="mini-row__name">JioMart</div></div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Partner picker</div>
+          <h3 class="example-tile__title">Choose who handles the request</h3>
+          <p class="example-tile__body">JBIQ surfaces the partners that can fulfil the user's intent. Each option carries its mark and a one-line credential.</p>
+        </div>
+      </div>
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-stack">
+            <div class="mini-stack__head">Allow Swiggy access to</div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/swiggy.png" alt="Swiggy"><div class="mini-row__name">Your location</div><div class="mini-row__toggle"></div></div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/swiggy.png" alt="Swiggy"><div class="mini-row__name">Payment methods</div><div class="mini-row__toggle"></div></div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/swiggy.png" alt="Swiggy"><div class="mini-row__name">Order history</div><div class="mini-row__toggle"></div></div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">First-use consent</div>
+          <h3 class="example-tile__title">What the partner can see and do</h3>
+          <p class="example-tile__body">Partner logo paired with each data scope the user is granting. Granular, explicit, revocable.</p>
+        </div>
+      </div>
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-stack">
+            <div class="mini-stack__head">Connected partners</div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/swiggy.png" alt="Swiggy"><div class="mini-row__name">Swiggy</div><div class="mini-row__meta">Connected</div></div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/practo.png" alt="Practo"><div class="mini-row__name">Practo</div><div class="mini-row__meta">Connected</div></div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/umang.png" alt="UMANG"><div class="mini-row__name">UMANG</div><div class="mini-row__meta">Linked</div></div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Settings · connected partners</div>
+          <h3 class="example-tile__title">The user's mental model of their stack</h3>
+          <p class="example-tile__body">A single screen showing everyone plugged in. Source of truth for "who has access" and the disconnect button.</p>
+        </div>
+      </div>
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-card">
+            <div class="mini-card__media">
+              <div class="mini-card__strip">Discover</div>
+              🛒
+            </div>
+            <div class="mini-card__body">
+              <div class="mini-card__title">JioMart</div>
+              <div class="mini-card__meta">Groceries · ★ 4.6</div>
+              <div class="mini-card__footer"><strong>New for you</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Discover partners</div>
+          <h3 class="example-tile__title">App-store-like featured surface</h3>
+          <p class="example-tile__body">Where new partners get their first impression. High real estate, brand-led; users opt in to plug them into the rest of the system.</p>
+        </div>
+      </div>
+    </div>
+    <div class="beneficiaries">
+      <div><span class="key">User</span><div class="val">Trust signals up front.</div></div>
+      <div><span class="key">Partner</span><div class="val">First-impression placement.</div></div>
+    </div>
+  </section>
+
+  <!-- Zone 2 -->
+  <section class="section" id="zone-2">
+    <div class="eyebrow">02 Session chrome</div>
+    <h2 class="section-title">The active partner stays visible without crowding the content.</h2>
+    <p class="section-lead">When a flow is in progress, the user should always know who's behind the answer but it can't compete with the content itself.</p>
+    <ul class="clean">
+      <li>Active partner pill at the top of the conversation</li>
+      <li>Sidebar partner indicator when a flow is in progress</li>
+      <li>Browser tab / app header reflecting the current partner</li>
+      <li>Voice intro when a partner takes over <em>"Swiggy here three places near you do pad thai."</em></li>
+    </ul>
+    <div class="beneficiaries">
+      <div><span class="key">User</span><div class="val">Stays oriented on who's responsible.</div></div>
+      <div><span class="key">Partner</span><div class="val">Framing presence.</div></div>
+    </div>
+  </section>
+
+  <!-- Zone 3 -->
+  <section class="section" id="zone-3">
+    <div class="eyebrow">03 Inside the component</div>
+    <h2 class="section-title">The highest-stakes surface partners compete here for visibility.</h2>
+    <p class="section-lead">Cards, lists, and trackers are where the user is actively looking. Every placement here trades off against the next.</p>
+    <ul class="clean">
+      <li><strong>Card hero / media</strong> partner watermark, logo strip, themed colour wash</li>
+      <li><strong>Card title row</strong> small partner mark next to the entity title</li>
+      <li><strong>Per-row source attribution</strong> <em>"Naukri"</em> / <em>"Apna"</em> tag on each job result</li>
+      <li><strong>Status / live tiles</strong> partner logo on the Tracker's primary surface</li>
+      <li><strong>Section headers</strong> <em>"From Times of India"</em> above a news block</li>
+      <li><strong>Card footer</strong> <em>"via Swiggy"</em> source line</li>
+      <li><strong>Verification badges</strong> system-issued tick, not partner-claimed</li>
+    </ul>
+    <div class="example-grid">
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-card">
+            <div class="mini-card__media">
+              <div class="mini-card__strip">Swiggy</div>
+              🍜
+            </div>
+            <div class="mini-card__body">
+              <div class="mini-card__title-row">
+                <div class="mini-card__title">Soi 7</div>
+              </div>
+              <div class="mini-card__meta">Thai · ★ 4.5 · 25 min</div>
+            </div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Hero watermark</div>
+          <h3 class="example-tile__title">Logo strip in the media area</h3>
+          <p class="example-tile__body">Most assertive treatment. Partner's mark spans the top edge of the card's hero. Best when partner brand recognition is doing the heavy lifting.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-card">
+            <div class="mini-card__media">🍜</div>
+            <div class="mini-card__body">
+              <div class="mini-card__title-row">
+                <div class="mini-card__brand-dot">S</div>
+                <div class="mini-card__title">Soi 7</div>
+              </div>
+              <div class="mini-card__meta">Thai · ★ 4.5 · 25 min</div>
+            </div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Title-row mark</div>
+          <h3 class="example-tile__title">Small logo next to the entity name</h3>
+          <p class="example-tile__body">Quiet but always there. The partner's identity sits inline with the title, so it travels with the entity into search, history, and recommendations.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-card">
+            <div class="mini-card__media">🍜</div>
+            <div class="mini-card__body">
+              <div class="mini-card__title">Soi 7</div>
+              <div class="mini-card__meta">Thai · ★ 4.5 · 25 min</div>
+              <div class="mini-card__footer">via <strong>Swiggy</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Footer source line</div>
+          <h3 class="example-tile__title">"via Partner" attribution line</h3>
+          <p class="example-tile__body">The default-on treatment. Plain text below the card. Reads naturally, never overpowers the data, satisfies attribution without competing for attention.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-card">
+            <div class="mini-card__media">
+              🍜
+              <div class="mini-card__badge">✓</div>
+            </div>
+            <div class="mini-card__body">
+              <div class="mini-card__title">Soi 7</div>
+              <div class="mini-card__meta">Thai · ★ 4.5 · 25 min</div>
+            </div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Verification badge</div>
+          <h3 class="example-tile__title">System-issued tick</h3>
+          <p class="example-tile__body">A trust signal, not a brand placement. Issued by JBIQ after partner verification never claimed or styled by the partner themselves.</p>
+        </div>
+      </div>
+
+    </div>
+    <div class="beneficiaries">
+      <div><span class="key">User</span><div class="val">Sees who's source-of-truth for each data point.</div></div>
+      <div><span class="key">Partner</span><div class="val">Prime real estate where eyes actually land.</div></div>
+    </div>
+  </section>
+
+  <!-- Zone 4 -->
+  <section class="section" id="zone-4">
+    <div class="eyebrow">04 Voice attribution</div>
+    <h2 class="section-title">The invisible channel where brand only reaches the user as sound.</h2>
+    <p class="section-lead">Voice is brand's hardest surface you can't show a logo. Attribution happens through phrasing, persona, and consistent naming.</p>
+    <ul class="clean">
+      <li>Spoken partner mention <em>"From Practo:"</em>, <em>"On Swiggy:"</em></li>
+      <li>Persona inheritance partner's selected voice persona reflects their brand tone</li>
+      <li>Confirm readbacks partner always named before money moves <em>(non-negotiable)</em></li>
+      <li>Tracker updates <em>"Swiggy says your order's 12 minutes away"</em></li>
+      <li>Receipt acks <em>"Your Practo appointment is confirmed"</em></li>
+    </ul>
+    <div class="beneficiaries">
+      <div><span class="key">User</span><div class="val">Trust knows who's vouching for what.</div></div>
+      <div><span class="key">Partner</span><div class="val">Brand recall in the eyes-busy channel.</div></div>
+    </div>
+  </section>
+
+  <!-- Zone 5 -->
+  <section class="section" id="zone-5">
+    <div class="eyebrow">05 Transactional moments</div>
+    <h2 class="section-title">The trust-critical zone partners are named whenever commitment moves.</h2>
+    <p class="section-lead">Money, bookings, irreversible actions. The user has to know who's executing and how to reach them if something goes wrong.</p>
+    <ul class="clean">
+      <li>ConfirmPanel header partner logo + name in the banner</li>
+      <li>Payment provider logos Visa, Mastercard, UPI app <em>(separate from the partner)</em></li>
+      <li>Receipt header &amp; footer order ref, support contact, terms link</li>
+      <li>Push / SMS notifications partner-branded outside the JBIQ surface</li>
+      <li>Email confirmations partner sender, partner template, JBIQ co-mark</li>
+    </ul>
+    <div class="beneficiaries">
+      <div><span class="key">User</span><div class="val">Knows who to chase if something goes wrong.</div></div>
+      <div><span class="key">Partner</span><div class="val">Extends the relationship past the JBIQ session.</div></div>
+    </div>
+  </section>
+
+  <!-- Zone 6 -->
+  <section class="section" id="zone-6">
+    <div class="eyebrow">06 History &amp; re-engagement</div>
+    <h2 class="section-title">Where past interactions become future loyalty.</h2>
+    <p class="section-lead">A partner's mindshare gets compounded across sessions every time the user returns, they should see the partners they've already trusted.</p>
+    <ul class="clean">
+      <li>Session history list past sessions grouped by partner</li>
+      <li>"My orders" / "My bookings" per-partner sections</li>
+      <li>"Repeat order" partner brand preserved through the shortcut</li>
+      <li>Recommendation surfaces <em>"Order from Drunken Monkey again?"</em></li>
+      <li>Loyalty / rewards mentions <em>"You've earned 50 Swiggy SuperCoins"</em></li>
+    </ul>
+    <div class="beneficiaries">
+      <div><span class="key">User</span><div class="val">Continuity across sessions.</div></div>
+      <div><span class="key">Partner</span><div class="val">The loyalty hook.</div></div>
+    </div>
+  </section>
+
+  <!-- Zone 7 -->
+  <section class="section" id="zone-7">
+    <div class="eyebrow">07 Trust &amp; compliance</div>
+    <h2 class="section-title">The non-negotiable badges issued by the system, not claimed by partners.</h2>
+    <p class="section-lead">These are the trust marks that have to be there for regulated verticals and the disclosures that protect the user when partners read their data.</p>
+    <ul class="clean">
+      <li>Verified partner mark system-issued, audited</li>
+      <li>Regulator badges FSSAI (food), NMC (doctors), RBI (finance), UIDAI (govt)</li>
+      <li>Privacy disclosure <em>"Swiggy can see: your address, your payment method"</em></li>
+      <li>Data-shared indicator when the partner is actively reading user data</li>
+      <li>Disclaimer / liability lines <em>"Medical advice provided by Practo, not JBIQ"</em></li>
+    </ul>
+    <div class="beneficiaries">
+      <div><span class="key">User</span><div class="val">Needs these for safety and informed consent.</div></div>
+      <div><span class="key">Partner</span><div class="val">Benefits from being seen as compliant.</div></div>
+    </div>
+  </section>
+
+  <!-- Zone 8 -->
+  <section class="section" id="zone-8">
+    <div class="eyebrow">08 Cross-partner views</div>
+    <h2 class="section-title">When the same view comes from many sources attribution stays transparent.</h2>
+    <p class="section-lead">Comparison and aggregation are the only moments where multiple partner logos live in the same component and the rules tighten.</p>
+    <ul class="clean">
+      <li>Comparison views multiple partner logos in the option columns</li>
+      <li>"Best from each" badges showing which source contributed which result</li>
+      <li>Aggregated source line <em>"Showing flights from Skyscanner, MMT, and Cleartrip"</em></li>
+    </ul>
+    <div class="beneficiaries">
+      <div><span class="key">User</span><div class="val">Transparency on aggregation.</div></div>
+      <div><span class="key">Partner</span><div class="val">Co-mark visibility.</div></div>
+    </div>
+  </section>
+
+  <!-- Tension -->
+  <section class="section" id="tension">
+    <div class="eyebrow">The design tension</div>
+    <h2 class="section-title">Two forces, one surface.</h2>
+    <div class="tension">
+      <div class="tension-col primary">
+        <h3 class="tension-title">JBIQ cohesion</h3>
+        <p class="tension-sub">Every experience feels like one product. Predictable rhythm. Consistent voice. One safety layer.</p>
+      </div>
+      <div class="tension-vs">vs</div>
+      <div class="tension-col">
+        <h3 class="tension-title">Partner attribution</h3>
+        <p class="tension-sub">Their brand seen. Their relationship preserved. Their data, their trust, their continued mindshare.</p>
+      </div>
+    </div>
+    <p class="tension-coda">The component system has to let both win through a system of rules.</p>
+  </section>
+
+  <!-- Rules -->
+  <section class="section" id="rules">
+    <div class="eyebrow">The rules</div>
+    <h2 class="section-title">A ladder, not a switch.</h2>
+    <p class="section-lead">Brand placement isn't on/off it's tiered. Five levels, with each placement assigned a tier on the manifest.</p>
+    <div class="rules">
+      <div class="rule-row">
+        <div class="rule-name required">Required</div>
+        <div class="rule-body">Verification badges, confirm readbacks legal &amp; safety. Partners can't opt out.</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-name default-on">Default-on</div>
+        <div class="rule-body">Partner mark in the card title row, source line in receipts. Always there unless explicitly hidden.</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-name opt-in">Opt-in</div>
+        <div class="rule-body">Watermark on media, hero colour wash. The partner decides whether to show them.</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-name capped">Capped</div>
+        <div class="rule-body">Max one partner logo per card. Per-row attribution only when rows come from different sources.</div>
+      </div>
+      <div class="rule-row">
+        <div class="rule-name forbidden">Forbidden</div>
+        <div class="rule-body">No partner brand on system-owned chrome sidebar, safety confirm step, voice meter.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Big rule -->
+  <section class="big-rule" id="big-rule">
+    <div class="eyebrow">The one rule that can't move</div>
+    <h2 class="section-title">The safety layer carries no partner brand.</h2>
+    <p class="section-lead">Because when JBIQ asks "Should I send ₹5,000?" the user must know it's JBIQ holding the gate, not Swiggy, not ICICI.</p>
+  </section>
+
+</main>
+
+<script>
+/* Mobile drawer */
+const sidebar = document.getElementById('sidebar');
+const burger = document.querySelector('.toc-burger');
+const backdrop = document.querySelector('.toc-backdrop');
+const closeBtn = document.querySelector('.toc-close');
+function openDrawer() {
+  sidebar.classList.add('is-open');
+  backdrop.classList.add('is-open');
+}
+function closeDrawer() {
+  sidebar.classList.remove('is-open');
+  backdrop.classList.remove('is-open');
+}
+if (burger) burger.addEventListener('click', openDrawer);
+if (backdrop) backdrop.addEventListener('click', closeDrawer);
+if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+sidebar.querySelectorAll('a').forEach(a => a.addEventListener('click', closeDrawer));
+
+/* Active-section highlight in sidebar track scroll position and mark
+   whichever section's top has scrolled past the trigger line as active. */
+const navLinks = Array.from(sidebar.querySelectorAll('a[href^="#"]'));
+const tracked = navLinks
+  .map(a => document.getElementById(a.getAttribute('href').slice(1)))
+  .filter(Boolean);
+
+function setActiveId(id) {
+  navLinks.forEach(a => {
+    a.classList.toggle('is-active', a.getAttribute('href') === '#' + id);
+  });
+}
+
+function updateActive() {
+  // Trigger line: 120px below the viewport top a section is "active"
+  // once its top has scrolled past this line.
+  const trigger = window.scrollY + 120;
+  let current = tracked[0];
+  for (const sec of tracked) {
+    if (sec.offsetTop <= trigger) current = sec;
+    else break;
+  }
+  // Edge cases: if near the bottom of the page, force the last section active.
+  if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 4) {
+    current = tracked[tracked.length - 1];
+  }
+  if (current) setActiveId(current.id);
+}
+
+window.addEventListener('scroll', updateActive, { passive: true });
+window.addEventListener('resize', updateActive);
+window.addEventListener('hashchange', updateActive);
+updateActive();
+</script>
+
+</body>
+</html>

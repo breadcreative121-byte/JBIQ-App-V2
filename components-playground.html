@@ -186,6 +186,27 @@
   .text-response__body { margin: 0; }
 
   .visual-area { padding-bottom: var(--space-xl); }
+  .canonical-loading {
+    height: 240px;
+    margin: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-secondary);
+    animation: canonicalPulse 1.2s ease-in-out infinite alternate;
+  }
+  @keyframes canonicalPulse {
+    from { opacity: 0.55; }
+    to   { opacity: 0.95; }
+  }
+  .canonical-error {
+    margin: var(--space-md) var(--space-lg);
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-secondary);
+    border: 0.5px solid var(--color-border-strong);
+    font-size: var(--font-size-small);
+    color: var(--color-text-primary);
+    line-height: 1.4;
+  }
 
   /* Voice bar pinned below the frame */
   .voice-bar {
@@ -1756,119 +1777,231 @@ const FRAMES = {
 const state = { vertical: "food", step: 0 };
 
 /* ============================================================
-   Renderers — emit playground-aligned markup (no card chrome)
+   Canonical template plumbing — components-overview.html is the
+   single source of truth for primitive markup. We fetch it once,
+   parse out every element tagged with data-canonical, and clone+
+   mutate at render time. Edit a marked element in the overview,
+   reload the playground, and the change appears. No build step.
    ============================================================ */
 
-function renderComparisonGrid(d) {
-  const data = d.data;
-  const labels = (data[0] && data[0].facts) ? data[0].facts.map(f => f[0]) : [];
-  return `
-    <div class="compare-table">
-      <div class="compare-table__scroller">
-        <div class="compare-table__labels">
-          <div class="compare-table__header-label">Compare</div>
-          ${labels.map(l => `<div class="compare-table__label-cell">${l}</div>`).join("")}
-        </div>
-        <div class="compare-table__options">
-          ${data.map((opt, i) => `
-            <div class="compare-table__option ${i === (d.focus ?? -1) ? 'compare-table__option--recommended' : ''}">
-              <div class="compare-table__header-cell">
-                <div class="compare-table__header-title">${opt.title}</div>
-                <div class="compare-table__header-sub">${opt.sub}${opt.best ? ' · ' + opt.best : ''}</div>
-              </div>
-              ${(opt.facts || []).map(f => `<div class="compare-table__cell">${f[1]}</div>`).join("")}
-            </div>
-          `).join("")}
-        </div>
-      </div>
-    </div>`;
+const CANONICAL_NAMES = [
+  'subject-header',
+  'place-card', 'collection-carousel',
+  'catalog-card', 'catalog-card--gallery', 'collection-list', 'collection-grid', 'list-section-head', 'gallery',
+  'compare-table', 'compare-table__label-cell', 'compare-table__option',
+  'compare-table__cell', 'compare-table__cell--cta', 'compare-table__option-logo',
+  'timeline', 'timeline-row',
+  'tracker',
+  'map-panel',
+  'cart-section', 'cart-row', 'cart-totals', 'cta-row',
+  'confirm',
+  'receipt', 'receipt-line', 'receipt-line--total',
+  'detail-sheet', 'detail-sheet__carousel-slide', 'detail-sheet__dot', 'detail-sheet__row',
+  'chips-prompt', 'filter-chip-bar', 'filter-chip',
+  'option-sheet', 'option-sheet__option',
+  'player'
+];
+
+const CANONICAL = new Map();
+window.CANONICAL = CANONICAL;
+window.CANONICAL_NAMES = CANONICAL_NAMES;
+
+async function loadCanonicalTemplates() {
+  if (location.protocol === 'file:') {
+    throw new Error('Open via the Express server (npm start). fetch() is blocked under the file:// protocol.');
+  }
+  const res = await fetch('./components-overview.html');
+  if (!res.ok) throw new Error('Failed to load components-overview.html: HTTP ' + res.status);
+  const text = await res.text();
+  const doc = new DOMParser().parseFromString(text, 'text/html');
+  const missing = [], duplicates = [];
+  for (const name of CANONICAL_NAMES) {
+    const matches = doc.querySelectorAll('[data-canonical="' + name + '"]');
+    if (matches.length === 0) missing.push(name);
+    else if (matches.length > 1) duplicates.push(name + ' (×' + matches.length + ')');
+    else CANONICAL.set(name, matches[0]);
+  }
+  if (missing.length || duplicates.length) {
+    const parts = [];
+    if (missing.length)    parts.push('Missing: '    + missing.join(', '));
+    if (duplicates.length) parts.push('Duplicates: ' + duplicates.join(', '));
+    throw new Error('Canonical template validation failed — ' + parts.join(' · '));
+  }
+}
+
+function cloneCanonical(name) {
+  const tpl = CANONICAL.get(name);
+  if (!tpl) throw new Error('Canonical template not loaded: ' + name);
+  const clone = tpl.cloneNode(true);
+  clone.removeAttribute('data-canonical');
+  clone.querySelectorAll('[data-canonical]').forEach(n => n.removeAttribute('data-canonical'));
+  if (clone.hasAttribute('id')) clone.removeAttribute('id');
+  clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+  return clone;
+}
+
+function setOrRemove(root, selector, value) {
+  const el = root.querySelector(selector);
+  if (!el) return;
+  if (value == null || value === '') el.remove();
+  else el.textContent = value;
+}
+
+function interleaveWithDots(spans) {
+  const out = [];
+  spans.forEach((s, i) => {
+    if (i > 0) {
+      const dot = document.createElement('span');
+      dot.textContent = '·';
+      out.push(dot);
+    }
+    out.push(s);
+  });
+  return out;
+}
+
+/* ============================================================
+   Renderers — clone+mutate canonical templates from the overview.
+   Each renderer keeps its (d) => htmlString signature so the
+   single call site (visualArea.innerHTML = renderer(d)) and
+   document-level event delegation stay unchanged.
+   ============================================================ */
+
+function mutatePlaceCard(root, c) {
+  const media = root.querySelector('.place-card__media');
+  if (media) media.dataset.emoji = c.emoji || '';
+  setOrRemove(root, '.place-card__badge', c.badge);
+  setOrRemove(root, '.place-card__status-badge', c.eta);
+  setOrRemove(root, '.place-card__title', c.title);
+  setOrRemove(root, '.place-card__tags', c.cuisine || c.tags || '');
+  const meta = root.querySelector('.place-card__meta');
+  if (meta) {
+    const parts = [];
+    if (c.rating != null) {
+      const wrap = document.createElement('span');
+      const val = document.createElement('span');
+      val.className = 'place-card__rating-value';
+      val.textContent = c.rating;
+      wrap.appendChild(val);
+      wrap.appendChild(document.createTextNode('★'));
+      parts.push(wrap);
+    }
+    if (c.price) {
+      const s = document.createElement('span');
+      s.textContent = c.price;
+      parts.push(s);
+    }
+    if (c.eta) {
+      const s = document.createElement('span');
+      s.textContent = c.eta;
+      parts.push(s);
+    }
+    meta.replaceChildren(...interleaveWithDots(parts));
+  }
 }
 
 function renderPlaceResultCard(d) {
-  const cards = d.data.cards;
-  return `
-    <div class="collection collection--carousel" role="list">
-      ${cards.map(c => `
-        <button class="place-card" role="listitem">
-          <div class="place-card__media" data-emoji="${c.emoji}">
-            ${c.badge ? `<span class="place-card__badge">${c.badge}</span>` : ''}
-          </div>
-          <div class="place-card__content">
-            <h4 class="place-card__title">${c.title}</h4>
-            <p class="place-card__tags">${c.cuisine}</p>
-            <div class="place-card__meta">
-              <span class="place-card__rating-value">${c.rating} ★</span>
-              <span>${c.eta}</span>
-              <span>${c.price}</span>
-            </div>
-          </div>
-        </button>`).join('')}
-    </div>`;
+  const carousel = cloneCanonical('collection-carousel');
+  carousel.replaceChildren();
+  for (const c of d.data.cards) {
+    const card = cloneCanonical('place-card');
+    mutatePlaceCard(card, c);
+    carousel.appendChild(card);
+  }
+  return carousel.outerHTML;
+}
+
+function mutateCatalogCard(root, c) {
+  const media = root.querySelector('.catalog-card__media');
+  if (media) media.dataset.emoji = c.emoji || '';
+  setOrRemove(root, '.catalog-card__badge', c.badge);
+  setOrRemove(root, '.catalog-card__title', c.title || c.name || c.label);
+  setOrRemove(root, '.catalog-card__subtitle', c.brand || c.desc || c.subtitle);
+  const meta = root.querySelector('.catalog-card__meta');
+  if (meta) {
+    const parts = [];
+    if (c.rating != null) {
+      const s = document.createElement('span');
+      s.className = 'catalog-card__rating-value';
+      s.textContent = c.rating + ' ★';
+      parts.push(s);
+    }
+    if (c.price) {
+      const s = document.createElement('span');
+      s.className = 'catalog-card__price';
+      s.textContent = c.price;
+      parts.push(s);
+    }
+    if (c.delivery || c.temporal) {
+      const s = document.createElement('span');
+      s.className = 'catalog-card__temporal';
+      s.textContent = c.delivery || c.temporal;
+      parts.push(s);
+    }
+    if (parts.length) meta.replaceChildren(...interleaveWithDots(parts));
+    else meta.remove();
+  }
+  const commit = root.querySelector('.catalog-card__commit');
+  if (commit) {
+    if (c.commit) commit.textContent = c.commit;
+    else commit.remove();
+  }
 }
 
 function renderCatalogResultCard(d) {
-  const cards = d.data.cards;
-  return `
-    <div class="collection collection--grid" role="list">
-      ${cards.map(c => `
-        <button class="catalog-card" role="listitem">
-          <div class="catalog-card__media" data-emoji="${c.emoji}">
-            ${c.badge ? `<span class="catalog-card__badge">${c.badge}</span>` : ''}
-          </div>
-          <div class="catalog-card__content">
-            <h4 class="catalog-card__title">${c.title}</h4>
-            <p class="catalog-card__subtitle">${c.brand}</p>
-            <div class="catalog-card__meta">
-              <span class="catalog-card__rating-value">${c.rating} ★</span>
-              <span class="catalog-card__price">${c.price}</span>
-              <span class="catalog-card__temporal">${c.delivery}</span>
-            </div>
-          </div>
-        </button>`).join('')}
-    </div>`;
+  const grid = cloneCanonical('collection-grid');
+  grid.replaceChildren();
+  for (const c of d.data.cards) {
+    const card = cloneCanonical('catalog-card');
+    card.classList.remove('catalog-card--has-commit');
+    const commit = card.querySelector('.catalog-card__commit');
+    if (commit) commit.remove();
+    mutateCatalogCard(card, c);
+    grid.appendChild(card);
+  }
+  return grid.outerHTML;
 }
 
 function renderEntityCard(d) {
   const x = d.data;
-  return `
-    <div class="discovery-view">
-      <div class="place-card">
-        <div class="place-card__media" data-emoji="${x.emoji}">
-          <span class="place-card__badge">Recommended</span>
-        </div>
-        <div class="place-card__content">
-          <h4 class="place-card__title">${x.title}</h4>
-          <p class="place-card__tags">${x.sub}</p>
-          <div class="place-card__meta">
-            ${x.facts.map(f => `<span>${f[0]} <b>${f[1]}</b></span>`).join('<span>·</span>')}
-          </div>
-        </div>
-      </div>
-      ${x.actions.map(a =>
-        `<div style="margin-top:8px"><button class="${a[1] === 'primary' ? 'btn-primary' : 'btn-secondary'}">${a[0]}</button></div>`
-      ).join('')}
-    </div>`;
+  const wrap = document.createElement('div');
+  wrap.className = 'discovery-view';
+
+  const card = cloneCanonical('place-card');
+  mutatePlaceCard(card, {
+    emoji: x.emoji,
+    badge: 'Recommended',
+    title: x.title,
+    cuisine: x.sub
+  });
+  // EntityCard meta uses label/value pairs with bold value
+  const meta = card.querySelector('.place-card__meta');
+  if (meta) {
+    const parts = (x.facts || []).map(f => {
+      const s = document.createElement('span');
+      s.appendChild(document.createTextNode(f[0] + ' '));
+      const b = document.createElement('b');
+      b.textContent = f[1];
+      s.appendChild(b);
+      return s;
+    });
+    meta.replaceChildren(...interleaveWithDots(parts));
+  }
+  wrap.appendChild(card);
+
+  (x.actions || []).forEach(a => {
+    const row = document.createElement('div');
+    row.style.marginTop = '8px';
+    const btn = document.createElement('button');
+    btn.className = a[1] === 'primary' ? 'btn-primary' : 'btn-secondary';
+    btn.textContent = a[0];
+    row.appendChild(btn);
+    wrap.appendChild(row);
+  });
+  return wrap.outerHTML;
 }
 
-function renderListSectioned(sections) {
-  return sections.map(sec => `
-    <div class="list-section-head">${sec.name}</div>
-    <div class="collection collection--list">
-      ${sec.items.map(i => `
-        <button class="catalog-card">
-          <div class="catalog-card__media" data-emoji="${pickEmojiFor(i)}"></div>
-          <div class="catalog-card__content">
-            <h4 class="catalog-card__title">${i.name}</h4>
-            ${i.desc ? `<p class="catalog-card__subtitle">${i.desc}</p>` : ''}
-            ${i.price ? `<div class="catalog-card__meta"><span class="catalog-card__price">${i.price}</span></div>` : ''}
-          </div>
-        </button>
-      `).join('')}
-    </div>
-  `).join('');
-}
 function pickEmojiFor(item) {
-  // Lightweight emoji pick from name/desc keyword
   const t = (item.name + ' ' + (item.desc || '')).toLowerCase();
   if (t.match(/dr\.|doctor|derma|medic/)) return '🩺';
   if (t.match(/thai|pad |noodle/))         return '🍜';
@@ -1884,116 +2017,244 @@ function pickEmojiFor(item) {
   return '◆';
 }
 
+function renderListSectioned(sections) {
+  const wrap = document.createElement('div');
+  sections.forEach(sec => {
+    const head = cloneCanonical('list-section-head');
+    head.textContent = sec.name;
+    wrap.appendChild(head);
+
+    const list = cloneCanonical('collection-list');
+    list.replaceChildren();
+    sec.items.forEach(i => {
+      const card = cloneCanonical('catalog-card');
+      const commit = card.querySelector('.catalog-card__commit');
+      if (commit) commit.remove();
+      card.classList.remove('catalog-card--has-commit');
+      mutateCatalogCard(card, {
+        emoji: pickEmojiFor(i),
+        title: i.name,
+        subtitle: i.desc,
+        price: i.price
+      });
+      list.appendChild(card);
+    });
+    wrap.appendChild(list);
+  });
+  return wrap.innerHTML;
+}
+
 function renderCartPanel(d) {
   const x = d.data;
-  return `
-    <div class="cart-section">
-      ${x.rows.map(r => `
-        <div class="cart-row">
-          <div>
-            <div class="cart-name">${r.name}</div>
-            <div class="cart-qty">${r.qty}</div>
-          </div>
-          <div class="cart-price">${r.price}</div>
-        </div>`).join('')}
-      <div class="cart-totals">
-        ${x.totals.map(t => `<div>${t[0]}</div><div>${t[1]}</div>`).join('')}
-        <div class="total-row"><div>${x.total[0]}</div><div>${x.total[1]}</div></div>
-      </div>
-    </div>
-    <div class="cta-row">
-      <button class="btn-primary">${x.cta}</button>
-    </div>`;
+  const wrap = document.createElement('div');
+
+  const section = cloneCanonical('cart-section');
+  Array.from(section.querySelectorAll('.cart-row')).forEach(n => n.remove());
+  const oldTotals = section.querySelector('.cart-totals');
+  if (oldTotals) oldTotals.remove();
+
+  x.rows.forEach(r => {
+    const row = cloneCanonical('cart-row');
+    setOrRemove(row, '.cart-name', r.name);
+    setOrRemove(row, '.cart-qty', r.qty);
+    setOrRemove(row, '.cart-price', r.price);
+    section.appendChild(row);
+  });
+
+  const totals = cloneCanonical('cart-totals');
+  totals.replaceChildren();
+  (x.totals || []).forEach(t => {
+    const k = document.createElement('div'); k.textContent = t[0];
+    const v = document.createElement('div'); v.textContent = t[1];
+    totals.appendChild(k); totals.appendChild(v);
+  });
+  const tr = document.createElement('div');
+  tr.className = 'total-row';
+  const tk = document.createElement('div'); tk.textContent = x.total[0];
+  const tv = document.createElement('div'); tv.textContent = x.total[1];
+  tr.appendChild(tk); tr.appendChild(tv);
+  totals.appendChild(tr);
+  section.appendChild(totals);
+
+  wrap.appendChild(section);
+
+  const cta = cloneCanonical('cta-row');
+  const ctaBtn = cta.querySelector('button, a');
+  if (ctaBtn) ctaBtn.textContent = x.cta;
+  wrap.appendChild(cta);
+
+  return wrap.innerHTML;
 }
 
 function renderConfirmPanel(d) {
   const x = d.data;
-  return `
-    <div class="confirm">
-      <div class="confirm-prompt">${x.prompt}</div>
-      <div class="confirm-summary">${x.summary}</div>
-      <div class="confirm-total">${x.total}</div>
-      <div class="confirm-actions">
-        <button class="btn-primary">${x.actions[0]}</button>
-        <button class="btn-secondary">${x.actions[1]}</button>
-      </div>
-    </div>`;
+  const confirm = cloneCanonical('confirm');
+
+  const partnerEl = confirm.querySelector('.confirm-partner');
+  if (x.partner && partnerEl) {
+    const logo = partnerEl.querySelector('.confirm-partner-logo');
+    const name = partnerEl.querySelector('.confirm-partner-name');
+    if (logo && x.partner.logo) logo.style.backgroundImage = "url('" + x.partner.logo + "')";
+    if (name) name.textContent = x.partner.name || '';
+  } else if (partnerEl) {
+    partnerEl.remove();
+  }
+
+  const imageEl = confirm.querySelector('.confirm-image');
+  if (x.image && imageEl) {
+    const img = imageEl.querySelector('img');
+    if (img) { img.src = x.image; img.alt = ''; }
+  } else if (imageEl) {
+    imageEl.remove();
+  }
+
+  setOrRemove(confirm, '.confirm-prompt', x.prompt);
+  setOrRemove(confirm, '.confirm-summary', x.summary);
+  setOrRemove(confirm, '.confirm-total', x.total);
+
+  const actions = confirm.querySelector('.confirm-actions');
+  if (actions) {
+    const btns = actions.querySelectorAll('button');
+    if (btns[0]) btns[0].textContent = (x.actions && x.actions[0]) || '';
+    if (btns[1]) btns[1].textContent = (x.actions && x.actions[1]) || '';
+  }
+
+  return confirm.outerHTML;
 }
 
 function renderReceiptPanel(d) {
   const x = d.data;
-  return `
-    <div class="receipt">
-      <div class="receipt-banner">
-        <div class="receipt-check">✓</div>
-        <div>
-          <div class="receipt-title">${x.banner[0]}</div>
-          <div class="receipt-sub">${x.banner[1]}</div>
-        </div>
-      </div>
-      <div>
-        ${x.lines.map(l => `<div class="receipt-line"><div>${l[0]}</div><div>${l[1]}</div></div>`).join('')}
-        <div class="receipt-line receipt-total"><div>${x.total[0]}</div><div>${x.total[1]}</div></div>
-      </div>
-    </div>`;
+  const receipt = cloneCanonical('receipt');
+  setOrRemove(receipt, '.receipt-title', x.banner[0]);
+  setOrRemove(receipt, '.receipt-sub',   x.banner[1]);
+
+  const firstLine = receipt.querySelector('.receipt-line');
+  const linesBlock = firstLine ? firstLine.parentElement : null;
+  if (linesBlock) {
+    linesBlock.replaceChildren();
+    (x.lines || []).forEach(l => {
+      const line = cloneCanonical('receipt-line');
+      const divs = line.querySelectorAll(':scope > div');
+      if (divs[0]) divs[0].textContent = l[0];
+      if (divs[1]) divs[1].textContent = l[1];
+      linesBlock.appendChild(line);
+    });
+    const total = cloneCanonical('receipt-line--total');
+    const tDivs = total.querySelectorAll(':scope > div');
+    if (tDivs[0]) tDivs[0].textContent = x.total[0];
+    if (tDivs[1]) tDivs[1].textContent = x.total[1];
+    linesBlock.appendChild(total);
+  }
+  return receipt.outerHTML;
 }
 
 function renderDetailSheet(d) {
-  const slides = (d.images || []).map(i =>
-    `<div class="detail-sheet__carousel-slide" style="background:${i.background};"><span class="detail-sheet__carousel-label">${i.label}</span></div>`
-  ).join('');
-  const dots = (d.images || []).map((_, i) =>
-    `<button class="detail-sheet__dot${i === 0 ? ' detail-sheet__dot--active' : ''}" type="button" aria-label="Show image ${i + 1}"></button>`
-  ).join('');
-  const rows = (d.rows || []).map(r =>
-    `<div class="detail-sheet__row${r.total ? ' detail-sheet__row--total' : ''}"><span class="detail-sheet__row-label">${r.label}</span><span class="detail-sheet__row-value">${r.value}</span></div>`
-  ).join('');
-  return `
-    <div class="detail-sheet">
-      <div class="detail-sheet__grabber"></div>
-      ${d.images && d.images.length ? `
-        <div class="detail-sheet__carousel">
-          <div class="detail-sheet__carousel-track" data-carousel>${slides}</div>
-          <div class="detail-sheet__dots" data-dots>${dots}</div>
-        </div>` : ''}
-      <div class="detail-sheet__title">${d.title || ''}</div>
-      ${d.ref ? `<div class="detail-sheet__ref">${d.ref}</div>` : ''}
-      ${rows ? `<div class="detail-sheet__rows">${rows}</div>` : ''}
-      ${d.note ? `<div class="detail-sheet__note">${d.note}</div>` : ''}
-      ${d.primaryCta ? `<button class="detail-sheet__btn detail-sheet__btn--primary" type="button">${d.primaryCta}</button>` : ''}
-      ${d.secondaryCta ? `<button class="detail-sheet__btn" type="button">${d.secondaryCta}</button>` : ''}
-    </div>`;
+  const sheet = cloneCanonical('detail-sheet');
+
+  if (d.images && d.images.length) {
+    const track = sheet.querySelector('.detail-sheet__carousel-track');
+    const dots  = sheet.querySelector('.detail-sheet__dots');
+    if (track) track.replaceChildren();
+    if (dots)  dots.replaceChildren();
+    d.images.forEach((img, i) => {
+      if (track) {
+        const slide = cloneCanonical('detail-sheet__carousel-slide');
+        if (img.background) slide.style.background = img.background;
+        const label = slide.querySelector('.detail-sheet__carousel-label');
+        if (label) label.textContent = img.label || '';
+        track.appendChild(slide);
+      }
+      if (dots) {
+        const dot = cloneCanonical('detail-sheet__dot');
+        dot.classList.toggle('detail-sheet__dot--active', i === 0);
+        dot.setAttribute('aria-label', 'Show image ' + (i + 1));
+        dots.appendChild(dot);
+      }
+    });
+  } else {
+    const carousel = sheet.querySelector('.detail-sheet__carousel');
+    if (carousel) carousel.remove();
+  }
+
+  setOrRemove(sheet, '.detail-sheet__title', d.title);
+  setOrRemove(sheet, '.detail-sheet__ref',   d.ref);
+
+  const rowsBlock = sheet.querySelector('.detail-sheet__rows');
+  if (rowsBlock) {
+    if (d.rows && d.rows.length) {
+      rowsBlock.replaceChildren();
+      d.rows.forEach(r => {
+        const row = cloneCanonical('detail-sheet__row');
+        row.classList.toggle('detail-sheet__row--total', !!r.total);
+        const lab = row.querySelector('.detail-sheet__row-label');
+        const val = row.querySelector('.detail-sheet__row-value');
+        if (lab) lab.textContent = r.label;
+        if (val) val.textContent = r.value;
+        rowsBlock.appendChild(row);
+      });
+    } else {
+      rowsBlock.remove();
+    }
+  }
+  setOrRemove(sheet, '.detail-sheet__note', d.note);
+
+  const btns = sheet.querySelectorAll('.detail-sheet__btn');
+  if (btns[0]) {
+    if (d.primaryCta) btns[0].textContent = d.primaryCta;
+    else btns[0].remove();
+  }
+  if (btns[1]) {
+    if (d.secondaryCta) btns[1].textContent = d.secondaryCta;
+    else btns[1].remove();
+  }
+  return sheet.outerHTML;
 }
 
 function renderTracker(d) {
   const x = d.data;
-  return `
-    <div class="tracker">
-      <div class="tracker__media">
-        <div>
-          <div class="tracker__stage">${x.stage}</div>
-          <div class="tracker__eta">${x.eta}</div>
-          <div class="tracker__detail">${x.detail}</div>
-        </div>
-        <div class="tracker__progress"><div class="tracker__progress-fill"></div></div>
-      </div>
-      <div class="tracker__steps">
-        ${x.steps.map(s => `<span class="${s[1]}">${s[0]}</span>`).join('')}
-      </div>
-    </div>`;
+  const tracker = cloneCanonical('tracker');
+  setOrRemove(tracker, '.tracker__stage',  x.stage);
+  setOrRemove(tracker, '.tracker__eta',    x.eta);
+  setOrRemove(tracker, '.tracker__detail', x.detail);
+
+  const fill = tracker.querySelector('.tracker__progress-fill');
+  const steps = x.steps || [];
+  if (fill) {
+    const activeIdx = steps.findIndex(s => s[1] === 'active');
+    const idx = activeIdx >= 0 ? activeIdx :
+                steps.filter(s => s[1] === 'done').length;
+    const pct = steps.length > 1 ? (idx / (steps.length - 1)) * 100 : 0;
+    fill.style.width = pct + '%';
+  }
+  const stepsBlock = tracker.querySelector('.tracker__steps');
+  if (stepsBlock) {
+    stepsBlock.replaceChildren();
+    steps.forEach(([name, klass]) => {
+      const span = document.createElement('span');
+      if (klass) span.className = klass;
+      span.textContent = name;
+      stepsBlock.appendChild(span);
+    });
+  }
+  return tracker.outerHTML;
 }
 
 function renderGallery(items) {
-  return `
-    <div class="collection collection--grid">
-      ${items.map(i => `
-        <button class="catalog-card">
-          <div class="catalog-card__media" data-emoji="${i.emoji}"></div>
-          <div class="catalog-card__content">
-            <h4 class="catalog-card__title">${i.label}</h4>
-          </div>
-        </button>`).join('')}
-    </div>`;
+  const gallery = cloneCanonical('gallery');
+  const grid = gallery.querySelector('.collection--grid');
+  if (grid) {
+    grid.replaceChildren();
+    items.forEach(i => {
+      const card = cloneCanonical('catalog-card--gallery');
+      const media = card.querySelector('.catalog-card__media');
+      if (media) media.dataset.emoji = i.emoji || '';
+      setOrRemove(card, '.catalog-card__title', i.label || i.title);
+      setOrRemove(card, '.catalog-card__price', i.price);
+      setOrRemove(card, '.catalog-card__subtitle', i.subtitle);
+      grid.appendChild(card);
+    });
+  }
+  return gallery.outerHTML;
 }
 
 function renderMediaPlayer(d) {
@@ -2001,46 +2262,137 @@ function renderMediaPlayer(d) {
   const duration = 215;
   const startSec = Math.floor(duration * 0.30);
   const fmt = s => `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
-  return `
-    <div class="player" data-player data-playing="true" data-current="${startSec}" data-duration="${duration}">
-      <div class="player-art"></div>
-      <div>
-        <div class="player-title">${x.title}</div>
-        <div class="player-artist">${x.artist}</div>
-        <div class="player-bar"><div class="player-bar-fill" style="width:30%"></div></div>
-        <div class="player-times"><span data-player-current>${fmt(startSec)}</span><span data-player-total>3:35</span></div>
-      </div>
-      <div class="player-controls">
-        <button type="button" class="player-control--prev" aria-label="Previous"><span class="player-control__icon player-control__icon--next"></span></button>
-        <button type="button" class="player-control--play" aria-label="Pause"><span class="player-control__icon player-control__icon--pause"></span></button>
-        <button type="button" aria-label="Next"><span class="player-control__icon player-control__icon--next"></span></button>
-      </div>
-    </div>`;
+
+  const player = cloneCanonical('player');
+  player.setAttribute('data-player', '');
+  player.dataset.playing  = 'true';
+  player.dataset.current  = String(startSec);
+  player.dataset.duration = String(duration);
+
+  setOrRemove(player, '.player-title',  x.title);
+  setOrRemove(player, '.player-artist', x.artist);
+
+  const fill = player.querySelector('.player-bar-fill');
+  if (fill) fill.style.width = '30%';
+
+  const times = player.querySelectorAll('.player-times span');
+  if (times[0]) {
+    times[0].setAttribute('data-player-current', '');
+    times[0].textContent = fmt(startSec);
+  }
+  if (times[1]) {
+    times[1].setAttribute('data-player-total', '');
+    times[1].textContent = '3:35';
+  }
+  return player.outerHTML;
 }
 
 function renderTimeline(rows) {
-  return `
-    <div class="timeline">
-      ${rows.map(r => `
-        <div class="tl-row" data-active="${!!r.active}">
-          <div class="tl-time">${r.time}</div>
-          <div>
-            <div class="tl-title">${r.title}</div>
-            <div class="tl-meta">${r.meta}</div>
-          </div>
-        </div>`).join('')}
-    </div>`;
+  const timeline = cloneCanonical('timeline');
+  timeline.replaceChildren();
+  rows.forEach(r => {
+    const row = cloneCanonical('timeline-row');
+    row.dataset.active = String(!!r.active);
+    setOrRemove(row, '.tl-time',  r.time);
+    setOrRemove(row, '.tl-title', r.title);
+    setOrRemove(row, '.tl-meta',  r.meta);
+    timeline.appendChild(row);
+  });
+  return timeline.outerHTML;
 }
 
 function renderChoiceChips(d) {
   const x = d.data;
-  return `
-    <div class="chips-prompt">${x.prompt}</div>
-    <div class="filter-chip-bar">
-      ${x.options.map((o, i) =>
-        `<button class="filter-chip ${i === (x.selected ?? -1) ? 'filter-chip--selected' : ''}">${o}</button>`
-      ).join('')}
-    </div>`;
+  const wrap = document.createElement('div');
+
+  const prompt = cloneCanonical('chips-prompt');
+  prompt.textContent = x.prompt;
+  wrap.appendChild(prompt);
+
+  const bar = cloneCanonical('filter-chip-bar');
+  bar.replaceChildren();
+  x.options.forEach((o, i) => {
+    const chip = cloneCanonical('filter-chip');
+    chip.classList.remove('filter-chip--selected');
+    chip.textContent = o;
+    if (i === (x.selected ?? -1)) chip.classList.add('filter-chip--selected');
+    bar.appendChild(chip);
+  });
+  wrap.appendChild(bar);
+
+  return wrap.innerHTML;
+}
+
+function renderComparisonGrid(d) {
+  const data = d.data;
+  const labels = (data[0] && data[0].facts) ? data[0].facts.map(f => f[0]) : [];
+  const hasCta = data.some(opt => opt.cta);
+
+  const table = cloneCanonical('compare-table');
+
+  const labelsRow = table.querySelector('.compare-table__labels');
+  if (labelsRow) {
+    Array.from(labelsRow.querySelectorAll('.compare-table__label-cell')).forEach(n => n.remove());
+    labels.forEach(l => {
+      const cell = cloneCanonical('compare-table__label-cell');
+      cell.textContent = l;
+      labelsRow.appendChild(cell);
+    });
+    if (hasCta) {
+      const cell = cloneCanonical('compare-table__label-cell');
+      cell.textContent = '';
+      labelsRow.appendChild(cell);
+    }
+  }
+
+  const optsRow = table.querySelector('.compare-table__options');
+  if (optsRow) {
+    optsRow.replaceChildren();
+    data.forEach((opt, i) => {
+      const col = cloneCanonical('compare-table__option');
+      col.classList.remove('compare-table__option--recommended');
+      if (i === (d.focus ?? -1)) col.classList.add('compare-table__option--recommended');
+
+      const hc = col.querySelector('.compare-table__header-cell');
+      const existingLogo = hc && hc.querySelector('.compare-table__option-logo');
+      if (existingLogo) existingLogo.remove();
+      if (opt.logo && hc) {
+        const logo = cloneCanonical('compare-table__option-logo');
+        const img = logo.querySelector('img');
+        if (img) { img.src = opt.logo; img.alt = ''; }
+        hc.prepend(logo);
+      }
+      if (hc) {
+        const title = hc.querySelector('.compare-table__option-title');
+        const sub   = hc.querySelector('.compare-table__option-subtitle');
+        if (title) title.textContent = opt.title || '';
+        if (sub)   sub.textContent   = (opt.sub || '') + (opt.best ? ' · ' + opt.best : '');
+      }
+
+      Array.from(col.children).forEach(c => {
+        if (!c.classList.contains('compare-table__header-cell')) c.remove();
+      });
+      (opt.facts || []).forEach(f => {
+        const cell = cloneCanonical('compare-table__cell');
+        cell.classList.remove('compare-table__cell--best', 'compare-table__cell--worst');
+        cell.textContent = f[1];
+        col.appendChild(cell);
+      });
+      if (hasCta) {
+        const cell = cloneCanonical('compare-table__cell--cta');
+        const btn  = cell.querySelector('.compare-table__cta');
+        if (opt.cta) {
+          if (btn) btn.textContent = opt.cta;
+        } else {
+          if (btn) btn.remove();
+        }
+        col.appendChild(cell);
+      }
+      optsRow.appendChild(col);
+    });
+  }
+
+  return table.outerHTML;
 }
 
 const COMPONENT_RENDERERS = {
@@ -2244,7 +2596,23 @@ document.addEventListener("keydown", (e) => {
   if (e.key === " ") { e.preventDefault(); document.getElementById("btnPlay").click(); }
 });
 
-render();
+/* Show a loading skeleton, fetch canonical templates from
+   components-overview.html, then run the first render. If the
+   fetch fails (e.g. opened via file://), surface the reason
+   instead of leaving the visual area blank. */
+(function initWithCanonical() {
+  const visualArea = document.getElementById("visualArea");
+  if (visualArea) visualArea.innerHTML = '<div class="canonical-loading" aria-label="Loading canonical templates"></div>';
+  loadCanonicalTemplates().then(render).catch(err => {
+    console.error('[canonical]', err);
+    if (visualArea) {
+      const msg = document.createElement('div');
+      msg.className = 'canonical-error';
+      msg.textContent = err && err.message ? err.message : String(err);
+      visualArea.replaceChildren(msg);
+    }
+  });
+})();
 
 /* ----- MediaPlayer play/pause toggle — document-level delegate so it survives
    the playground's re-renders. ----- */

@@ -1504,7 +1504,7 @@
     <div class="component-card">
       <div class="tab-panels">
         <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-          <div class="subject-header" style="padding: 0 var(--space-lg);">
+          <div class="subject-header" data-canonical="subject-header" style="padding: 0 var(--space-lg);">
             <div class="subject-header__partner">
               <span class="subject-header__brand-chip subject-header__brand-chip--swiggy">S</span>
               <span class="subject-header__partner-name">Swiggy</span>
@@ -1587,7 +1587,7 @@
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
             
-        <div class="place-card">
+        <div class="place-card" data-canonical="place-card">
           <div class="place-card__media" data-emoji="🍜"><span class="place-card__badge">Open now</span><span class="place-card__status-badge">ETA 32 min</span></div>
           <div class="place-card__content">
             <h4 class="place-card__title">Drunken Monkey</h4>
@@ -1598,7 +1598,7 @@
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
             
-        <div class="collection collection--carousel">
+        <div class="collection collection--carousel" data-canonical="collection-carousel">
         <div class="place-card">
           <div class="place-card__media" data-emoji="🍜"><span class="place-card__badge">Top pick</span><span class="place-card__status-badge">25 min</span></div>
           <div class="place-card__content">
@@ -1717,18 +1717,18 @@
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
             
-        <div class="compare-table">
+        <div class="compare-table" data-canonical="compare-table">
           <div class="compare-table__scroller">
             <div class="compare-table__labels">
               <div class="compare-table__header-label">Compare</div>
-              <div class="compare-table__label-cell">Rating</div><div class="compare-table__label-cell">ETA</div><div class="compare-table__label-cell">For two</div>
+              <div class="compare-table__label-cell" data-canonical="compare-table__label-cell">Rating</div><div class="compare-table__label-cell">ETA</div><div class="compare-table__label-cell">For two</div>
             </div>
             <div class="compare-table__options">
-              <div class="compare-table__option compare-table__option--recommended">
+              <div class="compare-table__option compare-table__option--recommended" data-canonical="compare-table__option">
                 <div class="compare-table__header-cell">
                   <div class="compare-table__option-title">Soi 7</div>
                   <div class="compare-table__option-subtitle">Recommended</div>
-                </div><div class="compare-table__cell compare-table__cell--best">4.5 ★</div><div class="compare-table__cell">25 min</div><div class="compare-table__cell">₹600</div>
+                </div><div class="compare-table__cell compare-table__cell--best">4.5 ★</div><div class="compare-table__cell" data-canonical="compare-table__cell">25 min</div><div class="compare-table__cell">₹600</div>
               </div>
               <div class="compare-table__option">
                 <div class="compare-table__header-cell">
@@ -1752,26 +1752,29 @@
           <div class="compare-table__scroller">
             <div class="compare-table__labels">
               <div class="compare-table__header-label">Compare</div>
-              <div class="compare-table__label-cell">Duration</div><div class="compare-table__label-cell">Stops</div><div class="compare-table__label-cell">Price</div>
+              <div class="compare-table__label-cell">Duration</div><div class="compare-table__label-cell">Stops</div><div class="compare-table__label-cell">Price</div><div class="compare-table__label-cell"></div>
             </div>
             <div class="compare-table__options">
-              <div class="compare-table__option compare-table__option--recommended">
+              <div class="compare-table__option">
                 <div class="compare-table__header-cell">
+                  <div class="compare-table__option-logo" data-canonical="compare-table__option-logo"><img src="assets/partners/airline-tap.svg" alt=""></div>
                   <div class="compare-table__option-title">TAP</div>
                   <div class="compare-table__option-subtitle">Recommended</div>
-                </div><div class="compare-table__cell compare-table__cell--best">8h 40m</div><div class="compare-table__cell compare-table__cell--best">Direct</div><div class="compare-table__cell">€389</div>
+                </div><div class="compare-table__cell compare-table__cell--best">8h 40m</div><div class="compare-table__cell compare-table__cell--best">Direct</div><div class="compare-table__cell">€389</div><div class="compare-table__cell compare-table__cell--cta" data-canonical="compare-table__cell--cta"><button class="compare-table__cta">Book</button></div>
               </div>
               <div class="compare-table__option">
                 <div class="compare-table__header-cell">
+                  <div class="compare-table__option-logo"><img src="assets/partners/airline-klm.svg" alt=""></div>
                   <div class="compare-table__option-title">KLM</div>
                   <div class="compare-table__option-subtitle">via AMS</div>
-                </div><div class="compare-table__cell compare-table__cell--worst">10h 35m</div><div class="compare-table__cell compare-table__cell--worst">1 stop</div><div class="compare-table__cell compare-table__cell--best">€312</div>
+                </div><div class="compare-table__cell compare-table__cell--worst">10h 35m</div><div class="compare-table__cell compare-table__cell--worst">1 stop</div><div class="compare-table__cell compare-table__cell--best">€312</div><div class="compare-table__cell compare-table__cell--cta"><button class="compare-table__cta">Book</button></div>
               </div>
               <div class="compare-table__option">
                 <div class="compare-table__header-cell">
+                  <div class="compare-table__option-logo"><img src="assets/partners/airline-ba.svg" alt=""></div>
                   <div class="compare-table__option-title">BA</div>
                   <div class="compare-table__option-subtitle">Latest dep.</div>
-                </div><div class="compare-table__cell">8h 45m</div><div class="compare-table__cell">Direct</div><div class="compare-table__cell compare-table__cell--worst">€425</div>
+                </div><div class="compare-table__cell">8h 45m</div><div class="compare-table__cell">Direct</div><div class="compare-table__cell compare-table__cell--worst">€425</div><div class="compare-table__cell compare-table__cell--cta"><button class="compare-table__cta">Book</button></div>
               </div>
             </div>
           </div>
@@ -1848,7 +1851,7 @@
       <header class="page-header">
         <div class="page-eyebrow">Component</div>
         <h1 class="page-title">List / Catalog Result Card.</h1>
-        <p class="page-subtitle">CatalogResultCard in list layout — square 80px media on the left, content on the right. Flat or sectioned. Same primitive renders a restaurant list, a restaurant's menu by category, a doctor list, job postings, news headlines.</p>
+        <p class="page-subtitle">CatalogResultCard in list layout — square 80px media on the left, content on the right. Optional contextual CTA pinned right (Order, Add, Book, Apply, Read). Flat or sectioned. Same primitive renders a restaurant list, a restaurant's menu by category, a doctor list, job postings, news headlines.</p>
         <div class="page-tag-row">
           <span class="entity-tag">Collection<*> · flat or sectioned · list | grid | carousel</span>
           <span class="picked-when">5+ items, browsable</span>
@@ -1886,188 +1889,207 @@
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
             
-        <div class="list-section-head">Open now · 1.5 km</div>
-        <div class="collection collection--list">
-            <button class="catalog-card">
+        <div class="list-section-head" data-canonical="list-section-head">Open now · 1.5 km</div>
+        <div class="collection collection--list" data-canonical="collection-list">
+            <div class="catalog-card catalog-card--has-commit" data-canonical="catalog-card">
               <div class="catalog-card__media" data-emoji="🍜"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Soi 7</h4>
                 <p class="catalog-card__subtitle">Thai · ★ 4.5 · ₹₹</p>
                 <div class="catalog-card__meta"><span class="catalog-card__temporal">25 min</span><span>·</span><span class="catalog-card__price">₹600 for 2</span></div>
               </div>
-            </button>
-            <button class="catalog-card">
+              <button class="catalog-card__commit">Order</button>
+            </div>
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="🥡"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Drunken Monkey</h4>
                 <p class="catalog-card__subtitle">Pan-Asian · ★ 4.3 · ₹₹₹</p>
                 <div class="catalog-card__meta"><span class="catalog-card__temporal">32 min</span><span>·</span><span class="catalog-card__price">₹800 for 2</span></div>
               </div>
-            </button>
-            <button class="catalog-card">
+              <button class="catalog-card__commit">Order</button>
+            </div>
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="🍲"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Bangkok Bites</h4>
                 <p class="catalog-card__subtitle">Thai · ★ 4.1 · ₹</p>
                 <div class="catalog-card__meta"><span class="catalog-card__temporal">18 min</span><span>·</span><span class="catalog-card__price">₹450 for 2</span></div>
               </div>
-            </button>
+              <button class="catalog-card__commit">Order</button>
+            </div>
         </div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
             
         <div class="list-section-head">Mains</div>
         <div class="collection collection--list">
-            <button class="catalog-card">
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="🍜"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Pad Thai</h4>
                 <p class="catalog-card__subtitle">Stir-fried rice noodles, peanuts, lime · 🌶</p>
                 <div class="catalog-card__meta"><span class="catalog-card__price">₹345</span></div>
               </div>
-            </button>
-            <button class="catalog-card">
+              <button class="catalog-card__commit">Add</button>
+            </div>
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="🥡"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Pad See Ew</h4>
                 <p class="catalog-card__subtitle">Wide noodles, dark soy, broccoli, egg</p>
                 <div class="catalog-card__meta"><span class="catalog-card__price">₹325</span></div>
               </div>
-            </button>
-            <button class="catalog-card">
+              <button class="catalog-card__commit">Add</button>
+            </div>
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="🍛"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Basil Chicken</h4>
                 <p class="catalog-card__subtitle">Holy basil, chili, jasmine rice · 🌶🌶</p>
                 <div class="catalog-card__meta"><span class="catalog-card__price">₹340</span></div>
               </div>
-            </button>
-            <button class="catalog-card">
+              <button class="catalog-card__commit">Add</button>
+            </div>
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="🍤"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Prawn Green Curry</h4>
                 <p class="catalog-card__subtitle">Coconut milk, kaffir lime, jasmine rice · 🌶🌶</p>
                 <div class="catalog-card__meta"><span class="catalog-card__price">₹420</span></div>
               </div>
-            </button>
+              <button class="catalog-card__commit">Add</button>
+            </div>
         </div>
 
         <div class="list-section-head">Drinks</div>
         <div class="collection collection--list">
-            <button class="catalog-card">
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="🧋"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Thai Iced Tea</h4>
                 <p class="catalog-card__subtitle">Sweetened condensed milk · cold</p>
                 <div class="catalog-card__meta"><span class="catalog-card__price">₹140</span></div>
               </div>
-            </button>
-            <button class="catalog-card">
+              <button class="catalog-card__commit">Add</button>
+            </div>
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="🥤"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Fresh Lime Soda</h4>
                 <p class="catalog-card__subtitle">Sweet, salt, or mixed</p>
                 <div class="catalog-card__meta"><span class="catalog-card__price">₹95</span></div>
               </div>
-            </button>
-            <button class="catalog-card">
+              <button class="catalog-card__commit">Add</button>
+            </div>
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="🧃"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Coconut Water</h4>
                 <p class="catalog-card__subtitle">Tender · chilled</p>
                 <div class="catalog-card__meta"><span class="catalog-card__price">₹120</span></div>
               </div>
-            </button>
+              <button class="catalog-card__commit">Add</button>
+            </div>
         </div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
             
         <div class="list-section-head">Available this week</div>
         <div class="collection collection--list">
-            <button class="catalog-card">
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="🩺"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Dr. Aparna Rao</h4>
                 <p class="catalog-card__subtitle">Dermatology · 14 yrs · ★ 4.8</p>
                 <div class="catalog-card__meta"><span class="catalog-card__temporal">Tmrw 11:00</span><span>·</span><span class="catalog-card__price">₹1,200</span></div>
               </div>
-            </button>
-            <button class="catalog-card">
+              <button class="catalog-card__commit">Book</button>
+            </div>
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="🩺"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Dr. Vikram Iyer</h4>
                 <p class="catalog-card__subtitle">Dermatology · 9 yrs · ★ 4.7</p>
                 <div class="catalog-card__meta"><span class="catalog-card__temporal">Tmrw 16:00</span><span>·</span><span class="catalog-card__price">₹900</span></div>
               </div>
-            </button>
-            <button class="catalog-card">
+              <button class="catalog-card__commit">Book</button>
+            </div>
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="🩺"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Dr. Meera Krishnan</h4>
                 <p class="catalog-card__subtitle">Dermatology · 11 yrs · ★ 4.6</p>
                 <div class="catalog-card__meta"><span class="catalog-card__temporal">Thu 09:30</span><span>·</span><span class="catalog-card__price">₹1,100</span></div>
               </div>
-            </button>
+              <button class="catalog-card__commit">Book</button>
+            </div>
         </div>
           </div>
           <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
             
         <div class="list-section-head">4 matches</div>
         <div class="collection collection--list">
-            <button class="catalog-card">
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="💼"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Senior PM · Razorpay</h4>
                 <p class="catalog-card__subtitle">Bangalore · 6–9 yrs · Strong match</p>
                 <div class="catalog-card__meta"><span class="catalog-card__temporal">Posted 2d</span><span>·</span><span class="catalog-card__price">₹40 LPA</span></div>
               </div>
-            </button>
-            <button class="catalog-card">
+              <button class="catalog-card__commit">Apply</button>
+            </div>
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="💼"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">PM II · PhonePe</h4>
                 <p class="catalog-card__subtitle">Bangalore · 4–7 yrs</p>
                 <div class="catalog-card__meta"><span class="catalog-card__temporal">Posted 5d</span><span>·</span><span class="catalog-card__price">₹32 LPA</span></div>
               </div>
-            </button>
-            <button class="catalog-card">
+              <button class="catalog-card__commit">Apply</button>
+            </div>
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="💼"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Group PM · Cred</h4>
                 <p class="catalog-card__subtitle">Bangalore · 8+ yrs</p>
                 <div class="catalog-card__meta"><span class="catalog-card__temporal">Posted 1d</span><span>·</span><span class="catalog-card__price">₹55 LPA</span></div>
               </div>
-            </button>
+              <button class="catalog-card__commit">Apply</button>
+            </div>
         </div>
           </div>
           <div class="tab-panel" data-idx="4" data-active="false" role="tabpanel">
             
         <div class="list-section-head">Top</div>
         <div class="collection collection--list">
-            <button class="catalog-card">
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="📰"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Budget tabled with surprise tax revisions</h4>
                 <p class="catalog-card__subtitle">Politics · 4 min read</p>
                 <div class="catalog-card__meta"><span class="catalog-card__temporal">42 min</span><span>·</span><span class="catalog-card__price">PTI</span></div>
               </div>
-            </button>
-            <button class="catalog-card">
+              <button class="catalog-card__commit">Read</button>
+            </div>
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="📈"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Sensex closes at record high, 84,200</h4>
                 <p class="catalog-card__subtitle">Markets · 3 min read</p>
                 <div class="catalog-card__meta"><span class="catalog-card__temporal">1h 20m</span><span>·</span><span class="catalog-card__price">Mint</span></div>
               </div>
-            </button>
-            <button class="catalog-card">
+              <button class="catalog-card__commit">Read</button>
+            </div>
+            <div class="catalog-card catalog-card--has-commit">
               <div class="catalog-card__media" data-emoji="🏏"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">India 245/4 vs Australia at lunch</h4>
                 <p class="catalog-card__subtitle">Sports · 2 min read</p>
                 <div class="catalog-card__meta"><span class="catalog-card__temporal">25 min</span><span>·</span><span class="catalog-card__price">PTI</span></div>
               </div>
-            </button>
+              <button class="catalog-card__commit">Read</button>
+            </div>
         </div>
           </div>
       </div>
@@ -2113,8 +2135,8 @@
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
             
-        <div class="timeline">
-          <div class="tl-row" data-active="true">
+        <div class="timeline" data-canonical="timeline">
+          <div class="tl-row" data-canonical="timeline-row" data-active="true">
             <div class="tl-time">19:30</div>
             <div><div class="tl-title">Table for 2</div><div class="tl-meta">Available · No fee</div></div>
           </div>
@@ -2238,7 +2260,7 @@
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
             
-        <div class="tracker">
+        <div class="tracker" data-canonical="tracker">
           <div class="tracker__media">
             <div>
               <div class="tracker__stage">Out for delivery</div>
@@ -2331,7 +2353,7 @@
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
             
-        <div class="map-panel">
+        <div class="map-panel" data-canonical="map-panel">
           <div class="map-pin start"><span>🍴</span></div>
           <div class="map-route"></div>
           <div class="map-pin end"><span>🏠</span></div>
@@ -2392,8 +2414,8 @@
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
             
-        <div class="cart-section">
-          <div class="cart-row">
+        <div class="cart-section" data-canonical="cart-section">
+          <div class="cart-row" data-canonical="cart-row">
             <div><div class="cart-name">Pad Thai</div><div class="cart-qty">× 1</div></div>
             <div class="cart-price">₹345</div>
           </div>
@@ -2401,12 +2423,12 @@
             <div><div class="cart-name">Thai Iced Tea</div><div class="cart-qty">× 1</div></div>
             <div class="cart-price">₹140</div>
           </div>
-          <div class="cart-totals">
+          <div class="cart-totals" data-canonical="cart-totals">
             <div>Subtotal</div><div>₹485</div><div>Delivery</div><div>₹39</div><div>Taxes</div><div>₹24</div>
             <div class="total-row"><div>Total</div><div>₹548</div></div>
           </div>
         </div>
-        <div class="cta-row"><button class="btn-primary">Review and checkout</button></div>
+        <div class="cta-row" data-canonical="cta-row"><button class="btn-primary">Review and checkout</button></div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
             
@@ -2487,7 +2509,14 @@
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
             
-        <div class="confirm">
+        <div class="confirm" data-canonical="confirm">
+          <div class="confirm-partner">
+            <span class="confirm-partner-logo" style="background-image:url('assets/partners/swiggy.png')"></span>
+            <span class="confirm-partner-name">Swiggy</span>
+          </div>
+          <div class="confirm-image">
+            <img src="https://images.unsplash.com/photo-1559314809-0d155014e29e?w=400&h=400&fit=crop" alt="">
+          </div>
           <div class="confirm-prompt">Place this order?</div>
           <div class="confirm-summary">Drunken Monkey · Pad Thai, Thai Iced Tea · Visa •• 4421</div>
           <div class="confirm-total">₹548</div>
@@ -2500,6 +2529,10 @@
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
             
         <div class="confirm">
+          <div class="confirm-partner">
+            <span class="confirm-partner-logo" style="background-image:url('assets/partners/jiofinance.png')"></span>
+            <span class="confirm-partner-name">JioFinance</span>
+          </div>
           <div class="confirm-prompt">Send this money?</div>
           <div class="confirm-summary">Mom · Mrs. Sharma · ICICI •••• 4571</div>
           <div class="confirm-total">₹5,000</div>
@@ -2524,6 +2557,10 @@
           <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
             
         <div class="confirm">
+          <div class="confirm-partner">
+            <span class="confirm-partner-logo" style="background-image:url('assets/partners/practo.png')"></span>
+            <span class="confirm-partner-name">Practo</span>
+          </div>
           <div class="confirm-prompt">Book this appointment?</div>
           <div class="confirm-summary">Dr. Aparna Rao · Tomorrow 11:00 · Pay at clinic</div>
           <div class="confirm-total">₹1,200</div>
@@ -2576,7 +2613,7 @@
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
             
-        <div class="receipt">
+        <div class="receipt" data-canonical="receipt">
           <div class="receipt-banner">
             <div class="receipt-check">✓</div>
             <div>
@@ -2584,13 +2621,14 @@
               <div class="receipt-sub">Drunken Monkey · #ord-44921</div>
             </div>
           </div>
-          <div><div class="receipt-line"><div>Pad Thai</div><div>₹345</div></div><div class="receipt-line"><div>Thai Iced Tea</div><div>₹140</div></div><div class="receipt-line"><div>Delivery + taxes</div><div>₹63</div></div>
-            <div class="receipt-line receipt-total"><div>Total charged</div><div>₹548</div></div>
+          <div><div class="receipt-line" data-canonical="receipt-line"><div>Pad Thai</div><div>₹345</div></div><div class="receipt-line"><div>Thai Iced Tea</div><div>₹140</div></div><div class="receipt-line"><div>Delivery + taxes</div><div>₹63</div></div>
+            <div class="receipt-line receipt-total" data-canonical="receipt-line--total"><div>Total charged</div><div>₹548</div></div>
           </div>
         </div>
+        <div class="cta-row"><a class="btn-primary" href="#components-tracker" data-target-tab="0">Track order</a></div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
-            
+
         <div class="receipt">
           <div class="receipt-banner">
             <div class="receipt-check">✓</div>
@@ -2603,9 +2641,10 @@
             <div class="receipt-line receipt-total"><div>Amount</div><div>₹5,000</div></div>
           </div>
         </div>
+        <div class="cta-row"><a class="btn-primary" href="#components-detailsheet" data-target-tab="2">View transaction</a></div>
           </div>
           <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
-            
+
         <div class="receipt">
           <div class="receipt-banner">
             <div class="receipt-check">✓</div>
@@ -2618,9 +2657,10 @@
             <div class="receipt-line receipt-total"><div>Consultation fee</div><div>₹1,200</div></div>
           </div>
         </div>
+        <div class="cta-row"><a class="btn-primary" href="#components-detailsheet" data-target-tab="1">View appointment</a></div>
           </div>
           <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
-            
+
         <div class="receipt">
           <div class="receipt-banner">
             <div class="receipt-check">✓</div>
@@ -2633,6 +2673,7 @@
             <div class="receipt-line receipt-total"><div>Status</div><div>Submitted</div></div>
           </div>
         </div>
+        <div class="cta-row"><a class="btn-primary" href="#components-tracker" data-target-tab="3">Track status</a></div>
           </div>
       </div>
     </div>
@@ -2670,17 +2711,17 @@
     <div class="component-card">
       <div class="tab-panels">
         <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-          <div class="detail-sheet">
+          <div class="detail-sheet" data-canonical="detail-sheet">
             <div class="detail-sheet__grabber"></div>
             <div class="detail-sheet__carousel">
               <div class="detail-sheet__carousel-track" data-carousel>
-                <div class="detail-sheet__carousel-slide" style="background: #D4B896;"><span class="detail-sheet__carousel-label">1 / 4 · Front</span></div>
+                <div class="detail-sheet__carousel-slide" data-canonical="detail-sheet__carousel-slide" style="background: #D4B896;"><span class="detail-sheet__carousel-label">1 / 4 · Front</span></div>
                 <div class="detail-sheet__carousel-slide" style="background: #A8835F;"><span class="detail-sheet__carousel-label">2 / 4 · Back</span></div>
                 <div class="detail-sheet__carousel-slide" style="background: #7B5A3F;"><span class="detail-sheet__carousel-label">3 / 4 · Detail</span></div>
                 <div class="detail-sheet__carousel-slide" style="background: #5C3D2E;"><span class="detail-sheet__carousel-label">4 / 4 · On model</span></div>
               </div>
               <div class="detail-sheet__dots" data-dots>
-                <button class="detail-sheet__dot detail-sheet__dot--active" type="button" aria-label="Show image 1"></button>
+                <button class="detail-sheet__dot detail-sheet__dot--active" data-canonical="detail-sheet__dot" type="button" aria-label="Show image 1"></button>
                 <button class="detail-sheet__dot" type="button" aria-label="Show image 2"></button>
                 <button class="detail-sheet__dot" type="button" aria-label="Show image 3"></button>
                 <button class="detail-sheet__dot" type="button" aria-label="Show image 4"></button>
@@ -2689,7 +2730,7 @@
             <div class="detail-sheet__title">Silk blend Nehru kurta</div>
             <div class="detail-sheet__ref">FabIndia</div>
             <div class="detail-sheet__rows">
-              <div class="detail-sheet__row"><span class="detail-sheet__row-label">Price</span><span class="detail-sheet__row-value">₹1,499</span></div>
+              <div class="detail-sheet__row" data-canonical="detail-sheet__row"><span class="detail-sheet__row-label">Price</span><span class="detail-sheet__row-value">₹1,499</span></div>
               <div class="detail-sheet__row"><span class="detail-sheet__row-label">Rating</span><span class="detail-sheet__row-value">4.4★ (1,820)</span></div>
               <div class="detail-sheet__row"><span class="detail-sheet__row-label">Details</span><span class="detail-sheet__row-value">Silk · Men</span></div>
             </div>
@@ -2785,7 +2826,7 @@
       <div class="tab-panels">
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-            <div class="chips-prompt">Cuisine</div><div class="filter-chip-bar"><button class="filter-chip filter-chip--selected">Thai</button><button class="filter-chip">Indian</button><button class="filter-chip">Chinese</button><button class="filter-chip">Italian</button><button class="filter-chip">Mexican</button><button class="filter-chip">Japanese</button></div>
+            <div class="chips-prompt" data-canonical="chips-prompt">Cuisine</div><div class="filter-chip-bar" data-canonical="filter-chip-bar"><button class="filter-chip filter-chip--selected">Thai</button><button class="filter-chip" data-canonical="filter-chip">Indian</button><button class="filter-chip">Chinese</button><button class="filter-chip">Italian</button><button class="filter-chip">Mexican</button><button class="filter-chip">Japanese</button></div>
         <div class="chips-prompt">Dietary</div><div class="filter-chip-bar"><button class="filter-chip">Veg</button><button class="filter-chip filter-chip--selected">Non-veg</button><button class="filter-chip">Vegan</button><button class="filter-chip">Jain</button></div>
           </div>
           <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
@@ -2826,12 +2867,12 @@
     <div class="component-card">
       <div class="tab-panels">
         <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
-          <div class="option-sheet" data-option-sheet>
+          <div class="option-sheet" data-canonical="option-sheet" data-option-sheet>
             <div class="option-sheet__grabber"></div>
             <div class="option-sheet__title">Voice Language</div>
             <div class="option-sheet__subtitle">Pick how I'll talk to you. You can change this anytime in settings.</div>
             <div class="option-sheet__list" role="radiogroup" aria-label="Voice Language">
-              <button class="option-sheet__option" type="button" role="radio" aria-checked="false">
+              <button class="option-sheet__option" data-canonical="option-sheet__option" type="button" role="radio" aria-checked="false">
                 <span class="option-sheet__option-text">
                   <span class="option-sheet__option-name">English</span>
                   <span class="option-sheet__option-native">English</span>
@@ -2924,7 +2965,7 @@
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
             
-        <div class="player">
+        <div class="player" data-canonical="player">
           <div class="player-art"></div>
           <div>
             <div class="player-title">Zinda Banda</div>
@@ -2989,7 +3030,7 @@
         </div>
       </header>
       <div class="tabs" role="tablist">
-        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Swiggy</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Bollywood <span class="tab-partner">· JioHotstar</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Devotion <span class="tab-partner">· Sri Mandir</span></button>
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Food <span class="tab-partner">· Swiggy</span></button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Bollywood <span class="tab-partner">· JioHotstar</span></button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Devotion <span class="tab-partner">· Sri Mandir</span></button><button class="tab-button" role="tab" data-idx="3" aria-selected="false">Fashion <span class="tab-partner">· AJIO</span></button>
       </div>
       <div class="tab-panels">
         
@@ -3005,6 +3046,10 @@
             <div class="user-turn"><div class="user-bubble">Hanuman Jayanti playlists</div></div>
             <div class="text-response"><p class="text-response__body">Four collections for tomorrow's festival.</p></div>
           </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+            <div class="user-turn"><div class="user-bubble">Summer kurtas under ₹999</div></div>
+            <div class="text-response"><p class="text-response__body">Four picks for the season.</p></div>
+          </div>
       </div>
     </div>
     <div class="component-card">
@@ -3012,38 +3057,42 @@
         
           <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
             
-        <div class="gallery">
-          <div class="collection collection--grid">
-            <button class="catalog-card">
+        <div class="gallery" data-canonical="gallery">
+          <div class="collection collection--grid" data-canonical="collection-grid">
+            <button class="catalog-card" data-canonical="catalog-card--gallery">
               <div class="catalog-card__media" data-emoji="🍜"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Pad Thai</h4>
-                <p class="catalog-card__subtitle">₹345 · ★ 4.6</p>
-                
+                <p class="catalog-card__price">₹345</p>
+                <p class="catalog-card__subtitle">★ 4.6</p>
+
               </div>
             </button>
             <button class="catalog-card">
               <div class="catalog-card__media" data-emoji="🥡"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Pad See Ew</h4>
-                <p class="catalog-card__subtitle">₹325 · ★ 4.5</p>
-                
+                <p class="catalog-card__price">₹325</p>
+                <p class="catalog-card__subtitle">★ 4.5</p>
+
               </div>
             </button>
             <button class="catalog-card">
               <div class="catalog-card__media" data-emoji="🍲"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Tom Yum Soup</h4>
-                <p class="catalog-card__subtitle">₹220 · ★ 4.7</p>
-                
+                <p class="catalog-card__price">₹220</p>
+                <p class="catalog-card__subtitle">★ 4.7</p>
+
               </div>
             </button>
             <button class="catalog-card">
               <div class="catalog-card__media" data-emoji="🌶"></div>
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Basil Chicken</h4>
-                <p class="catalog-card__subtitle">₹340 · ★ 4.4</p>
-                
+                <p class="catalog-card__price">₹340</p>
+                <p class="catalog-card__subtitle">★ 4.4</p>
+
               </div>
             </button>
           </div>
@@ -3121,7 +3170,66 @@
               <div class="catalog-card__content">
                 <h4 class="catalog-card__title">Bhajans for Jayanti</h4>
                 <p class="catalog-card__subtitle">28 tracks · 1h 12m</p>
-                
+
+              </div>
+            </button>
+          </div>
+        </div>
+          </div>
+          <div class="tab-panel" data-idx="3" data-active="false" role="tabpanel">
+
+        <div class="gallery">
+          <div class="collection collection--grid">
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="👗"></div>
+              <div class="catalog-card__content">
+                <div class="catalog-card__brand">
+                  <span class="catalog-card__brand-logo" style="background-image:url('assets/partners/ajio.png')"></span>
+                  <span class="catalog-card__brand-name">AJIO</span>
+                </div>
+                <h4 class="catalog-card__title">Cotton anarkali</h4>
+                <p class="catalog-card__price">₹799</p>
+                <p class="catalog-card__subtitle">★ 4.5</p>
+
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🌸"></div>
+              <div class="catalog-card__content">
+                <div class="catalog-card__brand">
+                  <span class="catalog-card__brand-logo" style="background-image:url('assets/partners/ajio.png')"></span>
+                  <span class="catalog-card__brand-name">AJIO</span>
+                </div>
+                <h4 class="catalog-card__title">Block-print kurti</h4>
+                <p class="catalog-card__price">₹649</p>
+                <p class="catalog-card__subtitle">★ 4.4</p>
+
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🧵"></div>
+              <div class="catalog-card__content">
+                <div class="catalog-card__brand">
+                  <span class="catalog-card__brand-logo" style="background-image:url('assets/partners/ajio.png')"></span>
+                  <span class="catalog-card__brand-name">AJIO</span>
+                </div>
+                <h4 class="catalog-card__title">Linen kurta set</h4>
+                <p class="catalog-card__price">₹899</p>
+                <p class="catalog-card__subtitle">★ 4.7</p>
+
+              </div>
+            </button>
+            <button class="catalog-card">
+              <div class="catalog-card__media" data-emoji="🪷"></div>
+              <div class="catalog-card__content">
+                <div class="catalog-card__brand">
+                  <span class="catalog-card__brand-logo" style="background-image:url('assets/partners/ajio.png')"></span>
+                  <span class="catalog-card__brand-name">AJIO</span>
+                </div>
+                <h4 class="catalog-card__title">Embroidered straight</h4>
+                <p class="catalog-card__price">₹949</p>
+                <p class="catalog-card__subtitle">★ 4.6</p>
+
               </div>
             </button>
           </div>
@@ -4091,6 +4199,19 @@ document.querySelectorAll('.page-view').forEach(page => {
       });
       animateVisibleTrackers(page);
     });
+  });
+});
+
+/* ----- Cross-page CTAs that also select a tab variant on landing ----- */
+document.querySelectorAll('a[data-target-tab]').forEach(a => {
+  a.addEventListener('click', () => {
+    const targetTab = a.dataset.targetTab;
+    setTimeout(() => {
+      const view = document.querySelector(a.getAttribute('href'));
+      if (!view) return;
+      const tabBtn = view.querySelector(`.tabs .tab-button[data-idx="${targetTab}"]`);
+      if (tabBtn) tabBtn.click();
+    }, 0);
   });
 });
 
