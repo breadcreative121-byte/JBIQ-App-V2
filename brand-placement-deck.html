@@ -408,8 +408,12 @@
     border-top: 0.5px solid var(--color-border-default);
     scroll-margin-top: var(--space-xl);
   }
-  /* No key line between the hero and the first section */
-  .hero + .section { border-top: none; }
+  /* No key line between the hero and the first section, and tighter top */
+  .hero + .section { border-top: none; padding-top: var(--space-xxl); }
+  /* Short editorial "question" section: no example grid, so tighter bottom */
+  #question { padding-bottom: var(--space-xxl); }
+  #question .section-lead { margin-bottom: 0; }
+  #question + .section { padding-top: var(--space-xxl); }
   .section-title {
     font-size: 40px;
     font-weight: 900;
@@ -427,7 +431,9 @@
     max-width: 760px;
     letter-spacing: -0.005em;
   }
+  .section-lead:has(+ ul.clean) { margin-bottom: var(--space-xl); }
   .section h2 { margin: 0; }
+  h2.section-title { margin-bottom: var(--space-xl); }
 
   /* ------ Bullet list ------ */
   ul.clean { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-md); }
@@ -481,15 +487,16 @@
     list-style: none; padding: 0; margin: 0;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--space-lg) var(--space-xxl);
+    gap: var(--space-xl) var(--space-xxl);
   }
   .surface-list li {
     font-size: 20px;
     font-weight: 700;
+    line-height: 1;
     color: var(--color-text-primary);
     letter-spacing: -0.02em;
-    display: flex; align-items: baseline; gap: var(--space-md);
-    padding: var(--space-sm) 0;
+    display: flex; align-items: center; gap: var(--space-md);
+    padding: var(--space-md) 0;
     border-bottom: 0.5px solid var(--color-border-default);
   }
   .surface-list li .num {
@@ -695,6 +702,25 @@
     text-transform: uppercase;
     display: flex; align-items: center;
     padding-left: var(--space-sm);
+  }
+  .mini-card__tag {
+    position: absolute;
+    top: var(--space-xs);
+    left: var(--space-xs);
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+    line-height: 1;
+  }
+  .mini-card__media--hero {
+    background-size: cover;
+    background-position: center;
+    font-size: 0;
   }
   .mini-card__badge {
     position: absolute;
@@ -1360,13 +1386,15 @@
       <div class="example-tile">
         <div class="example-tile__image">
           <div class="mini-card">
-            <div class="mini-card__media">
-              <div class="mini-card__strip">Discover</div>
-              🛒
+            <div class="mini-card__media mini-card__media--hero" style="background-image:url('assets/partners/swiggy-hero.png');">
+              <div class="mini-card__tag">Discover</div>
             </div>
             <div class="mini-card__body">
-              <div class="mini-card__title">JioMart</div>
-              <div class="mini-card__meta">Groceries · ★ 4.6</div>
+              <div class="mini-card__title-row">
+                <img class="mini-card__brand-dot" src="assets/partners/Swiggy.png" alt="Swiggy">
+                <div class="mini-card__title">Swiggy</div>
+              </div>
+              <div class="mini-card__meta">Food delivery · ★ 4.7</div>
               <div class="mini-card__footer"><strong>New for you</strong></div>
             </div>
           </div>
@@ -1395,6 +1423,73 @@
       <li>Browser tab / app header reflecting the current partner</li>
       <li>Voice intro when a partner takes over <em>"Swiggy here three places near you do pad thai."</em></li>
     </ul>
+    <div class="example-grid">
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-chat">
+            <div class="mini-chat__head">
+              <span class="mini-chat__pill">
+                <img class="mini-row__logo" src="assets/partners/swiggy.png" alt="Swiggy" style="width:14px;height:14px;">
+                Swiggy
+              </span>
+            </div>
+            <div class="mini-chat__body">Three places near you do pad thai. Want me to pull up menus?</div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Active partner pill</div>
+          <h3 class="example-tile__title">In-flow partner pill</h3>
+          <p class="example-tile__body">Sits in the conversation header throughout the flow. Quietly persistent so the user always knows who's behind the answer.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-stack">
+            <div class="mini-stack__head">Recent flows</div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/swiggy.png" alt="Swiggy"><div class="mini-row__name">Pad thai near me</div><div class="mini-row__meta">Active</div></div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/practo.png" alt="Practo"><div class="mini-row__name">GP appointment</div></div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/jiomart.png" alt="JioMart"><div class="mini-row__name">Weekly groceries</div></div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Sidebar indicator</div>
+          <h3 class="example-tile__title">Sidebar session marker</h3>
+          <p class="example-tile__body">In multi-flow apps, the active partner is marked next to its session entry so users can switch contexts without losing track.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-tab">
+            <img class="mini-row__logo" src="assets/partners/swiggy.png" alt="Swiggy" style="width:14px;height:14px;">
+            <div class="mini-tab__name">JBIQ · Swiggy</div>
+            <div class="mini-tab__close">×</div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Browser & app chrome</div>
+          <h3 class="example-tile__title">Tab title reflects the partner</h3>
+          <p class="example-tile__body">The current partner colours the tab title or app header bar. An out-of-product reminder of who's currently driving.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-quote">
+            <div class="mini-quote__attr">Swiggy via JBIQ</div>
+            <p class="mini-quote__text"><strong>Swiggy here</strong> three places near you do pad thai.</p>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Voice handover</div>
+          <h3 class="example-tile__title">Spoken partner intro</h3>
+          <p class="example-tile__body">On voice surfaces, the partner introduces itself when it takes over a turn. The voice equivalent of the in-flow pill.</p>
+        </div>
+      </div>
+
+    </div>
     <div class="beneficiaries">
       <div><span class="key">User</span><div class="val">Stays oriented on who's responsible.</div></div>
       <div><span class="key">Partner</span><div class="val">Framing presence.</div></div>
@@ -1516,6 +1611,67 @@
       <li>Tracker updates <em>"Swiggy says your order's 12 minutes away"</em></li>
       <li>Receipt acks <em>"Your Practo appointment is confirmed"</em></li>
     </ul>
+    <div class="example-grid">
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-quote">
+            <div class="mini-quote__attr">Practo via JBIQ</div>
+            <p class="mini-quote__text"><strong>From Practo,</strong> two GPs are free tomorrow morning.</p>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Spoken mention</div>
+          <h3 class="example-tile__title">Named at the start of the turn</h3>
+          <p class="example-tile__body">A short partner mention before the answer. The voice equivalent of a source line — placed up front so the user knows whose data is speaking.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-stack">
+            <div class="mini-stack__head">Voice persona</div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/swiggy.png" alt="Swiggy"><div class="mini-row__name">Swiggy</div><div class="mini-row__meta">Warm · casual</div></div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/practo.png" alt="Practo"><div class="mini-row__name">Practo</div><div class="mini-row__meta">Calm · precise</div></div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/jiofinance.png" alt="JioFinance"><div class="mini-row__name">JioFinance</div><div class="mini-row__meta">Formal · steady</div></div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Persona inheritance</div>
+          <h3 class="example-tile__title">Voice tone reflects the partner</h3>
+          <p class="example-tile__body">Each partner ships with a tonal preset. The voice persona carries their brand even when no logo is on screen.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-quote">
+            <div class="mini-quote__attr">JioFinance confirm · spoken</div>
+            <p class="mini-quote__text"><strong>JioFinance</strong> is about to send ₹5,000 to Ravi  shall I confirm?</p>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Confirm readback</div>
+          <h3 class="example-tile__title">Partner named before money moves</h3>
+          <p class="example-tile__body">Non-negotiable. The partner is always named in the spoken confirmation step so the user knows exactly who is executing.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-quote">
+            <div class="mini-quote__attr">Tracker update · spoken</div>
+            <p class="mini-quote__text"><strong>Swiggy says</strong> your order's 12 minutes away.</p>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Tracker update</div>
+          <h3 class="example-tile__title">Partner-attributed status</h3>
+          <p class="example-tile__body">Background updates spoken aloud always lead with the partner. Keeps long-running flows honest about whose system the update came from.</p>
+        </div>
+      </div>
+
+    </div>
     <div class="beneficiaries">
       <div><span class="key">User</span><div class="val">Trust knows who's vouching for what.</div></div>
       <div><span class="key">Partner</span><div class="val">Brand recall in the eyes-busy channel.</div></div>
@@ -1534,6 +1690,82 @@
       <li>Push / SMS notifications partner-branded outside the JBIQ surface</li>
       <li>Email confirmations partner sender, partner template, JBIQ co-mark</li>
     </ul>
+    <div class="example-grid">
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-confirm">
+            <div class="mini-confirm__head">
+              <img class="mini-row__logo" src="assets/partners/swiggy.png" alt="Swiggy">
+              <span>Swiggy · confirm order</span>
+            </div>
+            <div class="mini-confirm__total">₹420</div>
+            <div class="mini-confirm__btn">Place order</div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">ConfirmPanel header</div>
+          <h3 class="example-tile__title">Partner banner on the commit step</h3>
+          <p class="example-tile__body">When the user is about to commit, the partner is named at the top of the panel. No ambiguity about who is taking the money.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-stack">
+            <div class="mini-stack__head">Pay with</div>
+            <div class="mini-row"><div class="mini-row__logo alt-1">U</div><div class="mini-row__name">UPI · Google Pay</div><div class="mini-row__meta">Default</div></div>
+            <div class="mini-row"><div class="mini-row__logo alt-3">V</div><div class="mini-row__name">Visa · 4242</div></div>
+            <div class="mini-row"><div class="mini-row__logo alt-2">M</div><div class="mini-row__name">Mastercard · 1881</div></div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Payment providers</div>
+          <h3 class="example-tile__title">Rails logos, separate from the partner</h3>
+          <p class="example-tile__body">Visa, Mastercard, UPI live in their own row  they don't compete with the partner brand because they answer a different question.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-card">
+            <div class="mini-card__media">
+              <div class="mini-card__strip">Receipt</div>
+              📄
+            </div>
+            <div class="mini-card__body">
+              <div class="mini-card__title">Order #SWG-83412</div>
+              <div class="mini-card__meta">Soi 7 · ₹420 · 2 items</div>
+              <div class="mini-card__footer">Support: <strong>help@swiggy</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Receipt</div>
+          <h3 class="example-tile__title">Header order ref, footer support</h3>
+          <p class="example-tile__body">The receipt carries the partner's brand and their support contact  so the user knows exactly where to go when something goes wrong.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-notification">
+            <div class="mini-notification__icon">S</div>
+            <div>
+              <div class="mini-notification__head"><span>Swiggy</span><span>now</span></div>
+              <div class="mini-notification__title">Your order is on the way</div>
+              <div class="mini-notification__body">Track in JBIQ or open Swiggy</div>
+            </div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Push & SMS</div>
+          <h3 class="example-tile__title">Partner-branded, outside JBIQ</h3>
+          <p class="example-tile__body">Outside the JBIQ surface, the partner owns the channel. Their sender, their template, with a quiet JBIQ co-mark.</p>
+        </div>
+      </div>
+
+    </div>
     <div class="beneficiaries">
       <div><span class="key">User</span><div class="val">Knows who to chase if something goes wrong.</div></div>
       <div><span class="key">Partner</span><div class="val">Extends the relationship past the JBIQ session.</div></div>
@@ -1552,6 +1784,81 @@
       <li>Recommendation surfaces <em>"Order from Drunken Monkey again?"</em></li>
       <li>Loyalty / rewards mentions <em>"You've earned 50 Swiggy SuperCoins"</em></li>
     </ul>
+    <div class="example-grid">
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-stack">
+            <div class="mini-stack__head">Recent sessions</div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/swiggy.png" alt="Swiggy"><div class="mini-row__name">Pad thai · Soi 7</div><div class="mini-row__meta">Tue</div></div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/practo.png" alt="Practo"><div class="mini-row__name">GP appointment</div><div class="mini-row__meta">Mon</div></div>
+            <div class="mini-row"><img class="mini-row__logo" src="assets/partners/jiomart.png" alt="JioMart"><div class="mini-row__name">Weekly groceries</div><div class="mini-row__meta">Sun</div></div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Session history</div>
+          <h3 class="example-tile__title">Past flows grouped by partner</h3>
+          <p class="example-tile__body">Looking back, the user sees the partners they've already trusted  the list itself becomes a credibility signal.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-card">
+            <div class="mini-card__media">🍜</div>
+            <div class="mini-card__body">
+              <div class="mini-card__title-row">
+                <img class="mini-row__logo" src="assets/partners/swiggy.png" alt="Swiggy" style="width:14px;height:14px;">
+                <div class="mini-card__title">Soi 7  pad thai</div>
+              </div>
+              <div class="mini-card__meta">Last ordered Tue</div>
+              <div class="mini-card__footer"><strong>Reorder</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Repeat order</div>
+          <h3 class="example-tile__title">Partner preserved through the shortcut</h3>
+          <p class="example-tile__body">One-tap repeats keep the partner's mark on the card. The shortcut doesn't quietly become a generic JBIQ action.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-card">
+            <div class="mini-card__media">
+              <div class="mini-card__strip">For you</div>
+              🐒
+            </div>
+            <div class="mini-card__body">
+              <div class="mini-card__title">Drunken Monkey</div>
+              <div class="mini-card__meta">You loved this last time</div>
+              <div class="mini-card__footer">via <strong>Swiggy</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Recommendation</div>
+          <h3 class="example-tile__title">"Try this again?" surface</h3>
+          <p class="example-tile__body">When JBIQ proactively re-surfaces something the user liked, the partner stays attached  every nudge carries provenance.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-coin">
+            <div class="mini-coin__icon">★</div>
+            <div class="mini-coin__count"><strong>+50</strong> Swiggy SuperCoins</div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Loyalty & rewards</div>
+          <h3 class="example-tile__title">Partner-named earn moments</h3>
+          <p class="example-tile__body">Loyalty mentions name the partner's programme  so the points feel like theirs and the reason to come back is theirs too.</p>
+        </div>
+      </div>
+
+    </div>
     <div class="beneficiaries">
       <div><span class="key">User</span><div class="val">Continuity across sessions.</div></div>
       <div><span class="key">Partner</span><div class="val">The loyalty hook.</div></div>
@@ -1570,6 +1877,67 @@
       <li>Data-shared indicator when the partner is actively reading user data</li>
       <li>Disclaimer / liability lines <em>"Medical advice provided by Practo, not JBIQ"</em></li>
     </ul>
+    <div class="example-grid">
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-badge-row">
+            <div class="mini-badge"><div class="mini-badge__check">✓</div>Verified partner</div>
+            <div class="mini-badge"><div class="mini-badge__check">✓</div>Audited by JBIQ</div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Verified mark</div>
+          <h3 class="example-tile__title">System-issued, not partner-claimed</h3>
+          <p class="example-tile__body">The tick is JBIQ's, never the partner's. It only appears after audit  which is what makes it worth anything.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-badge-row">
+            <div class="mini-badge"><div class="mini-badge__abbr">FSSAI</div>Food safety</div>
+            <div class="mini-badge"><div class="mini-badge__abbr">NMC</div>Medical council</div>
+            <div class="mini-badge"><div class="mini-badge__abbr">RBI</div>Financial licence</div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Regulator badges</div>
+          <h3 class="example-tile__title">Licence visible in regulated verticals</h3>
+          <p class="example-tile__body">FSSAI, NMC, RBI, UIDAI  the body that licenses the partner shows on the card. Required for any vertical where licensing matters.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-notification">
+            <div class="mini-notification__icon">🔒</div>
+            <div>
+              <div class="mini-notification__head"><span>Data shared</span><span>now</span></div>
+              <div class="mini-notification__title">Swiggy can see your address</div>
+              <div class="mini-notification__body">And your saved payment method  Manage</div>
+            </div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Privacy disclosure</div>
+          <h3 class="example-tile__title">Live read-out of partner data scope</h3>
+          <p class="example-tile__body">Whenever a partner is actively reading user data, the disclosure surfaces inline  scope is explicit, revocable, and pinned to the partner.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-source">Medical advice provided by <strong>Practo</strong>, not JBIQ. Verify any guidance with your doctor.</div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Disclaimer</div>
+          <h3 class="example-tile__title">Liability stays with the partner</h3>
+          <p class="example-tile__body">For advice-bearing surfaces, the partner is named as the source. JBIQ holds the pipe; the partner holds the advice.</p>
+        </div>
+      </div>
+
+    </div>
     <div class="beneficiaries">
       <div><span class="key">User</span><div class="val">Needs these for safety and informed consent.</div></div>
       <div><span class="key">Partner</span><div class="val">Benefits from being seen as compliant.</div></div>
@@ -1586,6 +1954,84 @@
       <li>"Best from each" badges showing which source contributed which result</li>
       <li>Aggregated source line <em>"Showing flights from Skyscanner, MMT, and Cleartrip"</em></li>
     </ul>
+    <div class="example-grid">
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-compare">
+            <div class="mini-compare__col best">
+              <div class="mini-compare__logo">S</div>
+              <div class="mini-compare__name">Swiggy</div>
+              <div class="mini-compare__val">₹420 · 25m</div>
+            </div>
+            <div class="mini-compare__col alt-1">
+              <div class="mini-compare__logo">Z</div>
+              <div class="mini-compare__name">Zomato</div>
+              <div class="mini-compare__val">₹440 · 30m</div>
+            </div>
+            <div class="mini-compare__col alt-2">
+              <div class="mini-compare__logo">E</div>
+              <div class="mini-compare__name">Eatsure</div>
+              <div class="mini-compare__val">₹460 · 35m</div>
+            </div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Comparison view</div>
+          <h3 class="example-tile__title">Multiple partners, side-by-side</h3>
+          <p class="example-tile__body">The only place several partner marks live together. Each column is owned by one source so the comparison stays honest.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-card">
+            <div class="mini-card__media">
+              <div class="mini-card__strip">Best price</div>
+              ✈️
+            </div>
+            <div class="mini-card__body">
+              <div class="mini-card__title">DEL → BLR · 6:40 AM</div>
+              <div class="mini-card__meta">Indigo · ₹4,820 nonstop</div>
+              <div class="mini-card__footer">via <strong>Skyscanner</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">"Best from each" badge</div>
+          <h3 class="example-tile__title">Which source won each slot</h3>
+          <p class="example-tile__body">When the winning option comes from a particular partner, the badge says so. No silent picking  the user sees who got the result.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-stack">
+            <div class="mini-stack__head">Flights · DEL → BLR</div>
+            <div class="mini-row"><div class="mini-row__logo">S</div><div class="mini-row__name">Indigo  6:40 AM</div><div class="mini-row__meta">Skyscanner</div></div>
+            <div class="mini-row"><div class="mini-row__logo alt-1">M</div><div class="mini-row__name">Air India  9:15 AM</div><div class="mini-row__meta">MMT</div></div>
+            <div class="mini-row"><div class="mini-row__logo alt-3">C</div><div class="mini-row__name">Vistara  11:30 AM</div><div class="mini-row__meta">Cleartrip</div></div>
+          </div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Per-row source</div>
+          <h3 class="example-tile__title">Rows tagged with their origin</h3>
+          <p class="example-tile__body">In aggregated lists, each row carries the partner who supplied it  so the user always knows which source contributed which result.</p>
+        </div>
+      </div>
+
+      <div class="example-tile">
+        <div class="example-tile__image">
+          <div class="mini-source">Showing flights from <strong>Skyscanner</strong>, <strong>MMT</strong>, and <strong>Cleartrip</strong>.</div>
+        </div>
+        <div class="example-tile__caption">
+          <div class="example-tile__label">Aggregated source line</div>
+          <h3 class="example-tile__title">"Showing from " header</h3>
+          <p class="example-tile__body">A single line above the results spells out every contributing partner. Co-mark visibility without crowding individual cards.</p>
+        </div>
+      </div>
+
+    </div>
     <div class="beneficiaries">
       <div><span class="key">User</span><div class="val">Transparency on aggregation.</div></div>
       <div><span class="key">Partner</span><div class="val">Co-mark visibility.</div></div>
