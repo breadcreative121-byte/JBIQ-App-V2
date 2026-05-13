@@ -7712,6 +7712,8 @@
       items: [
         { key: 'biryani_partner_pick_chat',  surface: 'chat',  label: 'Order biryani — Swiggy vs Zomato — chat',  query: 'Order biryani' },
         { key: 'biryani_partner_pick_voice', surface: 'voice', label: 'Order biryani — Swiggy vs Zomato — voice', query: 'Order biryani' },
+        { key: 'biryani_partner_pick_list_chat',  surface: 'chat',  label: 'Order biryani — Swiggy vs Zomato (list) — chat',  query: 'Show me biryani delivery options' },
+        { key: 'biryani_partner_pick_list_voice', surface: 'voice', label: 'Order biryani — Swiggy vs Zomato (list) — voice', query: 'Show me biryani delivery options' },
       ],
     },
     {
@@ -8012,6 +8014,19 @@
     { re: /\b(?:kurta|fabindia)\s+detail\b/i,                                    view: 'detail_sheet_kurta' },
     { re: /\bdoctor\s+detail\b/i,                                                view: 'detail_sheet_doctor' },
 
+
+    // Canonical biryani journey — Connect & Buy. Partner-agnostic intent
+    // ("order biryani" / common typo "biriyani") routes through the full
+    // pick → connect → consent → restaurants → menu → cart → confirm →
+    // receipt → tracker chain. Journey chain utterances are tagged with
+    // unique phrases ("via biryani journey" / "via journey") so they win
+    // over the broader Swiggy patterns below.
+    { re: /\b(?:add|order|find|get|buy|book)\b.{0,30}\bbir(?:y|iy|i)ani\b(?!.{0,40}\b(?:swiggy|zomato|paradise)\b)/i, view: 'biryani_connect_buy_picker' },
+    { re: /\bbir(?:y|iy|i)ani\b.{0,30}\b(?:order)\b(?!.{0,40}\b(?:swiggy|zomato|paradise)\b)/i,                       view: 'biryani_connect_buy_picker' },
+    { re: /open\s+biryani\s+picks\s+via\s+journey/i,                       view: 'biryani_journey_restaurants' },
+    { re: /view\s+paradise\s+menu\s+via\s+biryani\s+journey/i,             view: 'biryani_journey_menu' },
+    { re: /open\s+biryani\s+cart\s+via\s+journey/i,                        view: 'biryani_journey_cart' },
+
     // Partner experiences — Swiggy MCP Food. Brand qualifier MUST come first
     // so `\bswiggy\b` wins over `\bbiryani\b → biryani_hyderabad`. Within the
     // Swiggy set, order patterns (verb + Swiggy) win over menu patterns
@@ -8029,13 +8044,11 @@
     { re: /\bzomato\b.{0,40}\b(biryani|restaurants?|food)\b/i,                           view: 'zomato_biryani_search' },
     { re: /\b(biryani|restaurants?|food)\b.{0,40}\bzomato\b/i,                           view: 'zomato_biryani_search' },
 
-    // Multi-partner conflict resolution — fires when the user expresses a
-    // partner-agnostic biryani intent (verb + biryani, no partner brand named).
-    // The negative lookahead is belt-and-braces: explicit Swiggy/Zomato
-    // patterns above already match first, but it guards against ordering
-    // regressions if anyone reorders the list.
-    { re: /\b(?:add|order|find|get|buy|book)\b.{0,30}\bbiryani\b(?!.{0,40}\b(?:swiggy|zomato)\b)/i, view: 'biryani_partner_pick' },
-    { re: /\bbiryani\b.{0,30}\b(?:add|order|delivery)\b(?!.{0,40}\b(?:swiggy|zomato)\b)/i,           view: 'biryani_partner_pick' },
+    // List-card variant — must run BEFORE the table variant's matchers so the
+    // more-specific "show/list … options" phrasing wins over the generic
+    // "order biryani". Triggered by "Show me biryani delivery options".
+    { re: /\b(?:show|see|browse|list)\b.{0,20}\bbiryani\b.{0,20}\b(?:options|partners|choices)\b/i, view: 'biryani_partner_pick_list' },
+    { re: /\bbiryani\b.{0,15}\bdelivery\b.{0,15}\boptions\b/i,                                     view: 'biryani_partner_pick_list' },
 
     // Partner experiences — Bus Travel aggregator. Specific (VRL + verb) patterns
     // come before the broad bus-route compare so "confirm my VRL booking" beats
@@ -8652,6 +8665,13 @@
       ],
       // No tool-call chip — the comparison card lands directly.
     },
+    biryani_partner_pick_list: {
+      steps: [
+        { en: 'Comparing Swiggy and Zomato',          hi: 'Swiggy aur Zomato compare kar raha hoon', partners: ['swiggy', 'zomato'] },
+        { en: 'Stacking both as picks',               hi: 'Dono ko picks ke roop me laga raha hoon' },
+        { en: 'Showing cards so you can tap one',     hi: 'Cards dikha raha hoon — ek tap karein' },
+      ],
+    },
 
     // ----- Swiggy partner -----
     swiggy_biryani_search: {
@@ -8991,7 +9011,7 @@
 
   // Voice variants drop the third reasoning line so total dwell stays
   // inside the existing 4s minimum even when TTS pacing eats time.
-  const REASONING_VOICE_TRIM = new Set(['biryani_partner_pick']);
+  const REASONING_VOICE_TRIM = new Set(['biryani_partner_pick', 'biryani_partner_pick_list']);
 
   // Look up reasoning steps from the scenario context computed at the
   // top of showResponse(). Returns { steps, toolCall } or null when no
@@ -9007,7 +9027,8 @@
     else if (ctx.isRestaurantQuery) key = 'restaurant';
     else if (ctx.isShoppingQuery) key = 'shopping';
     // Partner / multi-partner discovery
-    else if (ctx.discoveryKey === 'biryani_partner_pick')    key = 'biryani_partner_pick';
+    else if (ctx.discoveryKey === 'biryani_partner_pick')      key = 'biryani_partner_pick';
+    else if (ctx.discoveryKey === 'biryani_partner_pick_list') key = 'biryani_partner_pick_list';
     else if (ctx.discoveryKey === 'swiggy_biryani_search')   key = 'swiggy_biryani_search';
     else if (ctx.discoveryKey === 'swiggy_paradise_menu')    key = 'swiggy_paradise_menu';
     else if (ctx.discoveryKey === 'swiggy_paradise_order')   key = 'swiggy_paradise_order';
@@ -9853,6 +9874,16 @@
     }
   };
 
+  // Expose showResponse so primitives rendered by discovery.js (e.g. the
+  // connect-sheet's Connect button) can hand the conversation back to the
+  // chat handler — same path a typed utterance takes.
+  window.showResponse = showResponse;
+  // Expose turn helpers so discovery.js renderers can post follow-up beats
+  // (e.g. picker → connect card) as fresh top-pinned chat turns instead of
+  // inline replacements that look like sub-sections of the previous intent.
+  window.startTurn = startTurn;
+  window.pinActiveTurnToTop = pinActiveTurnToTop;
+
   function pinActiveTurnToTop() {
     if (!currentTurnEl) return;
     const scrollContainer = chatMessages.closest('.voice-container');
@@ -10513,8 +10544,16 @@
       // as prose above the widget. The widget itself is the pivot surface, so
       // the "on screen…" pivot is stripped. Voice mode stays silent on screen;
       // TTS carries the full voice_disclosure via spokenText below.
-      const vd = discoveryView && discoveryView.voice_disclosure;
-      responseText = (isTextMode && vd) ? stripVoicePivot(vd) : '';
+      // Partner-picker views surface their short `prompt` ("A few partners can
+      // do that — which do you want?") as the prose line above the picker
+      // rows, so chat keeps a single conversational sentence even when the
+      // voice_disclosure spells out trade-offs in full.
+      if (discoveryView && discoveryView.kind === 'partner_picker_view') {
+        responseText = discoveryView.prompt || '';
+      } else {
+        const vd = discoveryView && discoveryView.voice_disclosure;
+        responseText = (isTextMode && vd) ? stripVoicePivot(vd) : '';
+      }
     } else if (informationalView) {
       // §10.1 Informational — same prose contract as DiscoveryView. Pivot
       // stripped in text mode; full disclosure speaks in voice mode.
@@ -10714,7 +10753,7 @@
     // DiscoveryView render below. Action buttons inside emit a chain via
     // window.advanceTransactionalStage(nextKey) — see below.
     const isCanonicalTransactional = !!(discoveryView && typeof discoveryView.kind === 'string' &&
-      ['confirm_view', 'receipt_view', 'tracker_view', 'option_sheet_view', 'timeline_view', 'detail_sheet_view'].includes(discoveryView.kind));
+      ['confirm_view', 'receipt_view', 'tracker_view', 'option_sheet_view', 'timeline_view', 'detail_sheet_view', 'partner_picker_view', 'cart_view'].includes(discoveryView.kind));
     if (isCanonicalTransactional && typeof window.renderTransactionalView === 'function') {
       currentTurnEl.appendChild(window.renderTransactionalView(discoveryView));
     } else if (discoveryView && window.renderDiscoveryView && !isTransactional) {

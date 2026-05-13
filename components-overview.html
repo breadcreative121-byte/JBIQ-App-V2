@@ -1273,6 +1273,7 @@
       <a href="#components-tracker">Tracker</a>
       <a href="#components-map">Map</a>
       <a href="#components-cartpanel">Cart Panel</a>
+      <a href="#components-partnerconnect">Partner Connect</a>
       <a href="#components-confirmpanel">Confirm Panel</a>
       <a href="#components-receiptpanel">Receipt Panel</a>
       <a href="#components-detailsheet">Detail Sheet</a>
@@ -2466,6 +2467,104 @@
         </div>
         <div class="cta-row"><button class="btn-primary">Confirm bookings</button></div>
           </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-view" id="components-partnerconnect">
+    <div class="showcase-body">
+      <header class="page-header">
+        <div class="page-eyebrow">Component</div>
+        <h1 class="page-title">Partner Connect.</h1>
+        <p class="page-subtitle">First-touch partner gate. When more than one partner can fulfil an intent the user picks first, sees an in-chat introduction, and gives explicit consent in a full-screen sheet before any commerce runs. Three primitives — picker, connect card, connect sheet — chain into the canonical Cart → Confirm → Receipt flow.</p>
+        <div class="page-tag-row">
+          <span class="entity-tag">Partner gate · before any Transaction</span>
+          <span class="picked-when">When the agent needs to connect to a partner the user hasn't authorised</span>
+        </div>
+      </header>
+      <div class="tabs" role="tablist">
+        <button class="tab-button" role="tab" data-idx="0" aria-selected="true">Picker</button><button class="tab-button" role="tab" data-idx="1" aria-selected="false">Connect Card</button><button class="tab-button" role="tab" data-idx="2" aria-selected="false">Connect Sheet</button>
+      </div>
+      <div class="tab-panels">
+        <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+          <div class="user-turn"><div class="user-bubble">Order biryani</div></div>
+          <div class="text-response"><p class="text-response__body">A few partners can do that — which do you want?</p></div>
+        </div>
+        <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+          <div class="user-turn"><div class="user-bubble">Swiggy</div></div>
+          <div class="text-response"><p class="text-response__body">Sure, first you'll need to connect Swiggy.</p></div>
+        </div>
+        <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+          <div class="user-turn"><div class="user-bubble">Continue</div></div>
+          <div class="text-response"><p class="text-response__body">Review what you're sharing with Swiggy, then tap Connect.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="component-card">
+      <div class="tab-panels">
+        <div class="tab-panel" data-idx="0" data-active="true" role="tabpanel">
+          <div class="collection collection--list catalog-card-list--partner-row" data-canonical="partner-picker">
+            <button class="catalog-card catalog-card--partner-row" data-canonical="partner-picker__row" type="button" role="listitem" aria-label="Swiggy">
+              <div class="catalog-card__media" style="background-image:url('assets/partners/Swiggy.png'); background-size: cover; background-position: center;" aria-hidden="true"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Swiggy</h4>
+                <p class="catalog-card__subtitle">Half-price on your order today</p>
+              </div>
+              <span class="catalog-card__chevron" aria-hidden="true">›</span>
+            </button>
+            <button class="catalog-card catalog-card--partner-row" type="button" role="listitem" aria-label="Zomato">
+              <div class="catalog-card__media" style="background-image:url('assets/partners/Zomato.png'); background-size: cover; background-position: center;" aria-hidden="true"></div>
+              <div class="catalog-card__content">
+                <h4 class="catalog-card__title">Zomato</h4>
+                <p class="catalog-card__subtitle">Free delivery on your order</p>
+              </div>
+              <span class="catalog-card__chevron" aria-hidden="true">›</span>
+            </button>
+          </div>
+        </div>
+        <div class="tab-panel" data-idx="1" data-active="false" role="tabpanel">
+          <div class="collection collection--list catalog-card-list--partner-row">
+            <div class="catalog-card catalog-card--connect-prompt" data-canonical="partner-connect-card">
+              <div class="catalog-card__head">
+                <div class="catalog-card__media" style="background-image:url('assets/partners/Swiggy.png'); background-size: cover; background-position: center;" aria-hidden="true"></div>
+                <div class="catalog-card__content">
+                  <h4 class="catalog-card__title">Swiggy</h4>
+                  <p class="catalog-card__subtitle">India's leading food delivery — Hyderabadi biryani from Paradise in 28 min.</p>
+                </div>
+              </div>
+              <div class="catalog-card__actions">
+                <button class="btn-secondary" type="button">No thanks</button>
+                <button class="btn-primary" type="button">Continue</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-panel" data-idx="2" data-active="false" role="tabpanel">
+          <div class="detail-sheet" data-canonical="connect-sheet" style="position: relative;">
+            <div class="detail-sheet__grabber"></div>
+            <div class="connect-sheet">
+              <button class="connect-sheet__close" type="button" aria-label="Close">×</button>
+              <div class="connect-sheet__logo" style="background-image:url('assets/partners/Swiggy.png')" aria-hidden="true"></div>
+              <div class="detail-sheet__title">Connect to Swiggy</div>
+              <div class="detail-sheet__ref"><span class="connect-sheet__avatar" aria-hidden="true"></span>Deepak.T@gmail.com</div>
+              <div class="detail-sheet__rows">
+                <div class="detail-sheet__row">
+                  <span class="detail-sheet__row-label">Auto-login with</span>
+                  <span class="detail-sheet__row-value">*********6789 · <button class="connect-sheet__link connect-sheet__link--inline" type="button">Change</button></span>
+                </div>
+                <div class="detail-sheet__row detail-sheet__row--block connect-sheet__permission">
+                  <span class="detail-sheet__row-label connect-sheet__permission-text">Access your Swiggy account, like your saved addresses and order history</span>
+                </div>
+                <div class="detail-sheet__row detail-sheet__row--block connect-sheet__permission">
+                  <span class="detail-sheet__row-label connect-sheet__permission-text">Share parts of your conversation and other relevant info with Swiggy, which may be used to improve its services and personalise your Swiggy experience</span>
+                </div>
+              </div>
+              <div class="detail-sheet__note">You can turn off Swiggy from the apps page <button class="connect-sheet__link connect-sheet__link--inline" type="button">Learn how your content is used</button></div>
+              <button class="detail-sheet__btn detail-sheet__btn--primary" type="button">Connect</button>
+              <button class="detail-sheet__btn" type="button">No thanks</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>

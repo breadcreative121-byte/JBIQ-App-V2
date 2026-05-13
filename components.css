@@ -1092,6 +1092,217 @@
 
 
 /* ----------------------------------------------------------------------------
+   USAGE OF CatalogResultCard — partner-row variant for the in-chat partner
+   picker. Uses the canonical `.collection.collection--list > .catalog-card`
+   primitive with a `--partner-row` modifier that swaps the 96px square
+   media for a 48px circular logo, forces white background + hairline
+   stroke + full container width, and adds a right-edge chevron.
+   ---------------------------------------------------------------------------- */
+.catalog-card-list--partner-row {
+  margin: 0 var(--space-lg);
+  gap: var(--space-sm);
+}
+.collection--list > .catalog-card.catalog-card--partner-row {
+  background: var(--color-surface-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-md);
+}
+.collection--list > .catalog-card.catalog-card--partner-row:hover,
+.collection--list > .catalog-card.catalog-card--partner-row:focus-visible {
+  border-color: var(--color-action-primary);
+  outline: none;
+}
+.collection--list > .catalog-card.catalog-card--partner-row .catalog-card__media {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-primary);
+}
+.collection--list > .catalog-card.catalog-card--partner-row .catalog-card__content {
+  padding: 0;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+.catalog-card--partner-row .catalog-card__title {
+  -webkit-line-clamp: 1;
+}
+.catalog-card--partner-row .catalog-card__subtitle {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+.catalog-card__chevron {
+  color: var(--color-text-tertiary);
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+
+/* ----------------------------------------------------------------------------
+   USAGE OF CatalogResultCard — connect-prompt variant for the in-chat
+   partner connect card. Same canonical `.catalog-card` base as the
+   partner-picker row (white background, hairline stroke, full container
+   width), with action buttons stacked below the head.
+   ---------------------------------------------------------------------------- */
+.catalog-card.catalog-card--connect-prompt,
+.collection--list > .catalog-card.catalog-card--connect-prompt {
+  background: var(--color-surface-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  width: 100%;
+  box-sizing: border-box;
+}
+.catalog-card--connect-prompt .catalog-card__head,
+.collection--list > .catalog-card.catalog-card--connect-prompt .catalog-card__head {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: var(--space-md);
+  align-items: center;
+  width: 100%;
+}
+.catalog-card--connect-prompt .catalog-card__media,
+.collection--list > .catalog-card.catalog-card--connect-prompt .catalog-card__media {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-primary);
+}
+.catalog-card--connect-prompt .catalog-card__content,
+.collection--list > .catalog-card.catalog-card--connect-prompt .catalog-card__content {
+  padding: 0;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+.catalog-card--connect-prompt .catalog-card__title {
+  -webkit-line-clamp: 1;
+}
+.catalog-card--connect-prompt .catalog-card__subtitle {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+.catalog-card--connect-prompt .catalog-card__actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+.catalog-card--connect-prompt .catalog-card__actions .btn-primary,
+.catalog-card--connect-prompt .catalog-card__actions .btn-secondary {
+  flex: 1;
+}
+
+
+/* ----------------------------------------------------------------------------
+   USAGE OF DetailSheet — connect-sheet surface for partner consent.
+   Wraps consent content (partner identity, auto-login, permissions list,
+   No thanks / Connect) inside `.detail-sheet`+`.detail-sheet--floating` so
+   the bottom-sheet chrome / slide-up / backdrop comes from the canonical
+   Detail Sheet primitive — only the consent-specific blocks below are new.
+   ---------------------------------------------------------------------------- */
+.connect-sheet {
+  display: flex;
+  flex-direction: column;
+}
+.connect-sheet__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--color-action-primary-surface);
+  color: var(--color-action-primary);
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  z-index: 1;
+}
+.connect-sheet__close:hover { background: var(--color-action-primary-hover); color: var(--color-text-on-primary); }
+/* Full-width row variant used when the row holds long-form text (a single
+   permission paragraph) instead of a label/value pair. Reuses the canonical
+   .detail-sheet__row borders + spacing via .detail-sheet__rows. The
+   double-class selector beats the base .detail-sheet__row display: flex. */
+.detail-sheet__row.detail-sheet__row--block { display: block; }
+.detail-sheet__row.detail-sheet__row--block .detail-sheet__row-label {
+  flex-shrink: 1;
+  display: block;
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-regular, 400);
+  white-space: normal;
+}
+.connect-sheet__permission-text::before {
+  content: '• ';
+  color: var(--color-text-secondary);
+}
+.connect-sheet__logo {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-pill);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-color: var(--color-surface-secondary);
+  margin-bottom: var(--space-sm);
+}
+/* Inline avatar — appears inside .detail-sheet__ref alongside the email. */
+.connect-sheet__avatar {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-pill);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-color: var(--color-surface-secondary);
+  vertical-align: middle;
+  margin-right: 6px;
+}
+/* Inline link variant — sits inside a .detail-sheet__row value or .__note.
+   Picks up the action-primary color, kept compact. */
+.connect-sheet__link {
+  font-size: inherit;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-action-primary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.connect-sheet__link:hover { color: var(--color-action-primary-hover); }
+.connect-sheet__link--inline { font-size: inherit; }
+
+
+/* ----------------------------------------------------------------------------
+   Chat-scope overrides — when used inside .jbiq-discovery (the chat surface
+   scope), confirm + tracker shed their own horizontal gutters so they
+   occupy the same full 346px chat-content width as the picker, connect
+   card, receipt, and cart. The canonical showcase keeps the original
+   margin: 0 var(--space-lg) treatment since .jbiq-discovery isn't applied
+   there.
+   ---------------------------------------------------------------------------- */
+.jbiq-discovery .confirm { margin: 0; width: 100%; box-sizing: border-box; }
+.jbiq-discovery .tracker { margin: 0; padding: 0 var(--space-lg); }
+
+
+/* ----------------------------------------------------------------------------
    PRIMITIVE: ReceiptPanel — Transaction.confirmed / .completed.
    ---------------------------------------------------------------------------- */
 .receipt {

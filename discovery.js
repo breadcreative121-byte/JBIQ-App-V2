@@ -628,20 +628,35 @@ function renderPlaceResultCard(card) {
     }));
   }
 
-  return el('button', {
+  const placeAttrs = {
     class: 'place-card',
     type: 'button',
     role: 'listitem',
     'data-event': card.primary_event,
     'aria-label': card.title,
-  }, [media, content]);
+  };
+  // `data-query` lets a card hand a follow-up utterance to the chat handler
+  // (e.g. "View Paradise menu") so multi-step partner journeys can chain via
+  // showResponse without going through the place-detail-sheet intercept.
+  if (card.query) placeAttrs['data-query'] = card.query;
+  return el('button', placeAttrs, [media, content]);
 }
 
 /** @param {CatalogResultCard} card */
 function renderCatalogResultCard(card) {
-  const mediaStyle = card.media?.url
-    ? { backgroundImage: `url(${card.media.url})` }
-    : { background: card.media?.fallback_color || hashColor(card.id) };
+  let mediaStyle;
+  if (card.media?.url) {
+    mediaStyle = { backgroundImage: `url(${card.media.url})` };
+    // `fit: 'contain'` is the partner-logo path: show the full mark on a
+    // neutral plate (no cropping), instead of the default `cover` crop.
+    if (card.media.fit === 'contain') {
+      mediaStyle.backgroundSize = 'contain';
+      mediaStyle.backgroundRepeat = 'no-repeat';
+      mediaStyle.backgroundColor = card.media.fallback_color || '#FFFFFF';
+    }
+  } else {
+    mediaStyle = { background: card.media?.fallback_color || hashColor(card.id) };
+  }
   const media = el('div', {
     class: 'catalog-card__media',
     style: mediaStyle,
@@ -701,13 +716,15 @@ function renderCatalogResultCard(card) {
     // (e.g. "Add") is tappable, the wrapper is a div. The pill carries the
     // dispatch event; primary_event is preserved on the wrapper for parity
     // with legacy analytics consumers but is not what fires on tap.
-    const pill = el('button', {
+    const pillAttrs = {
       class: 'catalog-card__commit',
       type: 'button',
       'data-event': card.commit_action.event,
       'aria-label': `${card.commit_action.label} ${card.title}`,
       text: card.commit_action.label,
-    });
+    };
+    if (card.commit_action.query) pillAttrs['data-query'] = card.commit_action.query;
+    const pill = el('button', pillAttrs);
     return el('div', {
       class: 'catalog-card catalog-card--has-commit',
       role: 'listitem',
@@ -716,13 +733,15 @@ function renderCatalogResultCard(card) {
     }, [media, content, pill]);
   }
 
-  return el('button', {
+  const cardAttrs = {
     class: 'catalog-card',
     type: 'button',
     role: 'listitem',
     'data-event': card.primary_event,
     'aria-label': card.title,
-  }, [media, content]);
+  };
+  if (card.query) cardAttrs['data-query'] = card.query;
+  return el('button', cardAttrs, [media, content]);
 }
 
 /**
@@ -1278,6 +1297,8 @@ function renderTransactionalView(view) {
     case 'option_sheet_view':  return renderOptionSheet(view);
     case 'timeline_view':      return renderTimeline(view);
     case 'detail_sheet_view':  return renderDetailSheet(view);
+    case 'partner_picker_view': return renderPartnerPicker(view);
+    case 'cart_view':          return renderCartPanel(view);
     default: {
       const wrapper = document.createElement('div');
       wrapper.className = 'jbiq-discovery';
@@ -1557,6 +1578,343 @@ function renderDetailSheet(view) {
   return wrapper;
 }
 
+/* ========================================================================
+   SECTION: partner connect & consent — picker → connect-card → connect-sheet
+   ──────────────────────────────────────────────────────────────────────────
+   First-touch partner gate. When more than one partner can fulfil an intent,
+   the user picks one, sees an in-chat introduction, and gives explicit
+   consent in a full-screen sheet before any commerce runs. Each option
+   carries its own connect.* + sheet.* payload so the same primitive serves
+   Swiggy / Zomato / any future partner without renderer changes.
+   ======================================================================== */
+
+/**
+ * @param {{ kind: 'partner_picker_view', prompt?: string,
+ *           options: Array<{ id: string, name: string, logo: string, tagline?: string,
+ *                            connect: { title: string, tagline: string, sheet: object } }>
+ *         }} view
+ */
+function renderPartnerPicker(view) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'jbiq-discovery';
+  wrapper.__jbiqView = view;
+
+  // Render each partner as a canonical `.catalog-card` inside a
+  // `.collection.collection--list` — the same list primitive used by the
+  // catalog discovery views. A `--partner-row` modifier swaps the 96px
+  // square media for a 48px circular logo, adds a hairline stroke, and
+  // forces white background + full container width.
+  const list = el('div', { class: 'collection collection--list catalog-card-list--partner-row' });
+  for (const opt of (view.options || [])) {
+    const media = el('div', {
+      class: 'catalog-card__media',
+      style: opt.logo
+        ? { backgroundImage: `url('${opt.logo}')`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#FFFFFF' }
+        : {},
+      role: 'img',
+      'aria-label': opt.name,
+    });
+    const content = el('div', { class: 'catalog-card__content' }, [
+      el('h4', { class: 'catalog-card__title', text: opt.name }),
+      opt.tagline ? el('p', { class: 'catalog-card__subtitle', text: opt.tagline }) : null,
+    ]);
+    const card = el('button', {
+      class: 'catalog-card catalog-card--partner-row',
+      type: 'button',
+      role: 'listitem',
+      'data-partner-id': opt.id,
+      'aria-label': opt.name,
+    }, [media, content, el('span', { class: 'catalog-card__chevron', 'aria-hidden': 'true', text: '›' })]);
+    card.addEventListener('click', () => {
+      // Treat the partner selection as a new intent: start a fresh chat
+      // turn (which deactivates the previous turn and pins this one to the
+      // top of the viewport), then append the conversational beats:
+      //   1. User bubble showing the partner the user picked
+      //   2. Assistant prose explaining why we're asking for consent
+      //   3. The partner connect card
+      // The picker stays in the previous turn as the conversational record.
+      const turn = (typeof window.startTurn === 'function')
+        ? window.startTurn()
+        : (function () {
+            // Fallback for environments that don't expose startTurn (e.g.
+            // the components-playground showcase): inline-append to the
+            // current parent so the beats still render.
+            const t = document.createElement('div');
+            t.className = 'chat-turn is-active';
+            wrapper.parentNode?.appendChild(t);
+            return t;
+          })();
+      turn.appendChild(el('div', { class: 'user-bubble', text: opt.name }));
+      turn.appendChild(el('div', {
+        class: 'ai-response',
+        style: { padding: '0 var(--space-lg)', margin: 'var(--space-sm) 0' },
+        text: `Sure, first, you'll need to connect ${opt.name} to turn on this app.`,
+      }));
+      turn.appendChild(renderPartnerConnectCard({
+        kind: 'partner_connect_view',
+        partner_id: opt.id,
+        ...opt.connect,
+      }));
+      if (typeof window.pinActiveTurnToTop === 'function') {
+        window.pinActiveTurnToTop();
+      }
+    });
+    list.appendChild(card);
+  }
+  wrapper.appendChild(list);
+  return wrapper;
+}
+
+/**
+ * In-chat card with partner logo + tagline + No thanks / Continue.
+ * Continue slides up the connect-sheet (full-screen modal). No thanks
+ * dismisses the card and prints a polite fallback.
+ * @param {{ kind: 'partner_connect_view', partner_id: string,
+ *           title: string, tagline: string, logo?: string, sheet: object }} view
+ */
+function renderPartnerConnectCard(view) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'jbiq-discovery';
+  wrapper.__jbiqView = view;
+
+  // Render as a canonical `.catalog-card` with a `--connect-prompt` modifier:
+  // same hairline-stroked white container as the partner-picker rows, with a
+  // No thanks / Continue action row below the catalog-card content slots.
+  const media = el('div', {
+    class: 'catalog-card__media',
+    style: view.logo
+      ? { backgroundImage: `url('${view.logo}')`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#FFFFFF' }
+      : {},
+    'aria-hidden': 'true',
+  });
+  const content = el('div', { class: 'catalog-card__content' }, [
+    el('h4', { class: 'catalog-card__title', text: view.title }),
+    view.tagline ? el('p', { class: 'catalog-card__subtitle', text: view.tagline }) : null,
+  ]);
+  const head = el('div', { class: 'catalog-card__head' }, [media, content]);
+
+  const noThanks = el('button', { class: 'btn-secondary', type: 'button', text: 'No thanks' });
+  noThanks.addEventListener('click', () => {
+    const fallback = el('div', { class: 'ai-response', style: { padding: 'var(--space-md) var(--space-lg)' } });
+    fallback.textContent = `No worries — I won't connect ${view.title}. Just ask if you change your mind.`;
+    wrapper.replaceWith(fallback);
+  });
+  const cont = el('button', { class: 'btn-primary', type: 'button', text: 'Continue' });
+  cont.addEventListener('click', () => {
+    openConnectSheet({ kind: 'connect_sheet_view', ...view.sheet }, wrapper);
+  });
+  const actions = el('div', { class: 'catalog-card__actions' }, [noThanks, cont]);
+
+  const card = el('div', {
+    class: 'catalog-card catalog-card--connect-prompt',
+    'data-partner-id': view.partner_id || '',
+  }, [head, actions]);
+  // Match the partner-picker's outer container so the card occupies the
+  // same full container width — same horizontal gutters via the canonical
+  // .catalog-card-list--partner-row utility, not a per-card margin.
+  const list = el('div', { class: 'collection collection--list catalog-card-list--partner-row' }, [card]);
+  wrapper.appendChild(list);
+  return wrapper;
+}
+
+/**
+ * Opens the connect-sheet as a floating, slide-up modal layered over the
+ * chat. Wired to the .detail-sheet--floating animation + backdrop so it
+ * matches every other bottom-sheet in the build.
+ * @param {{ kind: 'connect_sheet_view', partner_name: string, logo: string,
+ *           identity_email: string, identity_avatar?: string,
+ *           autologin_phone: string,
+ *           permissions: string[], off_note: string,
+ *           followup_query: string }} view
+ * @param {HTMLElement} cardWrapper — the connect-card to remove on success
+ */
+function openConnectSheet(view, cardWrapper) {
+  // The sheet uses .detail-sheet--floating positioning (absolute, inset 0 /
+  // bottom 0) which resolves against the nearest positioned ancestor. In the
+  // app that's .phone-frame; outside the app (e.g. components-playground) we
+  // fall back to <body>.
+  const host = document.querySelector('.phone-frame') || document.body || document.documentElement;
+
+  const backdrop = el('div', { class: 'detail-sheet-backdrop' });
+  // Wrap the consent content in the canonical .detail-sheet primitive so the
+  // bottom-sheet chrome (rounded top, grabber, slide-up animation, max-height
+  // + scroll) is reused; the .connect-sheet child below carries only the
+  // consent-specific layout (logo / identity / permissions / actions).
+  const sheet = el('div', {
+    class: 'jbiq-discovery detail-sheet detail-sheet--floating',
+    role: 'dialog',
+    'aria-modal': 'true',
+  });
+  sheet.appendChild(el('div', { class: 'detail-sheet__grabber' }));
+  const inner = el('div', { class: 'connect-sheet' });
+  sheet.appendChild(inner);
+
+  let isClosing = false;
+  function dismiss(then) {
+    if (isClosing) return;
+    isClosing = true;
+    sheet.classList.add('is-closing');
+    backdrop.classList.add('is-closing');
+    setTimeout(() => {
+      sheet.remove();
+      backdrop.remove();
+      if (typeof then === 'function') then();
+    }, 240);
+  }
+
+  const closeBtn = el('button', {
+    class: 'connect-sheet__close',
+    type: 'button',
+    'aria-label': 'Close',
+    text: '×',
+  });
+  closeBtn.addEventListener('click', () => dismiss());
+  inner.appendChild(closeBtn);
+
+  // Partner logo (large) sits above the canonical .detail-sheet__title.
+  inner.appendChild(el('div', {
+    class: 'connect-sheet__logo',
+    style: view.logo ? { backgroundImage: `url('${view.logo}')` } : {},
+    'aria-hidden': 'true',
+  }));
+
+  // Canonical Detail Sheet slots — title + ref carry the hero pair.
+  inner.appendChild(el('div', { class: 'detail-sheet__title', text: `Connect to ${view.partner_name}` }));
+  if (view.identity_email) {
+    inner.appendChild(el('div', { class: 'detail-sheet__ref' }, [
+      el('span', {
+        class: 'connect-sheet__avatar',
+        style: view.identity_avatar ? { backgroundImage: `url('${view.identity_avatar}')` } : {},
+        'aria-hidden': 'true',
+      }),
+      document.createTextNode(' ' + view.identity_email),
+    ]));
+  }
+
+  // Auto-login + permissions render inside the canonical .detail-sheet__rows
+  // (border-top/border-bottom, vertical stack). Each fact is a
+  // .detail-sheet__row with the canonical label/value layout.
+  const rows = el('div', { class: 'detail-sheet__rows' });
+  if (view.autologin_phone) {
+    rows.appendChild(el('div', { class: 'detail-sheet__row' }, [
+      el('span', { class: 'detail-sheet__row-label', text: 'Auto-login with' }),
+      el('span', { class: 'detail-sheet__row-value' }, [
+        document.createTextNode(view.autologin_phone + ' · '),
+        (function () {
+          const a = el('button', { class: 'connect-sheet__link connect-sheet__link--inline', type: 'button', text: 'Change' });
+          return a;
+        })(),
+      ]),
+    ]));
+  }
+  // Permissions: full-width row variant so the long-form text wraps cleanly.
+  for (const p of (view.permissions || [])) {
+    rows.appendChild(el('div', {
+      class: 'detail-sheet__row detail-sheet__row--block connect-sheet__permission',
+    }, [
+      el('span', { class: 'detail-sheet__row-label connect-sheet__permission-text', text: p }),
+    ]));
+  }
+  inner.appendChild(rows);
+
+  // Canonical Detail Sheet note — secondary tone, sits below the rows.
+  if (view.off_note) {
+    inner.appendChild(el('div', { class: 'detail-sheet__note' }, [
+      document.createTextNode(view.off_note + ' '),
+      (function () {
+        const link = el('button', { class: 'connect-sheet__link connect-sheet__link--inline', type: 'button', text: 'Learn how your content is used' });
+        return link;
+      })(),
+    ]));
+  }
+
+  // Canonical Detail Sheet buttons — primary commit + secondary close.
+  const connect = el('button', { class: 'detail-sheet__btn detail-sheet__btn--primary', type: 'button', text: 'Connect' });
+  connect.addEventListener('click', () => {
+    dismiss(() => {
+      if (cardWrapper && cardWrapper.isConnected) {
+        const note = el('div', { class: 'ai-response', style: { padding: 'var(--space-md) var(--space-lg)' } });
+        note.textContent = `Connected to ${view.partner_name}.`;
+        cardWrapper.replaceWith(note);
+      }
+      if (view.followup_query && typeof window.showResponse === 'function') {
+        window.showResponse(view.followup_query);
+      }
+    });
+  });
+  const noThanks = el('button', { class: 'detail-sheet__btn', type: 'button', text: 'No thanks' });
+  noThanks.addEventListener('click', () => {
+    dismiss(() => {
+      const fallback = el('div', { class: 'ai-response', style: { padding: 'var(--space-md) var(--space-lg)' } });
+      fallback.textContent = `No worries — I won't connect ${view.partner_name}.`;
+      if (cardWrapper && cardWrapper.isConnected) cardWrapper.replaceWith(fallback);
+    });
+  });
+  inner.appendChild(connect);
+  inner.appendChild(noThanks);
+
+  host.appendChild(backdrop);
+  host.appendChild(sheet);
+}
+
+/**
+ * Canonical Cart Panel — uses the .cart-section / .cart-row / .cart-totals
+ * primitives. Single Checkout CTA at the bottom advances to the next stage.
+ * @param {{ kind: 'cart_view',
+ *           items: Array<{ name: string, qty: string, price: string }>,
+ *           totals: Array<{ label: string, value: string, total?: boolean }>,
+ *           cta: { label: string, advance_to?: string, event?: string } }} view
+ */
+function renderCartPanel(view) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'jbiq-discovery';
+  wrapper.__jbiqView = view;
+
+  const section = el('div', { class: 'cart-section' });
+  for (const it of (view.items || [])) {
+    section.appendChild(el('div', { class: 'cart-row' }, [
+      el('div', {}, [
+        el('div', { class: 'cart-name', text: it.name }),
+        el('div', { class: 'cart-qty', text: it.qty }),
+      ]),
+      el('div', { class: 'cart-price', text: it.price }),
+    ]));
+  }
+  // cart-totals is a 2-column grid; each non-total row is two sibling divs
+  // (label + value), and the final total wraps both in a .total-row div.
+  const totalsGrid = el('div', { class: 'cart-totals' });
+  for (const t of (view.totals || [])) {
+    if (t.total) {
+      totalsGrid.appendChild(el('div', { class: 'total-row' }, [
+        el('div', { text: t.label }),
+        el('div', { text: t.value }),
+      ]));
+    } else {
+      totalsGrid.appendChild(el('div', { text: t.label }));
+      totalsGrid.appendChild(el('div', { text: t.value }));
+    }
+  }
+  section.appendChild(totalsGrid);
+  wrapper.appendChild(section);
+
+  const cta = el('button', {
+    class: 'btn-primary',
+    type: 'button',
+    'data-event': view.cta.event || 'cart.checkout',
+    text: view.cta.label,
+  });
+  if (view.cta.advance_to) {
+    const nextKey = view.cta.advance_to;
+    cta.addEventListener('click', () => {
+      if (typeof window.advanceTransactionalStage === 'function') {
+        window.advanceTransactionalStage(nextKey);
+      }
+    });
+  }
+  wrapper.appendChild(el('div', { class: 'cta-row' }, [cta]));
+  return wrapper;
+}
+
 /* ----- Validators for transactional shapes ----- */
 function validateTransactionalView(view) {
   const errors = [];
@@ -1603,6 +1961,17 @@ function validateTransactionalView(view) {
       if (!view.primary || !view.primary.label) errors.push('detail_sheet: missing primary.label');
       if (view.carousel && !Array.isArray(view.carousel)) errors.push('detail_sheet: carousel must be an array');
       if (view.rows && !Array.isArray(view.rows)) errors.push('detail_sheet: rows must be an array');
+      break;
+    case 'partner_picker_view':
+      if (!Array.isArray(view.options) || view.options.length === 0) {
+        errors.push('partner_picker: options must be a non-empty array');
+      }
+      break;
+    case 'cart_view':
+      if (!Array.isArray(view.items) || view.items.length === 0) {
+        errors.push('cart: items must be a non-empty array');
+      }
+      if (!view.cta || !view.cta.label) errors.push('cart: missing cta.label');
       break;
     default:
       errors.push(`unknown transactional kind "${view.kind}"`);
@@ -4872,6 +5241,65 @@ const MOCK_BIRYANI_PARTNER_PICK = {
   },
 };
 
+/* List-card variant of MOCK_BIRYANI_PARTNER_PICK. Same partner-agnostic
+   biryani intent, rendered as two stacked CatalogResultCards instead of a
+   compare table. Cards omit `commit_action` so the whole row is tappable —
+   `primary_event: 'partner.biryani.pick.<id>'` fires from the wrapper button,
+   matching the table variant's option events for parity. */
+/** @type {CatalogDiscoveryView} */
+const MOCK_BIRYANI_PARTNER_PICK_LIST = {
+  kind: 'discovery_view',
+  sub_pattern: 'catalog',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: { title: 'Biryani — pick a partner', subtitle: 'Both deliver to Koramangala right now' },
+  collection: {
+    layout: 'list',
+    cards: [
+      {
+        variant: 'catalog',
+        id: 'swiggy_paradise',
+        title: 'Swiggy · Paradise',
+        subtitle: 'Hyderabadi biryani · Koramangala',
+        media: { alt: 'Swiggy', url: 'assets/partners/Swiggy.png', fit: 'contain', fallback_color: '#FFFFFF' },
+        rating: { value: 4.5, count: 12400 },
+        price_label: '₹329',
+        temporal_label: '28 min',
+        specs: ['Delivery ₹29', '50% off up to ₹100'],
+        primary_event: 'partner.biryani.pick.swiggy',
+      },
+      {
+        variant: 'catalog',
+        id: 'zomato_bawarchi',
+        title: 'Zomato · Bawarchi',
+        subtitle: 'Hyderabadi biryani · Koramangala',
+        media: { alt: 'Zomato', url: 'assets/partners/Zomato.png', fit: 'contain', fallback_color: '#FFFFFF' },
+        rating: { value: 4.3, count: 9870 },
+        price_label: '₹299',
+        temporal_label: '34 min',
+        specs: ['Delivery ₹19', '20% off up to ₹50'],
+        primary_event: 'partner.biryani.pick.zomato',
+      },
+    ],
+  },
+  edge_affordance: {
+    label: 'Compare side-by-side',
+    event: 'edge.biryani_partner_pick_list.compare',
+    kind: 'compare',
+    query: 'Order biryani',
+  },
+  voice_disclosure: "Both Swiggy and Zomato can deliver biryani right now. Swiggy from Paradise — twenty-eight minutes, three hundred and twenty-nine rupees, fifty percent off, your usual. Zomato from Bawarchi — thirty-four minutes, two hundred and ninety-nine rupees, lower delivery fee. On screen — tap to pick one?",
+  suggested_prompts: [
+    { label: 'Open Swiggy biryani', kind: 'context_shift', query: 'Find biryani on Swiggy' },
+    { label: 'Open Zomato biryani', kind: 'context_shift', query: 'Find biryani on Zomato' },
+  ],
+  meta: {
+    intent: 'discover',
+    query: 'Show me biryani delivery options',
+    total_count: 2,
+    trace_id: 'trace-biryani-partner-pick-list-001',
+  },
+};
+
 /** @type {CatalogDiscoveryView} */
 const MOCK_SWIGGY_PARADISE_MENU = {
   kind: 'discovery_view',
@@ -5814,6 +6242,234 @@ const MOCK_DETAIL_SHEET_DOCTOR = {
   closeLabel: 'Close',
 };
 
+/* ----- Partner connect & consent mocks (picker → connect-card → connect-sheet) ----- */
+
+const MOCK_BIRYANI_CONNECT_BUY_PICKER = {
+  kind: 'partner_picker_view',
+  prompt: 'A few partners can do that — which do you want?',
+  options: [
+    {
+      id: 'swiggy',
+      name: 'Swiggy',
+      logo: 'assets/partners/Swiggy.png',
+      tagline: 'Half-price on your order today',
+      connect: {
+        title: 'Swiggy',
+        tagline: "India's leading food delivery — Hyderabadi biryani from Paradise in 28 min.",
+        logo: 'assets/partners/Swiggy.png',
+        sheet: {
+          partner_name: 'Swiggy',
+          logo: 'assets/partners/Swiggy.png',
+          identity_email: 'Deepak.T@gmail.com',
+          autologin_phone: '*********6789',
+          permissions: [
+            'Access your Swiggy account, like your saved addresses and order history',
+            "Share parts of your conversation and other relevant info with Swiggy, which may be used to improve its services and personalise your Swiggy experience",
+          ],
+          off_note: 'You can turn off Swiggy from the apps page',
+          followup_query: 'Open biryani picks via journey',
+        },
+      },
+    },
+    {
+      id: 'zomato',
+      name: 'Zomato',
+      logo: 'assets/partners/Zomato.png',
+      tagline: 'Free delivery on your order',
+      connect: {
+        title: 'Zomato',
+        tagline: 'Bawarchi biryani delivered in 34 min — ₹299, lower delivery fee.',
+        logo: 'assets/partners/Zomato.png',
+        sheet: {
+          partner_name: 'Zomato',
+          logo: 'assets/partners/Zomato.png',
+          identity_email: 'Deepak.T@gmail.com',
+          autologin_phone: '*********6789',
+          permissions: [
+            'Access your Zomato account, like your saved addresses and order history',
+            "Share parts of your conversation and other relevant info with Zomato, which may be used to improve its services and personalise your Zomato experience",
+          ],
+          off_note: 'You can turn off Zomato from the apps page',
+          followup_query: 'Find biryani on Zomato',
+        },
+      },
+    },
+  ],
+  voice_disclosure: "A few partners can do that. Swiggy has a half-price deal today. Zomato has free delivery. On screen — tap one to connect.",
+  meta: {
+    intent: 'discover',
+    query: 'Order biryani',
+    total_count: 2,
+    trace_id: 'trace-biryani-connect-buy-001',
+  },
+};
+
+/* ----- Biryani journey chain — Restaurants → Menu → Cart → Confirm → Receipt → Tracker.
+   Each stage carries the next-step query / advance_to so taps chain
+   naturally through showResponse and advanceTransactionalStage. Renders
+   reuse the canonical primitives (PlaceResultCard, CatalogResultCard,
+   CartPanel, ConfirmPanel, ReceiptPanel, Tracker). ----- */
+
+const MOCK_BIRYANI_JOURNEY_RESTAURANTS = {
+  kind: 'discovery_view',
+  sub_pattern: 'catalog',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: {
+    title: 'Biryani on Swiggy',
+    subtitle: 'Top picks · 28 min avg',
+    brand_chip: { label: 'Sw', variant: 'swiggy', name: 'Swiggy' },
+  },
+  collection: {
+    layout: 'list',
+    cards: [
+      {
+        variant: 'catalog',
+        id: 'journey_paradise',
+        title: 'Paradise Biryani',
+        subtitle: 'Hyderabadi · 28 min · 1.8 km',
+        media: { alt: 'Paradise biryani', fallback_color: '#C9855A' },
+        rating: { value: 4.5, count: 10240 },
+        tags: ['Top rated', '50% off up to ₹100'],
+        primary_event: 'journey.biryani.paradise.menu',
+        query: 'View Paradise menu via biryani journey',
+      },
+      {
+        variant: 'catalog',
+        id: 'journey_meghana',
+        title: 'Meghana Foods',
+        subtitle: 'Andhra · 32 min · 2.1 km',
+        media: { alt: 'Meghana chicken biryani', fallback_color: '#D19870' },
+        rating: { value: 4.6, count: 8410 },
+        tags: ['20% off'],
+        primary_event: 'journey.biryani.meghana.menu',
+        query: 'View Paradise menu via biryani journey',
+      },
+      {
+        variant: 'catalog',
+        id: 'journey_shah_ghouse',
+        title: 'Shah Ghouse',
+        subtitle: 'Hyderabadi · 38 min · 3.4 km',
+        media: { alt: 'Shah Ghouse mutton biryani', fallback_color: '#B97349' },
+        rating: { value: 4.4, count: 6210 },
+        tags: ['Free delivery on ₹199+'],
+        primary_event: 'journey.biryani.shah_ghouse.menu',
+        query: 'View Paradise menu via biryani journey',
+      },
+    ],
+  },
+  voice_disclosure: "Three biryani spots are open near you. Paradise — twenty-eight minutes, four point five stars, fifty percent off. On screen — tap one to see the menu.",
+  meta: { intent: 'discover', query: 'Show biryani restaurants on Swiggy', total_count: 3, trace_id: 'trace-biryani-journey-restaurants-001' },
+};
+
+const MOCK_BIRYANI_JOURNEY_MENU = {
+  kind: 'discovery_view',
+  sub_pattern: 'catalog',
+  state: 'PARTIAL_RESULT_SHOWN',
+  subject: {
+    title: 'Paradise Biryani — menu',
+    subtitle: '28 min · ₹29 delivery',
+    brand_chip: { label: 'Sw', variant: 'swiggy', name: 'Swiggy' },
+  },
+  collection: {
+    layout: 'list',
+    cards: [
+      {
+        variant: 'catalog',
+        id: 'journey_chicken_biryani',
+        title: 'Hyderabadi Chicken Biryani',
+        subtitle: 'Bestseller · serves 1',
+        media: { alt: 'Chicken biryani plate', fallback_color: '#C9855A' },
+        price_label: '₹329',
+        rating: { value: 4.6, count: 4820 },
+        tags: ['Spicy', 'Chicken'],
+        primary_event: 'journey.biryani.menu.chicken.add',
+        commit_action: { label: 'Add', event: 'journey.biryani.menu.chicken.add', query: 'Open biryani cart via journey' },
+      },
+      {
+        variant: 'catalog',
+        id: 'journey_mutton_biryani',
+        title: 'Hyderabadi Mutton Biryani',
+        subtitle: 'Slow-cooked · serves 1',
+        media: { alt: 'Mutton biryani plate', fallback_color: '#B97349' },
+        price_label: '₹449',
+        rating: { value: 4.7, count: 3210 },
+        tags: ['Spicy', 'Mutton'],
+        primary_event: 'journey.biryani.menu.mutton.add',
+        commit_action: { label: 'Add', event: 'journey.biryani.menu.mutton.add', query: 'Open biryani cart via journey' },
+      },
+      {
+        variant: 'catalog',
+        id: 'journey_veg_biryani',
+        title: 'Veg Dum Biryani',
+        subtitle: 'Vegetarian · serves 1',
+        media: { alt: 'Veg biryani plate', fallback_color: '#D8A66B' },
+        price_label: '₹249',
+        rating: { value: 4.3, count: 1840 },
+        tags: ['Veg'],
+        primary_event: 'journey.biryani.menu.veg.add',
+        commit_action: { label: 'Add', event: 'journey.biryani.menu.veg.add', query: 'Open biryani cart via journey' },
+      },
+    ],
+  },
+  voice_disclosure: "Chicken biryani at three twenty-nine rupees is the bestseller. On screen — tap Add to put it in your cart.",
+  meta: { intent: 'discover', query: 'View Paradise menu via biryani journey', total_count: 3, trace_id: 'trace-biryani-journey-menu-001' },
+};
+
+const MOCK_BIRYANI_JOURNEY_CART = {
+  kind: 'cart_view',
+  items: [
+    { name: 'Hyderabadi Chicken Biryani', qty: '× 1', price: '₹329' },
+  ],
+  totals: [
+    { label: 'Subtotal', value: '₹329' },
+    { label: 'Delivery', value: '₹29' },
+    { label: 'Tax', value: '₹16' },
+    { label: 'Total', value: '₹374', total: true },
+  ],
+  cta: { label: 'Checkout', advance_to: 'biryani_journey_confirm', event: 'journey.biryani.cart.checkout' },
+  voice_disclosure: "Total comes to three hundred and seventy-four rupees. Tap Checkout to confirm the order.",
+};
+
+const MOCK_BIRYANI_JOURNEY_CONFIRM = {
+  kind: 'confirm_view',
+  prompt: 'Place this order?',
+  summary: 'Paradise · Hyderabadi Chicken Biryani · Koramangala · UPI',
+  total: '₹374',
+  actions: {
+    primary:   { label: 'Confirm & Pay', advance_to: 'biryani_journey_receipt', event: 'journey.biryani.confirm.pay' },
+    secondary: { label: 'Cancel',        event: 'journey.biryani.confirm.cancel' },
+  },
+  voice_disclosure: "Three hundred and seventy-four rupees. Tap Confirm and Pay to place the order.",
+};
+
+const MOCK_BIRYANI_JOURNEY_RECEIPT = {
+  kind: 'receipt_view',
+  banner: { title: 'Order placed', sub: 'Paradise · #ord-89421' },
+  lines: [
+    { label: 'Hyderabadi Chicken Biryani', value: '₹329' },
+    { label: 'Delivery + taxes',            value: '₹45'  },
+  ],
+  total: { label: 'Total charged', value: '₹374' },
+  cta: { label: 'Track order', advance_to: 'biryani_journey_tracker', event: 'journey.biryani.receipt.track' },
+  voice_disclosure: "Order placed. Total three hundred and seventy-four rupees. Tap Track order for live updates.",
+};
+
+const MOCK_BIRYANI_JOURNEY_TRACKER = {
+  kind: 'tracker_view',
+  stage: 'Out for delivery',
+  eta: '12 min',
+  detail: 'Amit is 1.4 km away · Paradise · #ord-89421',
+  progress: 75,
+  steps: [
+    { label: 'Accepted',          done: true },
+    { label: 'Preparing',         done: true },
+    { label: 'Picked up',         done: true },
+    { label: 'Out for delivery', active: true },
+    { label: 'Delivered' },
+  ],
+  voice_disclosure: "Out for delivery. Amit is one point four kilometres away — twelve minutes.",
+};
+
 /**
  * Voice-first use cases (Path A) — registry of new DiscoveryView mocks. Kept
  * separate from DATASET_GROUPS so the existing prototype-panel grouping (Place
@@ -5841,6 +6497,7 @@ const PARTNER_DATASET_ENTRIES = [
   { key: 'swiggy_paradise_order',   label: 'Order biryani from Paradise',    view: MOCK_SWIGGY_PARADISE_ORDER },
   { key: 'zomato_biryani_search',   label: 'Find biryani on Zomato',         view: MOCK_ZOMATO_BIRYANI_SEARCH },
   { key: 'biryani_partner_pick',    label: 'Biryani — pick a partner',       view: MOCK_BIRYANI_PARTNER_PICK },
+  { key: 'biryani_partner_pick_list', label: 'Biryani — pick a partner (list)', view: MOCK_BIRYANI_PARTNER_PICK_LIST },
   { key: 'bus_blr_tpty_compare',    label: 'Best buses BLR → Tirupati',      view: MOCK_BUS_BLR_TPTY_COMPARE },
   { key: 'bus_vrl_tpty_seats',      label: 'Pick a seat on VRL',             view: MOCK_BUS_VRL_TPTY_SEATS },
   { key: 'bus_vrl_booking_confirm', label: 'Confirm bus booking',            view: MOCK_BUS_VRL_BOOKING_CONFIRM },
@@ -5862,6 +6519,13 @@ const TRANSACTIONAL_DATASET_ENTRIES = [
   { key: 'timeline_doctor',        label: 'Doctor slots — tomorrow',  view: MOCK_TIMELINE_DOCTOR_SLOTS },
   { key: 'detail_sheet_kurta',     label: 'Kurta detail (carousel)',  view: MOCK_DETAIL_SHEET_KURTA },
   { key: 'detail_sheet_doctor',    label: 'Doctor detail (carousel)', view: MOCK_DETAIL_SHEET_DOCTOR },
+  { key: 'biryani_connect_buy_picker',   label: 'Biryani — partner picker', view: MOCK_BIRYANI_CONNECT_BUY_PICKER },
+  { key: 'biryani_journey_restaurants',  label: 'Biryani journey — restaurants', view: MOCK_BIRYANI_JOURNEY_RESTAURANTS },
+  { key: 'biryani_journey_menu',         label: 'Biryani journey — menu',        view: MOCK_BIRYANI_JOURNEY_MENU },
+  { key: 'biryani_journey_cart',         label: 'Biryani journey — cart',        view: MOCK_BIRYANI_JOURNEY_CART },
+  { key: 'biryani_journey_confirm',      label: 'Biryani journey — confirm',     view: MOCK_BIRYANI_JOURNEY_CONFIRM },
+  { key: 'biryani_journey_receipt',      label: 'Biryani journey — receipt',     view: MOCK_BIRYANI_JOURNEY_RECEIPT },
+  { key: 'biryani_journey_tracker',      label: 'Biryani journey — tracker',     view: MOCK_BIRYANI_JOURNEY_TRACKER },
 ];
 
 // Flat lookup: key -> { label, view }. Includes the 20 legacy mocks plus the
@@ -5970,6 +6634,14 @@ window.MOCK_SWIGGY_BIRYANI_SEARCH = MOCK_SWIGGY_BIRYANI_SEARCH;
 window.MOCK_SWIGGY_PARADISE_MENU = MOCK_SWIGGY_PARADISE_MENU;
 window.MOCK_SWIGGY_PARADISE_ORDER = MOCK_SWIGGY_PARADISE_ORDER;
 window.INFO_SWIGGY_ORDER_STATUS = INFO_SWIGGY_ORDER_STATUS;
+window.MOCK_BIRYANI_PARTNER_PICK_LIST = MOCK_BIRYANI_PARTNER_PICK_LIST;
+window.MOCK_BIRYANI_CONNECT_BUY_PICKER = MOCK_BIRYANI_CONNECT_BUY_PICKER;
+window.MOCK_BIRYANI_JOURNEY_RESTAURANTS = MOCK_BIRYANI_JOURNEY_RESTAURANTS;
+window.MOCK_BIRYANI_JOURNEY_MENU = MOCK_BIRYANI_JOURNEY_MENU;
+window.MOCK_BIRYANI_JOURNEY_CART = MOCK_BIRYANI_JOURNEY_CART;
+window.MOCK_BIRYANI_JOURNEY_CONFIRM = MOCK_BIRYANI_JOURNEY_CONFIRM;
+window.MOCK_BIRYANI_JOURNEY_RECEIPT = MOCK_BIRYANI_JOURNEY_RECEIPT;
+window.MOCK_BIRYANI_JOURNEY_TRACKER = MOCK_BIRYANI_JOURNEY_TRACKER;
 // Partner mocks — Bus Travel aggregator
 window.MOCK_BUS_BLR_TPTY_COMPARE = MOCK_BUS_BLR_TPTY_COMPARE;
 window.MOCK_BUS_VRL_TPTY_SEATS = MOCK_BUS_VRL_TPTY_SEATS;

@@ -4655,7 +4655,19 @@
        ------------------------------------------------------------------------ */
     const PARTNER_GROUPS = [
       {
-        group: 'Multi-partner conflict',
+        group: 'Order biryani · end-to-end journey',
+        description: '"Order biryani" → partner picker (Swiggy / Zomato) → in-chat connect card → Detail Sheet consent → restaurants → menu → cart → confirm → receipt → tracker. Uses every canonical component in the system, end-to-end.',
+        items: [
+          { key: 'biryani_journey_chat',  surface: 'chat',  label: 'Order biryani — full journey — chat',
+            query: 'Order biryani',
+            demonstrates: 'Tap-driven chain through every canonical primitive: PartnerPicker → ConnectCard → DetailSheet consent → PlaceResultCard (restaurants) → CatalogResultCard (menu) → CartPanel → ConfirmPanel → ReceiptPanel → Tracker.' },
+          { key: 'biryani_journey_voice', surface: 'voice', label: 'Order biryani — full journey — voice',
+            query: 'Order biryani',
+            demonstrates: 'Same chain in voice surface: each stage reads its disclosure, the user advances by tapping the on-screen CTA so the commit gate remains a tap (never spoken).' },
+        ],
+      },
+      {
+        group: 'Multi-partner conflict (legacy demos)',
         description: 'Partner-agnostic intent ("Order biryani") — agent surfaces a Swiggy-vs-Zomato comparison so the user picks the partner. Mirrors JBIQ_Multi_Partner_Conflict_Resolution.',
         items: [
           { key: 'biryani_partner_pick_chat',  surface: 'chat',  label: 'Order biryani — Swiggy vs Zomato — chat',
@@ -4664,6 +4676,12 @@
           { key: 'biryani_partner_pick_voice', surface: 'voice', label: 'Order biryani — Swiggy vs Zomato — voice',
             query: 'Order biryani',
             demonstrates: 'Voice reads the trade-off (price vs ETA) and asks the user to name a partner before fanning out.' },
+          { key: 'biryani_partner_pick_list_chat',  surface: 'chat',  label: 'Order biryani — Swiggy vs Zomato (list) — chat',
+            query: 'Show me biryani delivery options',
+            demonstrates: 'Same conflict-resolution intent as the table variant, rendered as two stacked Catalog Result Cards — hero media per option, prominent commit pill, easier scan when there are only two partners.' },
+          { key: 'biryani_partner_pick_list_voice', surface: 'voice', label: 'Order biryani — Swiggy vs Zomato (list) — voice',
+            query: 'Show me biryani delivery options',
+            demonstrates: 'Voice reads price-vs-ETA trade-off across both options; chat surface shows the list cards as a tappable backstop.' },
         ],
       },
       {
