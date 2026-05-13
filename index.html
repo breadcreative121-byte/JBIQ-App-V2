@@ -2208,6 +2208,7 @@
       50% { transform: translateY(4px); }
     }
     /* Highlight the pay button while warning is visible */
+    .confirm-actions .btn-primary.is-hinted,
     .shopping-pay-btn.is-hinted {
       animation: hintPulse 1.3s ease-in-out infinite;
     }
@@ -9104,36 +9105,45 @@
   let activeOrder = null; // { product, cardEl, payBtn, warningEl, tapped, completed, warningVisible }
 
   function renderShoppingCard(product) {
+    // Canonical Confirm Panel — bare .confirm card (see components.css and the
+    // Swiggy Food worked example in components-playground.html). All product
+    // context is folded into the .confirm-summary one-liner; the prior chat
+    // bubble carries the narrative ("Found Bru on JioMart for ₹249…").
+    // Brand is omitted from the summary when it already appears in name or
+    // matches storefront — keeps the canonical one-liner from looking like
+    // "Jio · ₹299 plan · 28 days · Jio · 1 min".
+    const partner = product.storefront || 'JioMart';
+    const brandRedundant = !product.brand
+      || product.brand === partner
+      || (product.name && product.name.toLowerCase().includes(product.brand.toLowerCase()));
+    const summary = [
+      partner,
+      brandRedundant ? null : product.brand,
+      product.name,
+      product.qty,
+      product.eta,
+    ].filter(Boolean).join(' · ');
+
     const card = document.createElement('div');
-    card.className = 'shopping-card';
+    // Wrap in .jbiq-discovery so the .confirm primitive inherits the chat
+    // surface's font/box-sizing scoping that components.css expects.
+    card.className = 'jbiq-discovery';
     card.innerHTML = `
-      <div class="shopping-card-top">
-        <img class="shopping-card-img" src="${product.img}" alt="" loading="lazy">
-        <div class="shopping-card-info">
-          <div class="shopping-card-brand"></div>
-          <div class="shopping-card-name"></div>
-          <div class="shopping-card-qty"></div>
-          <div class="shopping-card-source">
-            <span class="shopping-card-source-logo">JM</span>
-            <span>${product.storefront || 'JioMart'} • ${product.eta}</span>
-          </div>
+      <div class="confirm">
+        <div class="confirm-prompt">Place this order?</div>
+        <div class="confirm-summary"></div>
+        <div class="confirm-total">₹${product.price}</div>
+        <div class="confirm-actions">
+          <button class="btn-primary" type="button"></button>
+          <button class="btn-secondary" type="button">Cancel</button>
         </div>
       </div>
-      <div class="shopping-card-price-row">
-        <div class="shopping-card-price">₹${product.price}</div>
-        <div class="shopping-card-eta">Free delivery</div>
-      </div>
-      <div class="shopping-actions">
-        <button class="shopping-cancel-btn" type="button">Cancel</button>
-        <button class="shopping-pay-btn" type="button">${product.ctaLabel || 'Confirm & Pay'}</button>
-      </div>
     `;
-    card.querySelector('.shopping-card-brand').textContent = product.brand;
-    card.querySelector('.shopping-card-name').textContent = product.name;
-    card.querySelector('.shopping-card-qty').textContent = product.qty;
+    card.querySelector('.confirm-summary').textContent = summary;
+    card.querySelector('.btn-primary').textContent = product.ctaLabel || 'Confirm & Pay';
 
-    const payBtn = card.querySelector('.shopping-pay-btn');
-    const cancelBtn = card.querySelector('.shopping-cancel-btn');
+    const payBtn = card.querySelector('.btn-primary');
+    const cancelBtn = card.querySelector('.btn-secondary');
 
     payBtn.addEventListener('click', () => {
       if (activeOrder && activeOrder.product === product && !activeOrder.completed) {

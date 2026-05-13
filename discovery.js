@@ -1249,8 +1249,8 @@ function renderTracker(view) {
   if (Array.isArray(view.steps) && view.steps.length > 0) {
     const steps = el('div', { class: 'tracker__steps' });
     for (const s of view.steps) {
-      const mod = s.active ? ' tracker__step--active' : (s.done ? ' tracker__step--done' : '');
-      steps.appendChild(el('div', { class: `tracker__step${mod}`, text: s.label }));
+      const cls = s.active ? 'active' : (s.done ? 'done' : '');
+      steps.appendChild(el('span', { class: cls, text: s.label }));
     }
     trackerChildren.push(steps);
   }
