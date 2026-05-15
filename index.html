@@ -7931,6 +7931,11 @@
     // "resturants", "restuarants", "restraunts", "restaurent", etc.
     const hasRestWord = /\brest[aeiour]{2,6}nts?\b/.test(t);
     if (!hasRestWord) return false;
+    // Cuisine-qualified queries ("show biryani restaurants", "find pizza
+    // restaurants") belong to the partner-flow DiscoveryView routes, not the
+    // generic city-restaurant carousel. Skip those so matchDiscoveryQuery
+    // gets the chance to route them.
+    if (/\b(?:biryani|pizza|burger|sushi|chinese|thai|south\s*indian)\b/.test(t)) return false;
     // Only trigger the journey when the intent is "find one", not e.g.
     // "I own a restaurant". Match common discovery verbs/qualifiers.
     return /\b(top|best|near\w*|good|find|show|recommend|suggest|around|close)\b/.test(t)
@@ -8016,16 +8021,28 @@
 
 
     // Canonical biryani journey — Connect & Buy. Partner-agnostic intent
-    // ("order biryani" / common typo "biriyani") routes through the full
-    // pick → connect → consent → restaurants → menu → cart → confirm →
-    // receipt → tracker chain. Journey chain utterances are tagged with
-    // unique phrases ("via biryani journey" / "via journey") so they win
-    // over the broader Swiggy patterns below.
+    // ("order biryani") routes through the full pick → connect → consent →
+    // restaurants → menu → cart → payment → confirm → receipt → tracker
+    // chain. Journey-stage matchers are biryani-context-qualified so a
+    // hands-free voice user can advance each step with a natural utterance
+    // ("checkout my biryani order", "confirm biryani order", "track my
+    // biryani") without colliding with unrelated intents. Stage matchers
+    // sit ABOVE the picker entry so "checkout my biryani" doesn't fall
+    // back to the picker.
+    { re: /\b(?:show|see|view|open|browse)\b.{0,20}\bbiryani\b.{0,20}\b(restaurants?|places?|spots?|picks)\b/i, view: 'biryani_journey_restaurants' },
+    { re: /\b(?:view|show|open|see)\b.{0,15}\b(paradise|meghana|shah\s*ghouse)\b.{0,15}\b(menu|dishes)\b/i,    view: 'biryani_journey_menu' },
+    { re: /\b(?:add|order)\b.{0,15}\b(chicken|mutton|veg)\b.{0,15}\bbiryani\b.{0,40}\bcart\b/i,                view: 'biryani_journey_cart' },
+    { re: /\b(?:checkout|check\s*out|proceed)\b.{0,30}\bbiryani\b/i,                                           view: 'biryani_journey_confirm' },
+    { re: /\bbiryani\b.{0,15}\b(?:checkout|check\s*out)\b/i,                                                   view: 'biryani_journey_confirm' },
+    { re: /\bconfirm\b.{0,30}\bbiryani\b.{0,15}(?:order)?/i,                                                   view: 'biryani_journey_receipt' },
+    { re: /\bbiryani\b.{0,15}\bconfirm\b/i,                                                                    view: 'biryani_journey_receipt' },
+    { re: /\btrack\b.{0,15}\b(?:my\s+)?biryani\b/i,                                                            view: 'biryani_journey_tracker' },
+    { re: /\bbiryani\b.{0,15}\btrack/i,                                                                        view: 'biryani_journey_tracker' },
+    // Picker entry — partner-agnostic intent. Negative lookahead keeps
+    // partner-qualified utterances ("order biryani from Swiggy") on the
+    // partner-direct path (swiggy_paradise_order et al.) below.
     { re: /\b(?:add|order|find|get|buy|book)\b.{0,30}\bbir(?:y|iy|i)ani\b(?!.{0,40}\b(?:swiggy|zomato|paradise)\b)/i, view: 'biryani_connect_buy_picker' },
     { re: /\bbir(?:y|iy|i)ani\b.{0,30}\b(?:order)\b(?!.{0,40}\b(?:swiggy|zomato|paradise)\b)/i,                       view: 'biryani_connect_buy_picker' },
-    { re: /open\s+biryani\s+picks\s+via\s+journey/i,                       view: 'biryani_journey_restaurants' },
-    { re: /view\s+paradise\s+menu\s+via\s+biryani\s+journey/i,             view: 'biryani_journey_menu' },
-    { re: /open\s+biryani\s+cart\s+via\s+journey/i,                        view: 'biryani_journey_cart' },
 
     // Partner experiences — Swiggy MCP Food. Brand qualifier MUST come first
     // so `\bswiggy\b` wins over `\bbiryani\b → biryani_hyderabad`. Within the
@@ -10774,7 +10791,13 @@
         discoveryView.subject.brand_chip &&
         ['swiggy', 'zomato'].includes(discoveryView.subject.brand_chip.variant) &&
         Array.isArray(discoveryView.collection && discoveryView.collection.cards) &&
-        discoveryView.collection.cards.some(c => c && c.commit_action && c.commit_action.event);
+        discoveryView.collection.cards.some(c => c && c.commit_action && c.commit_action.event) &&
+        // Biryani journey is a chained DiscoveryView flow — each commit_action
+        // has its own data-query that routes to the next canonical stage
+        // (biryani_journey_cart) via matchDiscoveryQuery. Tracking it as a
+        // partner catalog would short-circuit "Add chicken biryani to cart"
+        // through the silent menuAdd intercept and never render the cart.
+        discoveryKey !== 'biryani_journey_menu';
       if (isPartnerCatalog) {
         // Derive the partner's order/confirm-pay key by suffix swap. Currently
         // only swiggy_paradise_menu → swiggy_paradise_order exists; if a

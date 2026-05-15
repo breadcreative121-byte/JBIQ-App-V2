@@ -1311,6 +1311,28 @@
   gap: var(--space-md);
   padding: 0 var(--space-lg);
 }
+.receipt-partner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-md) 0 0;
+}
+.receipt-partner-logo {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-pill);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+}
+.receipt-partner-name {
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  letter-spacing: var(--font-tracking-small);
+  line-height: var(--font-line-height-tight);
+}
 .receipt-banner {
   display: flex;
   align-items: center;
@@ -1428,6 +1450,73 @@
   margin-top: 16px;
   margin-bottom: 4px;
 }
+
+/* Permission toggle list — granular pre-Connect consent. Each row is its own
+   card so the user reads them as three separate decisions, not a bundle. */
+.permission-toggle-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: 14px 0;
+  border-top: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--color-border-default);
+}
+.permission-toggle-list__eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-xs);
+}
+.permission-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-surface-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+.permission-toggle-row__logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+.permission-toggle-row__label {
+  flex: 1;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+.toggle-switch {
+  width: 36px;
+  height: 20px;
+  background: var(--color-action-primary);
+  border-radius: var(--radius-pill);
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  transition: background 160ms ease;
+}
+.toggle-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  background: var(--color-text-on-primary);
+  border-radius: 50%;
+  transition: right 160ms ease, left 160ms ease;
+}
+.toggle-switch[aria-checked="false"] { background: var(--color-border-strong); }
+.toggle-switch[aria-checked="false"]::after { right: auto; left: 2px; }
 
 .detail-sheet__carousel { margin: 4px -20px 18px; }
 .detail-sheet__carousel-track {
@@ -1929,4 +2018,67 @@
   .jbiq-discovery .map-panel::after { display: none; }
   .tracker__progress-fill,
   .tracker__steps > span { transition: none; }
+}
+
+
+/* ----------------------------------------------------------------------------
+   Biryani journey extensions:
+   1. .panel-partner — generic partner-chip mirror of .confirm-partner /
+      .receipt-partner so cart and tracker can carry the same Swiggy/Zomato
+      attribution chip the canonical confirm/receipt panels do.
+   2. --full-width modifiers — let the journey panels fill the chat
+      container edge-to-edge. Discovery scope strips the .lg gutters and
+      flattens the rounded card chrome where it would visually pinch the
+      content (confirm panel keeps a tinted block, just edge-to-edge now).
+   ---------------------------------------------------------------------------- */
+.panel-partner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-md) var(--space-lg);
+}
+.panel-partner-logo {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-pill);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+}
+.panel-partner-name {
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  letter-spacing: var(--font-tracking-small);
+  line-height: var(--font-line-height-tight);
+}
+
+.jbiq-discovery .cart-section--full-width { padding: 0; }
+.jbiq-discovery .confirm--full-width {
+  margin: 0;
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  box-sizing: border-box;
+}
+.jbiq-discovery .receipt--full-width { padding: 0; }
+.jbiq-discovery .tracker--full-width { margin: 0; padding: 0; }
+/* Strip the canonical .lg horizontal gutters from the partner chip and the
+   trailing CTA row when they sit next to a --full-width panel, so the whole
+   stack lines up edge-to-edge with the panel above/below. The partner chip
+   keeps its vertical padding so there's breathing room before the next row.
+   Receipt-partner is canonical (lives inside .receipt) — handled separately. */
+.jbiq-discovery:has(.cart-section--full-width, .receipt--full-width, .tracker--full-width) > .panel-partner,
+.jbiq-discovery:has(.cart-section--full-width, .receipt--full-width, .tracker--full-width) > .cta-row {
+  padding-left: 0;
+  padding-right: 0;
+}
+.jbiq-discovery .receipt--full-width .receipt-partner { padding-bottom: var(--space-md); }
+/* Receipt's Track order CTA: keep the receipt body edge-to-edge but inset the
+   button so it sits central with breathing room from the container edges,
+   instead of looking like a full-bleed bar. */
+.jbiq-discovery:has(.receipt--full-width) > .cta-row {
+  padding-left: var(--space-lg);
+  padding-right: var(--space-lg);
 }

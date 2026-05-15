@@ -1174,12 +1174,20 @@ function renderConfirmPanel(view) {
       })
     : null;
 
-  wrapper.appendChild(el('div', { class: 'confirm' }, [
+  // Canonical partner-chip variant — components-overview.html#components-confirmpanel tab 0.
+  // Renders the Swiggy-style logo + name above the prompt when view.partner is set.
+  const partnerChip = view.partner ? el('div', { class: 'confirm-partner' }, [
+    el('span', { class: 'confirm-partner-logo', style: { backgroundImage: `url('${view.partner.logo}')` } }),
+    el('span', { class: 'confirm-partner-name', text: view.partner.name }),
+  ]) : null;
+
+  wrapper.appendChild(el('div', { class: 'confirm confirm--full-width' }, [
+    partnerChip,
     el('div', { class: 'confirm-prompt', text: view.prompt }),
     el('div', { class: 'confirm-summary', text: view.summary }),
     el('div', { class: 'confirm-total', text: view.total }),
     el('div', { class: 'confirm-actions' }, [primary, secondary].filter(Boolean)),
-  ]));
+  ].filter(Boolean)));
   return wrapper;
 }
 
@@ -1206,7 +1214,14 @@ function renderReceiptPanel(view) {
     el('div', { text: view.total.value }),
   ]);
 
-  wrapper.appendChild(el('div', { class: 'receipt' }, [
+  // Canonical partner-chip variant — components-overview.html#components-receiptpanel tab 0.
+  const partnerChip = view.partner ? el('div', { class: 'receipt-partner' }, [
+    el('span', { class: 'receipt-partner-logo', style: { backgroundImage: `url('${view.partner.logo}')` } }),
+    el('span', { class: 'receipt-partner-name', text: view.partner.name }),
+  ]) : null;
+
+  wrapper.appendChild(el('div', { class: 'receipt receipt--full-width' }, [
+    partnerChip,
     el('div', { class: 'receipt-banner' }, [
       el('div', { class: 'receipt-check', text: '✓' }),
       el('div', {}, [
@@ -1215,7 +1230,7 @@ function renderReceiptPanel(view) {
       ]),
     ]),
     el('div', {}, [...lines, totalLine]),
-  ]));
+  ].filter(Boolean)));
 
   if (view.cta) {
     const cta = el('button', {
@@ -1264,6 +1279,18 @@ function renderTracker(view) {
     ]),
   ]);
 
+  // Partner-chip variant — mirrors the canonical confirm-partner / receipt-partner
+  // pattern so the partner attribution stays consistent across every transactional
+  // panel in the journey. CSS class .panel-partner shares the styling. Lives
+  // OUTSIDE the .tracker wrapper so the same `:has(--full-width) > .panel-partner`
+  // CSS rule that strips horizontal gutters on the cart panel applies here too.
+  if (view.partner) {
+    wrapper.appendChild(el('div', { class: 'panel-partner' }, [
+      el('span', { class: 'panel-partner-logo', style: { backgroundImage: `url('${view.partner.logo}')` } }),
+      el('span', { class: 'panel-partner-name', text: view.partner.name }),
+    ]));
+  }
+
   const trackerChildren = [media];
   if (Array.isArray(view.steps) && view.steps.length > 0) {
     const steps = el('div', { class: 'tracker__steps' });
@@ -1273,7 +1300,7 @@ function renderTracker(view) {
     }
     trackerChildren.push(steps);
   }
-  wrapper.appendChild(el('div', { class: 'tracker' }, trackerChildren));
+  wrapper.appendChild(el('div', { class: 'tracker tracker--full-width' }, trackerChildren));
 
   return wrapper;
 }
@@ -1647,7 +1674,7 @@ function renderPartnerPicker(view) {
       turn.appendChild(el('div', { class: 'user-bubble', text: opt.name }));
       turn.appendChild(el('div', {
         class: 'ai-response',
-        style: { padding: '0 var(--space-lg)', margin: 'var(--space-sm) 0' },
+        style: { padding: 0, margin: 'var(--space-sm) 0' },
         text: `Sure, first, you'll need to connect ${opt.name} to turn on this app.`,
       }));
       turn.appendChild(renderPartnerConnectCard({
@@ -1870,7 +1897,16 @@ function renderCartPanel(view) {
   wrapper.className = 'jbiq-discovery';
   wrapper.__jbiqView = view;
 
-  const section = el('div', { class: 'cart-section' });
+  // Partner-chip variant — mirrors confirm-partner / receipt-partner so the
+  // partner attribution stays consistent across every transactional panel.
+  if (view.partner) {
+    wrapper.appendChild(el('div', { class: 'panel-partner' }, [
+      el('span', { class: 'panel-partner-logo', style: { backgroundImage: `url('${view.partner.logo}')` } }),
+      el('span', { class: 'panel-partner-name', text: view.partner.name }),
+    ]));
+  }
+
+  const section = el('div', { class: 'cart-section cart-section--full-width' });
   for (const it of (view.items || [])) {
     section.appendChild(el('div', { class: 'cart-row' }, [
       el('div', {}, [
@@ -6242,7 +6278,14 @@ const MOCK_DETAIL_SHEET_DOCTOR = {
   closeLabel: 'Close',
 };
 
-/* ----- Partner connect & consent mocks (picker → connect-card → connect-sheet) ----- */
+/* ----- Partner connect & consent mocks (picker → connect-card → connect-sheet) -----
+   Hands-free design note: the picker / connect-card / consent-sheet steps
+   are TAP-confirmed by design — agreeing to share data and grant permissions
+   needs visual context, not a spoken "yes". The voice_disclosure on each
+   pre-consent stage tells a hands-free user what to look at and tap. From
+   the restaurants stage onward the journey is fully voice-progressable: every
+   stage's voice_disclosure ends with a literal "Say X" cue and the regex
+   routes in index.html catch those phrases verbatim. */
 
 const MOCK_BIRYANI_CONNECT_BUY_PICKER = {
   kind: 'partner_picker_view',
@@ -6267,7 +6310,7 @@ const MOCK_BIRYANI_CONNECT_BUY_PICKER = {
             "Share parts of your conversation and other relevant info with Swiggy, which may be used to improve its services and personalise your Swiggy experience",
           ],
           off_note: 'You can turn off Swiggy from the apps page',
-          followup_query: 'Open biryani picks via journey',
+          followup_query: 'Show biryani spots near me',
         },
       },
     },
@@ -6290,12 +6333,12 @@ const MOCK_BIRYANI_CONNECT_BUY_PICKER = {
             "Share parts of your conversation and other relevant info with Zomato, which may be used to improve its services and personalise your Zomato experience",
           ],
           off_note: 'You can turn off Zomato from the apps page',
-          followup_query: 'Find biryani on Zomato',
+          followup_query: 'Show biryani spots near me',
         },
       },
     },
   ],
-  voice_disclosure: "A few partners can do that. Swiggy has a half-price deal today. Zomato has free delivery. On screen — tap one to connect.",
+  voice_disclosure: 'Swiggy or Zomato can deliver biryani — which one?',
   meta: {
     intent: 'discover',
     query: 'Order biryani',
@@ -6304,61 +6347,93 @@ const MOCK_BIRYANI_CONNECT_BUY_PICKER = {
   },
 };
 
-/* ----- Biryani journey chain — Restaurants → Menu → Cart → Confirm → Receipt → Tracker.
-   Each stage carries the next-step query / advance_to so taps chain
-   naturally through showResponse and advanceTransactionalStage. Renders
-   reuse the canonical primitives (PlaceResultCard, CatalogResultCard,
-   CartPanel, ConfirmPanel, ReceiptPanel, Tracker). ----- */
+/* ----- Biryani journey chain — Restaurants → Menu → Cart → Payment → Confirm → Receipt → Tracker.
+   Every stage carries an `advance_to` and a natural-language `query` so taps
+   AND voice utterances chain through the same regex routes in index.html.
+   Renders reuse canonical primitives only:
+   PlaceResultCard, FilterChipBar, CatalogResultCard, CartPanel,
+   OptionSheet, ConfirmPanel, ReceiptPanel, Tracker. ----- */
 
 const MOCK_BIRYANI_JOURNEY_RESTAURANTS = {
   kind: 'discovery_view',
-  sub_pattern: 'catalog',
+  sub_pattern: 'place',
   state: 'PARTIAL_RESULT_SHOWN',
   subject: {
-    title: 'Biryani on Swiggy',
+    title: 'Biryani near you',
     subtitle: 'Top picks · 28 min avg',
     brand_chip: { label: 'Sw', variant: 'swiggy', name: 'Swiggy' },
   },
+  location_context: { area: 'Koramangala', change_event: 'location.change.koramangala' },
+  map: {
+    center: { lat: 12.9352, lng: 77.6245 },
+    zoom: 14,
+    user_location: { lat: 12.9347, lng: 77.6204 },
+    markers: [
+      { id: 'journey_paradise',     lat: 12.9382, lng: 77.6271, pin_label: '1' },
+      { id: 'journey_meghana',      lat: 12.9363, lng: 77.6310, pin_label: '2' },
+      { id: 'journey_shah_ghouse',  lat: 12.9319, lng: 77.6335, pin_label: '3' },
+    ],
+  },
   collection: {
-    layout: 'list',
+    layout: 'carousel',
     cards: [
       {
-        variant: 'catalog',
+        variant: 'place',
         id: 'journey_paradise',
         title: 'Paradise Biryani',
-        subtitle: 'Hyderabadi · 28 min · 1.8 km',
-        media: { alt: 'Paradise biryani', fallback_color: '#C9855A' },
+        media: {
+          alt: 'Paradise biryani',
+          url: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&h=400&fit=crop',
+          fallback_color: '#C9855A',
+        },
         rating: { value: 4.5, count: 10240 },
-        tags: ['Top rated', '50% off up to ₹100'],
+        distance_km: 1.8,
+        price_level: '₹₹',
+        tags: ['Hyderabadi', 'Dum'],
+        status: { kind: 'open', label: '28 min' },
+        badge: '50% off',
         primary_event: 'journey.biryani.paradise.menu',
-        query: 'View Paradise menu via biryani journey',
+        query: 'View Paradise menu',
       },
       {
-        variant: 'catalog',
+        variant: 'place',
         id: 'journey_meghana',
         title: 'Meghana Foods',
-        subtitle: 'Andhra · 32 min · 2.1 km',
-        media: { alt: 'Meghana chicken biryani', fallback_color: '#D19870' },
+        media: {
+          alt: 'Meghana chicken biryani',
+          url: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=600&h=400&fit=crop',
+          fallback_color: '#D19870',
+        },
         rating: { value: 4.6, count: 8410 },
-        tags: ['20% off'],
+        distance_km: 2.1,
+        price_level: '₹₹',
+        tags: ['Andhra', 'Spicy'],
+        status: { kind: 'open', label: '32 min' },
+        badge: '20% off',
         primary_event: 'journey.biryani.meghana.menu',
-        query: 'View Paradise menu via biryani journey',
+        query: 'View Meghana menu',
       },
       {
-        variant: 'catalog',
+        variant: 'place',
         id: 'journey_shah_ghouse',
         title: 'Shah Ghouse',
-        subtitle: 'Hyderabadi · 38 min · 3.4 km',
-        media: { alt: 'Shah Ghouse mutton biryani', fallback_color: '#B97349' },
+        media: {
+          alt: 'Shah Ghouse mutton biryani',
+          url: 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=600&h=400&fit=crop',
+          fallback_color: '#B97349',
+        },
         rating: { value: 4.4, count: 6210 },
-        tags: ['Free delivery on ₹199+'],
+        distance_km: 3.4,
+        price_level: '₹',
+        tags: ['Hyderabadi', 'Mutton'],
+        status: { kind: 'open', label: '38 min' },
         primary_event: 'journey.biryani.shah_ghouse.menu',
-        query: 'View Paradise menu via biryani journey',
+        query: 'View Shah Ghouse menu',
       },
     ],
   },
-  voice_disclosure: "Three biryani spots are open near you. Paradise — twenty-eight minutes, four point five stars, fifty percent off. On screen — tap one to see the menu.",
-  meta: { intent: 'discover', query: 'Show biryani restaurants on Swiggy', total_count: 3, trace_id: 'trace-biryani-journey-restaurants-001' },
+  voice_disclosure: 'Three biryani spots near you. Paradise is top — 28 min, 4.5 stars, 50% off. Want to see the menu?',
+  meta: { intent: 'discover', query: 'Show biryani restaurants', total_count: 3, trace_id: 'trace-biryani-journey-restaurants-001' },
 };
 
 const MOCK_BIRYANI_JOURNEY_MENU = {
@@ -6370,6 +6445,14 @@ const MOCK_BIRYANI_JOURNEY_MENU = {
     subtitle: '28 min · ₹29 delivery',
     brand_chip: { label: 'Sw', variant: 'swiggy', name: 'Swiggy' },
   },
+  filters: {
+    multi_select: false,
+    chips: [
+      { id: 'veg',    label: 'Veg',     value: 'veg' },
+      { id: 'nonveg', label: 'Non-veg', value: 'nonveg', selected: true },
+      { id: 'spicy',  label: 'Spicy',   value: 'spicy' },
+    ],
+  },
   collection: {
     layout: 'list',
     cards: [
@@ -6378,41 +6461,56 @@ const MOCK_BIRYANI_JOURNEY_MENU = {
         id: 'journey_chicken_biryani',
         title: 'Hyderabadi Chicken Biryani',
         subtitle: 'Bestseller · serves 1',
-        media: { alt: 'Chicken biryani plate', fallback_color: '#C9855A' },
+        media: {
+          alt: 'Chicken biryani plate',
+          url: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&h=400&fit=crop',
+          fallback_color: '#C9855A',
+        },
         price_label: '₹329',
         rating: { value: 4.6, count: 4820 },
-        tags: ['Spicy', 'Chicken'],
+        tags: ['Chicken', 'Spicy'],
+        filter_ids: ['nonveg', 'spicy'],
         primary_event: 'journey.biryani.menu.chicken.add',
-        commit_action: { label: 'Add', event: 'journey.biryani.menu.chicken.add', query: 'Open biryani cart via journey' },
+        commit_action: { label: 'Add', event: 'journey.biryani.menu.chicken.add', query: 'Add Chicken biryani to cart' },
       },
       {
         variant: 'catalog',
         id: 'journey_mutton_biryani',
         title: 'Hyderabadi Mutton Biryani',
         subtitle: 'Slow-cooked · serves 1',
-        media: { alt: 'Mutton biryani plate', fallback_color: '#B97349' },
+        media: {
+          alt: 'Mutton biryani plate',
+          url: 'https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?w=400&h=400&fit=crop',
+          fallback_color: '#B97349',
+        },
         price_label: '₹449',
         rating: { value: 4.7, count: 3210 },
-        tags: ['Spicy', 'Mutton'],
+        tags: ['Mutton', 'Spicy'],
+        filter_ids: ['nonveg', 'spicy'],
         primary_event: 'journey.biryani.menu.mutton.add',
-        commit_action: { label: 'Add', event: 'journey.biryani.menu.mutton.add', query: 'Open biryani cart via journey' },
+        commit_action: { label: 'Add', event: 'journey.biryani.menu.mutton.add', query: 'Add Mutton biryani to cart' },
       },
       {
         variant: 'catalog',
         id: 'journey_veg_biryani',
         title: 'Veg Dum Biryani',
         subtitle: 'Vegetarian · serves 1',
-        media: { alt: 'Veg biryani plate', fallback_color: '#D8A66B' },
+        media: {
+          alt: 'Veg biryani plate',
+          url: 'https://images.unsplash.com/photo-1505253758473-96b7015fcd40?w=400&h=400&fit=crop',
+          fallback_color: '#D8A66B',
+        },
         price_label: '₹249',
         rating: { value: 4.3, count: 1840 },
         tags: ['Veg'],
+        filter_ids: ['veg'],
         primary_event: 'journey.biryani.menu.veg.add',
-        commit_action: { label: 'Add', event: 'journey.biryani.menu.veg.add', query: 'Open biryani cart via journey' },
+        commit_action: { label: 'Add', event: 'journey.biryani.menu.veg.add', query: 'Add Veg biryani to cart' },
       },
     ],
   },
-  voice_disclosure: "Chicken biryani at three twenty-nine rupees is the bestseller. On screen — tap Add to put it in your cart.",
-  meta: { intent: 'discover', query: 'View Paradise menu via biryani journey', total_count: 3, trace_id: 'trace-biryani-journey-menu-001' },
+  voice_disclosure: 'Chicken ₹329, mutton ₹449, veg ₹249. Want me to add the chicken?',
+  meta: { intent: 'discover', query: 'View Paradise menu', total_count: 3, trace_id: 'trace-biryani-journey-menu-001' },
 };
 
 const MOCK_BIRYANI_JOURNEY_CART = {
@@ -6426,36 +6524,40 @@ const MOCK_BIRYANI_JOURNEY_CART = {
     { label: 'Tax', value: '₹16' },
     { label: 'Total', value: '₹374', total: true },
   ],
-  cta: { label: 'Checkout', advance_to: 'biryani_journey_confirm', event: 'journey.biryani.cart.checkout' },
-  voice_disclosure: "Total comes to three hundred and seventy-four rupees. Tap Checkout to confirm the order.",
+  cta: { label: 'Checkout', advance_to: 'biryani_journey_confirm', event: 'journey.biryani.cart.checkout', query: 'Checkout my biryani order' },
+  partner: { logo: 'assets/partners/Swiggy.png', name: 'Swiggy' },
+  voice_disclosure: 'One chicken biryani — ₹374 with delivery and tax. Ready to checkout?',
 };
 
 const MOCK_BIRYANI_JOURNEY_CONFIRM = {
   kind: 'confirm_view',
+  partner: { logo: 'assets/partners/Swiggy.png', name: 'Swiggy' },
   prompt: 'Place this order?',
-  summary: 'Paradise · Hyderabadi Chicken Biryani · Koramangala · UPI',
+  summary: 'Paradise · Hyderabadi Chicken Biryani · Koramangala',
   total: '₹374',
   actions: {
-    primary:   { label: 'Confirm & Pay', advance_to: 'biryani_journey_receipt', event: 'journey.biryani.confirm.pay' },
+    primary:   { label: 'Confirm & Pay', advance_to: 'biryani_journey_receipt', event: 'journey.biryani.confirm.pay', query: 'Confirm biryani order' },
     secondary: { label: 'Cancel',        event: 'journey.biryani.confirm.cancel' },
   },
-  voice_disclosure: "Three hundred and seventy-four rupees. Tap Confirm and Pay to place the order.",
+  voice_disclosure: 'Paradise chicken biryani for ₹374. Confirm and pay?',
 };
 
 const MOCK_BIRYANI_JOURNEY_RECEIPT = {
   kind: 'receipt_view',
+  partner: { logo: 'assets/partners/Swiggy.png', name: 'Swiggy' },
   banner: { title: 'Order placed', sub: 'Paradise · #ord-89421' },
   lines: [
     { label: 'Hyderabadi Chicken Biryani', value: '₹329' },
     { label: 'Delivery + taxes',            value: '₹45'  },
   ],
   total: { label: 'Total charged', value: '₹374' },
-  cta: { label: 'Track order', advance_to: 'biryani_journey_tracker', event: 'journey.biryani.receipt.track' },
-  voice_disclosure: "Order placed. Total three hundred and seventy-four rupees. Tap Track order for live updates.",
+  cta: { label: 'Track order', advance_to: 'biryani_journey_tracker', event: 'journey.biryani.receipt.track', query: 'Track my biryani order' },
+  voice_disclosure: 'Order placed — ₹374 charged. Want to track it?',
 };
 
 const MOCK_BIRYANI_JOURNEY_TRACKER = {
   kind: 'tracker_view',
+  partner: { logo: 'assets/partners/Swiggy.png', name: 'Swiggy' },
   stage: 'Out for delivery',
   eta: '12 min',
   detail: 'Amit is 1.4 km away · Paradise · #ord-89421',
@@ -6467,7 +6569,7 @@ const MOCK_BIRYANI_JOURNEY_TRACKER = {
     { label: 'Out for delivery', active: true },
     { label: 'Delivered' },
   ],
-  voice_disclosure: "Out for delivery. Amit is one point four kilometres away — twelve minutes.",
+  voice_disclosure: "Out for delivery. Amit's 1.4 km away — about 12 minutes.",
 };
 
 /**
