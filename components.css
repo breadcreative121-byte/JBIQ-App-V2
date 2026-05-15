@@ -864,6 +864,28 @@
   color: var(--color-text-secondary);
   margin-top: var(--space-xs);
 }
+.tracker__partner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+.tracker__partner-logo {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-pill);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+}
+.tracker__partner-name {
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  letter-spacing: var(--font-tracking-small);
+  line-height: var(--font-line-height-tight);
+}
 .tracker__progress {
   height: 6px;
   background: var(--color-surface-secondary);
