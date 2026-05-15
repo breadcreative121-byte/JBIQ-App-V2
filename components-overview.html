@@ -268,6 +268,16 @@
     font-weight: var(--font-weight-bold);
     letter-spacing: var(--font-tracking-headline);
   }
+  .toc-brand__home {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    text-decoration: none;
+    color: inherit;
+    flex: 1;
+    min-width: 0;
+  }
+  .toc-brand__home:hover .toc-brand__name { opacity: 0.7; }
 
   .entity-tag { font-family: var(--font-mono); font-size: 11px; font-weight: var(--font-weight-medium); padding: 2px var(--space-sm); background: var(--color-action-primary-surface); color: var(--color-action-primary); border-radius: var(--radius-sm); }
   .picked-when { font-size: 11px; font-weight: var(--font-weight-bold); color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; }
@@ -1240,8 +1250,10 @@
 
 <aside id="sidebar" class="toc" role="navigation" aria-label="JBIQ">
   <div class="toc-brand">
-    <img src="assets/logo.svg" alt="Jio" class="toc-brand__mark" width="28" height="28">
-    <div class="toc-brand__name">JBIQ</div>
+    <a class="toc-brand__home" href="#home" aria-label="Back to Components Overview home">
+      <img src="assets/logo.svg" alt="Jio" class="toc-brand__mark" width="28" height="28">
+      <span class="toc-brand__name">JBIQ</span>
+    </a>
     <button class="toc-close" aria-label="Close navigation">×</button>
   </div>
 
