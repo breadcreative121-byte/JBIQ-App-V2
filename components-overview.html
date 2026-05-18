@@ -1238,6 +1238,307 @@
     opacity: 0.55;
     cursor: not-allowed;
   }
+
+  /* ============================================================================
+     Inspect Panel — right-side rail showing structure, tokens, CSS rules and
+     notes for the active variant on each component page. Hidden on home pages
+     via body.no-inspect. Becomes an overlay drawer below 1200px.
+     ========================================================================== */
+  .inspect {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 380px;
+    background: var(--color-surface-primary);
+    border-left: 0.5px solid var(--color-border-default);
+    display: flex;
+    flex-direction: column;
+    z-index: 9;
+    overflow: hidden;
+    transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .inspect[data-open="false"] { transform: translateX(100%); }
+  body.no-inspect .inspect,
+  body.no-inspect .inspect-toggle,
+  body.no-inspect .inspect-backdrop { display: none !important; }
+  body.has-inspect { padding-right: 380px; }
+  /* On pages that opt out of the inspect panel (Home, Styles) the body must
+     never carry the inspect padding even if has-inspect was set on a prior
+     component page. no-inspect wins. */
+  body.no-inspect { padding-right: 0 !important; }
+
+  .inspect__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 0.5px solid var(--color-border-default);
+    flex-shrink: 0;
+  }
+  .inspect__title {
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--font-tracking-headline);
+    color: var(--color-text-primary);
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+  }
+  .inspect__canonical {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: var(--font-weight-medium);
+    padding: 2px var(--space-sm);
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+  }
+  .inspect__close {
+    appearance: none;
+    background: transparent;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-pill);
+    color: var(--color-text-secondary);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 140ms, color 140ms;
+  }
+  .inspect__close:hover { background: var(--color-surface-secondary); color: var(--color-text-primary); }
+
+  .inspect__body {
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    padding: var(--space-sm) 0 var(--space-xl);
+    scrollbar-width: thin;
+  }
+  .inspect__body::-webkit-scrollbar { width: 6px; }
+  .inspect__body::-webkit-scrollbar-thumb { background: var(--color-border-default); border-radius: 3px; }
+
+  .inspect__section { border-bottom: 0.5px solid var(--color-border-default); }
+  .inspect__section:last-child { border-bottom: none; }
+  .inspect__section > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: var(--space-md) var(--space-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    transition: color 140ms;
+  }
+  .inspect__section > summary:hover { color: var(--color-text-primary); }
+  .inspect__section > summary::-webkit-details-marker { display: none; }
+  .inspect__section-count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-tertiary);
+    margin-left: auto;
+    margin-right: var(--space-xs);
+  }
+  .inspect__chevron {
+    width: 14px;
+    height: 14px;
+    background: currentColor;
+    -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M4 6l4 4 4-4' stroke='black' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+            mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M4 6l4 4 4-4' stroke='black' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-position: center; mask-position: center;
+    transition: transform 180ms ease;
+    flex-shrink: 0;
+  }
+  .inspect__section[open] > summary .inspect__chevron { transform: rotate(180deg); }
+  .inspect__section-body { padding: 0 var(--space-lg) var(--space-md); }
+
+  /* Structure block — pretty-printed HTML */
+  .inspect-code {
+    margin: 0;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-surface-tertiary);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: var(--color-text-primary);
+    white-space: pre;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .inspect-code::-webkit-scrollbar { height: 6px; }
+  .inspect-code::-webkit-scrollbar-thumb { background: var(--color-border-default); border-radius: 3px; }
+  .inspect-code .hl-tag { color: var(--color-text-secondary); }
+  .inspect-code .hl-class { color: var(--color-action-primary); }
+  .inspect-code .hl-attr { color: var(--color-text-tertiary); }
+  .inspect-code .hl-string { color: var(--color-text-tertiary); }
+  .inspect-code .hl-text { color: var(--color-text-secondary); }
+  .inspect-more {
+    appearance: none;
+    background: transparent;
+    border: 0.5px solid var(--color-border-default);
+    color: var(--color-text-secondary);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: var(--font-weight-medium);
+    padding: 4px var(--space-sm);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    margin-top: var(--space-xs);
+  }
+  .inspect-more:hover { color: var(--color-text-primary); background: var(--color-surface-secondary); }
+  .inspect-structure-section { margin-top: var(--space-sm); }
+  .inspect-structure-section > summary {
+    list-style: none;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    padding: var(--space-xs) 0;
+  }
+  .inspect-structure-section > summary::-webkit-details-marker { display: none; }
+
+  /* Token rows */
+  .inspect-token-group { margin-top: var(--space-sm); }
+  .inspect-token-group:first-child { margin-top: 0; }
+  .inspect-token-group__label {
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--space-xs);
+  }
+  .inspect-token {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: 4px 0;
+    font-size: 11.5px;
+    line-height: 1.4;
+  }
+  .inspect-token__swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 0.5px solid var(--color-border-default);
+    flex-shrink: 0;
+  }
+  .inspect-token__name {
+    font-family: var(--font-mono);
+    color: var(--color-text-primary);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .inspect-token__value {
+    font-family: var(--font-mono);
+    color: var(--color-text-tertiary);
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .inspect-empty {
+    font-size: 12px;
+    color: var(--color-text-tertiary);
+    padding: var(--space-sm) 0;
+  }
+
+  /* CSS rules block */
+  .inspect-rule { margin-bottom: var(--space-sm); }
+  .inspect-rule__selector {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-action-primary);
+    padding: 4px var(--space-sm) 2px;
+    background: var(--color-surface-tertiary);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    white-space: nowrap;
+  }
+  .inspect-rule__selector::-webkit-scrollbar { display: none; }
+  .inspect-rule__body {
+    margin: 0;
+    padding: 4px var(--space-sm) var(--space-sm);
+    background: var(--color-surface-tertiary);
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+    white-space: pre;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .inspect-rule__body::-webkit-scrollbar { display: none; }
+
+  /* Notes */
+  .inspect-note {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+  .inspect-note strong { color: var(--color-text-primary); font-weight: var(--font-weight-bold); }
+
+  /* Toggle pill — appears when panel is closed */
+  .inspect-toggle {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 8;
+    appearance: none;
+    border: none;
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    font-family: inherit;
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 10px var(--space-md);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    display: none;
+    align-items: center;
+    gap: var(--space-xs);
+    transition: transform 140ms, box-shadow 140ms;
+  }
+  .inspect-toggle:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.16); }
+  body:not(.has-inspect):not(.no-inspect) .inspect-toggle { display: inline-flex; }
+
+  .inspect-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 8;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+  }
+
+  /* Responsive: below 1200px panel becomes an overlay drawer */
+  @media (max-width: 1199px) {
+    body.has-inspect { padding-right: 0; }
+    .inspect { box-shadow: -12px 0 32px rgba(0,0,0,0.16); }
+    .inspect-backdrop.is-open { opacity: 1; pointer-events: auto; }
+  }
+  @media (max-width: 720px) {
+    .inspect { width: 100%; max-width: 380px; }
+  }
 </style>
 </head>
 <body>
@@ -4323,6 +4624,34 @@
   <div class="detail-sheet-lightbox__dots" data-lightbox-dots></div>
 </div>
 
+<aside id="inspect-panel" class="inspect" data-open="true" aria-label="Component inspect panel">
+  <header class="inspect__head">
+    <h2 class="inspect__title">Inspect</h2>
+    <span class="inspect__canonical" hidden></span>
+    <button id="inspect-close" class="inspect__close" aria-label="Close inspect panel" type="button">&times;</button>
+  </header>
+  <div class="inspect__body">
+    <details class="inspect__section" data-section="structure" open>
+      <summary><span class="inspect__chevron"></span>Structure<span class="inspect__section-count"></span></summary>
+      <div class="inspect__section-body"></div>
+    </details>
+    <details class="inspect__section" data-section="tokens" open>
+      <summary><span class="inspect__chevron"></span>Design tokens used<span class="inspect__section-count"></span></summary>
+      <div class="inspect__section-body"></div>
+    </details>
+    <details class="inspect__section" data-section="rules">
+      <summary><span class="inspect__chevron"></span>CSS rules<span class="inspect__section-count"></span></summary>
+      <div class="inspect__section-body"></div>
+    </details>
+    <details class="inspect__section" data-section="notes" open>
+      <summary><span class="inspect__chevron"></span>Notes</summary>
+      <div class="inspect__section-body"></div>
+    </details>
+  </div>
+</aside>
+<div id="inspect-backdrop" class="inspect-backdrop" aria-hidden="true"></div>
+<button id="inspect-toggle" class="inspect-toggle" type="button" aria-controls="inspect-panel">Inspect</button>
+
 <script>
 /* ----- Tracker on-reveal animation — bar fills 0 → target, step labels light
    up in sequence as the bar passes each one. Re-plays on every reveal (tab
@@ -4902,6 +5231,414 @@ document.addEventListener('click', (e) => {
       });
     });
   });
+})();
+
+// ============================================================================
+// Inspect Panel — runtime-derived view of the active variant on each page.
+// Every section pulls from the live DOM and a parse of components.css, so
+// edits to component markup, CSS tokens, or the page subtitle flow into the
+// panel automatically on reload. No per-component registry to maintain.
+// ============================================================================
+(function inspectPanel() {
+  const panel = document.getElementById('inspect-panel');
+  const backdrop = document.getElementById('inspect-backdrop');
+  const toggle = document.getElementById('inspect-toggle');
+  const closeBtn = document.getElementById('inspect-close');
+  if (!panel) return;
+
+  // ----- Parse stylesheets once and build class→tokens, class→rules maps -----
+  const classToTokens = new Map();
+  const classToRules = new Map();
+  const classToProps = new Map(); // class → Array<{prop, value}>
+  const resolvedTokens = new Map();
+
+  function ensureSet(map, key) {
+    let s = map.get(key);
+    if (!s) { s = new Set(); map.set(key, s); }
+    return s;
+  }
+  function ensureArr(map, key) {
+    let a = map.get(key);
+    if (!a) { a = []; map.set(key, a); }
+    return a;
+  }
+
+  function classesFromSelector(sel) {
+    const out = new Set();
+    const re = /\.([A-Za-z_][A-Za-z0-9_-]*)/g;
+    let m;
+    while ((m = re.exec(sel)) !== null) out.add(m[1]);
+    return out;
+  }
+
+  function parseStylesheets() {
+    const sheets = Array.from(document.styleSheets);
+    sheets.forEach(sheet => {
+      let rules;
+      try { rules = sheet.cssRules; } catch (e) { return; }
+      if (!rules) return;
+      Array.from(rules).forEach(rule => visitRule(rule));
+    });
+  }
+
+  function visitRule(rule) {
+    if (rule.type === 4 /* MEDIA */ || rule.type === 12 /* SUPPORTS */) {
+      Array.from(rule.cssRules || []).forEach(visitRule);
+      return;
+    }
+    if (rule.type !== 1 /* STYLE */) return;
+    const selectorText = rule.selectorText || '';
+    if (!selectorText) return;
+    const body = rule.style.cssText;
+    if (!body) return;
+
+    // Find tokens & declarations using tokens.
+    const tokenRe = /var\(\s*(--[A-Za-z0-9_-]+)\s*(?:,[^)]*)?\)/g;
+    const tokens = new Set();
+    let tm;
+    while ((tm = tokenRe.exec(body)) !== null) tokens.add(tm[1]);
+
+    // All declarations with their values (used for class → props map).
+    const decls = [];
+    for (let i = 0; i < rule.style.length; i++) {
+      const prop = rule.style[i];
+      const value = rule.style.getPropertyValue(prop);
+      decls.push({ prop, value: value.trim() });
+    }
+
+    const selectors = selectorText.split(',').map(s => s.trim()).filter(Boolean);
+    selectors.forEach(sel => {
+      const classes = classesFromSelector(sel);
+      classes.forEach(cls => {
+        const tSet = ensureSet(classToTokens, cls);
+        tokens.forEach(t => tSet.add(t));
+        ensureArr(classToRules, cls).push({ selector: sel, body });
+        const pArr = ensureArr(classToProps, cls);
+        decls.forEach(d => {
+          if (d.value && d.value.indexOf('var(') !== -1) pArr.push(d);
+        });
+      });
+    });
+  }
+
+  function resolveToken(name) {
+    if (resolvedTokens.has(name)) return resolvedTokens.get(name);
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    resolvedTokens.set(name, v);
+    return v;
+  }
+
+  // ----- Pretty-print HTML from a cloned DOM walk -----
+  const VOID_TAGS = new Set(['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr']);
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function formatNode(node, depth) {
+    const indent = '  '.repeat(depth);
+    if (node.nodeType === 3) {
+      const text = node.nodeValue.replace(/\s+/g, ' ').trim();
+      if (!text) return '';
+      return indent + '<span class="hl-text">' + escapeHtml(text) + '</span>\n';
+    }
+    if (node.nodeType !== 1) return '';
+    const tag = node.tagName.toLowerCase();
+    let attrs = '';
+    Array.from(node.attributes).forEach(a => {
+      let value = a.value;
+      if ((a.name === 'src' || a.name === 'href') && value.length > 60) value = '…';
+      if (a.name === 'class') {
+        attrs += ' <span class="hl-attr">class</span>=<span class="hl-string">"' +
+          value.split(/\s+/).map(c => c ? '<span class="hl-class">' + escapeHtml(c) + '</span>' : '').join(' ') +
+          '"</span>';
+      } else {
+        attrs += ' <span class="hl-attr">' + escapeHtml(a.name) + '</span>=<span class="hl-string">"' + escapeHtml(value) + '"</span>';
+      }
+    });
+    const open = '<span class="hl-tag">&lt;' + tag + '</span>' + attrs + '<span class="hl-tag">&gt;</span>';
+    const close = '<span class="hl-tag">&lt;/' + tag + '&gt;</span>';
+    if (VOID_TAGS.has(tag)) {
+      return indent + open + '\n';
+    }
+    let inner = '';
+    const childNodes = Array.from(node.childNodes);
+    childNodes.forEach(c => { inner += formatNode(c, depth + 1); });
+    if (!inner.trim()) {
+      // Empty element on one line.
+      return indent + open + close + '\n';
+    }
+    return indent + open + '\n' + inner + indent + close + '\n';
+  }
+
+  function buildStructureBlock(rootEl, capChars) {
+    if (!rootEl) return '<div class="inspect-empty">Nothing to inspect.</div>';
+    const html = formatNode(rootEl, 0);
+    // Count visible chars (strip HTML tags for size estimate).
+    const visible = html.replace(/<[^>]*>/g, '');
+    if (visible.length > capChars) {
+      const truncated = html.slice(0, capChars * 2);
+      return '<pre class="inspect-code" data-collapsed="true">' + truncated + '\n  …\n</pre>' +
+        '<button type="button" class="inspect-more" data-action="expand-structure">Show full markup</button>' +
+        '<pre class="inspect-code" data-full="true" hidden>' + html + '</pre>';
+    }
+    return '<pre class="inspect-code">' + html + '</pre>';
+  }
+
+  // ----- Token rendering -----
+  const TOKEN_GROUPS = [
+    { prefix: '--color-', label: 'Color', swatch: true },
+    { prefix: '--space-', label: 'Spacing', swatch: false },
+    { prefix: '--radius-', label: 'Radius', swatch: false },
+    { prefix: '--font-', label: 'Typography', swatch: false },
+  ];
+
+  function groupOf(tokenName) {
+    for (const g of TOKEN_GROUPS) if (tokenName.startsWith(g.prefix)) return g.label;
+    return 'Other';
+  }
+
+  function collectTokens(variantEl) {
+    const tokens = new Set();
+    const all = [variantEl, ...variantEl.querySelectorAll('*')];
+    all.forEach(el => {
+      el.classList.forEach(cls => {
+        const set = classToTokens.get(cls);
+        if (set) set.forEach(t => tokens.add(t));
+      });
+    });
+    return tokens;
+  }
+
+  function buildTokensBlock(variantEl) {
+    const tokens = collectTokens(variantEl);
+    if (tokens.size === 0) return '<div class="inspect-empty">No design tokens detected.</div>';
+    const groups = new Map();
+    Array.from(tokens).sort().forEach(t => {
+      const label = groupOf(t);
+      if (!groups.has(label)) groups.set(label, []);
+      groups.get(label).push(t);
+    });
+    const order = ['Color', 'Spacing', 'Radius', 'Typography', 'Other'];
+    let html = '';
+    order.forEach(label => {
+      if (!groups.has(label)) return;
+      const list = groups.get(label);
+      html += '<div class="inspect-token-group">';
+      html += '<div class="inspect-token-group__label">' + label + ' · ' + list.length + '</div>';
+      list.forEach(t => {
+        const value = resolveToken(t);
+        const swatch = label === 'Color'
+          ? '<span class="inspect-token__swatch" style="background:' + value + '"></span>'
+          : '';
+        html += '<div class="inspect-token">' + swatch +
+          '<span class="inspect-token__name">' + t + '</span>' +
+          '<span class="inspect-token__value">' + escapeHtml(value || '—') + '</span>' +
+          '</div>';
+      });
+      html += '</div>';
+    });
+    return html;
+  }
+
+  function tokenCount(variantEl) {
+    return collectTokens(variantEl).size;
+  }
+
+  // ----- CSS rules rendering -----
+  function buildRulesBlock(variantEl) {
+    const classes = [];
+    const seen = new Set();
+    const all = [variantEl, ...variantEl.querySelectorAll('*')];
+    all.forEach(el => {
+      el.classList.forEach(cls => {
+        if (!seen.has(cls) && classToRules.has(cls)) {
+          seen.add(cls);
+          classes.push(cls);
+        }
+      });
+    });
+    if (classes.length === 0) return '<div class="inspect-empty">No matching CSS rules found.</div>';
+    let html = '';
+    const seenSelectors = new Set();
+    classes.forEach(cls => {
+      const rules = classToRules.get(cls) || [];
+      rules.forEach(r => {
+        if (seenSelectors.has(r.selector)) return;
+        seenSelectors.add(r.selector);
+        const body = r.body
+          .split(';')
+          .map(s => s.trim())
+          .filter(Boolean)
+          .map(line => '  ' + line + ';')
+          .join('\n');
+        html += '<div class="inspect-rule">' +
+          '<div class="inspect-rule__selector">' + escapeHtml(r.selector) + ' {</div>' +
+          '<pre class="inspect-rule__body">' + escapeHtml(body) + '\n}</pre>' +
+          '</div>';
+      });
+    });
+    return html || '<div class="inspect-empty">No matching CSS rules found.</div>';
+  }
+
+  function ruleCount(variantEl) {
+    const seen = new Set();
+    const seenSelectors = new Set();
+    let count = 0;
+    const all = [variantEl, ...variantEl.querySelectorAll('*')];
+    all.forEach(el => el.classList.forEach(cls => {
+      if (seen.has(cls)) return;
+      seen.add(cls);
+      const rules = classToRules.get(cls);
+      if (!rules) return;
+      rules.forEach(r => {
+        if (seenSelectors.has(r.selector)) return;
+        seenSelectors.add(r.selector);
+        count++;
+      });
+    }));
+    return count;
+  }
+
+  // ----- Notes -----
+  // Sourced live from the DOM: a data-inspect-note attribute on the page-view
+  // wins (use it to override or enrich), else the page subtitle, else nothing.
+  // Edits to either flow through automatically — no registry to keep in sync.
+  function buildNotesBlock(view) {
+    const override = view.dataset.inspectNote;
+    if (override) return '<p class="inspect-note">' + override + '</p>';
+    const subtitle = view.querySelector('.page-subtitle');
+    if (subtitle) return '<p class="inspect-note">' + escapeHtml(subtitle.textContent.trim()) + '</p>';
+    return '<div class="inspect-empty">No notes for this component yet.</div>';
+  }
+
+  // ----- Main render -----
+  const titleEl = panel.querySelector('.inspect__title');
+  const canonicalEl = panel.querySelector('.inspect__canonical');
+  const structureBody = panel.querySelector('[data-section="structure"] .inspect__section-body');
+  const structureCount = panel.querySelector('[data-section="structure"] .inspect__section-count');
+  const tokensBody = panel.querySelector('[data-section="tokens"] .inspect__section-body');
+  const tokensCount = panel.querySelector('[data-section="tokens"] .inspect__section-count');
+  const rulesBody = panel.querySelector('[data-section="rules"] .inspect__section-body');
+  const rulesCount = panel.querySelector('[data-section="rules"] .inspect__section-count');
+  const notesBody = panel.querySelector('[data-section="notes"] .inspect__section-body');
+
+  function renderInspect() {
+    const view = document.querySelector('.page-view.is-active');
+    if (!view || view.id === 'home' || view.id === 'components-home' || view.id.startsWith('styles-')) {
+      document.body.classList.add('no-inspect');
+      return;
+    }
+    document.body.classList.remove('no-inspect');
+
+    // Title from page-title; canonical from first [data-canonical].
+    const pageTitle = view.querySelector('.page-title');
+    titleEl.textContent = pageTitle ? pageTitle.textContent.trim() : (view.id || 'Inspect');
+    const canonicalNode = view.querySelector('[data-canonical]');
+    const canonical = canonicalNode ? canonicalNode.dataset.canonical : '';
+    if (canonical) {
+      canonicalEl.textContent = canonical;
+      canonicalEl.hidden = false;
+    } else {
+      canonicalEl.hidden = true;
+    }
+
+    // Find the variant root.
+    let variant = view.querySelector('.component-card .tab-panel[data-active="true"]');
+    if (!variant) variant = view.querySelector('.component-card');
+    if (!variant) variant = view;
+
+    // Supporting primitives: render one details per section.
+    const isSupporting = view.querySelectorAll('.component-card__section').length > 1 &&
+      !view.querySelector('.component-card .tab-button');
+    if (isSupporting) {
+      const sections = Array.from(view.querySelectorAll('.component-card__section'));
+      structureBody.innerHTML = sections.map((s, i) => {
+        const label = s.querySelector('.component-card__section-title');
+        const labelText = label ? label.textContent.trim() : ('Section ' + (i + 1));
+        const inner = buildStructureBlock(s, 1200);
+        return '<details class="inspect-structure-section"' + (i === 0 ? ' open' : '') + '>' +
+          '<summary>' + escapeHtml(labelText) + '</summary>' + inner + '</details>';
+      }).join('');
+      // For tokens + rules, use the whole component-card as scope.
+      variant = view.querySelector('.component-card') || view;
+    } else {
+      structureBody.innerHTML = buildStructureBlock(variant, 2000);
+    }
+
+    tokensBody.innerHTML = buildTokensBlock(variant);
+    tokensCount.textContent = tokenCount(variant);
+    rulesBody.innerHTML = buildRulesBlock(variant);
+    rulesCount.textContent = ruleCount(variant);
+    notesBody.innerHTML = buildNotesBlock(view);
+
+    // Count elements in structure.
+    structureCount.textContent = variant.querySelectorAll('*').length;
+  }
+
+  // Expand-structure click delegation.
+  panel.addEventListener('click', e => {
+    const btn = e.target.closest('[data-action="expand-structure"]');
+    if (!btn) return;
+    const body = btn.parentElement;
+    body.querySelector('[data-collapsed]').hidden = true;
+    body.querySelector('[data-full]').hidden = false;
+    btn.hidden = true;
+  });
+
+  // ----- Open/close + persistence -----
+  function isDesktop() { return window.innerWidth >= 1200; }
+
+  function setOpen(open, save) {
+    panel.setAttribute('data-open', open ? 'true' : 'false');
+    if (isDesktop()) {
+      document.body.classList.toggle('has-inspect', open);
+      backdrop.classList.remove('is-open');
+    } else {
+      document.body.classList.toggle('has-inspect', open);
+      backdrop.classList.toggle('is-open', open);
+    }
+    if (save) localStorage.setItem('inspect:open', open ? '1' : '0');
+  }
+
+  function readSaved() {
+    const v = localStorage.getItem('inspect:open');
+    if (v === '1') return true;
+    if (v === '0') return false;
+    return isDesktop();
+  }
+
+  toggle.addEventListener('click', () => setOpen(true, true));
+  closeBtn.addEventListener('click', () => setOpen(false, true));
+  backdrop.addEventListener('click', () => setOpen(false, true));
+
+  window.addEventListener('resize', () => {
+    // Re-apply current open state so body padding matches the breakpoint.
+    setOpen(panel.getAttribute('data-open') === 'true', false);
+  });
+
+  // ----- Hook into existing routing + tab handlers -----
+  // navigate() is global; we wrap it to call renderInspect afterwards.
+  const originalNavigate = window.navigate;
+  if (typeof originalNavigate === 'function') {
+    window.navigate = function(hash) {
+      originalNavigate(hash);
+      renderInspect();
+    };
+  }
+  // Tab buttons already have handlers; piggyback with a delegated listener.
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.tab-button');
+    if (!btn) return;
+    // Defer to after the existing handler updates aria-selected/data-active.
+    setTimeout(renderInspect, 0);
+  });
+  window.addEventListener('hashchange', () => setTimeout(renderInspect, 0));
+
+  // ----- Boot -----
+  parseStylesheets();
+  setOpen(readSaved(), false);
+  renderInspect();
 })();
 </script>
 </body>
