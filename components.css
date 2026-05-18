@@ -653,7 +653,6 @@
 .compare-table__labels {
   display: flex;
   flex-direction: column;
-  background: var(--color-surface-secondary);
   border-right: 0.5px solid var(--color-border-default);
 }
 .compare-table__options {
@@ -719,7 +718,6 @@
 }
 .compare-table__header-cell { justify-content: flex-end; }
 .compare-table__header-label {
-  background: var(--color-surface-secondary);
   font-size: var(--font-size-caption);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-secondary);
