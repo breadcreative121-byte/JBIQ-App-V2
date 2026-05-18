@@ -63,6 +63,14 @@
   --color-action-primary:         #6d17ce;
   --color-action-primary-hover:   #310064;
   --color-action-primary-surface: #ede7ff;
+  --color-action-primary-pale:    #f6f3ff;
+
+  /* color.accent — secondary (teal) and sparkle (blue) accents used by
+     editorial scaffolding (callouts, annotated labels, etc.). */
+  --color-secondary:         #00ad8b;
+  --color-secondary-surface: #ddfef2;
+  --color-sparkle:           #0078ad;
+  --color-sparkle-surface:   #ecf7ff;
 
   /* color.border */
   --color-border-default: rgba(12,13,16,0.08);
@@ -91,12 +99,13 @@
   --color-error:   #fa2f40;
 
   /* space */
-  --space-xs:  4px;
-  --space-sm:  8px;
+  --space-xs:   4px;
+  --space-sm:   8px;
   --space-md:  12px;
   --space-lg:  16px;
   --space-xl:  24px;
   --space-xxl: 32px;
+  --space-huge: 56px;
 
   /* radius */
   --radius-sm:   8px;
@@ -2104,4 +2113,195 @@
 .jbiq-discovery:has(.receipt--full-width) > .cta-row {
   padding-left: var(--space-lg);
   padding-right: var(--space-lg);
+}
+
+
+/* ============================================================================
+   EDITORIAL / PLAYBOOK SCAFFOLDING
+
+   Long-form documentation primitives used by voice-playbook.html and any
+   other editorial page: section frames, eyebrows, lead paragraphs,
+   sub-block labels, callouts (purple / sparkle / secondary), the chapter
+   "spine" sub-section list, the side-by-side tension comparison, and the
+   cross-references footer.
+
+   These are NOT part of the chat / discovery component set — they exist so
+   long-form pages can use system tokens + a shared component vocabulary
+   instead of redefining them inline.
+   ============================================================================ */
+
+/* ---- Section editorial ---- */
+.section {
+  padding: 96px 0;
+  border-top: 0.5px solid var(--color-border-default);
+  scroll-margin-top: var(--space-xl);
+}
+.section-title {
+  font-size: 40px;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 0 0 var(--space-xl);
+  max-width: 880px;
+}
+.section-lead {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 var(--space-huge);
+  max-width: 760px;
+  letter-spacing: -0.005em;
+}
+
+/* Eyebrow — small accent label sitting above a title. */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-action-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-md);
+}
+
+/* Chapter sub-block heading — sits above a worked-example or sub-section. */
+.block-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-tertiary);
+  margin: var(--space-huge) 0 var(--space-md);
+}
+.block-label:first-child { margin-top: 0; }
+
+/* Cross-references footer (chapter ↔ chapter pointers). */
+.xrefs {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-top: var(--space-xl);
+  line-height: 1.6;
+}
+.xrefs strong { color: var(--color-text-primary); font-weight: 700; }
+
+/* ---- Chapter spine — the numbered sub-section table ---- */
+.spine { list-style: none; padding: 0; margin: 0; }
+.spine li {
+  display: grid;
+  grid-template-columns: 56px 220px 1fr;
+  gap: var(--space-xl);
+  padding: var(--space-md) 0;
+  border-bottom: 0.5px solid var(--color-border-default);
+  align-items: baseline;
+}
+.spine li:first-child { border-top: 0.5px solid var(--color-border-default); }
+.spine .num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-action-primary);
+  font-weight: 700;
+}
+.spine .name {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.spine .desc {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* ---- Callouts — purpose / worked-example / acceptance highlights ---- */
+.callout {
+  padding: var(--space-xl) var(--space-xxl);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-xl);
+}
+.callout--purple    { background: var(--color-action-primary-pale); }
+.callout--sparkle   { background: var(--color-sparkle-surface); }
+.callout--secondary { background: var(--color-secondary-surface); }
+.callout__label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-sm);
+}
+.callout--purple    .callout__label { color: var(--color-action-primary); }
+.callout--sparkle   .callout__label { color: var(--color-sparkle); }
+.callout--secondary .callout__label { color: var(--color-secondary); }
+.callout__body {
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.callout__body + .callout__body { margin-top: var(--space-sm); }
+
+/* ---- Tension — side-by-side good / bad comparison ---- */
+.tension {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--space-xl);
+  align-items: stretch;
+  margin: var(--space-xl) 0;
+}
+.tension-col {
+  padding: var(--space-xl);
+  background: var(--color-surface-secondary);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.tension-col.primary { background: var(--color-action-primary-surface); }
+.tension-vs {
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.tension-eb {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-tertiary);
+  margin-bottom: 4px;
+}
+.tension-title {
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  margin: 0;
+}
+.tension-quote {
+  font-size: 15px;
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Responsive: editorial primitives collapse to single-column on narrow screens. */
+@media (max-width: 720px) {
+  .section { padding: var(--space-huge) 0; }
+  .section-title { font-size: 28px; }
+  .spine li {
+    grid-template-columns: 40px 1fr;
+    grid-template-areas: "num name" "num desc";
+    gap: 4px var(--space-md);
+    padding: var(--space-md) 0;
+  }
+  .spine .num  { grid-area: num; }
+  .spine .name { grid-area: name; }
+  .spine .desc { grid-area: desc; }
+  .callout { padding: var(--space-lg); }
+  .tension { grid-template-columns: 1fr; }
+  .tension-vs { padding: var(--space-sm) 0; }
 }
