@@ -4210,7 +4210,7 @@
     <!-- Voice Container -->
     <div class="voice-container">
       <!-- Connecting: thinking video -->
-      <video class="voice-spinner visible" id="voiceSpinner" src="avatar-thinking.mp4" muted playsinline></video>
+      <video class="voice-spinner visible" id="voiceSpinner" src="assets/connecting-avatar.mp4" muted playsinline></video>
 
       <!-- Connected/Welcome: bot dots + avatar video -->
       <div class="voice-bot-dots" id="voiceBotDots">
@@ -5021,8 +5021,9 @@
         case 'connecting':
           // Fresh-open connecting — large centered avatar + "Connecting..."
           // label. Distinct from the other voice states which are mid-conv.
-          avatarCenter.classList.add('visible');
-          avatarCenter.play().catch(() => {});
+          spinner.classList.add('visible');
+          spinner.currentTime = 0;
+          spinner.play().catch(() => {});
           statusText.textContent = 'Connecting...';
           statusText.classList.add('visible');
           break;

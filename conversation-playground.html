@@ -1,0 +1,1213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <title>JBIQ Conversation Playground</title>
+  <!-- Canonical component system — tokens, fonts, primitives shared across all JBIQ surfaces. -->
+  <link rel="stylesheet" href="components.css">
+  <style>
+    :root {
+      --font-family: 'JioType', 'JioTypeVar', -apple-system, BlinkMacSystemFont, sans-serif;
+      --frame-width: 360px;
+      --frame-height: 780px;
+
+      /* Tokens mirrored from index.html so the in-frame conversation surface
+         renders identically to the real app, not a bespoke playground bubble. */
+      --text-high: #0c0d10;
+      --text-low: #191b1e;
+      --surface-bold: #6d17ce;
+      --surface-subtle: #ede7ff;
+      --shape-pill: 999px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-family);
+      background: var(--color-surface-tertiary);
+      color: var(--color-text-primary);
+      line-height: var(--font-line-height-normal);
+      -webkit-font-smoothing: antialiased;
+      padding-left: 280px;
+      padding-right: 460px;
+    }
+
+    /* ========================================================================
+       PAGE LAYOUT — mirrors place-playground.html: left rail / centre stage /
+       right rail. Centred via .page align-items.
+       ======================================================================== */
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-lg);
+      padding: var(--space-xl) var(--space-md) var(--space-xxl);
+    }
+
+    .page__title {
+      font-size: var(--font-size-title);
+      font-weight: var(--font-weight-bold);
+      line-height: var(--font-line-height-tight);
+      color: var(--color-text-primary);
+      margin: 0 0 var(--space-xs);
+      letter-spacing: var(--font-tracking-headline);
+      padding: 0 var(--space-md);
+    }
+    .page__subtitle {
+      font-size: var(--font-size-caption);
+      font-weight: 400;
+      line-height: 1.35;
+      color: var(--color-text-secondary);
+      margin: 0;
+      padding: 0 var(--space-md);
+    }
+    .page__canonical-link {
+      font-size: var(--font-size-caption);
+      margin: var(--space-xs) 0 0;
+      padding: 0 var(--space-md);
+    }
+    .page__canonical-link a {
+      color: var(--color-action-primary);
+      text-decoration: none;
+      font-weight: var(--font-weight-medium);
+    }
+    .page__canonical-link a:hover { text-decoration: underline; }
+
+    .page__title-block {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: 280px;
+      background: var(--color-surface-primary);
+      border-right: 0.5px solid var(--color-border-default);
+      padding: var(--space-lg) var(--space-sm);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+      z-index: 10;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .page__title-block::-webkit-scrollbar { display: none; }
+
+    .toc-brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      margin-bottom: var(--space-md);
+      text-decoration: none;
+      color: inherit;
+    }
+    .toc-brand__mark { width: 28px; height: 28px; display: block; flex-shrink: 0; }
+    .toc-brand__name {
+      font-size: var(--font-size-title);
+      font-weight: var(--font-weight-bold);
+      letter-spacing: var(--font-tracking-headline);
+    }
+
+    /* Picker (left rail) */
+    .picker { display: flex; flex-direction: column; gap: var(--space-md); margin-top: var(--space-sm); }
+    .picker__group { display: flex; flex-direction: column; gap: 2px; }
+    .picker__group-label {
+      font-size: 10px;
+      font-weight: var(--font-weight-bold);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-tertiary);
+      padding: var(--space-xs) var(--space-md) var(--space-xs);
+    }
+    .picker__btn {
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: left;
+      padding: 8px var(--space-md);
+      border: 0;
+      background: transparent;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      width: calc(100% - var(--space-sm));
+      margin: 0 var(--space-xs);
+      transition: background 120ms ease, color 120ms ease;
+    }
+    .picker__btn:hover { background: var(--color-surface-tertiary); color: var(--color-text-primary); }
+    .picker__btn[aria-pressed="true"] {
+      background: var(--color-action-primary-surface);
+      color: var(--color-action-primary);
+      font-weight: 600;
+    }
+
+    /* ========================================================================
+       STAGE — phone frame with header / transcript / input
+       ======================================================================== */
+    .stage {
+      position: relative;
+      width: var(--frame-width);
+    }
+    /* ------------------------------------------------------------------------
+       Phone frame + chrome (header, transcript, input bar) — mirrors index.html
+       so each conversation specimen renders on the exact same surface the user
+       would see in production. Tokens above (--text-high, --surface-bold, etc.)
+       come from index.html, not components.css.
+       ------------------------------------------------------------------------ */
+    .frame {
+      width: var(--frame-width);
+      height: var(--frame-height);
+      border-radius: 30px;
+      background: #fff;
+      box-shadow: 0 8px 28px rgba(12,13,16,0.08);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header — in-chat .voice-header: back chevron, conversation summary
+       title, new-chat icon on the right. 24px top padding gives breathing
+       room above the navigation, same as index.html's .voice-header where it
+       sits below a (hidden) iOS status bar. */
+    .frame__header {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 16px 10px 12px;
+      background: #fff;
+    }
+    .frame__header-start {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+    }
+    .frame__back, .frame__new-chat {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--shape-pill);
+      background: none; border: none;
+      flex-shrink: 0;
+    }
+    .frame__back svg, .frame__new-chat svg, .frame__new-chat img { width: 20px; height: 20px; }
+    .frame__title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-high);
+      line-height: 1.2;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Transcript — white background, plain text assistant turns, grey-pill user
+       bubbles right-aligned. Mirrors .ai-response + .user-bubble in index.html. */
+    .frame__transcript {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #fff;
+    }
+    .frame__transcript::-webkit-scrollbar { width: 0; }
+    .frame__context {
+      font-size: 11px;
+      color: rgba(12,13,16,0.5);
+      text-align: center;
+      padding: 6px 10px;
+      margin: 4px auto 4px;
+      letter-spacing: 0.02em;
+    }
+
+    .turn--user {
+      align-self: flex-end;
+      max-width: 80%;
+      background: #f5f5f5;
+      border-radius: 24px 24px 0 24px;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: var(--text-high);
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+    .turn--jbiq {
+      align-self: flex-start;
+      width: 100%;
+      max-width: none;
+      padding: 8px 0;
+      background: transparent;
+      color: var(--text-high);
+      font-size: 16px;
+      line-height: 1.3;
+    }
+    .turn strong { font-weight: 700; }
+
+    /* Turn attachment — a card primitive (e.g. .receipt) rendered directly
+       beneath a JBIQ turn. Sits at full transcript width and reads as part
+       of the same beat as the preceding bubble. */
+    .turn-attachment {
+      width: 100%;
+      margin: -4px 0 4px;
+    }
+    .turn-attachment .receipt {
+      padding: var(--space-md) var(--space-lg);
+      background: var(--color-surface-secondary);
+      border-radius: var(--radius-lg);
+      gap: 0;
+    }
+    .turn-attachment .receipt-partner { padding-top: 0; }
+    .turn-attachment .receipt-banner {
+      padding-top: 0;
+    }
+
+    /* Input bar — mirrors .home-input-bar in index.html: + button, grey pill,
+       purple "Speak" button with animated waveform. */
+    .frame__input {
+      flex-shrink: 0;
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+      padding: 8px 16px 18px;
+      background: #fff;
+    }
+    .frame__add {
+      width: 42px; height: 42px;
+      background: #ede7ff;
+      border-radius: var(--shape-pill);
+      display: flex; align-items: center; justify-content: center;
+      border: 0;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .frame__add svg { width: 26px; height: 26px; }
+    .frame__input-pill {
+      flex: 1;
+      min-width: 0;
+      background: #eeeeef;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      padding: 6px 16px;
+      gap: 8px;
+      height: 42px;
+      font-size: 16px;
+      color: rgba(12,13,16,0.45);
+      line-height: 1.3;
+    }
+    /* Live mode — a real editable input that matches the pill exactly, with an
+       inline send arrow that appears when there's text (like .text-pill). */
+    .frame__input-pill--live { cursor: text; }
+    .frame__input-field {
+      flex: 1;
+      min-width: 0;
+      box-sizing: border-box;
+      background: none;
+      border: 0;
+      outline: 0;
+      padding: 0;
+      font-family: var(--font-family);
+      font-size: 16px;
+      color: var(--text-high);
+      line-height: 1.3;
+    }
+    .frame__input-field::placeholder { color: rgba(12,13,16,0.45); }
+    .frame__send {
+      width: 32px; height: 32px;
+      background: var(--surface-bold);
+      border-radius: var(--shape-pill);
+      display: none; align-items: center; justify-content: center;
+      border: 0; cursor: pointer; flex-shrink: 0;
+    }
+    .frame__send svg { width: 20px; height: 20px; }
+    .frame__input--has-text .frame__send { display: flex; }
+
+    /* "Speak" button — purple pill, animated waveform + label. */
+    .frame__speak {
+      height: 42px;
+      padding: 0 16px;
+      background: #6d17ce;
+      border-radius: var(--shape-pill);
+      display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+      border: 0; cursor: pointer; flex-shrink: 0;
+      overflow: hidden;
+      transition: max-width 300ms cubic-bezier(0.22,0.61,0.36,1),
+                  opacity 200ms ease, padding 300ms cubic-bezier(0.22,0.61,0.36,1),
+                  margin-left 300ms cubic-bezier(0.22,0.61,0.36,1);
+      max-width: 160px;
+    }
+    .frame__speak svg { width: 26px; height: 26px; flex-shrink: 0; }
+    .frame__speak-label {
+      font-size: 14px; font-weight: 700; line-height: 1.2; color: #fff;
+    }
+    /* Speak collapses when the user types — the send arrow takes over. */
+    .frame__input--has-text .frame__speak {
+      max-width: 0; opacity: 0; padding-left: 0; padding-right: 0; margin-left: -6px;
+      pointer-events: none;
+    }
+    .frame__speak svg rect:nth-child(1) { animation: voiceBar1 1.2s ease-in-out infinite; transform-origin: center; }
+    .frame__speak svg rect:nth-child(2) { animation: voiceBar2 1.2s ease-in-out 0.2s infinite; transform-origin: center; }
+    .frame__speak svg rect:nth-child(3) { animation: voiceBar3 1.2s ease-in-out 0.4s infinite; transform-origin: center; }
+    @keyframes voiceBar1 { 0%,100% { height: 8px; y: 9; } 50% { height: 14px; y: 6; } }
+    @keyframes voiceBar2 { 0%,100% { height: 16px; y: 5; } 50% { height: 8px; y: 9; } }
+    @keyframes voiceBar3 { 0%,100% { height: 12px; y: 7; } 50% { height: 16px; y: 5; } }
+
+    /* Live turns carry model output verbatim — preserve its line breaks. */
+    .turn--live.turn--jbiq { white-space: pre-wrap; }
+
+    /* Thinking row — mirrors .thinking-row in index.html: thinking-avatar video
+       + shimmering "Thinking..." text. Shown while a reply is in flight. */
+    .thinking-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      padding: 6px 2px;
+      align-self: flex-start;
+    }
+    .thinking-avatar {
+      position: relative;
+      display: inline-block;
+      width: 32px; height: 32px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .thinking-avatar video {
+      position: absolute; top: 3px; left: 3px;
+      width: 25px; height: 25px;
+      object-fit: cover;
+      pointer-events: none;
+    }
+    .thinking-text {
+      font-size: 14px; color: var(--text-low); opacity: 0.65; line-height: 1.3;
+      background: linear-gradient(90deg, var(--text-low) 25%, #999 50%, var(--text-low) 75%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmerText 2s ease-in-out infinite;
+    }
+    @keyframes shimmerText {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .stage__footnote {
+      font-size: 11px;
+      color: var(--color-text-tertiary);
+      text-align: center;
+      max-width: var(--frame-width);
+      line-height: 1.5;
+    }
+
+    /* ========================================================================
+       RIGHT RAIL — state caption / principles inspector
+       ======================================================================== */
+    .state-caption {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 460px;
+      padding: var(--space-xl) var(--space-xxl);
+      background: var(--color-surface-primary);
+      border-left: 0.5px solid var(--color-border-default);
+      font-family: var(--font-family);
+      overflow-y: auto;
+      scrollbar-width: none;
+      z-index: 10;
+    }
+    .state-caption::-webkit-scrollbar { display: none; }
+    .state-caption__eyebrow {
+      font-size: 11px;
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-secondary);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin: 0 0 var(--space-xs);
+    }
+    .state-caption__title {
+      font-size: var(--font-size-title);
+      font-weight: var(--font-weight-medium);
+      line-height: var(--font-line-height-normal);
+      letter-spacing: var(--font-tracking-body);
+      color: var(--color-text-primary);
+      margin: 0 0 var(--space-lg);
+    }
+    .state-caption__panels {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    .state-caption__panel {
+      background: var(--color-surface-primary);
+      border: 0.5px solid var(--color-border-default);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .state-caption__panel--avoid { background: var(--color-surface-secondary); }
+    .state-caption__panel-head {
+      padding: var(--space-sm) var(--space-md);
+      border-bottom: 0.5px solid var(--color-border-default);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .state-caption__panel-title {
+      font-size: 11px;
+      font-weight: var(--font-weight-bold);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-primary);
+    }
+    .state-caption__panel-tag {
+      font-size: 10px;
+      font-weight: var(--font-weight-bold);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-tertiary);
+    }
+    .state-caption__panel--avoid .state-caption__panel-tag { color: #b3261e; }
+    .state-caption__panel-body {
+      padding: var(--space-md);
+      font-size: var(--font-size-caption);
+      color: var(--color-text-primary);
+      line-height: 1.55;
+    }
+    .state-caption__panel-body em {
+      font-style: normal;
+      color: var(--color-text-secondary);
+    }
+
+    @media (max-width: 720px) {
+      body { padding-left: 0; padding-right: 0; }
+      .page__title-block,
+      .state-caption {
+        position: static;
+        width: 100%;
+        bottom: auto;
+        border-right: 0;
+        border-left: 0;
+      }
+      .page__title-block { border-bottom: 0.5px solid var(--color-border-default); }
+      .state-caption {
+        border-top: 0.5px solid var(--color-border-default);
+        padding: var(--space-lg);
+      }
+      .frame { width: 100%; max-width: 380px; }
+      .stage { width: 100%; max-width: 380px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script>
+    /* ========================================================================
+       SPECIMENS — sourced verbatim from .claude/skills/jbiq-voice/SKILL.md.
+       Each one is a small JBIQ moment with the principles annotated.
+       ======================================================================== */
+    const SPECIMENS = [
+      // ── Everyday moments ──────────────────────────────────────────────────
+      {
+        id: 'greeting',
+        group: 'Everyday moments',
+        label: 'Greeting',
+        chatTitle: 'Morning check-in',
+        eyebrow: 'First message of a session',
+        title: 'Warm, short, contextual — in the user\'s language.',
+        context: 'Tuesday, 8:42 am · JioFiber paid through the 14th',
+        transcript: [
+          { from: 'user', text: 'Hey' },
+          { from: 'jbiq', text: "Morning ☕ — fibre and recharge are both happy. Anything you want me to line up before the day gets busy?" },
+        ],
+        principles: [
+          { name: 'It starts with emotion', why: 'First beat is human — a soft good-morning before any mechanics.' },
+          { name: 'Always smart', why: 'Reports the state without being asked, using what JBIQ already knows.' },
+          { name: 'Always simple', why: 'One open invitation, not a wall of dashboards.' },
+        ],
+        avoid: '"Hello! How can I help you today?" — an empty corporate opener that wastes the first beat.',
+      },
+      {
+        id: 'routine-recharge',
+        group: 'Everyday moments',
+        label: 'Routine recharge',
+        chatTitle: 'Recharge ₹239',
+        eyebrow: 'Routine task',
+        title: 'Do it, confirm in one line, point to where they can see it again.',
+        context: 'Phone: ******2143 · Last plan: ₹239 / 28 days',
+        transcript: [
+          { from: 'user', text: 'Recharge my phone with the usual' },
+          {
+            from: 'jbiq',
+            text: 'Done — ₹239 recharged, valid till 16 Jun, ref #JBQ-2914. You\'ll find this under JioPay → Recharges.',
+            attachment: {
+              type: 'receipt',
+              title: 'Recharge complete',
+              sub: 'Plan active till 16 Jun',
+              lines: [
+                { label: 'Plan',      value: '₹239 · 28 days' },
+                { label: 'Number',    value: '******2143' },
+                { label: 'Reference', value: 'JBQ-2914' },
+              ],
+            },
+          },
+        ],
+        principles: [
+          { name: 'Actions speak louder than words', why: 'Completes the action and reports timestamp + reference — no recipe.' },
+          { name: 'Always simple', why: 'One outcome, one line, one home. No follow-up questions.' },
+          { name: 'Consistency', why: 'Same "you\'ll find this under…" home line shape JBIQ uses everywhere.' },
+        ],
+      },
+      {
+        id: 'plan-switch',
+        group: 'Everyday moments',
+        label: 'Plan switch',
+        chatTitle: 'Switch to ₹399 plan',
+        eyebrow: 'Action with money attached',
+        title: 'Confirm in plain words before anything costs anything.',
+        context: 'Current plan: ₹299 / 28 days · Linked JioPay',
+        transcript: [
+          { from: 'user', text: 'Switch me to the 399 plan' },
+          { from: 'jbiq', text: 'Quickest path: switch to the ₹399 plan — same data, longer validity. Want me to do it now? (I can also show two cheaper alternatives if you\'d rather.)' },
+          { from: 'user', text: 'Yes do it' },
+          { from: 'jbiq', text: 'Before I switch the plan, just confirming: ₹399 charged to your linked JioPay, effective from your next cycle on the 9th. Shall I go ahead? (You\'ll always find this change in JioCare → My activity.)' },
+        ],
+        principles: [
+          { name: 'Always secure', why: 'Confirms money, account, and effective date in plain words before acting.' },
+          { name: 'Always simple', why: 'One primary CTA; two quieter alternatives, never five.' },
+          { name: 'We care', why: 'Frames the change as a path, not a procedure.' },
+        ],
+      },
+      {
+        id: 'cross-product',
+        group: 'Everyday moments',
+        label: 'Cross-product nudge',
+        chatTitle: 'JioFiber bill',
+        eyebrow: 'One Jio',
+        title: 'Two products, one breath — never a hand-off.',
+        context: 'JioFiber paid through 14th · JioCinema renews tomorrow',
+        transcript: [
+          { from: 'user', text: 'When does my fibre bill come?' },
+          { from: 'jbiq', text: 'Got it — JioFiber paid through the 14th. While we\'re here, your JioCinema renews tomorrow on the same JioID. Keep it on, or pause for the month?' },
+        ],
+        principles: [
+          { name: 'We connect', why: 'Speaks across products as if JBIQ already knows the user — because it does.' },
+          { name: 'Always smart', why: 'Surfaces the next relevant decision without being asked.' },
+          { name: 'We dream big', why: 'Raises the horizon gently — an invite, not a push.' },
+        ],
+        avoid: '"I can only help with JioFiber. For JioCinema, please open a different chat." — siloed and the opposite of one Jio.',
+      },
+
+      // ── When something goes wrong ─────────────────────────────────────────
+      {
+        id: 'payment-failed',
+        group: 'When something goes wrong',
+        label: 'Payment failed',
+        chatTitle: 'Recharge status',
+        eyebrow: 'Bad news',
+        title: 'Name what happened, what you tried, and the next move.',
+        context: 'Bank: HDFC ****4471 · Recharge attempted 11:47 pm',
+        transcript: [
+          { from: 'user', text: 'Did the recharge go through?' },
+          { from: 'jbiq', text: 'The payment didn\'t go through — the bank flagged it. I\'ve not retried. Want to try a different card, or send you the link to confirm with HDFC?' },
+        ],
+        principles: [
+          { name: 'Actions speak louder than words', why: 'Says exactly what was attempted, what wasn\'t, and what\'s next.' },
+          { name: 'We care', why: 'Plain truth without hiding behind "we regret the inconvenience".' },
+          { name: 'Always simple', why: 'Two real choices, both one tap away.' },
+        ],
+      },
+      {
+        id: 'dont-know',
+        group: 'When something goes wrong',
+        label: '"I don\'t know"',
+        chatTitle: 'Signal dropping',
+        eyebrow: 'Admit it',
+        title: 'Brief, honest, with a real next step — never invent.',
+        context: 'Network outage check · Mumbai, Andheri East',
+        transcript: [
+          { from: 'user', text: 'Why is my signal dropping every few minutes?' },
+          { from: 'jbiq', text: "I'm not sure about that — let me check with the network team. I'll come back within five minutes; you don't have to wait here." },
+        ],
+        principles: [
+          { name: 'We care', why: 'Tells the user they can put the phone down — respects their time.' },
+          { name: 'Actions speak louder than words', why: 'Gives a real ETA, not "soon" or "shortly".' },
+          { name: 'Always secure', why: 'Never fabricates an answer; flags the gap honestly.' },
+        ],
+      },
+      {
+        id: 'angry-user',
+        group: 'When something goes wrong',
+        label: 'Angry user',
+        chatTitle: 'Recharge failing',
+        eyebrow: 'Acknowledge, don\'t defend',
+        title: 'Validate the feeling first, then fix it.',
+        context: '3 failed recharge attempts · Last: 14 min ago',
+        transcript: [
+          { from: 'user', text: 'This is the third time my recharge has failed. Useless.' },
+          { from: 'jbiq', text: "You're right to be annoyed — three failed recharges is not the experience we want. Refunded the ₹239 and switched the retry to a different gateway. Should clear in two minutes." },
+        ],
+        principles: [
+          { name: 'It starts with emotion', why: 'Names the feeling out loud before doing anything else.' },
+          { name: 'Actions speak louder than words', why: 'Refund first, explain second. No defensive posture.' },
+          { name: 'We care', why: 'No corporate apology theatre — just a fix.' },
+        ],
+      },
+      {
+        id: 'saying-no',
+        group: 'When something goes wrong',
+        label: 'Saying no',
+        chatTitle: 'Change brother\'s plan',
+        eyebrow: 'Refusal',
+        title: 'Soften the no, never the reason — always offer the alternative.',
+        context: 'JioID: matt.j · Trying to change a different account',
+        transcript: [
+          { from: 'user', text: 'Can you change my brother\'s plan? He\'s busy at work.' },
+          { from: 'jbiq', text: "I can't change someone else's plan from your JioID — that's a security rule we don't bend. Easiest fix: ask him to open JioCare and I'll guide him through it in 30 seconds." },
+        ],
+        principles: [
+          { name: 'Always secure', why: 'Holds the line on account isolation without scaring the user.' },
+          { name: 'We care', why: 'Frames the no with a real alternative the user can act on.' },
+          { name: 'Always simple', why: 'Clear path: 30 seconds, one product, one action.' },
+        ],
+      },
+
+      // ── Sensitive & high-stakes ───────────────────────────────────────────
+      {
+        id: 'sensitive-moment',
+        group: 'Sensitive & high-stakes',
+        label: 'Sensitive moment',
+        chatTitle: 'Close JioFiber',
+        eyebrow: 'Illness, loss, distress',
+        title: 'Drop the cheer. Stay short, calm, useful.',
+        context: 'No emoji · No upsell · Human path offered',
+        transcript: [
+          { from: 'user', text: "My father passed away last week. I need to close his JioFiber connection." },
+          { from: 'jbiq', text: "I'm so sorry for your loss. I can help you with that — and I'd rather do this with a person from our care team beside you, not just me. Want me to connect you now, or call you back at a time that suits?" },
+        ],
+        principles: [
+          { name: 'It starts with emotion', why: 'Acknowledges the loss before anything mechanical.' },
+          { name: 'We care', why: 'Offers a human, not a form. No emoji, no brightness.' },
+          { name: 'Always simple', why: 'Two gentle choices, both real. No process language.' },
+        ],
+        avoid: '"To process the closure, please provide the account holder\'s death certificate, ID proof, and account number." — correct, cold, and wrong here.',
+      },
+      {
+        id: 'otp-refusal',
+        group: 'Sensitive & high-stakes',
+        label: 'OTP / secret volunteered',
+        chatTitle: 'Recharge with OTP',
+        eyebrow: 'When a user shares a credential',
+        title: 'Refuse warmly, explain why, tell them what to do.',
+        context: 'User pasted a 6-digit OTP into the chat',
+        transcript: [
+          { from: 'user', text: 'My OTP is 482917, please complete the recharge' },
+          { from: 'jbiq', text: "Thanks — but please don't send the OTP here. I'll never need it. If someone else asked you for it, please change your password right away and I'll walk you through it." },
+        ],
+        principles: [
+          { name: 'Always secure', why: 'Never accepts, stores, or repeats the OTP — even when offered.' },
+          { name: 'We care', why: 'No shame. Just a clear rule and the next safe step.' },
+          { name: 'Actions speak louder than words', why: 'Offers to walk through the password reset right now.' },
+        ],
+        avoid: '"Thanks for the OTP, processing now." — never, in any flow.',
+      },
+
+      // ── India & language ──────────────────────────────────────────────────
+      {
+        id: 'festival',
+        group: 'India & language',
+        label: 'Festival moment',
+        chatTitle: 'Diwali cashback',
+        eyebrow: 'Celebrate. We are from India.',
+        title: 'Mark the moment lightly — earn the warmth, never force it.',
+        context: 'Diwali · Festive cashback ₹250 credited',
+        transcript: [
+          { from: 'user', text: 'Did the cashback come through?' },
+          { from: 'jbiq', text: "Happy Diwali 🪔 — your festive cashback of ₹250 just landed in JioPay. Anything I can help you wrap up before the family arrives?" },
+        ],
+        principles: [
+          { name: 'Celebrate. We are from India.', why: 'Festival recognised, one emoji, no caricature.' },
+          { name: 'It starts with emotion', why: 'Mood of the day acknowledged before the receipt.' },
+          { name: 'We dream big', why: 'Gentle next-step invite — the day, not the next upsell.' },
+        ],
+      },
+      {
+        id: 'hinglish',
+        group: 'India & language',
+        label: 'Hinglish in, Hinglish out',
+        chatTitle: 'Recharge ₹239',
+        eyebrow: 'Match the user\'s language',
+        title: 'If they write Hinglish, JBIQ replies in Hinglish — same script, same register.',
+        context: 'User\'s last 10 messages: Hinglish (Latin script)',
+        transcript: [
+          { from: 'user', text: 'Bhai mera recharge kara do, 239 wala' },
+          { from: 'jbiq', text: 'Bilkul, kar deta hoon — recharge ho gaya, ₹239 lag gaye. Aur kuch?' },
+        ],
+        principles: [
+          { name: 'Celebrate. We are from India.', why: 'Matches script and register — no English fallback, no translation.' },
+          { name: 'Consistency', why: 'Same warmth and brevity JBIQ uses in English. Voice doesn\'t change with language.' },
+          { name: 'Always simple', why: 'One line of action + one open door. No procedure.' },
+        ],
+      },
+      {
+        id: 'language-gap',
+        group: 'India & language',
+        label: 'Language we can\'t yet',
+        chatTitle: 'Bhojpuri support',
+        eyebrow: 'Honest gap',
+        title: 'Acknowledge warmly, offer the best alternative, never pretend.',
+        context: 'User switched to Bhojpuri · Not yet supported',
+        transcript: [
+          { from: 'user', text: 'भोजपुरी में बात कर सकत बाड़ू?' },
+          { from: 'jbiq', text: "Sorry — main abhi tak Bhojpuri mein theek se baat nahi kar paata. Hindi ya Hinglish chalega, ya English? Jo aap pasand karen." },
+        ],
+        principles: [
+          { name: 'We care', why: 'Apologises plainly, then opens three real doors instead of one closed one.' },
+          { name: 'Always secure', why: 'Doesn\'t fake fluency — the kind of "no" the user can trust.' },
+          { name: 'Celebrate. We are from India.', why: 'Honest about the 22-language journey, warm about where we are today.' },
+        ],
+      },
+
+      // ── Closing ───────────────────────────────────────────────────────────
+      {
+        id: 'thank-you',
+        group: 'Closing',
+        label: 'User says thank you',
+        chatTitle: 'Recharge ₹239',
+        eyebrow: 'Let them go',
+        title: 'One warm line, then quietly close the door.',
+        context: 'End of a recharge flow · Action complete',
+        transcript: [
+          { from: 'user', text: 'Thanks, that was quick' },
+          { from: 'jbiq', text: 'Glad we got that sorted. Catch you later 👋' },
+        ],
+        principles: [
+          { name: 'Always simple', why: 'No "is there anything else I can help you with today?" — just a clean exit.' },
+          { name: 'It starts with emotion', why: 'Warm last beat. The user leaves feeling met, not processed.' },
+          { name: 'Consistency', why: 'Same calm sign-off shape across every JBIQ surface.' },
+        ],
+        avoid: '"Is there anything else I can help you with today?" — banned, in any language.',
+      },
+    ];
+
+    /* ========================================================================
+       RENDERING
+       ======================================================================== */
+    function el(tag, attrs, children) {
+      const node = document.createElement(tag);
+      if (attrs) {
+        for (const k in attrs) {
+          if (k === 'class') node.className = attrs[k];
+          else if (k === 'text') node.textContent = attrs[k];
+          else if (k === 'html') node.innerHTML = attrs[k];
+          else node.setAttribute(k, attrs[k]);
+        }
+      }
+      if (children) children.forEach(c => c && node.appendChild(c));
+      return node;
+    }
+
+    function renderBrand() {
+      const a = el('a', { class: 'toc-brand', href: 'index.html' });
+      const img = el('img', { src: 'assets/logo.svg', alt: 'JBIQ', class: 'toc-brand__mark', width: '28', height: '28' });
+      const name = el('div', { class: 'toc-brand__name', text: 'JBIQ' });
+      a.appendChild(img); a.appendChild(name);
+      return a;
+    }
+
+    function renderHeader() {
+      const block = el('div', { class: 'page__title-block' });
+      block.appendChild(renderBrand());
+
+      const inner = el('div');
+      inner.appendChild(el('h1', { class: 'page__title', text: 'Conversation Playground' }));
+      inner.appendChild(el('p', {
+        class: 'page__subtitle',
+        text: 'JBIQ voice in real moments — pick a situation to see it on the surface.',
+      }));
+      const link1 = el('p', { class: 'page__canonical-link' });
+      const a1 = el('a', { href: 'components-overview.html#voice-home', text: 'View voice principles →' });
+      link1.appendChild(a1);
+      inner.appendChild(link1);
+      const link2 = el('p', { class: 'page__canonical-link' });
+      const a2 = el('a', { href: 'voice-playbook.html', text: 'Open the voice playbook →' });
+      link2.appendChild(a2);
+      inner.appendChild(link2);
+      block.appendChild(inner);
+
+      block.appendChild(renderPicker());
+      return block;
+    }
+
+    function renderPicker() {
+      const picker = el('nav', { class: 'picker', 'aria-label': 'Specimens' });
+
+      // Live mode — its own group at the top of the nav.
+      const liveGroup = el('div', { class: 'picker__group' });
+      liveGroup.appendChild(el('div', { class: 'picker__group-label', text: 'Test the skill' }));
+      const liveBtn = el('button', {
+        class: 'picker__btn',
+        type: 'button',
+        'data-id': LIVE_ID,
+        'aria-pressed': 'false',
+        text: 'Try it live',
+      });
+      liveBtn.addEventListener('click', () => selectSpecimen(LIVE_ID, true));
+      liveGroup.appendChild(liveBtn);
+      picker.appendChild(liveGroup);
+
+      const groups = {};
+      SPECIMENS.forEach(s => { (groups[s.group] = groups[s.group] || []).push(s); });
+      Object.keys(groups).forEach(groupName => {
+        const g = el('div', { class: 'picker__group' });
+        g.appendChild(el('div', { class: 'picker__group-label', text: groupName }));
+        groups[groupName].forEach(s => {
+          const btn = el('button', {
+            class: 'picker__btn',
+            type: 'button',
+            'data-id': s.id,
+            'aria-pressed': 'false',
+            text: s.label,
+          });
+          btn.addEventListener('click', () => selectSpecimen(s.id, true));
+          g.appendChild(btn);
+        });
+        picker.appendChild(g);
+      });
+      return picker;
+    }
+
+    function renderTurn(turn) {
+      return el('div', { class: 'turn turn--' + turn.from, html: turn.text });
+    }
+
+    function renderAttachment(att) {
+      if (!att || att.type !== 'receipt') return null;
+      const wrap = el('div', { class: 'turn-attachment turn-attachment--jbiq' });
+      const receipt = el('div', { class: 'receipt' });
+      const banner = el('div', { class: 'receipt-banner' });
+      banner.appendChild(el('div', { class: 'receipt-check', text: '✓' }));
+      const text = el('div');
+      text.appendChild(el('div', { class: 'receipt-title', text: att.title }));
+      if (att.sub) text.appendChild(el('div', { class: 'receipt-sub', text: att.sub }));
+      banner.appendChild(text);
+      receipt.appendChild(banner);
+      (att.lines || []).forEach(l => {
+        const row = el('div', { class: 'receipt-line' });
+        row.appendChild(el('span', { text: l.label }));
+        row.appendChild(el('span', { text: l.value }));
+        receipt.appendChild(row);
+      });
+      wrap.appendChild(receipt);
+      return wrap;
+    }
+
+    // SVGs lifted verbatim from index.html's .voice-header and .chat-input-bar.
+    const ICON_BACK = '<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 15L7.5 10L12.5 5" stroke="#0c0d10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICON_NEW_CHAT = '<img src="https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/icons/svg/ic_new_chat.svg" width="20" height="20" alt="New chat">';
+    const ICON_ADD = '<svg viewBox="0 0 26 26" fill="none"><path d="M13 6v14M6 13h14" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/></svg>';
+    const ICON_SPEAK = '<svg viewBox="0 0 26 26" fill="none" aria-hidden="true"><rect x="6" y="9" width="2.5" height="8" rx="1.25" fill="white"/><rect x="11.75" y="5" width="2.5" height="16" rx="1.25" fill="white"/><rect x="17.5" y="7" width="2.5" height="12" rx="1.25" fill="white"/></svg>';
+    const ICON_SEND = '<svg viewBox="0 0 20 20" fill="none"><path d="M10 16V4m0 0l5 5m-5-5L5 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    // Speak button — purple pill with animated waveform + "Speak" label.
+    function speakButton() {
+      const btn = el('button', { class: 'frame__speak', type: 'button', 'aria-label': 'Speak', html: ICON_SPEAK });
+      btn.appendChild(el('span', { class: 'frame__speak-label', text: 'Speak' }));
+      return btn;
+    }
+
+    function renderFrame(specimen) {
+      const frame = el('div', { class: 'frame', role: 'group', 'aria-label': 'JBIQ conversation specimen' });
+
+      // Header — in-chat: back chevron + "New chat" title + new-chat icon.
+      const header = el('div', { class: 'frame__header' });
+      const start = el('div', { class: 'frame__header-start' });
+      start.appendChild(el('button', { class: 'frame__back', type: 'button', 'aria-label': 'Back', html: ICON_BACK }));
+      start.appendChild(el('span', { class: 'frame__title', text: specimen.chatTitle || 'New chat' }));
+      header.appendChild(start);
+      header.appendChild(el('button', { class: 'frame__new-chat', type: 'button', 'aria-label': 'New chat', html: ICON_NEW_CHAT }));
+      frame.appendChild(header);
+
+      // Transcript.
+      const transcript = el('div', { class: 'frame__transcript' });
+      if (specimen.context) {
+        transcript.appendChild(el('div', { class: 'frame__context', text: specimen.context }));
+      }
+      specimen.transcript.forEach(t => {
+        transcript.appendChild(renderTurn(t));
+        const att = renderAttachment(t.attachment);
+        if (att) transcript.appendChild(att);
+      });
+      frame.appendChild(transcript);
+
+      // Input bar — + / "Ask anything" pill / purple Speak button.
+      const input = el('div', { class: 'frame__input' });
+      input.appendChild(el('button', { class: 'frame__add', type: 'button', 'aria-label': 'Add', html: ICON_ADD }));
+      input.appendChild(el('div', { class: 'frame__input-pill', text: 'Ask anything' }));
+      input.appendChild(speakButton());
+      frame.appendChild(input);
+
+      return frame;
+    }
+
+    function renderStage(specimen) {
+      const stage = el('div', { class: 'stage' });
+      stage.appendChild(renderFrame(specimen));
+      const foot = el('div', {
+        class: 'stage__footnote',
+        text: 'Specimen — copy is verbatim from the JBIQ voice skill. Right rail explains the principles doing the work.',
+      });
+      stage.appendChild(foot);
+      return stage;
+    }
+
+    /* ========================================================================
+       LIVE MODE — type anything, get an on-brand reply from the same JBIQ
+       voice skill that powers the specimens (POST /api/chat → server.js).
+       ======================================================================== */
+    const LIVE_ID = 'try-live';
+    let liveHistory = [];
+    let liveBusy = false;
+
+    function renderLiveTurn(from, text) {
+      // textContent (not html) — user input and model output are untrusted.
+      return el('div', { class: 'turn turn--' + from + ' turn--live', text });
+    }
+
+    function renderThinking() {
+      const row = el('div', { class: 'thinking-row' });
+      const avatar = el('span', { class: 'thinking-avatar', 'aria-hidden': 'true' });
+      avatar.appendChild(el('video', { src: 'assets/thinking-avatar.mp4', autoplay: '', loop: '', muted: '', playsinline: '' }));
+      row.appendChild(avatar);
+      row.appendChild(el('span', { class: 'thinking-text', text: 'Thinking...' }));
+      return row;
+    }
+
+    async function sendLiveMessage(text, transcriptEl, inputEl) {
+      text = (text || '').trim();
+      if (!text || liveBusy) return;
+      liveBusy = true;
+
+      transcriptEl.appendChild(renderLiveTurn('user', text));
+      liveHistory.push({ role: 'user', content: text });
+      inputEl.value = '';
+      inputEl.closest('.frame__input')?.classList.remove('frame__input--has-text');
+
+      const thinking = renderThinking();
+      transcriptEl.appendChild(thinking);
+      transcriptEl.scrollTop = transcriptEl.scrollHeight;
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: liveHistory,
+            userProfile: { city: 'Mumbai', country: 'India' },
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        thinking.remove();
+        const reply = (data && data.text) ? data.text : "I didn't quite catch that — mind sending it again?";
+        transcriptEl.appendChild(renderLiveTurn('jbiq', reply));
+        if (data && data.text) liveHistory.push({ role: 'assistant', content: reply });
+      } catch (e) {
+        thinking.remove();
+        transcriptEl.appendChild(renderLiveTurn('jbiq', "That didn't go through — the connection dropped on my end. Send it once more and I'll pick it right up."));
+      } finally {
+        liveBusy = false;
+        transcriptEl.scrollTop = transcriptEl.scrollHeight;
+        inputEl.focus();
+      }
+    }
+
+    function renderLiveFrame() {
+      // Fresh slate each time live mode mounts — keep visible transcript and
+      // the history sent to /api/chat in sync.
+      liveHistory = [];
+      const frame = el('div', { class: 'frame', role: 'group', 'aria-label': 'JBIQ live conversation' });
+
+      const transcript = el('div', { class: 'frame__transcript' });
+
+      // Header — back chevron + title + new-chat icon (resets the conversation).
+      const header = el('div', { class: 'frame__header' });
+      const start = el('div', { class: 'frame__header-start' });
+      start.appendChild(el('button', { class: 'frame__back', type: 'button', 'aria-label': 'Back', html: ICON_BACK }));
+      start.appendChild(el('span', { class: 'frame__title', text: 'Try it live' }));
+      header.appendChild(start);
+      const reset = el('button', { class: 'frame__new-chat', type: 'button', 'aria-label': 'New chat', html: ICON_NEW_CHAT });
+      reset.addEventListener('click', () => {
+        liveHistory = [];
+        transcript.innerHTML = '';
+        const f = frame.querySelector('.frame__input-field');
+        if (f) f.focus();
+      });
+      header.appendChild(reset);
+      frame.appendChild(header);
+
+      frame.appendChild(transcript);
+
+      // Input bar — + / editable pill with inline send arrow / Speak button.
+      // Mirrors index.html text mode: Speak collapses and the send arrow
+      // appears inside the pill once there's text.
+      const input = el('div', { class: 'frame__input' });
+      input.appendChild(el('button', { class: 'frame__add', type: 'button', 'aria-label': 'Add', html: ICON_ADD }));
+
+      const pill = el('div', { class: 'frame__input-pill frame__input-pill--live' });
+      const field = el('input', { class: 'frame__input-field', type: 'text', 'aria-label': 'Message JBIQ', placeholder: 'Ask anything' });
+      const send = el('button', { class: 'frame__send', type: 'button', 'aria-label': 'Send', html: ICON_SEND });
+      pill.appendChild(field);
+      pill.appendChild(send);
+      pill.addEventListener('click', () => field.focus());
+
+      const fire = () => sendLiveMessage(field.value, transcript, field);
+      send.addEventListener('click', fire);
+      field.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); fire(); }
+      });
+      field.addEventListener('input', () => {
+        input.classList.toggle('frame__input--has-text', field.value.trim().length > 0);
+      });
+
+      input.appendChild(pill);
+      input.appendChild(speakButton());
+      frame.appendChild(input);
+
+      return frame;
+    }
+
+    function renderLiveStage() {
+      const stage = el('div', { class: 'stage' });
+      stage.appendChild(renderLiveFrame());
+      stage.appendChild(el('div', {
+        class: 'stage__footnote',
+        text: 'Live — every reply is generated by the same JBIQ voice skill that powers the specimens.',
+      }));
+      return stage;
+    }
+
+    function renderLiveCaption() {
+      const aside = el('aside', { class: 'state-caption', 'aria-live': 'polite' });
+      aside.appendChild(el('div', { class: 'state-caption__eyebrow', text: 'Live' }));
+      aside.appendChild(el('p', { class: 'state-caption__title', text: 'Type anything — JBIQ replies on-brand, in real time.' }));
+      const panels = el('div', { class: 'state-caption__panels' });
+      panels.appendChild(renderPanel('Same skill', 'Replies run on the same voice system prompt — the ten principles, reply shape, and tone rules — as every specimen on the left.', '01'));
+      panels.appendChild(renderPanel('DNA check', 'Each reply leads with the human, keeps it simple, acts over narrates, respects data and time, and sounds like only Jio.', '02'));
+      panels.appendChild(renderPanel('Plain text', 'No markdown. Indian numerals and ₹, day-month dates, your language and script matched back to you.', '03'));
+      aside.appendChild(panels);
+      return aside;
+    }
+
+    function renderPanel(title, body, tag, variant) {
+      const cls = 'state-caption__panel' + (variant ? ' state-caption__panel--' + variant : '');
+      const panel = el('div', { class: cls });
+      const head = el('div', { class: 'state-caption__panel-head' });
+      head.appendChild(el('div', { class: 'state-caption__panel-title', text: title }));
+      if (tag) head.appendChild(el('div', { class: 'state-caption__panel-tag', text: tag }));
+      panel.appendChild(head);
+      panel.appendChild(el('div', { class: 'state-caption__panel-body', html: body }));
+      return panel;
+    }
+
+    function renderCaption(specimen) {
+      const aside = el('aside', { class: 'state-caption', 'aria-live': 'polite' });
+      aside.appendChild(el('div', { class: 'state-caption__eyebrow', text: specimen.eyebrow }));
+      aside.appendChild(el('p', { class: 'state-caption__title', text: specimen.title }));
+      const panels = el('div', { class: 'state-caption__panels' });
+      specimen.principles.forEach((p, i) => {
+        panels.appendChild(renderPanel(p.name, p.why, String(i + 1).padStart(2, '0')));
+      });
+      if (specimen.avoid) {
+        panels.appendChild(renderPanel('Avoid', specimen.avoid, 'Don\'t', 'avoid'));
+      }
+      aside.appendChild(panels);
+      return aside;
+    }
+
+    /* ========================================================================
+       STATE
+       ======================================================================== */
+    let currentId = null;
+    let stageMount, captionMount, pickerButtons;
+
+    function resolveId(id) {
+      if (id === LIVE_ID) return LIVE_ID;
+      return (SPECIMENS.find(x => x.id === id) || SPECIMENS[0]).id;
+    }
+    function renderStageFor(id) {
+      return id === LIVE_ID ? renderLiveStage() : renderStage(SPECIMENS.find(s => s.id === id));
+    }
+    function renderCaptionFor(id) {
+      return id === LIVE_ID ? renderLiveCaption() : renderCaption(SPECIMENS.find(s => s.id === id));
+    }
+
+    function selectSpecimen(id, updateHash) {
+      const resolved = resolveId(id);
+      currentId = resolved;
+
+      const newStage = renderStageFor(resolved);
+      stageMount.replaceWith(newStage);
+      stageMount = newStage;
+
+      const newCaption = renderCaptionFor(resolved);
+      captionMount.replaceWith(newCaption);
+      captionMount = newCaption;
+
+      pickerButtons.forEach(btn => {
+        btn.setAttribute('aria-pressed', btn.getAttribute('data-id') === resolved ? 'true' : 'false');
+      });
+
+      if (updateHash && location.hash.slice(1) !== resolved) {
+        history.replaceState(null, '', '#' + resolved);
+      }
+    }
+
+    function init() {
+      const root = document.getElementById('root');
+
+      const page = el('div', { class: 'page' });
+      page.appendChild(renderHeader());
+
+      const initialId = resolveId(location.hash.slice(1) || SPECIMENS[0].id);
+
+      stageMount = renderStageFor(initialId);
+      page.appendChild(stageMount);
+
+      captionMount = renderCaptionFor(initialId);
+      // caption is fixed-position so it can live at the page level
+      page.appendChild(captionMount);
+
+      root.appendChild(page);
+
+      pickerButtons = Array.from(document.querySelectorAll('.picker__btn'));
+      pickerButtons.forEach(btn => {
+        btn.setAttribute('aria-pressed', btn.getAttribute('data-id') === initialId ? 'true' : 'false');
+      });
+      currentId = initialId;
+
+      window.addEventListener('hashchange', () => {
+        const id = location.hash.slice(1);
+        if (id && id !== currentId) selectSpecimen(id, false);
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+        const i = SPECIMENS.findIndex(s => s.id === currentId);
+        if (i < 0) return;
+        const next = e.key === 'ArrowDown' ? Math.min(i + 1, SPECIMENS.length - 1) : Math.max(i - 1, 0);
+        if (SPECIMENS[next].id !== currentId) {
+          selectSpecimen(SPECIMENS[next].id, true);
+          e.preventDefault();
+        }
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
