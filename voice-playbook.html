@@ -276,7 +276,7 @@
     line-height: 1.2;
   }
   .tldr-card__body {
-    font-size: 13px;
+    font-size: 16px;
     color: var(--color-text-secondary);
     line-height: 1.5;
     margin: 0;
@@ -342,7 +342,7 @@
     margin-bottom: var(--space-sm);
   }
   .cohort__title { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; margin: 0 0 var(--space-sm); }
-  .cohort__chapters { font-size: 14px; color: var(--color-text-secondary); line-height: 1.5; }
+  .cohort__chapters { font-size: 16px; color: var(--color-text-secondary); line-height: 1.5; }
 
   /* ---- Dark big-rule editorial breakout (closing note) ---- */
   .big-rule {
@@ -485,7 +485,7 @@
   }
   .annotated__label { position: relative; }
   .annotated__label .eb {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.25;
@@ -493,7 +493,7 @@
     color: var(--color-text-primary);
   }
   .annotated__label .body {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--color-text-secondary);
     line-height: 1.5;
     margin: 0;
@@ -602,14 +602,16 @@
   }
   .do-dont__col { display: flex; flex-direction: column; gap: var(--space-sm); }
   .do-dont__head {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 4px;
+    font-size: 18px;
+    font-weight: 800;
+    text-transform: none;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin-bottom: var(--space-xs);
+    color: var(--color-text-primary);
   }
-  .do-dont__head--no { color: var(--color-error); }
-  .do-dont__head--yes { color: var(--color-action-primary); }
+  .do-dont__head--no { color: var(--color-text-primary); }
+  .do-dont__head--yes { color: var(--color-text-primary); }
   .do-dont__item {
     background: var(--color-surface-secondary);
     border-radius: var(--radius-sm);
@@ -1153,11 +1155,16 @@
   <!-- ============ CHAPTER 3 — REPLY RHYTHM ============ -->
   <section class="section" id="ch-3">
     <h2 class="section-title">The reply rhythm.</h2>
-    <p class="section-lead">The four-beat shape every JBIQ reply follows — <em>Emotion → Answer → Next step → Home.</em> Defaults for length, structure, opening, closing. The spine on which every response anatomy sits.</p>
+    <p class="section-lead">The four-beat shape every JBIQ reply follows — <em><strong>Emotion</strong> → <strong>Answer</strong> → <strong>Next step</strong> → <strong>Home</strong>.</em> Defaults for length, structure, opening, closing. The spine on which every response anatomy sits.</p>
 
     <div class="callout callout--purple">
       <div class="callout__label">The four beats</div>
-      <p class="callout__body"><strong>1. Emotion first</strong> — one short human beat. <strong>2. The answer or action</strong> — the thing they came for, done. <strong>3. One next step</strong> — a single primary CTA. <strong>4. The home</strong> — where they can find this again.</p>
+      <ol class="callout__body" style="margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: var(--space-xs);">
+        <li><strong>Emotion first</strong> — one short human beat.</li>
+        <li><strong>The answer or action</strong> — the thing they came for, done.</li>
+        <li><strong>One next step</strong> — a single primary CTA.</li>
+        <li><strong>The home</strong> — where they can find this again.</li>
+      </ol>
     </div>
 
     <div class="block-label">A reply, walked through the four beats</div>
@@ -1217,7 +1224,12 @@
 
     <div class="callout callout--purple">
       <div class="callout__label">The anatomy</div>
-      <p class="callout__body"><strong>Slot 1 — Context line.</strong> One sentence with inferred signal. <strong>Slot 2 — Primary result.</strong> The substantive answer. <strong>Slot 3 — Refinement chips.</strong> Single-tap, reversible. <strong>Slot 4 — Edge affordance.</strong> Optional, ancillary.</p>
+      <ul class="callout__body" style="margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: var(--space-xs);">
+        <li><strong>Slot 1 — Context line.</strong> One sentence with inferred signal.</li>
+        <li><strong>Slot 2 — Primary result.</strong> The substantive answer.</li>
+        <li><strong>Slot 3 — Refinement chips.</strong> Single-tap, reversible.</li>
+        <li><strong>Slot 4 — Edge affordance.</strong> Optional, ancillary.</li>
+      </ul>
     </div>
 
     <div class="block-label">The four slots, in one Multi-Option reply</div>
@@ -1422,7 +1434,13 @@
 
     <div class="callout callout--purple">
       <div class="callout__label">GA targets — language</div>
-      <p class="callout__body"><strong>12+ Indian languages in production</strong> · each beats benchmark STT by 5%+ · cross-language parity within 10pp · TTS MOS 4.0+ per language · <strong>zero-English audit is a deliverable, not a polish pass</strong>.</p>
+      <ul class="callout__body" style="margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: var(--space-xs);">
+        <li><strong>12+ Indian languages in production</strong></li>
+        <li>each beats benchmark STT by 5%+</li>
+        <li>cross-language parity within 10pp</li>
+        <li>TTS MOS 4.0+ per language</li>
+        <li><strong>zero-English audit is a deliverable, not a polish pass</strong></li>
+      </ul>
     </div>
 
     <div class="block-label">One intent, three renderings — "Recharge ₹299"</div>
@@ -1664,7 +1682,11 @@
 
     <div class="callout callout--purple">
       <div class="callout__label">The contract</div>
-      <p class="callout__body">Partners declare capability. JBIQ governs interaction. A translation problem, not an integration problem.</p>
+      <ul class="callout__body" style="margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: var(--space-xs);">
+        <li>Partners declare capability.</li>
+        <li>JBIQ governs interaction.</li>
+        <li>A translation problem, not an integration problem.</li>
+      </ul>
     </div>
 
     <div class="block-label">Three resolution strategies — same intent, three shapes</div>
