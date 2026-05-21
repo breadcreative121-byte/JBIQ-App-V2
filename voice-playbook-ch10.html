@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+<title>JBIQ Voice Playbook &mdash; Ch. 10: Multi-modal handoff</title>
+<link rel="stylesheet" href="components.css" />
+<style>
+  @font-face {
+    font-family: 'JioType';
+    font-weight: 100 900;
+    font-style: normal;
+    src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Regular.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'JioType';
+    font-weight: 100 900;
+    font-style: italic;
+    src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Italic.woff2') format('woff2');
+  }
+  /* Consumer-owned font-family — components.css deliberately leaves this for
+     each surface to declare. All other tokens (colours, spacing, radii, type
+     scale) come from components.css. */
+  :root {
+    --font-family: 'JioType', 'JioTypeVar', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Page-scoped: slightly darker divider lines than the global default (0.08). */
+    --color-border-default: rgba(12, 13, 16, 0.2);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: var(--space-xl); }
+  body {
+    background: var(--color-surface-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-family);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.005em;
+    padding-left: 240px;
+  }
+  /* Paragraph-style copy: keep one level lighter than UI elements. */
+  .hero-lead, .section-lead, .tension-quote, .tldr-card__body, .lang-trio__copy { font-weight: 400; }
+
+  /* Acceptance + worked-example blocks hidden for now — label + the callout that follows it. */
+  .block-label--acceptance,
+  .block-label--acceptance + .callout,
+  .block-label--worked,
+  .block-label--worked + .callout { display: none; }
+
+  /* Section sub-headings rendered as titles, not small uppercase labels.
+     Overrides the components.css .block-label (loaded earlier in the cascade). */
+  .block-label {
+    font-size: 20px;
+    font-weight: 900;
+    text-transform: none;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--color-text-primary);
+    margin: var(--space-huge) 0 var(--space-md);
+  }
+
+  /* Eyebrows and callout labels rendered as plain titles too — drop the
+     coloured uppercase accent look in favour of dark sentence-case headings.
+     Banner eyebrows keep their white colour via more specific rules above. */
+  .eyebrow,
+  .callout__label {
+    font-size: 18px;
+    font-weight: 800;
+    text-transform: none;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--color-text-primary);
+  }
+  .callout .callout__label { color: var(--color-text-primary); }
+
+  /* Appear-on-scroll easing. Section starts slightly down and faded; eases up when it enters the viewport. */
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1), transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .reveal.is-visible { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
+
+  /* ---- Sidebar ---- */
+  .toc {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 240px;
+    background: var(--color-surface-primary);
+    border-right: 0.5px solid var(--color-border-strong);
+    padding: var(--space-xxl) var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 10;
+    overflow-y: auto;
+    scrollbar-width: none;
+    transition: transform 200ms ease;
+  }
+  .toc::-webkit-scrollbar { display: none; }
+  .toc-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  .toc-brand__mark { width: 28px; height: 28px; display: block; flex-shrink: 0; }
+  .toc-brand__name {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  .toc-header {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-xs);
+  }
+  .toc a {
+    font-size: 14px;
+    font-weight: 500;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: background 140ms, color 140ms;
+    line-height: 1.3;
+    display: flex; align-items: baseline; gap: var(--space-xs);
+  }
+  .toc a:hover {
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+  }
+  .toc a.is-active {
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    font-weight: 700;
+  }
+  .toc-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    flex-shrink: 0;
+    min-width: 22px;
+  }
+  .toc a.is-active .toc-num { color: var(--color-action-primary); }
+
+  /* Mobile burger / drawer (same pattern as brand-placement-deck) */
+  .toc-burger {
+    display: none;
+    appearance: none;
+    background: var(--color-surface-primary);
+    border: 0.5px solid var(--color-border-default);
+    color: var(--color-text-primary);
+    width: 40px; height: 40px;
+    border-radius: var(--radius-pill);
+    position: fixed;
+    top: var(--space-md); left: var(--space-md);
+    z-index: 20;
+    align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .toc-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(12,13,16,0.4);
+    z-index: 11;
+    opacity: 0;
+    transition: opacity 200ms ease;
+  }
+  .toc-backdrop.is-open { display: block; opacity: 1; }
+  .toc-close {
+    display: none;
+    appearance: none; background: transparent; border: none;
+    color: var(--color-text-secondary);
+    font-size: 24px;
+    width: 32px; height: 32px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    align-items: center; justify-content: center;
+    line-height: 1;
+    margin-left: auto;
+  }
+
+  /* Desktop collapse — tucks the whole sidebar off-screen, leaving an expand tab. */
+  .toc-collapse {
+    appearance: none; background: transparent; border: none;
+    color: var(--color-text-tertiary);
+    font-size: 18px;
+    width: 28px; height: 28px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+    margin-left: auto;
+    transition: background 140ms, color 140ms;
+  }
+  .toc-collapse:hover { background: var(--color-surface-secondary); color: var(--color-text-primary); }
+  .toc-expand {
+    display: none;
+    appearance: none;
+    background: var(--color-surface-primary);
+    border: 0.5px solid var(--color-border-default);
+    color: var(--color-text-primary);
+    width: 36px; height: 36px;
+    border-radius: var(--radius-pill);
+    position: fixed;
+    top: var(--space-md); left: var(--space-md);
+    z-index: 20;
+    align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    box-shadow: 0 2px 8px rgba(12,13,16,0.08);
+  }
+  body.nav-collapsed { padding-left: 0; }
+  body.nav-collapsed .toc { transform: translateX(-100%); }
+  body.nav-collapsed .toc-expand { display: flex; }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--space-huge) var(--space-lg) var(--space-huge);
+  }
+
+  /* ---- Hero ---- */
+  .hero {
+    margin-bottom: var(--space-huge);
+    scroll-margin-top: var(--space-xl);
+  }
+  .hero-title {
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    margin: 0 0 var(--space-lg);
+    max-width: 900px;
+  }
+  .hero-lead {
+    font-size: 22px;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+    margin: 0 0 var(--space-huge);
+    max-width: 760px;
+    letter-spacing: -0.005em;
+  }
+
+  /* Hero image — static collage of partner-brand placements rendered as a single PNG. */
+  .hero-image-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 0 var(--space-huge);
+    border-radius: var(--radius-lg);
+  }
+
+  /* Page-shell override: first .section after the hero collapses its top border
+     and uses tighter top padding so it doesn't feel double-spaced. */
+  .hero + .section { border-top: none; padding-top: var(--space-xxl); }
+
+  /* ---- TL;DR five-card grid (the five-second JBIQ voice) ---- */
+  .tldr-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    margin: var(--space-xl) 0 0;
+  }
+  .tldr-card {
+    background: var(--color-action-primary-pale);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    display: flex; flex-direction: column;
+    gap: var(--space-sm);
+  }
+  .tldr-card__num {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.04em;
+  }
+  .tldr-card__title {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .tldr-card__body {
+    font-size: 16px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin: 0;
+  }
+  #tldr .section-title { font-size: clamp(34px, 4.5vw, 54px); }
+
+  /* Bottom CTA — closing banner */
+  .try-cta__banner {
+    background: var(--color-text-primary);
+    color: var(--color-text-on-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-huge);
+    text-align: center;
+  }
+  .try-cta__banner .eyebrow { color: rgba(255,255,255,0.6); }
+  .try-cta__banner .section-title {
+    color: var(--color-text-on-primary);
+    max-width: 760px;
+    margin: 0 auto var(--space-md);
+  }
+  .try-cta__banner .section-lead {
+    color: rgba(255,255,255,0.72);
+    max-width: 640px;
+    margin: 0 auto var(--space-xl);
+  }
+  .try-cta__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    padding: 16px 36px;
+    border-radius: var(--radius-pill);
+    transition: background 120ms ease;
+  }
+  .try-cta__btn:hover { background: var(--color-action-primary-hover); }
+  @media (max-width: 640px) {
+    .try-cta__banner { padding: var(--space-xl); }
+  }
+
+  /* Clean bullet list — purple dot */
+  ul.clean { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-md); }
+  ul.clean li {
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--color-text-primary);
+    padding-left: var(--space-xl);
+    position: relative;
+    letter-spacing: -0.005em;
+  }
+  ul.clean li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 11px;
+    width: 6px; height: 6px;
+    background: var(--color-action-primary);
+    border-radius: 50%;
+  }
+
+  /* ---- Cohort / pillar grid for "How chapters interlock" ---- */
+  .cohort-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-lg);
+  }
+  .cohort {
+    padding: var(--space-xl);
+    background: var(--color-action-primary-pale);
+    border-radius: var(--radius-md);
+  }
+  .cohort__label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-action-primary);
+    margin-bottom: var(--space-sm);
+  }
+  .cohort__title { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; margin: 0 0 var(--space-sm); }
+  .cohort__chapters { font-size: 16px; color: var(--color-text-secondary); line-height: 1.5; }
+
+  /* ---- Dark big-rule editorial breakout (closing note) ---- */
+  .big-rule {
+    background: var(--color-text-primary);
+    color: var(--color-text-on-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-huge);
+    margin: 96px 0;
+    text-align: center;
+  }
+  .big-rule .eyebrow { color: rgba(255,255,255,0.6); }
+  .big-rule .section-title { color: var(--color-text-on-primary); max-width: 880px; margin: 0 auto var(--space-lg); }
+  .big-rule .section-lead { color: rgba(255,255,255,0.7); max-width: 720px; margin: 0 auto; }
+
+  /* ====== Visual example components ====== */
+
+  /* Generic "mocked surface" wrapper */
+  .surface {
+    background: var(--color-surface-primary);
+    border: 0.5px solid var(--color-border-default);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: 0 4px 24px rgba(12,13,16,0.04);
+  }
+  .surface__title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--space-md);
+  }
+  .surface__avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--color-action-primary);
+    color: #fff;
+    font-weight: 900;
+    font-size: 11px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+
+  /* Reply mock — used inside annotated examples */
+  .mock {
+    display: flex; flex-direction: column;
+    gap: var(--space-md);
+  }
+  .mock__context {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    letter-spacing: -0.005em;
+  }
+  .mock__row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: var(--space-sm);
+    align-items: center;
+    padding: 10px var(--space-md);
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-sm);
+  }
+  .mock__thumb {
+    width: 36px; height: 36px;
+    border-radius: var(--radius-sm);
+    background: var(--color-action-primary-surface);
+    display: grid; place-items: center;
+    font-size: 18px;
+  }
+  .mock__name { font-size: 13px; font-weight: 700; line-height: 1.25; }
+  .mock__meta { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+  .mock__price { font-size: 13px; font-weight: 700; }
+
+  .mock__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .mock__chip {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 11px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface-secondary);
+    color: var(--color-text-primary);
+  }
+  .mock__chip--active {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+  }
+  .mock__edge {
+    display: flex; gap: var(--space-md);
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+  }
+  .mock__bubble {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    border-radius: 18px 18px 18px 4px;
+    padding: var(--space-md) var(--space-lg);
+    font-size: 15px;
+    line-height: 1.5;
+    max-width: 460px;
+  }
+  .mock__bubble strong { color: #fff; font-weight: 700; }
+  .mock__bubble--user {
+    background: var(--color-surface-secondary);
+    color: var(--color-text-primary);
+    border-radius: 18px 18px 4px 18px;
+    margin-left: auto;
+    margin-bottom: var(--space-sm);
+    max-width: 380px;
+  }
+  .mock__user-row {
+    display: flex; align-items: flex-end; gap: var(--space-sm); justify-content: flex-end;
+    margin-bottom: var(--space-md);
+  }
+  .mock__row-with-avatar {
+    display: flex; align-items: flex-start; gap: var(--space-sm);
+  }
+  .mock__row-with-avatar .mock__bubble { flex: 1; }
+
+  /* Annotated layout: visual on left, labels on right */
+  .annotated {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: var(--space-xxl);
+    align-items: start;
+    margin: var(--space-xl) 0;
+  }
+  .annotated__visual { min-width: 0; }
+  .annotated__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-lg);
+  }
+  .annotated__labels {
+    display: flex; flex-direction: column;
+    gap: var(--space-lg);
+    padding-top: var(--space-md);
+  }
+  .annotated__label { position: relative; }
+  .annotated__label .eb {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin-bottom: 4px;
+    color: var(--color-text-primary);
+  }
+  .annotated__label .body {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin: 0;
+  }
+  .annotated__label .body strong { color: var(--color-text-primary); font-weight: 700; }
+
+  /* Editable inline images — click or drag-drop to replace; overrides persist
+     to localStorage and "Reset" restores the original asset. Wraps standalone
+     <img> (hero, worked examples) the same way image-grid tiles work. */
+  .editable-img { position: relative; display: block; }
+  .editable-img > img { display: block; width: 100%; height: auto; }
+  .editable-img.is-dragover { outline: 2px dashed var(--color-action-primary); outline-offset: -4px; }
+  .editable-img__upload {
+    position: absolute; top: var(--space-sm); right: var(--space-sm);
+    display: flex; gap: 6px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 140ms;
+  }
+  .editable-img:hover .editable-img__upload,
+  .editable-img__upload:focus-within { opacity: 1; pointer-events: auto; }
+  .editable-img__btn {
+    appearance: none; border: none; cursor: pointer;
+    font-size: 12px; font-weight: 700; line-height: 1;
+    padding: 7px 13px; border-radius: var(--radius-pill);
+    background: var(--color-action-primary); color: var(--color-text-on-primary);
+    box-shadow: 0 2px 8px rgba(12,13,16,0.18);
+  }
+  .editable-img__btn--ghost {
+    background: var(--color-surface-primary);
+    color: var(--color-text-primary);
+    border: 0.5px solid var(--color-border-strong);
+  }
+
+  /* Voice four-beat strip */
+  .voice-strip {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+    margin: var(--space-xl) 0;
+  }
+  .voice-strip__beat {
+    background: var(--color-action-primary-pale);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    display: flex; flex-direction: column;
+    gap: var(--space-sm);
+  }
+  .voice-strip__num {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--color-text-primary);
+    line-height: 1;
+  }
+  .voice-strip__name {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+  .voice-strip__quote {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1.4;
+  }
+  .voice-strip__sub {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+  }
+
+  /* 3-language trio */
+  .lang-trio {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+    margin: var(--space-xl) 0;
+  }
+  .lang-trio__col {
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    display: flex; flex-direction: column;
+    gap: var(--space-sm);
+  }
+  .lang-trio__lang {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--color-action-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .lang-trio__copy {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--color-text-primary);
+  }
+  .lang-trio__copy em { color: var(--color-text-secondary); font-style: normal; font-size: 13px; display: block; margin-top: var(--space-sm); }
+
+  /* Forbidden vs preferred ladder */
+  .do-dont {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+    margin: var(--space-xl) 0;
+  }
+  .do-dont__col { display: flex; flex-direction: column; gap: var(--space-sm); }
+  .do-dont__head {
+    font-size: 18px;
+    font-weight: 800;
+    text-transform: none;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin-bottom: var(--space-xs);
+    color: var(--color-text-primary);
+  }
+  .do-dont__head--no { color: var(--color-text-primary); }
+  .do-dont__head--yes { color: var(--color-text-primary); }
+  .do-dont__item {
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-sm);
+    padding: 10px var(--space-md);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .do-dont__item--no {
+    color: var(--color-text-secondary);
+    text-decoration: line-through;
+    text-decoration-color: var(--color-error);
+    text-decoration-thickness: 1px;
+  }
+  .do-dont__item--yes {
+    background: var(--color-action-primary-surface);
+    color: var(--color-text-primary);
+    font-weight: 600;
+  }
+
+  /* Action-card — the visual UI that accompanies every assistant reply.
+     Sits beneath a .mock__bubble inside a .mock and is indented so it lines
+     up under the bubble (past the 28px avatar + 8px gap). */
+  .action-card {
+    margin-left: 36px;
+    max-width: 460px;
+    padding: var(--space-md) var(--space-lg);
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--color-action-primary);
+    display: flex; flex-direction: column;
+    gap: 10px;
+  }
+  .action-card--warn { border-left-color: var(--color-sparkle); }
+  .action-card--error { border-left-color: var(--color-error); }
+  .action-card__head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--space-sm);
+  }
+  .action-card__title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+  }
+  .action-card__status {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    white-space: nowrap;
+  }
+  .action-card__status--warn {
+    background: var(--color-sparkle-surface);
+    color: var(--color-sparkle);
+  }
+  .action-card__status--error {
+    background: rgba(220,53,69,0.10);
+    color: var(--color-error);
+  }
+  .action-card__primary {
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: var(--color-text-primary);
+  }
+  .action-card__row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-sm);
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+  .action-card__row strong { color: var(--color-text-primary); font-weight: 700; }
+  .action-card__actions {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-top: 2px;
+  }
+  .action-card__action {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface-primary);
+    color: var(--color-text-primary);
+    border: 0.5px solid var(--color-border-default);
+    cursor: default;
+    line-height: 1;
+  }
+  .action-card__action--primary {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    border-color: transparent;
+  }
+
+  /* Commitment card */
+  .commit-card {
+    background: var(--color-surface-primary);
+    border: 0.5px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    max-width: 380px;
+    margin: var(--space-xl) auto;
+    box-shadow: 0 8px 24px rgba(12,13,16,0.06);
+  }
+  .commit-card__eb {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--space-xs);
+  }
+  .commit-card__name {
+    font-size: 16px; font-weight: 700; letter-spacing: -0.02em;
+    margin-bottom: var(--space-md);
+  }
+  .commit-card__amount {
+    font-size: 40px; font-weight: 900; letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: var(--space-md);
+  }
+  .commit-card__row {
+    display: flex; justify-content: space-between;
+    font-size: 13px;
+    padding: 10px 0;
+    border-bottom: 0.5px solid var(--color-border-default);
+  }
+  .commit-card__row:last-of-type { border-bottom: none; }
+  .commit-card__key { color: var(--color-text-secondary); }
+  .commit-card__val { font-weight: 700; }
+  .commit-card__val--link { color: var(--color-action-primary); }
+  .commit-card__btn {
+    width: 100%;
+    margin-top: var(--space-md);
+    background: var(--color-action-primary);
+    color: white;
+    padding: 14px;
+    border-radius: var(--radius-pill);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+  }
+  .commit-card__note {
+    margin-top: var(--space-sm);
+    font-size: 11px;
+    text-align: center;
+    color: var(--color-text-secondary);
+  }
+
+  /* Image grid — 1:1 tiles with click/drop-to-upload. Persists per-tile to
+     localStorage so uploads survive reloads. */
+  .image-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+    margin: var(--space-md) 0 var(--space-xl);
+  }
+  .image-grid__cell { margin: 0; display: flex; flex-direction: column; gap: var(--space-sm); }
+  .image-grid__title {
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+    color: var(--color-text-primary);
+  }
+  .image-grid__title + .image-grid__caption { margin-top: calc(-1 * var(--space-xs)); }
+  .image-grid__caption {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--color-text-secondary);
+    letter-spacing: -0.005em;
+    outline: none;
+    min-height: 1.4em;
+    border-radius: var(--radius-sm);
+    padding: 2px 0;
+    transition: color 120ms ease;
+  }
+  .image-grid__caption:empty::before {
+    content: attr(data-placeholder);
+    color: var(--color-text-tertiary);
+    pointer-events: none;
+  }
+  .image-grid__caption:focus { color: var(--color-text-primary); }
+  .image-grid__tile {
+    aspect-ratio: 1 / 1;
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-md);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: background 120ms ease;
+  }
+  .image-grid__tile:hover { background: var(--color-surface-tertiary); }
+  .image-grid__tile.is-dragover { outline: 2px dashed var(--color-action-primary); outline-offset: -6px; }
+  .image-grid__placeholder {
+    font-size: 32px;
+    color: var(--color-text-tertiary);
+    font-weight: 300;
+    line-height: 1;
+    pointer-events: none;
+    text-align: center;
+  }
+  .image-grid__placeholder span {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: var(--space-xs);
+  }
+  .image-grid__img {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .image-grid__upload {
+    position: absolute;
+    right: 8px; bottom: 8px;
+    display: flex; gap: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+    z-index: 2;
+  }
+  .image-grid__tile:hover .image-grid__upload,
+  .image-grid__upload:focus-within { opacity: 1; pointer-events: auto; }
+  .image-grid__upload-btn {
+    appearance: none; border: 0; cursor: pointer;
+    font: inherit; font-weight: 600; font-size: 11px; line-height: 1;
+    padding: 6px 10px; border-radius: var(--radius-pill);
+    background: #111; color: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  }
+  .image-grid__upload-btn--ghost {
+    background: #fff; color: #111;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(0,0,0,0.08);
+  }
+
+  /* Mobile / narrow ---- */
+  @media (max-width: 900px) {
+    body { padding-left: 0; }
+    .toc {
+      transform: translateX(-100%);
+      width: 280px;
+    }
+    .toc.is-open { transform: translateX(0); }
+    .toc-burger { display: flex; }
+    .toc-close { display: flex; }
+    .toc-collapse { display: none; }
+    body.nav-collapsed .toc-expand { display: none; }
+    .page { padding: 80px var(--space-lg) var(--space-huge); }
+    .hero-title { font-size: 44px; }
+    .hero-lead { font-size: 18px; }
+    .cohort-grid { grid-template-columns: 1fr; }
+    .annotated { grid-template-columns: 1fr; gap: var(--space-lg); }
+    .voice-strip, .lang-trio, .do-dont { grid-template-columns: 1fr; }
+    .action-card { margin-left: 0; max-width: 100%; }
+    .image-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ---- Copy edit mode ---- */
+  /* In edit mode every editable copy element shows a faint dashed affordance and
+     a stronger one on hover/focus. Outside edit mode there is no visual change. */
+  body.is-editing [data-edit-id] {
+    outline: 1px dashed var(--color-border-strong);
+    outline-offset: 3px;
+    border-radius: 2px;
+    cursor: text;
+    transition: outline-color 120ms ease, background 120ms ease;
+  }
+  body.is-editing [data-edit-id]:hover { outline-color: var(--color-action-primary); }
+  body.is-editing [data-edit-id]:focus {
+    outline: 2px solid var(--color-action-primary);
+    outline-offset: 3px;
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .pb-edit-controls {
+    position: fixed;
+    right: 20px; bottom: 20px;
+    z-index: 50;
+    display: flex; gap: 10px;
+    font-family: var(--font-family);
+  }
+  .pb-edit-btn {
+    appearance: none; border: 0; cursor: pointer;
+    font: inherit; font-weight: 700; font-size: 14px; line-height: 1;
+    padding: 12px 18px; border-radius: var(--radius-pill);
+    background: #111; color: #fff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+    transition: transform 120ms ease, opacity 120ms ease;
+  }
+  .pb-edit-btn:hover { transform: translateY(-1px); }
+  .pb-edit-btn--ghost {
+    background: #fff; color: #111;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14), inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+  }
+  .pb-edit-btn--primary { background: var(--color-action-primary); }
+  .pb-edit-controls[hidden] { display: none; }
+
+  .pb-toast {
+    position: fixed;
+    left: 50%; bottom: 24px;
+    transform: translate(-50%, 16px);
+    z-index: 60;
+    background: #111; color: #fff;
+    font-size: 13px; font-weight: 600;
+    padding: 10px 16px; border-radius: var(--radius-pill);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+    opacity: 0; pointer-events: none;
+    transition: opacity 200ms ease, transform 200ms ease;
+  }
+  .pb-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+
+  @media print {
+    .pb-edit-controls, .pb-toast { display: none !important; }
+  }
+
+
+
+  /* ===== Chapter long-form normative document styles (page-scoped) ===== */
+  .chapterdoc .doc-sec {
+    margin: var(--space-huge) 0 var(--space-lg);
+    padding-top: var(--space-xl);
+    border-top: 1px solid var(--color-border-default);
+  }
+  .chapterdoc .doc-sec:first-of-type { border-top: 0; padding-top: 0; margin-top: var(--space-md); }
+  .chapterdoc .doc-sec__num { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--color-action-primary); letter-spacing: 0.04em; }
+  .chapterdoc .doc-sec__title { font-size: 26px; font-weight: 900; letter-spacing: -0.02em; line-height: 1.15; margin: var(--space-xs) 0 0; }
+  .chapterdoc .doc-sub { font-size: 17px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.3; color: var(--color-text-primary); margin: var(--space-xl) 0 var(--space-sm); }
+  .chapterdoc .doc-p { font-size: 16px; line-height: 1.6; color: var(--color-text-secondary); margin: 0 0 var(--space-md); max-width: 760px; }
+  .chapterdoc .doc-p strong { color: var(--color-text-primary); font-weight: 700; }
+  .chapterdoc ul.clean { margin: var(--space-sm) 0 var(--space-xl); max-width: 820px; }
+  .chapterdoc ul.clean li { font-size: 16px; }
+  .chapterdoc table.dmeta { border-collapse: collapse; width: 100%; max-width: 720px; margin: 0 0 var(--space-huge); font-size: 14px; }
+  .chapterdoc table.dmeta th { text-align: left; font-weight: 700; color: var(--color-text-secondary); white-space: nowrap; width: 1%; padding: var(--space-sm) var(--space-xl) var(--space-sm) 0; vertical-align: top; border-bottom: 0.5px solid var(--color-border-default); }
+  .chapterdoc table.dmeta td { padding: var(--space-sm) 0; color: var(--color-text-primary); line-height: 1.45; border-bottom: 0.5px solid var(--color-border-default); }
+  .chapterdoc table.dmeta tr:last-child th, .chapterdoc table.dmeta tr:last-child td { border-bottom: 0; }
+  .chapterdoc .table-wrap { overflow-x: auto; margin: var(--space-sm) 0 var(--space-xl); -webkit-overflow-scrolling: touch; }
+  .chapterdoc table.dtable { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14px; }
+  .chapterdoc table.dtable thead th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-tertiary); font-weight: 700; padding: 0 var(--space-lg) var(--space-sm) 0; border-bottom: 1px solid var(--color-border-strong); white-space: nowrap; }
+  .chapterdoc table.dtable td { text-align: left; vertical-align: top; padding: var(--space-md) var(--space-lg) var(--space-md) 0; border-bottom: 0.5px solid var(--color-border-default); line-height: 1.5; color: var(--color-text-secondary); }
+  .chapterdoc table.dtable td:first-child { color: var(--color-text-primary); font-weight: 600; padding-right: var(--space-xl); }
+  .chapterdoc table.dtable tbody tr:last-child td { border-bottom: 0; }
+  .chapterdoc .callout__body .sp { font-weight: 700; color: var(--color-text-primary); }
+  .chapterdoc .callout__body .dir { color: var(--color-text-secondary); font-size: 14px; }
+  .chapterdoc .doc-close { margin-top: var(--space-huge); padding-top: var(--space-xl); border-top: 1px solid var(--color-border-default); font-size: 16px; line-height: 1.6; color: var(--color-text-secondary); max-width: 760px; }
+
+</style>
+</head>
+<body>
+
+<button class="toc-burger" aria-label="Open navigation">&#9776;</button>
+
+<button class="toc-expand" aria-label="Expand navigation" title="Expand navigation">&#9776;</button>
+
+<aside id="sidebar" class="toc" role="navigation" aria-label="Chapter sections">
+  <div class="toc-brand">
+    <img class="toc-brand__mark" src="assets/logo.svg" alt="Jio" width="28" height="28">
+    <a class="toc-brand__name" href="voice-playbook.html" style="text-decoration: none; color: inherit;">JBIQ</a>
+    <button class="toc-collapse" aria-label="Collapse navigation" title="Collapse navigation">&lsaquo;</button>
+    <button class="toc-close" aria-label="Close navigation">&times;</button>
+  </div>
+
+  <a href="voice-playbook.html">&lsaquo; Full playbook</a>
+  <a href="voice-playbook-ch9.html">&lsaquo; Ch 9 &middot; Failing well — errors, repair, resumption</a>
+  <a href="voice-playbook-ch11.html">Ch 11 &middot; Partner ecosystem &amp; attribution &rsaquo;</a>
+
+  <div class="toc-header" style="margin-top: var(--space-md)">Chapter 10 &middot; Multi-modal handoff</div>
+  <a href="#ch10-sec0"><span class="toc-num">00</span><span>Purpose &amp; Authority</span></a>
+  <a href="#ch10-sec1"><span class="toc-num">01</span><span>Scope &amp; Non-Goals</span></a>
+  <a href="#ch10-sec2"><span class="toc-num">02</span><span>Multi-modal invariants</span></a>
+  <a href="#ch10-sec3"><span class="toc-num">03</span><span>The voice + UI contract</span></a>
+  <a href="#ch10-sec4"><span class="toc-num">04</span><span>Naming the handoff</span></a>
+  <a href="#ch10-sec5"><span class="toc-num">05</span><span>Anchor matches across both</span></a>
+  <a href="#ch10-sec6"><span class="toc-num">06</span><span>Cross-modal desync</span></a>
+  <a href="#ch10-sec7"><span class="toc-num">07</span><span>Voice-only fallback</span></a>
+  <a href="#ch10-sec8"><span class="toc-num">08</span><span>Edge Affordance behaviour across modalities</span></a>
+  <a href="#ch10-sec9"><span class="toc-num">09</span><span>Mid-flow modality switch</span></a>
+  <a href="#ch10-sec10"><span class="toc-num">10</span><span>Specific multi-modal patterns at GA</span></a>
+  <a href="#ch10-sec11"><span class="toc-num">11</span><span>Worked examples</span></a>
+  <a href="#ch10-sec12"><span class="toc-num">12</span><span>Acceptance criteria mapped to metrics</span></a>
+  <a href="#ch10-sec13"><span class="toc-num">13</span><span>Cross-references</span></a>
+</aside>
+
+<div class="toc-backdrop" aria-hidden="true"></div>
+
+<div class="pb-edit-controls" id="pbEditView">
+  <button type="button" class="pb-edit-btn" id="pbEditStart">Edit text</button>
+</div>
+<div class="pb-edit-controls" id="pbEditActive" hidden>
+  <button type="button" class="pb-edit-btn pb-edit-btn--ghost" id="pbEditCancel">Cancel</button>
+  <button type="button" class="pb-edit-btn pb-edit-btn--primary" id="pbEditSave">Save</button>
+</div>
+<div class="pb-toast" id="pbToast" role="status" aria-live="polite"></div>
+
+<main class="page">
+
+  <header class="hero" id="top">
+    <div class="eyebrow">JioBharatIQ &middot; Voice Playbook &middot; Chapter 10</div>
+    <h1 class="hero-title">Multi-modal handoff</h1>
+    <p class="hero-lead">When voice and screen are both present, who carries what — and how the conversation moves between them without losing the thread.</p>
+  </header>
+
+  <section class="section chapterdoc" id="ch-10">
+    <table class="dmeta">
+      <tr><th>Version</th><td>V0.2 (GA-aligned)</td></tr>
+      <tr><th>Status</th><td>Normative draft · For review</td></tr>
+      <tr><th>Applies to</th><td>Product, Design, Engineering, Voice &amp; Multimodal, AI Systems, QA</td></tr>
+      <tr><th>Owner</th><td>Matt Jarvis</td></tr>
+      <tr><th>Last Updated</th><td>May 2026</td></tr>
+      <tr><th>Subordinates to</th><td>Integrated Modal Experience Model</td></tr>
+      <tr><th>Aligned to</th><td>Consumer Intelligence GA Operating Goals (May 2026)</td></tr>
+    </table>
+    <div class="doc-sec" id="ch10-sec0"><span class="doc-sec__num">00</span><h2 class="doc-sec__title">Purpose &amp; Authority</h2></div>
+    <p class="doc-p">This chapter governs the contract between voice and visual surfaces when both are present. It defines who carries what, how the handoff is named, how the anchor must match across modalities, how cross-modal desync is detected and corrected, what happens when a surface disappears mid-flow, and how the user moves between modalities without re-stating intent. Ch. 5 (Voice disclosure) defines voice-specific behaviour; this chapter defines the cross-modal contract that voice plays inside.</p>
+    <p class="doc-p">It exists to:</p>
+    <ul class="clean">
+      <li>Stop voice from duplicating the screen.</li>
+      <li>Stop the screen from leaving voice behind.</li>
+      <li>Make the handoff explicit — "I've put them on screen" — so the user knows where to look.</li>
+      <li>Lock the anchor-must-match rule so the voice anchor is always the visually-rendered primary result.</li>
+      <li>Govern modality switches mid-flow — voice → text → voice — without losing state, language, or intent.</li>
+    </ul>
+    <p class="doc-p">This chapter is normative. A cross-modal desync (voice says one thing, screen shows another) is a structural defect and blocks release.</p>
+    <div class="doc-sec" id="ch10-sec1"><span class="doc-sec__num">01</span><h2 class="doc-sec__title">Scope &amp; Non-Goals</h2></div>
+    <h3 class="doc-sub">1.1  In scope</h3>
+    <ul class="clean">
+      <li>The voice + UI contract — who carries what.</li>
+      <li>Naming the handoff — the canonical phrases per language.</li>
+      <li>Anchor-matches-across-both rule.</li>
+      <li>Cross-modal desync detection and correction.</li>
+      <li>Voice-only fallback when the screen disappears mid-flow.</li>
+      <li>Edge Affordance behaviour across modalities.</li>
+      <li>Mid-flow modality switch — voice → text, text → voice — preserving state, language, intent.</li>
+    </ul>
+    <h3 class="doc-sub">1.2  Out of scope</h3>
+    <ul class="clean">
+      <li>Voice-specific four-beat disclosure (governed by Ch. 5).</li>
+      <li>Cinematic voice experiences specifically — voice-led second-screen surfaces (Cricket Companion, Live Darshan) carry this chapter's contract plus Ch. 5 §12 rules.</li>
+      <li>The visual rendering of the four-slot anatomy (governed by Ch. 4).</li>
+      <li>Partner-fulfilled surface composition (governed by Ch. 11).</li>
+      <li>Commitment confirmation auth channel (governed by Ch. 8).</li>
+    </ul>
+    <div class="doc-sec" id="ch10-sec2"><span class="doc-sec__num">02</span><h2 class="doc-sec__title">Multi-modal invariants</h2></div>
+    <ul class="clean">
+      <li>When both surfaces are present and the result set is &gt; 1 item, voice anchors and the screen carries detail. Voice never duplicates the screen.</li>
+      <li>Voice names the handoff explicitly. "I've put them on screen." Or the language-appropriate equivalent. Never silent.</li>
+      <li>Voice anchor must match the visually-rendered primary result. Mismatch is a cross-modal desync and is a structural defect.</li>
+      <li>When the screen is absent, voice never enumerates beyond the density ceilings (Ch. 5 §5).</li>
+      <li>When a screen appears mid-flow (user opens the app, picks up the phone), voice pivots immediately to the voice + UI pattern — no continued enumeration.</li>
+      <li>When a screen disappears mid-flow (user puts the phone down, switches off the screen), voice pivots to pure-voice fallback — no continued reliance on tap.</li>
+      <li>Mid-flow modality switches preserve state, language, and intent. The user does not re-state.</li>
+      <li>Cross-modal commitment routes always through the strongest auth channel (Ch. 8) — voice may anchor, the screen carries auth.</li>
+    </ul>
+    <div class="doc-sec" id="ch10-sec3"><span class="doc-sec__num">03</span><h2 class="doc-sec__title">The voice + UI contract</h2></div>
+    <div class="callout callout--purple">
+      <div class="callout__label">THE CONTRACT IN ONE RULE</div>
+      <p class="callout__body">Voice anchors on the user's stated priority. Screen carries detail. Voice names the handoff explicitly.</p>
+    </div>
+    <h3 class="doc-sub">3.1  What voice always carries</h3>
+    <ul class="clean">
+      <li>Outcome + Anchor + Pivot (the first, second, and fourth beats of voice disclosure — Ch. 5 §4).</li>
+      <li>The user always hears how many results, the best one for their priority, and what to do next.</li>
+      <li>Sensitive-moment language carries entirely in voice when the user has chosen voice — never offloaded silently to a screen.</li>
+      <li>Cinematic voice experiences carry their whole narrative arc in voice; the screen plays a supporting role.</li>
+    </ul>
+    <h3 class="doc-sub">3.2  What the screen always carries</h3>
+    <ul class="clean">
+      <li>The full result set (3–5 cards typically — Ch. 4 §6.3).</li>
+      <li>Refinement chips — single-tap, reversible, ordered by predicted impact.</li>
+      <li>Edge Affordances — "Compare", "See more", "Remind later".</li>
+      <li>The commitment surface — the prepared action card, the confirm button.</li>
+      <li>The home reference — the JioCare → My activity trace and similar.</li>
+    </ul>
+    <h3 class="doc-sub">3.3  What voice does not carry when the screen is present</h3>
+    <ul class="clean">
+      <li>Reading the full list of cards aloud.</li>
+      <li>Enumerating refinement chips.</li>
+      <li>Repeating attributes already visible on the card.</li>
+      <li>Walking through the prepared action card line-by-line.</li>
+    </ul>
+    <h3 class="doc-sub">3.4  What the screen does not carry when voice is leading</h3>
+    <ul class="clean">
+      <li>A second peer-weight commitment surface when the voice has anchored on one.</li>
+      <li>Refinement chips that contradict the voice pivot — "Hear the others" pivot in voice while the screen offers "Pay this one now" as the only chip.</li>
+      <li>A different anchor than the voice anchor (this is the cross-modal desync — §6).</li>
+    </ul>
+    <div class="doc-sec" id="ch10-sec4"><span class="doc-sec__num">04</span><h2 class="doc-sec__title">Naming the handoff</h2></div>
+    <p class="doc-p">The handoff is the moment voice points the user at the screen. It must be named explicitly — never silent, never assumed. The phrase is short, the action is named, and the language matches the user's most recent utterance language (Ch. 6 §5).</p>
+    <h3 class="doc-sub">4.1  Canonical phrases</h3>
+    <div class="table-wrap">
+      <table class="dtable">
+        <thead><tr><th>Language</th><th>Canonical handoff phrase</th></tr></thead>
+        <tbody>
+          <tr><td>English</td><td>"I've put them on screen."</td></tr>
+          <tr><td>Hinglish</td><td>"Screen pe dikha diya hai."</td></tr>
+          <tr><td>Hindi</td><td>"स्क्रीन पर दिखा दिया है."</td></tr>
+          <tr><td>Tamil</td><td>"Screen-ல காட்டியிருக்கேன்."</td></tr>
+          <tr><td>Telugu</td><td>"Screen lo chuupinchaanu."</td></tr>
+          <tr><td>Bangla</td><td>"Screen-e dekhiye diyechi."</td></tr>
+          <tr><td>Marathi</td><td>"Screen var dakhavla aahe."</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="doc-p">Variants per language are owned by Localisation; the playbook governs the structural requirement — there is one canonical handoff phrase per language, used consistently, never improvised.</p>
+    <h3 class="doc-sub">4.2  When the handoff is offered, not given</h3>
+    <p class="doc-p">If JBIQ cannot be sure the user is looking — speaker with companion screen off, JioPhone with screen-off mode, in-car display with the user driving — the handoff is offered rather than given: "I've put them on screen if you're looking — or I can read them out, your call." Either path is real.</p>
+    <div class="doc-sec" id="ch10-sec5"><span class="doc-sec__num">05</span><h2 class="doc-sec__title">Anchor matches across both</h2></div>
+    <div class="callout callout--purple">
+      <div class="callout__label">THE MATCH RULE</div>
+      <p class="callout__body">The voice anchor must be the visually-rendered primary result. If voice says "cheapest is 6:15 AM at ₹2,850", the 6:15 AM flight is the prominent card on screen. If they differ, it is a cross-modal desync and the release is blocked.</p>
+    </div>
+    <p class="doc-p">The match is not at the level of identical text. The voice says "cheapest is 6:15 AM at ₹2,850"; the screen shows a card with "06:15 IndiGo BLR → BOM ₹2,850". The semantic anchor is the same. The match is on which option is the anchor, not on how it is phrased.</p>
+    <h3 class="doc-sub">5.1  Anchor-match implementation</h3>
+    <ul class="clean">
+      <li>The orchestration layer constructs the response once, with the anchor explicitly tagged.</li>
+      <li>Voice TTS rendering consumes the anchor tag; the screen renderer consumes the same tag.</li>
+      <li>Both renderers operate from the same data structure; divergence is a code-level bug, not a content-design choice.</li>
+      <li>Anchor selection (Ch. 5 §6) is computed once and shared; no surface re-computes.</li>
+    </ul>
+    <div class="doc-sec" id="ch10-sec6"><span class="doc-sec__num">06</span><h2 class="doc-sec__title">Cross-modal desync</h2></div>
+    <p class="doc-p">Cross-modal desync is the failure mode this chapter exists to prevent. Three patterns to detect.</p>
+    <h3 class="doc-sub">6.1  Anchor mismatch</h3>
+    <p class="doc-p">Voice anchors on one option; screen prominently displays another. Causes: late-binding errors in the render pipeline, partner-substitution post-anchor-computation, ranking-signal drift between modules. Detection: anchor-tag comparison at render time.</p>
+    <h3 class="doc-sub">6.2  Language mismatch</h3>
+    <p class="doc-p">Voice speaks Hinglish; the screen renders pure English. Causes: language-resolution differing between voice and visual renderers. Detection: locale tag must match across both renderers at every turn.</p>
+    <h3 class="doc-sub">6.3  State mismatch</h3>
+    <p class="doc-p">Voice says "three cards on screen"; the screen shows two or four. Causes: pagination logic, partner-fulfilled card insertion, ranking re-shuffle between voice rendering and visual rendering. Detection: card count must be locked at anchor-compute time and not re-shuffled by either renderer.</p>
+    <h3 class="doc-sub">6.4  Correction path</h3>
+    <ul class="clean">
+      <li>Production: cross-modal desync is flagged at the orchestration layer in real time; the affected turn is logged.</li>
+      <li>If desync is detected pre-render, the turn is held and re-computed.</li>
+      <li>If desync is detected post-render, the user is told plainly: "That came out a bit mixed up — let me re-render that." The faulty turn is replayed correctly.</li>
+      <li>Repeated desync within a session forces a degraded-mode fall-back to voice-only (the more constrained surface).</li>
+    </ul>
+    <div class="doc-sec" id="ch10-sec7"><span class="doc-sec__num">07</span><h2 class="doc-sec__title">Voice-only fallback</h2></div>
+    <p class="doc-p">When the screen disappears mid-flow — user puts the phone in a pocket, screen times out, app backgrounds — voice does not continue as if the screen is still there. The fallback rules:</p>
+    <ul class="clean">
+      <li>JBIQ detects the screen state change within ≤ 2 seconds.</li>
+      <li>Voice pivots from anchor+offload to anchor+pull: "Let me know which one — or want me to read them out?"</li>
+      <li>If voice has already said "I've put them on screen" and the screen is gone, JBIQ recovers: "Realised the screen's off — want me to read them?"</li>
+      <li>Refinement chips disappear from the voice plan; refinement is offered verbally instead.</li>
+      <li>Edge Affordances are dropped from voice unless the user asks.</li>
+    </ul>
+    <div class="doc-sec" id="ch10-sec8"><span class="doc-sec__num">08</span><h2 class="doc-sec__title">Edge Affordance behaviour across modalities</h2></div>
+    <p class="doc-p">The Edge Affordance is Slot 4 of the four-slot anatomy (Ch. 4 §5.4). It carries differently across modalities.</p>
+    <div class="table-wrap">
+      <table class="dtable">
+        <thead><tr><th>Edge Affordance</th><th>Voice + UI</th><th>Voice-only</th></tr></thead>
+        <tbody>
+          <tr><td>"Compare"</td><td>Rendered as a chip / tile on screen. Voice does not announce.</td><td>Offered verbally only if the user pauses or asks ("want me to compare two for you?").</td></tr>
+          <tr><td>"See more"</td><td>Rendered as a chip. Voice does not announce.</td><td>Offered verbally as a pivot after the third item on explicit request.</td></tr>
+          <tr><td>"Save for later"</td><td>Rendered as a small action on each card.</td><td>Offered verbally only if the user signals hesitation.</td></tr>
+          <tr><td>"Remind me later"</td><td>Rendered as a chip on Proactive-Triggered surfaces.</td><td>Offered verbally as part of the pivot — "Pay now, or remind you in the morning?"</td></tr>
+          <tr><td>"Something more formal?" (context-shift)</td><td>Rendered as a chip below the result set.</td><td>Offered verbally only when the user signals dissatisfaction with the result set.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc-sec" id="ch10-sec9"><span class="doc-sec__num">09</span><h2 class="doc-sec__title">Mid-flow modality switch</h2></div>
+    <p class="doc-p">Users switch modalities. They start by typing on the bus, switch to voice when they get home, switch back to text in a meeting. JBIQ preserves the conversation — state, language, intent — across the switch without re-stating.</p>
+    <h3 class="doc-sub">9.1  Voice → text</h3>
+    <ul class="clean">
+      <li>User stops speaking; starts typing on the same surface.</li>
+      <li>JBIQ holds the voice-side state and continues the conversation in text.</li>
+      <li>Language match holds — if the user was in Hinglish voice, the text response is Hinglish.</li>
+      <li>Intent context carries: if the user said "book the cheapest flight" and then typed "actually find me one after 9 AM", JBIQ understands the refinement applies to the previous result set.</li>
+    </ul>
+    <h3 class="doc-sub">9.2  Text → voice</h3>
+    <ul class="clean">
+      <li>User taps the voice button mid-conversation.</li>
+      <li>JBIQ summarises briefly what the text turn returned and continues in voice from that point: "On screen — three options. Cheapest is 6:15 AM at ₹2,850. Want this, or to refine?"</li>
+      <li>If the text turn rendered a card the user was inspecting, voice anchors on that card.</li>
+      <li>Refinement chips on the screen remain tappable while voice continues.</li>
+    </ul>
+    <h3 class="doc-sub">9.3  Voice + screen → voice-only (going hands-free)</h3>
+    <ul class="clean">
+      <li>User leaves the screen behind (driving, walking, hands occupied).</li>
+      <li>JBIQ shifts to voice-only fallback (§7). The screen state is preserved server-side; if the user returns to the screen, the conversation resumes.</li>
+      <li>If a commitment is in flight when the user goes hands-free, JBIQ pauses the commitment and tells the user: "I'll hold this — finish it on the app when you're back."</li>
+    </ul>
+    <h3 class="doc-sub">9.4  Voice-only → voice + screen (picking up the phone)</h3>
+    <ul class="clean">
+      <li>User picks up the JBIQ app mid-voice-conversation on a speaker.</li>
+      <li>JBIQ hands off cleanly: "Picked up where we are. Three options on screen — cheapest is 6:15 AM at ₹2,850."</li>
+      <li>If a commitment is pending on voice-only deep-link (Ch. 8 §10.3), it surfaces on the screen immediately for one-tap completion.</li>
+    </ul>
+    <h3 class="doc-sub">9.5  Cross-device modality switch</h3>
+    <p class="doc-p">Across-device switches — speaker conversation continuing on mobile, or vice versa — follow the same rules with one addition: the second device shows a "continue from speaker" cue. Cross-surface coherence within 24h is the GA commitment (Ch. 7 day-0 warm start invariant).</p>
+    <div class="doc-sec" id="ch10-sec10"><span class="doc-sec__num">10</span><h2 class="doc-sec__title">Specific multi-modal patterns at GA</h2></div>
+    <p class="doc-p">Three GA surfaces deserve their own multi-modal notes.</p>
+    <h3 class="doc-sub">10.1  Cricket Match Companion (second screen)</h3>
+    <p class="doc-p">Voice carries live commentary in the user's language. The screen carries score, current over, friend-group leaderboard, share-card moments. The anchor in voice is always the live state ("India 142 for 3, end of the 17th over"); the screen carries the persistent state. Cross-modal desync here is especially visible — voice commentary lagging the visual scoreboard, or vice versa — and is gated tightly in QA.</p>
+    <h3 class="doc-sub">10.2  Grand Kundali Reveal (cinematic voice with companion screen)</h3>
+    <p class="doc-p">Voice carries the cinematic narrative (Ch. 5 §12). The screen carries a paced visual reveal — planet by planet, line by line — that follows the voice. The voice leads; the screen plays support. The screen does not jump ahead; the screen does not announce content the voice has not reached.</p>
+    <h3 class="doc-sub">10.3  Fact Checker (multimodal capture + voice verdict)</h3>
+    <p class="doc-p">Capture is multi-modal — text, image OCR, voice note. The verdict is rendered as a single share-card on screen, with voice announcing the verdict in summary. The four-tier verdict (true / mostly true / partly false / false) is visible on the card with sourcing; voice anchors on the verdict and offers "want to share, or hear the sources?" The share-card is the artefact; voice is the disclosure.</p>
+    <div class="doc-sec" id="ch10-sec11"><span class="doc-sec__num">11</span><h2 class="doc-sec__title">Worked examples</h2></div>
+    <h3 class="doc-sub">11.1  Voice + UI handoff — flight search</h3>
+    <p class="doc-p">Intent: "Cheap morning flight to Mumbai tomorrow."</p>
+    <div class="callout callout--sparkle">
+      <div class="callout__label">JBIQ — VOICE</div>
+      <p class="callout__body">"3 morning flights — cheapest is 6:15 AM at ₹2,850. I've put them on screen. Pick one, or want me to read the others out?"</p>
+    </div>
+    <div class="callout callout--purple">
+      <div class="callout__label">JBIQ — SCREEN</div>
+      <p class="callout__body">Context line: Mumbai · tomorrow morning · sorted by price</p>
+      <p class="callout__body">[Card · ANCHOR] 06:15 · IndiGo 6E-203 · BLR → BOM · 1h 45m · ₹2,850</p>
+      <p class="callout__body">[Card] 07:40 · Vistara UK-862 · 1h 50m · ₹2,990</p>
+      <p class="callout__body">[Card] 08:55 · Air India AI-505 · 1h 50m · ₹3,120</p>
+      <p class="callout__body">Chips: [Cheapest · ACTIVE]  [Fastest]  [Non-stop]  [More]</p>
+      <p class="callout__body">Edge: Compare · Save · Set fare alert</p>
+    </div>
+    <p class="doc-p">Anchor matches (6:15 in both). Voice does not enumerate the other cards. Screen carries refinement chips. Voice names the handoff and offers either path.</p>
+    <h3 class="doc-sub">11.2  Voice → text mid-flow</h3>
+    <div class="callout callout--sparkle">
+      <div class="callout__label">TURN 1 — USER (VOICE)</div>
+      <p class="callout__body">"Diwali ke liye kurta dhundo, under ₹2,000."</p>
+    </div>
+    <div class="callout callout--sparkle">
+      <div class="callout__label">TURN 1 — JBIQ (VOICE + UI)</div>
+      <p class="callout__body">Voice: "3 kurtas mile Nov 5 se pehle delivery — Fabindia ₹1,499 sabse paas. Screen pe baaki bhi hain. Yeh book karein, ya aur dikhayein?"</p>
+    </div>
+    <div class="callout callout--purple">
+      <div class="callout__label">TURN 2 — USER (TEXT, SAME SURFACE)</div>
+      <p class="callout__body">"actually wait, dikhao silk wale"</p>
+    </div>
+    <div class="callout callout--purple">
+      <div class="callout__label">TURN 2 — JBIQ (TEXT)</div>
+      <p class="callout__body">Silk filter applied. Two silk options now — Manyavar Maroon ₹1,899, Vasanshi Gold ₹1,799. Cotton wale neeche hain. Anchor: Manyavar.</p>
+    </div>
+    <p class="doc-p">Language match holds (Hinglish across both turns). Refinement carries from the previous result set. The chip-vs-question rule still applies; the text-typed refinement was a natural-language version of a chip the screen was already showing.</p>
+    <h3 class="doc-sub">11.3  Voice + UI → voice-only (screen times out)</h3>
+    <p class="doc-p">User was looking at flight options on screen. Phone screen times out.</p>
+    <div class="callout callout--purple">
+      <div class="callout__label">JBIQ — DETECTED SCREEN-OFF</div>
+      <p class="callout__body">"Realised the screen's off — three morning flights from earlier. Cheapest is 6:15 AM at ₹2,850. Want this, or hear the others?"</p>
+    </div>
+    <h3 class="doc-sub">11.4  Cross-modal desync — detection + correction</h3>
+    <p class="doc-p">Edge case: voice anchored 6:15 IndiGo; screen rendered 07:40 Vistara as the prominent card.</p>
+    <div class="callout callout--purple">
+      <div class="callout__label">JBIQ — DETECTED DESYNC</div>
+      <p class="callout__body">"That came out a bit mixed up — re-rendering. On screen now: 6:15 IndiGo at ₹2,850 is the anchor, like I said. Sorry about that."</p>
+    </div>
+    <div class="doc-sec" id="ch10-sec12"><span class="doc-sec__num">12</span><h2 class="doc-sec__title">Acceptance criteria mapped to metrics</h2></div>
+    <div class="table-wrap">
+      <table class="dtable">
+        <thead><tr><th>Acceptance criterion</th><th>Metric</th><th>Target</th><th>Owner</th><th>Instrumentation</th></tr></thead>
+        <tbody>
+          <tr><td>Voice anchor matches UI primary result</td><td>Cross-modal anchor-match classifier</td><td>≥ 99%</td><td>Product / AI / QA</td><td>Voice transcript × UI render snapshot; per-turn match check</td></tr>
+          <tr><td>Cross-modal desync flagged</td><td>Desync detection at orchestration layer</td><td>Detection on 100% of mismatches; ≤ 2 mismatches / 10k turns in production</td><td>Engineering / QA</td><td>Real-time anchor-tag comparison + nightly transcript-vs-render audit</td></tr>
+          <tr><td>Handoff named explicitly when both surfaces present</td><td>Handoff-phrase classifier on voice transcripts × surface-state filter</td><td>≥ 98%</td><td>Voice / Content</td><td>Classifier trained on canonical phrases per language; nightly run</td></tr>
+          <tr><td>Voice does not duplicate the screen</td><td>Voice-card-enumeration classifier when screen present</td><td>0 hits in production</td><td>Voice / QA</td><td>Voice transcript × visible-cards comparison; nightly run</td></tr>
+          <tr><td>Mid-flow modality switch preserves state</td><td>Re-statement rate on modality switch</td><td>&lt; 5%</td><td>Product / AI</td><td>Modality-switch event × user-restate detection</td></tr>
+          <tr><td>Mid-flow modality switch preserves language</td><td>Language-match rate across switch</td><td>≥ 98%</td><td>Voice / Localisation</td><td>Pre-switch / post-switch language-classifier comparison</td></tr>
+          <tr><td>Screen-disappearance fallback</td><td>% of voice continuations after screen-off that pivot correctly to voice-only fallback</td><td>≥ 95%</td><td>Voice / Engineering</td><td>Screen-state telemetry × voice-pivot classifier</td></tr>
+          <tr><td>Cross-device coherence (GA Personalization)</td><td>Time-to-propagate state across surfaces</td><td>&lt; 24h at p99</td><td>Personalization / Engineering</td><td>Cross-device state-sync telemetry</td></tr>
+          <tr><td>Cinematic voice + screen sync (Grand Kundali)</td><td>Voice-progress × screen-progress divergence</td><td>&lt; 500ms</td><td>Voice &amp; Multimodal / Engineering</td><td>Per-cinematic experience telemetry</td></tr>
+          <tr><td>Cricket Companion commentary-vs-score lag</td><td>Voice-commentary timing × scoreboard timing</td><td>&lt; 1.5s lag at p95</td><td>Voice &amp; Multimodal</td><td>Live-experience telemetry × QA panel</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc-sec" id="ch10-sec13"><span class="doc-sec__num">13</span><h2 class="doc-sec__title">Cross-references</h2></div>
+    <ul class="clean">
+      <li>Integrated Modal Experience Model — the cross-surface orchestration model this chapter subordinates to.</li>
+      <li>Ch. 4 — Response shapes &amp; anatomy (the four-slot anatomy that the screen renders).</li>
+      <li>Ch. 5 — Voice disclosure (the voice four-beat that this chapter's contract carries).</li>
+      <li>Ch. 6 — Language, code-switching &amp; cultural fluency (the language-match rule applied across modalities).</li>
+      <li>Ch. 7 — Memory, confidence &amp; autonomy (cross-surface coherence within 24h).</li>
+      <li>Ch. 8 — Commitment &amp; security (cross-modal commit auth split — voice anchors, screen authenticates).</li>
+      <li>Ch. 9 — Failing well (cross-modal recovery on screen-disappearance and connection loss).</li>
+      <li>Ch. 11 — Partner ecosystem (partner-fulfilled surface composition across modalities).</li>
+      <li>Ch. 12 — Sensitive moments (cross-modal behaviour when the cheer drops out).</li>
+      <li>Ch. 14 — Measurement, QA &amp; governance.</li>
+    </ul>
+    <p class="doc-close">End of Chapter 10. Voice anchors. Screen carries detail. Voice names the handoff. Anchors match. The user can switch modalities without losing the thread. Cross-modal desync is structural defect; the playbook's job is to ensure it stays at zero in production.</p>
+  </section>
+
+  <!-- ============ BOTTOM CTA ============ -->
+  <section class="section try-cta">
+    <div class="try-cta__banner">
+      <div class="eyebrow">See it on the surface</div>
+      <h2 class="section-title">Every chapter, as a living conversation.</h2>
+      <p class="section-lead">The Conversation Playground turns this playbook into the real thing &mdash; pick a moment, a chapter, or a vertical and watch the principles play out on the actual JBIQ surface, in the languages people really speak.</p>
+      <a class="try-cta__btn" href="conversation-playground.html#try-live">Open the playground &rarr;</a>
+    </div>
+  </section>
+
+</main>
+
+<script>
+
+/* Mobile drawer */
+const sidebar = document.getElementById('sidebar');
+const burger = document.querySelector('.toc-burger');
+const backdrop = document.querySelector('.toc-backdrop');
+const closeBtn = document.querySelector('.toc-close');
+function openDrawer() {
+  sidebar.classList.add('is-open');
+  backdrop.classList.add('is-open');
+}
+function closeDrawer() {
+  sidebar.classList.remove('is-open');
+  backdrop.classList.remove('is-open');
+}
+if (burger) burger.addEventListener('click', openDrawer);
+if (backdrop) backdrop.addEventListener('click', closeDrawer);
+if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+sidebar.querySelectorAll('a').forEach(a => a.addEventListener('click', closeDrawer));
+
+/* Desktop collapse — independent of the mobile drawer; state persists. */
+const collapseBtn = document.querySelector('.toc-collapse');
+const expandBtn = document.querySelector('.toc-expand');
+const COLLAPSE_KEY = 'jbiq-nav-collapsed';
+function setCollapsed(collapsed) {
+  document.body.classList.toggle('nav-collapsed', collapsed);
+  try { localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0'); } catch (e) {}
+}
+if (collapseBtn) collapseBtn.addEventListener('click', () => setCollapsed(true));
+if (expandBtn) expandBtn.addEventListener('click', () => setCollapsed(false));
+try { if (localStorage.getItem(COLLAPSE_KEY) === '1') setCollapsed(true); } catch (e) {}
+
+/* Reveal-on-scroll — fade + slide-up sections as they enter the viewport.
+   Skipped when the document is hidden (CSS transitions are paused there, so the
+   reveal would never visually complete). Falls back to a manual bounding-rect
+   check alongside IntersectionObserver. */
+const revealTargets = document.querySelectorAll('.section, .hero');
+if (document.visibilityState === 'visible') {
+  revealTargets.forEach(el => el.classList.add('reveal'));
+
+  function revealIfInView() {
+    const trigger = window.innerHeight * 0.95;
+    for (const el of revealTargets) {
+      if (el.classList.contains('is-visible')) continue;
+      if (el.getBoundingClientRect().top < trigger) el.classList.add('is-visible');
+    }
+  }
+
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      }
+    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.05 });
+    revealTargets.forEach(el => io.observe(el));
+  }
+  revealIfInView();
+  window.addEventListener('scroll', revealIfInView, { passive: true });
+}
+
+/* Active-section highlight in sidebar */
+const navLinks = Array.from(sidebar.querySelectorAll('a[href^="#"]'));
+const tracked = navLinks
+  .map(a => document.getElementById(a.getAttribute('href').slice(1)))
+  .filter(Boolean);
+
+function setActiveId(id) {
+  navLinks.forEach(a => {
+    a.classList.toggle('is-active', a.getAttribute('href') === '#' + id);
+  });
+}
+
+function updateActive() {
+  const trigger = window.scrollY + 120;
+  let current = tracked[0];
+  for (const sec of tracked) {
+    const top = sec.getBoundingClientRect().top + window.scrollY;
+    if (top <= trigger) current = sec;
+    else break;
+  }
+  if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 4) {
+    current = tracked[tracked.length - 1];
+  }
+  if (current) setActiveId(current.id);
+}
+
+window.addEventListener('scroll', updateActive, { passive: true });
+window.addEventListener('resize', updateActive);
+window.addEventListener('hashchange', updateActive);
+updateActive();
+
+/* Image-grid uploader — click or drag-drop a tile to set its image. Each tile
+   is keyed by [data-grid] + [data-slot] and stored as a dataURL in
+   localStorage so uploads survive reloads. */
+(() => {
+  const STORAGE_KEY = 'jbiq-playbook-image-grid:v1';
+  const MAX_BYTES = 4 * 1024 * 1024;
+
+  const load = () => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; } };
+  const save = (data) => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) { console.warn('Override storage failed:', e); } };
+
+  const tileId = (tile) => {
+    const grid = tile.closest('.image-grid')?.dataset.grid || 'global';
+    const slot = tile.dataset.slot ?? '0';
+    return `${grid}::${slot}`;
+  };
+
+  const applyImage = (tile, dataUrl) => {
+    tile.querySelectorAll(':scope > .image-grid__img, :scope > .image-grid__placeholder').forEach(n => n.remove());
+    const img = document.createElement('img');
+    img.className = 'image-grid__img';
+    img.alt = 'Uploaded reference image';
+    img.src = dataUrl;
+    tile.insertBefore(img, tile.firstChild);
+  };
+
+  const setImage = (tile, dataUrl) => {
+    const id = tileId(tile);
+    const data = load();
+    data[id] = dataUrl;
+    save(data);
+    applyImage(tile, dataUrl);
+    ensureOverlay(tile, true);
+  };
+
+  const clearImage = (tile) => {
+    const id = tileId(tile);
+    const data = load();
+    delete data[id];
+    save(data);
+    tile.querySelectorAll(':scope > .image-grid__img').forEach(n => n.remove());
+    const ph = document.createElement('div');
+    ph.className = 'image-grid__placeholder';
+    ph.innerHTML = '+<span>Upload</span>';
+    tile.insertBefore(ph, tile.firstChild);
+    ensureOverlay(tile, false);
+  };
+
+  const readAsDataURL = (file) => new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) return reject(new Error('Not an image'));
+    if (file.size > MAX_BYTES) return reject(new Error(`Image too large (${(file.size/1024/1024).toFixed(1)}MB; max ${MAX_BYTES/1024/1024}MB)`));
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(file);
+  });
+
+  const handleFile = async (tile, file) => {
+    try { setImage(tile, await readAsDataURL(file)); }
+    catch (e) { alert(e.message || 'Could not load that image.'); }
+  };
+
+  const ensureOverlay = (tile, hasImage) => {
+    let overlay = tile.querySelector(':scope > .image-grid__upload');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'image-grid__upload';
+      tile.appendChild(overlay);
+    }
+    overlay.innerHTML = hasImage
+      ? '<button type="button" class="image-grid__upload-btn" data-action="upload">Replace</button>' +
+        '<button type="button" class="image-grid__upload-btn image-grid__upload-btn--ghost" data-action="reset">Reset</button>'
+      : '<button type="button" class="image-grid__upload-btn" data-action="upload">Upload</button>';
+  };
+
+  const decorate = (tile) => {
+    if (tile.dataset.static) return;
+    if (tile.dataset.decorated) return;
+    tile.dataset.decorated = '1';
+
+    const overrides = load();
+    const id = tileId(tile);
+    const hasImage = !!overrides[id];
+    if (hasImage) applyImage(tile, overrides[id]);
+    ensureOverlay(tile, hasImage);
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    tile.appendChild(fileInput);
+
+    tile.addEventListener('click', (e) => {
+      const action = e.target?.dataset?.action;
+      if (action === 'reset') { e.stopPropagation(); clearImage(tile); return; }
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files?.[0];
+      if (file) await handleFile(tile, file);
+      fileInput.value = '';
+    });
+
+    tile.addEventListener('dragenter', (e) => { e.preventDefault(); tile.classList.add('is-dragover'); });
+    tile.addEventListener('dragover',  (e) => { e.preventDefault(); tile.classList.add('is-dragover'); });
+    tile.addEventListener('dragleave', (e) => { if (!tile.contains(e.relatedTarget)) tile.classList.remove('is-dragover'); });
+    tile.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      tile.classList.remove('is-dragover');
+      const file = e.dataTransfer?.files?.[0];
+      if (file) await handleFile(tile, file);
+    });
+  };
+
+  document.querySelectorAll('.image-grid__tile').forEach(decorate);
+
+  /* Caption persistence — keyed by the same grid+slot id as the tile,
+     stored separately so an image can have/lose a caption independently. */
+  const CAPTION_KEY = 'jbiq-playbook-image-grid-captions:v1';
+  const loadCaps = () => { try { return JSON.parse(localStorage.getItem(CAPTION_KEY) || '{}'); } catch { return {}; } };
+  const saveCaps = (data) => { try { localStorage.setItem(CAPTION_KEY, JSON.stringify(data)); } catch (e) { console.warn('Caption storage failed:', e); } };
+
+  document.querySelectorAll('.image-grid__cell').forEach(cell => {
+    const tile = cell.querySelector('.image-grid__tile');
+    const cap = cell.querySelector('.image-grid__caption');
+    if (!tile || !cap) return;
+    const id = tileId(tile);
+    const caps = loadCaps();
+    if (caps[id]) cap.textContent = caps[id];
+    cap.addEventListener('input', () => {
+      const data = loadCaps();
+      const text = cap.textContent.trim();
+      if (text) data[id] = text; else delete data[id];
+      saveCaps(data);
+    });
+    cap.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); cap.blur(); }
+    });
+  });
+
+  /* Standalone editable images (hero + worked examples). Same upload/persist
+     model as the tiles, but each wraps an <img> that has a default asset src.
+     Overrides are stored as dataURLs keyed by [data-img-key]; "Reset" restores
+     the original asset (remembered from the img's initial src). */
+  const IMG_KEY = 'jbiq-playbook-editable-img:v1';
+  const loadImgs = () => { try { return JSON.parse(localStorage.getItem(IMG_KEY) || '{}'); } catch { return {}; } };
+  const saveImgs = (data) => { try { localStorage.setItem(IMG_KEY, JSON.stringify(data)); } catch (e) { console.warn('Image override storage failed:', e); } };
+
+  document.querySelectorAll('.editable-img').forEach(wrap => {
+    const img = wrap.querySelector(':scope > img');
+    if (!img) return;
+    const key = wrap.dataset.imgKey || img.getAttribute('src');
+    const original = img.getAttribute('src');
+
+    const overrides = loadImgs();
+    if (overrides[key]) img.src = overrides[key];
+
+    const renderOverlay = () => {
+      let overlay = wrap.querySelector(':scope > .editable-img__upload');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'editable-img__upload';
+        wrap.appendChild(overlay);
+      }
+      const hasOverride = !!loadImgs()[key];
+      overlay.innerHTML =
+        '<button type="button" class="editable-img__btn" data-action="upload">Replace</button>' +
+        (hasOverride ? '<button type="button" class="editable-img__btn editable-img__btn--ghost" data-action="reset">Reset</button>' : '');
+    };
+
+    const setImage = (dataUrl) => {
+      const data = loadImgs();
+      data[key] = dataUrl;
+      saveImgs(data);
+      img.src = dataUrl;
+      renderOverlay();
+    };
+    const resetImage = () => {
+      const data = loadImgs();
+      delete data[key];
+      saveImgs(data);
+      img.src = original;
+      renderOverlay();
+    };
+    const handleFile = async (file) => {
+      try { setImage(await readAsDataURL(file)); }
+      catch (e) { alert(e.message || 'Could not load that image.'); }
+    };
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    wrap.appendChild(fileInput);
+
+    renderOverlay();
+
+    wrap.addEventListener('click', (e) => {
+      const action = e.target?.dataset?.action;
+      if (action === 'reset') { e.stopPropagation(); resetImage(); return; }
+      if (action === 'upload') { e.stopPropagation(); fileInput.click(); }
+    });
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files?.[0];
+      if (file) await handleFile(file);
+      fileInput.value = '';
+    });
+    wrap.addEventListener('dragenter', (e) => { e.preventDefault(); wrap.classList.add('is-dragover'); });
+    wrap.addEventListener('dragover',  (e) => { e.preventDefault(); wrap.classList.add('is-dragover'); });
+    wrap.addEventListener('dragleave', (e) => { if (!wrap.contains(e.relatedTarget)) wrap.classList.remove('is-dragover'); });
+    wrap.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      wrap.classList.remove('is-dragover');
+      const file = e.dataTransfer?.files?.[0];
+      if (file) await handleFile(file);
+    });
+  });
+})();
+
+/* Copy edit mode — toggle contentEditable on body copy, persist edits to this
+   page's OWN server sidecar via /api/playbook-content?doc=ch10. */
+(() => {
+  const ENDPOINT = '/api/playbook-content?doc=ch10';
+  const main = document.querySelector('main.page');
+  if (!main) return;
+  const SELECTOR = [
+    '.eyebrow', '.hero-title', '.hero-lead',
+    '.dmeta th', '.dmeta td',
+    '.doc-sec__title', '.doc-sub', '.doc-p', '.doc-close',
+    '.callout__label', '.callout__body',
+    '.clean li', '.dtable th', '.dtable td',
+    '.section-title', '.section-lead'
+  ].join(',');
+  const els = Array.from(main.querySelectorAll(SELECTOR)).filter((el) => !el.querySelector(SELECTOR));
+  const counters = {}; const baseline = new Map();
+  els.forEach((el) => {
+    const sec = el.closest('section[id], header[id]');
+    const secId = sec ? sec.id : 'doc';
+    const n = counters[secId] = (counters[secId] ?? -1) + 1;
+    el.dataset.editId = secId + '::' + n;
+    baseline.set(el, el.innerHTML);
+  });
+  const byId = new Map(els.map((el) => [el.dataset.editId, el]));
+  fetch(ENDPOINT).then((r) => (r.ok ? r.json() : {})).then((data) => {
+    if (!data || typeof data !== 'object') return;
+    for (const [id, h] of Object.entries(data)) { const el = byId.get(id); if (el) el.innerHTML = h; }
+  }).catch(() => {});
+  const viewCtl = document.getElementById('pbEditView');
+  const activeCtl = document.getElementById('pbEditActive');
+  const startBtn = document.getElementById('pbEditStart');
+  const cancelBtn = document.getElementById('pbEditCancel');
+  const saveBtn = document.getElementById('pbEditSave');
+  const toastEl = document.getElementById('pbToast');
+  let snapshot = null, toastTimer = null;
+  const toast = (msg) => { if (!toastEl) return; toastEl.textContent = msg; toastEl.classList.add('is-visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('is-visible'), 2200); };
+  const onPaste = (e) => { e.preventDefault(); const t = (e.clipboardData || window.clipboardData).getData('text/plain'); document.execCommand('insertText', false, t); };
+  const enterEdit = () => { snapshot = new Map(els.map((el) => [el, el.innerHTML])); document.body.classList.add('is-editing'); els.forEach((el) => { el.setAttribute('contenteditable', 'true'); el.addEventListener('paste', onPaste); }); if (viewCtl) viewCtl.hidden = true; if (activeCtl) activeCtl.hidden = false; };
+  const exitEdit = () => { document.body.classList.remove('is-editing'); els.forEach((el) => { el.removeAttribute('contenteditable'); el.removeEventListener('paste', onPaste); }); if (activeCtl) activeCtl.hidden = true; if (viewCtl) viewCtl.hidden = false; snapshot = null; };
+  const save = async () => {
+    const payload = {};
+    els.forEach((el) => { const cur = el.innerHTML; if (cur.trim() !== (baseline.get(el) || '').trim()) payload[el.dataset.editId] = cur; });
+    saveBtn.disabled = true;
+    try {
+      const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || ('HTTP ' + res.status));
+      exitEdit(); const n = Object.keys(payload).length;
+      toast(n ? ('Saved ' + n + ' edit' + (n === 1 ? '' : 's')) : 'Saved (no changes)');
+    } catch (err) { alert('Could not save: ' + (err.message || err)); } finally { saveBtn.disabled = false; }
+  };
+  const cancel = () => { if (snapshot) snapshot.forEach((h, el) => { el.innerHTML = h; }); exitEdit(); };
+  if (startBtn) startBtn.addEventListener('click', enterEdit);
+  if (saveBtn) saveBtn.addEventListener('click', save);
+  if (cancelBtn) cancelBtn.addEventListener('click', cancel);
+})();
+
+</script>
+
+</body>
+</html>

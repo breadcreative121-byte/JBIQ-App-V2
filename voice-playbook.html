@@ -61,6 +61,20 @@
     margin: var(--space-huge) 0 var(--space-md);
   }
 
+  /* Eyebrows and callout labels rendered as plain titles too — drop the
+     coloured uppercase accent look in favour of dark sentence-case headings.
+     Banner eyebrows keep their white colour via more specific rules above. */
+  .eyebrow,
+  .callout__label {
+    font-size: 18px;
+    font-weight: 800;
+    text-transform: none;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--color-text-primary);
+  }
+  .callout .callout__label { color: var(--color-text-primary); }
+
   /* Appear-on-scroll easing. Section starts slightly down and faded; eases up when it enters the viewport. */
   .reveal { opacity: 0; transform: translateY(16px); transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1), transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
   .reveal.is-visible { opacity: 1; transform: translateY(0); }
@@ -905,6 +919,64 @@
     .image-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
+  /* ---- Copy edit mode ---- */
+  /* In edit mode every editable copy element shows a faint dashed affordance and
+     a stronger one on hover/focus. Outside edit mode there is no visual change. */
+  body.is-editing [data-edit-id] {
+    outline: 1px dashed var(--color-border-strong);
+    outline-offset: 3px;
+    border-radius: 2px;
+    cursor: text;
+    transition: outline-color 120ms ease, background 120ms ease;
+  }
+  body.is-editing [data-edit-id]:hover { outline-color: var(--color-action-primary); }
+  body.is-editing [data-edit-id]:focus {
+    outline: 2px solid var(--color-action-primary);
+    outline-offset: 3px;
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .pb-edit-controls {
+    position: fixed;
+    right: 20px; bottom: 20px;
+    z-index: 50;
+    display: flex; gap: 10px;
+    font-family: var(--font-family);
+  }
+  .pb-edit-btn {
+    appearance: none; border: 0; cursor: pointer;
+    font: inherit; font-weight: 700; font-size: 14px; line-height: 1;
+    padding: 12px 18px; border-radius: var(--radius-pill);
+    background: #111; color: #fff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+    transition: transform 120ms ease, opacity 120ms ease;
+  }
+  .pb-edit-btn:hover { transform: translateY(-1px); }
+  .pb-edit-btn--ghost {
+    background: #fff; color: #111;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14), inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+  }
+  .pb-edit-btn--primary { background: var(--color-action-primary); }
+  .pb-edit-controls[hidden] { display: none; }
+
+  .pb-toast {
+    position: fixed;
+    left: 50%; bottom: 24px;
+    transform: translate(-50%, 16px);
+    z-index: 60;
+    background: #111; color: #fff;
+    font-size: 13px; font-weight: 600;
+    padding: 10px 16px; border-radius: var(--radius-pill);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+    opacity: 0; pointer-events: none;
+    transition: opacity 200ms ease, transform 200ms ease;
+  }
+  .pb-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+
+  @media print {
+    .pb-edit-controls, .pb-toast { display: none !important; }
+  }
+
 </style>
 </head>
 <body>
@@ -956,12 +1028,22 @@
 
 <div class="toc-backdrop" aria-hidden="true"></div>
 
+<!-- Copy editor controls — toggles contenteditable on body copy and saves to the server sidecar. -->
+<div class="pb-edit-controls" id="pbEditView">
+  <button type="button" class="pb-edit-btn" id="pbEditStart">Edit copy</button>
+</div>
+<div class="pb-edit-controls" id="pbEditActive" hidden>
+  <button type="button" class="pb-edit-btn pb-edit-btn--ghost" id="pbEditCancel">Cancel</button>
+  <button type="button" class="pb-edit-btn pb-edit-btn--primary" id="pbEditSave">Save</button>
+</div>
+<div class="pb-toast" id="pbToast" role="status" aria-live="polite"></div>
+
 <main class="page">
 
   <!-- ============ HERO ============ -->
   <header class="hero" id="top">
-    <h1 class="hero-title">The system and framework that shape India's daily AI Saathi.</h1>
-    <p class="hero-lead">Fourteen chapters covering who JBIQ is, how it responds, how it speaks across 12+ languages, how it fails well, and how the team knows it's working. Aligned to the Consumer Intelligence GA goals (May 2026).</p>
+    <h1 class="hero-title">The playbook behind India's everyday AI Saathi.</h1>
+    <p class="hero-lead">Fourteen chapters on who JBIQ is, how it replies, how it speaks 12+ languages, and how it owns its mistakes — one shared reference for everyone building India's AI Saathi.</p>
 
     <img src="assets/voice-playbook-hero.png" alt="" class="hero-image-img" />
 
@@ -971,7 +1053,7 @@
   <section class="section" id="tldr">
     <div class="eyebrow">The five-second JBIQ voice</div>
     <h2 class="section-title">If you read nothing else, read this.</h2>
-    <p class="section-lead">Five things a reviewer, a writer, or a prompt engineer should be able to recite without opening the doc. Everything in the fourteen chapters below is in service of these.</p>
+    <p class="section-lead">Five things anyone — reviewer, writer, prompt engineer — should be able to say from memory. Everything in the fourteen chapters comes back to these.</p>
 
     <div class="tldr-grid">
       <div class="tldr-card">
@@ -1005,8 +1087,8 @@
   <!-- ============ HOW TO USE ============ -->
   <section class="section" id="how-to-use">
     <div class="eyebrow">How to use this</div>
-    <h2 class="section-title">A normative reference, not a read-once doc.</h2>
-    <p class="section-lead">This playbook brings together the Conversation Principles, Response Pattern Model, Voice Disclosure rules, Partner Capability Manifest, Multi-Partner Conflict Resolution Model, and the Error and Repair specs into a single operational reference. It is aligned to the Consumer Intelligence GA goals (May 2026); see the Strategy Delta for the pre-GA → GA shift. It's meant to be cited in design, content, engineering, AI, and QA review — not bookmarked and forgotten.</p>
+    <h2 class="section-title">Keep this open while you work.</h2>
+    <p class="section-lead">One home for everything that used to live in scattered specs — the Conversation Principles, Response Pattern Model, Voice Disclosure rules, Partner Capability Manifest, and the conflict-resolution and error-and-repair specs. Built for the May 2026 launch. Made to be cited in design, content, engineering, AI, and QA reviews — not bookmarked and forgotten.</p>
 
     <div class="block-label">Who this is for</div>
     <ul class="clean">
@@ -1018,16 +1100,16 @@
       <li><strong>Compliance</strong> — when reviewing data, commitment, and partner integrations.</li>
     </ul>
 
-    <div class="block-label">Normative vs guidance</div>
-    <p class="section-lead" style="margin-bottom: var(--space-xl)">Each chapter marks its rules as one of two kinds. <strong style="color: var(--color-text-primary)">Invariants</strong> are non-negotiable and machine-enforced — no commitment without explicit confirmation, no OTP or PIN storage, no follow-up question as refinement. <strong style="color: var(--color-text-primary)">Guidance</strong> is recommendation and may flex with documented rationale — default reply length, preferred openings, emoji frequency.</p>
+    <div class="block-label">What's fixed, and what can flex</div>
+    <p class="section-lead" style="margin-bottom: var(--space-xl)">Each chapter marks its rules as one of two kinds. <strong style="color: var(--color-text-primary)">Invariants</strong> are non-negotiable and machine-enforced — no commitment without explicit confirmation, no OTP or PIN storage, no follow-up question as refinement. <strong style="color: var(--color-text-primary)">Guidance</strong> is a strong steer that can flex with a documented reason — default reply length, preferred openings, emoji frequency.</p>
 
   </section>
 
   <!-- ============ HOW IT INTERLOCKS ============ -->
   <section class="section" id="interlock">
-    <div class="eyebrow">How it interlocks</div>
-    <h2 class="section-title">Five cohorts of chapters.</h2>
-    <p class="section-lead">Identity and principles are the bedrock. The reply rhythm and response anatomy shape every reply. Voice disclosure is the voice-specific case of the anatomy. Memory, commitment, and failing well are the operating conditions. Multi-modal and partners are the coexistence rules. Sensitive moments and the never-does card are the hard edges. Measurement and governance closes the loop.</p>
+    <div class="eyebrow">How it fits together</div>
+    <h2 class="section-title">How the chapters fit together.</h2>
+    <p class="section-lead">Identity and principles are the bedrock. The reply rhythm and response anatomy shape every reply, and voice disclosure is that same anatomy spoken aloud. Memory, commitment, and failing well are the conditions JBIQ works under day to day. Multi-modal and partners cover sharing the screen with others. Sensitive moments and the never-does card are the hard edges. Measurement and governance checks it's all working.</p>
 
     <div class="cohort-grid">
       <div class="cohort">
@@ -1047,7 +1129,7 @@
         <p class="cohort__chapters">10 Multi-modal handoff · 11 Partner ecosystem &amp; attribution</p>
       </div>
       <div class="cohort">
-        <h3 class="cohort__title">Where the rules invert or harden</h3>
+        <h3 class="cohort__title">Where the rules change</h3>
         <p class="cohort__chapters">12 Sensitive moments · 13 What JBIQ never does</p>
       </div>
       <div class="cohort" style="display: none;">
@@ -1060,7 +1142,7 @@
   <!-- ============ CHAPTER 1 — IDENTITY ============ -->
   <section class="section" id="ch-1">
     <h2 class="section-title">Identity &amp; voice DNA.</h2>
-    <p class="section-lead">Who JBIQ is in one paragraph, the one-line voice, and the tone rules every other chapter inherits. This is the chapter writers and prompt engineers reach for first; everything downstream presupposes it.</p>
+    <p class="section-lead">Who JBIQ is in one paragraph, the one-line voice, and the tone rules every other chapter inherits. This is the chapter writers and prompt engineers reach for first — everything else builds on it.</p>
 
     <div class="callout callout--purple">
       <div class="callout__label">The one-line voice</div>
@@ -1111,7 +1193,7 @@
   <!-- ============ CHAPTER 2 — TEN PRINCIPLES ============ -->
   <section class="section" id="ch-2">
     <h2 class="section-title">The ten conversation principles.</h2>
-    <p class="section-lead">The philosophical bedrock. Each principle has a brand idea, an in-conversation behaviour, and pattern-match do / don't. Not weighted equally in every turn — choose which principles do the most work for the moment.</p>
+    <p class="section-lead">The bedrock. Each principle pairs a brand idea with how it shows up in a real conversation, plus a quick do and don't. They don't all carry equal weight every turn — lean on the ones that matter most for the moment.</p>
 
     <ol class="spine">
       <li><span class="num">2.1</span><span class="name">We care</span><span class="desc">Lead with the human, not the task. Notice stress, rush, vulnerability, and adjust.</span></li>
@@ -1175,7 +1257,7 @@
   <!-- ============ CHAPTER 3 — REPLY RHYTHM ============ -->
   <section class="section" id="ch-3">
     <h2 class="section-title">The reply rhythm.</h2>
-    <p class="section-lead">The four-beat shape every JBIQ reply follows — <em><strong>Emotion</strong> → <strong>Answer</strong> → <strong>Next step</strong> → <strong>Home</strong>.</em> Defaults for length, structure, opening, closing. The spine on which every response anatomy sits.</p>
+    <p class="section-lead">The four-beat shape every JBIQ reply follows — <em><strong>Emotion</strong> → <strong>Answer</strong> → <strong>Next step</strong> → <strong>Home</strong>.</em> Defaults for length, structure, opening, and closing — the backbone every response is built on.</p>
 
     <div class="callout callout--purple">
       <div class="callout__label">The four beats</div>
@@ -1240,14 +1322,14 @@
   <!-- ============ CHAPTER 4 — RESPONSE SHAPES ============ -->
   <section class="section" id="ch-4">
     <h2 class="section-title">Response shapes &amp; anatomy.</h2>
-    <p class="section-lead">The five intent shapes and the four-slot response anatomy. Where chips replace questions, where clarification is permitted, and the prohibited patterns automated QA must detect.</p>
+    <p class="section-lead">The five intent shapes and the four-slot response anatomy. Where chips replace questions, when it's okay to ask, and the patterns automated QA flags.</p>
 
     <div class="callout callout--purple">
       <div class="callout__label">The anatomy</div>
       <ul class="callout__body" style="margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: var(--space-xs);">
         <li><strong>Slot 1 — Context line.</strong> One sentence with inferred signal.</li>
-        <li><strong>Slot 2 — Primary result.</strong> The substantive answer.</li>
-        <li><strong>Slot 3 — Refinement chips.</strong> Single-tap, reversible.</li>
+        <li><strong>Slot 2 — Refinement chips.</strong> Single-tap, reversible.</li>
+        <li><strong>Slot 3 — Primary result.</strong> The substantive answer.</li>
         <li><strong>Slot 4 — Edge affordance.</strong> Optional, ancillary.</li>
       </ul>
     </div>
@@ -1263,12 +1345,12 @@
           <p class="body">One sentence with inferred signal — festival timing surfaced as a delivery cut-off.</p>
         </div>
         <div class="annotated__label">
-          <div class="eb">Slot 2 · Primary result</div>
-          <p class="body">3–5 cards with inferred attributes on every face — size, colour, arrival date.</p>
+          <div class="eb">Slot 2 · Refinement chips</div>
+          <p class="body">Single-tap, reversible. Highest-impact filters first; "More" expands.</p>
         </div>
         <div class="annotated__label">
-          <div class="eb">Slot 3 · Refinement chips</div>
-          <p class="body">Single-tap, reversible. Highest-impact filters first; "More" expands.</p>
+          <div class="eb">Slot 3 · Primary result</div>
+          <p class="body">3–5 cards with inferred attributes on every face — size, colour, arrival date.</p>
         </div>
         <div class="annotated__label">
           <div class="eb">Slot 4 · Edge affordance</div>
@@ -1310,7 +1392,7 @@
   <!-- ============ CHAPTER 5 — VOICE DISCLOSURE ============ -->
   <section class="section" id="ch-5">
     <h2 class="section-title">Voice disclosure (the four-beat).</h2>
-    <p class="section-lead">How JBIQ discloses results in voice. The speak-the-shape rule, density ceilings, anchor selection, and the voice + UI contract for when both surfaces are present.</p>
+    <p class="section-lead">How JBIQ delivers results out loud. The speak-the-shape rule, density ceilings, how it picks the anchor, and who carries what when voice and screen are both there.</p>
 
     <div class="callout callout--purple">
       <div class="callout__label">Worked example — flight intent</div>
@@ -1450,7 +1532,7 @@
   <!-- ============ CHAPTER 6 — LANGUAGE ============ -->
   <section class="section" id="ch-6">
     <h2 class="section-title">Language, code-switching &amp; cultural fluency.</h2>
-    <p class="section-lead">How JBIQ moves across 12+ production languages (22 supported), matches script, code-switches naturally within and across turns, and surfaces Indian cultural context without caricature. At GA, every production language meets the same quality bar — cross-language parity within 10pp, STT beating benchmark by 5%+, TTS MOS 4.0+.</p>
+    <p class="section-lead">How JBIQ moves across 12+ production languages (22 supported), matches script, code-switches naturally within and across turns, and brings in Indian context without caricature. At launch, every production language meets the same quality bar — cross-language parity within 10pp, STT beating benchmark by 5%+, TTS MOS 4.0+.</p>
 
     <div class="callout callout--purple">
       <div class="callout__label">GA targets — language</div>
@@ -1524,7 +1606,7 @@
   <!-- ============ CHAPTER 7 — MEMORY ============ -->
   <section class="section" id="ch-7">
     <h2 class="section-title">Memory, confidence &amp; autonomy.</h2>
-    <p class="section-lead">What JBIQ surfaces from memory, what stays silent, and how confidence and autonomy modulate the response. A hidden material assumption is a bug, not a feature.</p>
+    <p class="section-lead">What JBIQ brings up from memory, what it keeps to itself, and how confidence and autonomy shape the reply. A hidden assumption is a bug, not a feature.</p>
 
     <ol class="spine">
       <li><span class="num">7.1</span><span class="name">What is surfaced</span><span class="desc">Inferred attributes on cards. Editable via chip or tap. Material assumptions never hidden.</span></li>
@@ -1770,7 +1852,7 @@
   <!-- ============ CHAPTER 12 — SENSITIVE MOMENTS ============ -->
   <section class="section" id="ch-12">
     <h2 class="section-title">Sensitive moments.</h2>
-    <p class="section-lead">Illness, bereavement, financial stress, anger, safety. A heightened mode where the usual cheer inverts — calm, brief, useful, real-world escalation.</p>
+    <p class="section-lead">Illness, bereavement, financial stress, anger, safety. The moments where the usual cheer is wrong — calm, brief, useful, with a real person never far away.</p>
 
     <ol class="spine">
       <li><span class="num">12.1</span><span class="name">Recognising a sensitive moment</span><span class="desc">Signals from text content, tone, history, and time-of-day. False-positive cost vs false-negative cost.</span></li>
@@ -1920,7 +2002,7 @@
     <div class="try-cta__banner">
       <div class="eyebrow">See it on the surface</div>
       <h2 class="section-title">Every chapter, as a living conversation.</h2>
-      <p class="section-lead">The Conversation Playground turns this playbook into the real thing — pick a moment, a chapter, or a vertical and watch the principles play out on the actual JBIQ surface, in the languages people really speak.</p>
+      <p class="section-lead">The Conversation Playground turns this playbook into the real thing — pick a moment, a chapter, or a use case and watch the principles play out on the real JBIQ surface, in the languages people actually speak.</p>
       <a class="try-cta__btn" href="conversation-playground.html#try-live">Open the playground →</a>
     </div>
   </section>
@@ -2236,6 +2318,139 @@ updateActive();
       if (file) await handleFile(file);
     });
   });
+})();
+
+/* Copy edit mode — toggle contentEditable on body copy, persist edits to the
+   server sidecar (voice-playbook-content.json) via /api/playbook-content.
+   Captions and image uploads are handled separately above (localStorage). */
+(() => {
+  const main = document.querySelector('main.page');
+  if (!main) return;
+
+  // All editable copy classes found in the document. Images, nav, buttons and
+  // the localStorage-backed image captions are intentionally excluded.
+  const SELECTOR = [
+    '.hero-title', '.hero-lead', '.eyebrow', '.section-title', '.section-lead',
+    '.block-label', '.tension-title', '.tension-quote', '.surface__title',
+    '.image-grid__title', '.tldr-card__num', '.tldr-card__title', '.tldr-card__body',
+    '.cohort__title', '.cohort__chapters', '.callout__label', '.callout__body',
+    '.spine .num', '.spine .name', '.spine .desc', '.annotated__label .eb',
+    '.do-dont__head', '.do-dont__item', '.voice-strip__num', '.voice-strip__name',
+    '.voice-strip__quote', '.voice-strip__sub', '.clean li',
+    '.try-cta__title', '.try-cta__sub'
+  ].join(',');
+
+  // Stable id = "<nearest ancestor section/header id>::<index within that section>".
+  // Section-scoping keeps ids stable when copy in one section changes. Caveat:
+  // adding/removing editable elements in the source can still shift indices.
+  // Only keep leaf matches: skip any matched element that itself contains another
+  // matched element (e.g. a wrapper around editable children). Editing a child
+  // would otherwise mutate the wrapper's innerHTML and trigger false-positive saves.
+  const els = Array.from(main.querySelectorAll(SELECTOR)).filter((el) => !el.querySelector(SELECTOR));
+  const counters = {};
+  const baseline = new Map();
+  els.forEach((el) => {
+    const sec = el.closest('section[id], header[id]');
+    const secId = sec ? sec.id : 'doc';
+    const n = counters[secId] = (counters[secId] ?? -1) + 1;
+    const id = secId + '::' + n;
+    el.dataset.editId = id;
+    baseline.set(el, el.innerHTML);
+  });
+  const byId = new Map(els.map((el) => [el.dataset.editId, el]));
+
+  // Load saved overrides and apply them over the pristine baseline.
+  fetch('/api/playbook-content')
+    .then((r) => (r.ok ? r.json() : {}))
+    .then((data) => {
+      if (!data || typeof data !== 'object') return;
+      for (const [id, html] of Object.entries(data)) {
+        const el = byId.get(id);
+        if (el) el.innerHTML = html;
+      }
+    })
+    .catch(() => {});
+
+  const viewCtl = document.getElementById('pbEditView');
+  const activeCtl = document.getElementById('pbEditActive');
+  const startBtn = document.getElementById('pbEditStart');
+  const cancelBtn = document.getElementById('pbEditCancel');
+  const saveBtn = document.getElementById('pbEditSave');
+  const toastEl = document.getElementById('pbToast');
+
+  let snapshot = null;
+  let toastTimer = null;
+
+  const toast = (msg) => {
+    if (!toastEl) return;
+    toastEl.textContent = msg;
+    toastEl.classList.add('is-visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('is-visible'), 2200);
+  };
+
+  const onPaste = (e) => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, text);
+  };
+
+  const enterEdit = () => {
+    snapshot = new Map(els.map((el) => [el, el.innerHTML]));
+    document.body.classList.add('is-editing');
+    els.forEach((el) => {
+      el.setAttribute('contenteditable', 'true');
+      el.addEventListener('paste', onPaste);
+    });
+    if (viewCtl) viewCtl.hidden = true;
+    if (activeCtl) activeCtl.hidden = false;
+  };
+
+  const exitEdit = () => {
+    document.body.classList.remove('is-editing');
+    els.forEach((el) => {
+      el.removeAttribute('contenteditable');
+      el.removeEventListener('paste', onPaste);
+    });
+    if (activeCtl) activeCtl.hidden = true;
+    if (viewCtl) viewCtl.hidden = false;
+    snapshot = null;
+  };
+
+  const save = async () => {
+    const payload = {};
+    els.forEach((el) => {
+      const cur = el.innerHTML;
+      if (cur.trim() !== (baseline.get(el) || '').trim()) {
+        payload[el.dataset.editId] = cur;
+      }
+    });
+    saveBtn.disabled = true;
+    try {
+      const res = await fetch('/api/playbook-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || ('HTTP ' + res.status));
+      exitEdit();
+      const n = Object.keys(payload).length;
+      toast(n ? ('Saved ' + n + ' edit' + (n === 1 ? '' : 's')) : 'Saved (no changes)');
+    } catch (err) {
+      alert('Could not save: ' + (err.message || err));
+    } finally {
+      saveBtn.disabled = false;
+    }
+  };
+
+  const cancel = () => {
+    if (snapshot) snapshot.forEach((html, el) => { el.innerHTML = html; });
+    exitEdit();
+  };
+
+  if (startBtn) startBtn.addEventListener('click', enterEdit);
+  if (saveBtn) saveBtn.addEventListener('click', save);
+  if (cancelBtn) cancelBtn.addEventListener('click', cancel);
 })();
 </script>
 

@@ -1,0 +1,1807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+<title>JBIQ Voice Playbook &mdash; Ch. 14: Measurement, QA &amp; governance</title>
+<link rel="stylesheet" href="components.css" />
+<style>
+  @font-face {
+    font-family: 'JioType';
+    font-weight: 100 900;
+    font-style: normal;
+    src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Regular.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'JioType';
+    font-weight: 100 900;
+    font-style: italic;
+    src: url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Italic.woff2') format('woff2');
+  }
+  /* Consumer-owned font-family — components.css deliberately leaves this for
+     each surface to declare. All other tokens (colours, spacing, radii, type
+     scale) come from components.css. */
+  :root {
+    --font-family: 'JioType', 'JioTypeVar', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Page-scoped: slightly darker divider lines than the global default (0.08). */
+    --color-border-default: rgba(12, 13, 16, 0.2);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: var(--space-xl); }
+  body {
+    background: var(--color-surface-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-family);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.005em;
+    padding-left: 240px;
+  }
+  /* Paragraph-style copy: keep one level lighter than UI elements. */
+  .hero-lead, .section-lead, .tension-quote, .tldr-card__body, .lang-trio__copy { font-weight: 400; }
+
+  /* Acceptance + worked-example blocks hidden for now — label + the callout that follows it. */
+  .block-label--acceptance,
+  .block-label--acceptance + .callout,
+  .block-label--worked,
+  .block-label--worked + .callout { display: none; }
+
+  /* Section sub-headings rendered as titles, not small uppercase labels.
+     Overrides the components.css .block-label (loaded earlier in the cascade). */
+  .block-label {
+    font-size: 20px;
+    font-weight: 900;
+    text-transform: none;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--color-text-primary);
+    margin: var(--space-huge) 0 var(--space-md);
+  }
+
+  /* Eyebrows and callout labels rendered as plain titles too — drop the
+     coloured uppercase accent look in favour of dark sentence-case headings.
+     Banner eyebrows keep their white colour via more specific rules above. */
+  .eyebrow,
+  .callout__label {
+    font-size: 18px;
+    font-weight: 800;
+    text-transform: none;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--color-text-primary);
+  }
+  .callout .callout__label { color: var(--color-text-primary); }
+
+  /* Appear-on-scroll easing. Section starts slightly down and faded; eases up when it enters the viewport. */
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1), transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .reveal.is-visible { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
+
+  /* ---- Sidebar ---- */
+  .toc {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 240px;
+    background: var(--color-surface-primary);
+    border-right: 0.5px solid var(--color-border-strong);
+    padding: var(--space-xxl) var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 10;
+    overflow-y: auto;
+    scrollbar-width: none;
+    transition: transform 200ms ease;
+  }
+  .toc::-webkit-scrollbar { display: none; }
+  .toc-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  .toc-brand__mark { width: 28px; height: 28px; display: block; flex-shrink: 0; }
+  .toc-brand__name {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  .toc-header {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-xs);
+  }
+  .toc a {
+    font-size: 14px;
+    font-weight: 500;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: background 140ms, color 140ms;
+    line-height: 1.3;
+    display: flex; align-items: baseline; gap: var(--space-xs);
+  }
+  .toc a:hover {
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+  }
+  .toc a.is-active {
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    font-weight: 700;
+  }
+  .toc-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    flex-shrink: 0;
+    min-width: 22px;
+  }
+  .toc a.is-active .toc-num { color: var(--color-action-primary); }
+
+  /* Mobile burger / drawer (same pattern as brand-placement-deck) */
+  .toc-burger {
+    display: none;
+    appearance: none;
+    background: var(--color-surface-primary);
+    border: 0.5px solid var(--color-border-default);
+    color: var(--color-text-primary);
+    width: 40px; height: 40px;
+    border-radius: var(--radius-pill);
+    position: fixed;
+    top: var(--space-md); left: var(--space-md);
+    z-index: 20;
+    align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .toc-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(12,13,16,0.4);
+    z-index: 11;
+    opacity: 0;
+    transition: opacity 200ms ease;
+  }
+  .toc-backdrop.is-open { display: block; opacity: 1; }
+  .toc-close {
+    display: none;
+    appearance: none; background: transparent; border: none;
+    color: var(--color-text-secondary);
+    font-size: 24px;
+    width: 32px; height: 32px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    align-items: center; justify-content: center;
+    line-height: 1;
+    margin-left: auto;
+  }
+
+  /* Desktop collapse — tucks the whole sidebar off-screen, leaving an expand tab. */
+  .toc-collapse {
+    appearance: none; background: transparent; border: none;
+    color: var(--color-text-tertiary);
+    font-size: 18px;
+    width: 28px; height: 28px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+    margin-left: auto;
+    transition: background 140ms, color 140ms;
+  }
+  .toc-collapse:hover { background: var(--color-surface-secondary); color: var(--color-text-primary); }
+  .toc-expand {
+    display: none;
+    appearance: none;
+    background: var(--color-surface-primary);
+    border: 0.5px solid var(--color-border-default);
+    color: var(--color-text-primary);
+    width: 36px; height: 36px;
+    border-radius: var(--radius-pill);
+    position: fixed;
+    top: var(--space-md); left: var(--space-md);
+    z-index: 20;
+    align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    box-shadow: 0 2px 8px rgba(12,13,16,0.08);
+  }
+  body.nav-collapsed { padding-left: 0; }
+  body.nav-collapsed .toc { transform: translateX(-100%); }
+  body.nav-collapsed .toc-expand { display: flex; }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--space-huge) var(--space-lg) var(--space-huge);
+  }
+
+  /* ---- Hero ---- */
+  .hero {
+    margin-bottom: var(--space-huge);
+    scroll-margin-top: var(--space-xl);
+  }
+  .hero-title {
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    margin: 0 0 var(--space-lg);
+    max-width: 900px;
+  }
+  .hero-lead {
+    font-size: 22px;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+    margin: 0 0 var(--space-huge);
+    max-width: 760px;
+    letter-spacing: -0.005em;
+  }
+
+  /* Hero image — static collage of partner-brand placements rendered as a single PNG. */
+  .hero-image-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 0 var(--space-huge);
+    border-radius: var(--radius-lg);
+  }
+
+  /* Page-shell override: first .section after the hero collapses its top border
+     and uses tighter top padding so it doesn't feel double-spaced. */
+  .hero + .section { border-top: none; padding-top: var(--space-xxl); }
+
+  /* ---- TL;DR five-card grid (the five-second JBIQ voice) ---- */
+  .tldr-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    margin: var(--space-xl) 0 0;
+  }
+  .tldr-card {
+    background: var(--color-action-primary-pale);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    display: flex; flex-direction: column;
+    gap: var(--space-sm);
+  }
+  .tldr-card__num {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.04em;
+  }
+  .tldr-card__title {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .tldr-card__body {
+    font-size: 16px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin: 0;
+  }
+  #tldr .section-title { font-size: clamp(34px, 4.5vw, 54px); }
+
+  /* Bottom CTA — closing banner */
+  .try-cta__banner {
+    background: var(--color-text-primary);
+    color: var(--color-text-on-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-huge);
+    text-align: center;
+  }
+  .try-cta__banner .eyebrow { color: rgba(255,255,255,0.6); }
+  .try-cta__banner .section-title {
+    color: var(--color-text-on-primary);
+    max-width: 760px;
+    margin: 0 auto var(--space-md);
+  }
+  .try-cta__banner .section-lead {
+    color: rgba(255,255,255,0.72);
+    max-width: 640px;
+    margin: 0 auto var(--space-xl);
+  }
+  .try-cta__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    padding: 16px 36px;
+    border-radius: var(--radius-pill);
+    transition: background 120ms ease;
+  }
+  .try-cta__btn:hover { background: var(--color-action-primary-hover); }
+  @media (max-width: 640px) {
+    .try-cta__banner { padding: var(--space-xl); }
+  }
+
+  /* Clean bullet list — purple dot */
+  ul.clean { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-md); }
+  ul.clean li {
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--color-text-primary);
+    padding-left: var(--space-xl);
+    position: relative;
+    letter-spacing: -0.005em;
+  }
+  ul.clean li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 11px;
+    width: 6px; height: 6px;
+    background: var(--color-action-primary);
+    border-radius: 50%;
+  }
+
+  /* ---- Cohort / pillar grid for "How chapters interlock" ---- */
+  .cohort-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-lg);
+  }
+  .cohort {
+    padding: var(--space-xl);
+    background: var(--color-action-primary-pale);
+    border-radius: var(--radius-md);
+  }
+  .cohort__label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-action-primary);
+    margin-bottom: var(--space-sm);
+  }
+  .cohort__title { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; margin: 0 0 var(--space-sm); }
+  .cohort__chapters { font-size: 16px; color: var(--color-text-secondary); line-height: 1.5; }
+
+  /* ---- Dark big-rule editorial breakout (closing note) ---- */
+  .big-rule {
+    background: var(--color-text-primary);
+    color: var(--color-text-on-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-huge);
+    margin: 96px 0;
+    text-align: center;
+  }
+  .big-rule .eyebrow { color: rgba(255,255,255,0.6); }
+  .big-rule .section-title { color: var(--color-text-on-primary); max-width: 880px; margin: 0 auto var(--space-lg); }
+  .big-rule .section-lead { color: rgba(255,255,255,0.7); max-width: 720px; margin: 0 auto; }
+
+  /* ====== Visual example components ====== */
+
+  /* Generic "mocked surface" wrapper */
+  .surface {
+    background: var(--color-surface-primary);
+    border: 0.5px solid var(--color-border-default);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: 0 4px 24px rgba(12,13,16,0.04);
+  }
+  .surface__title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--space-md);
+  }
+  .surface__avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--color-action-primary);
+    color: #fff;
+    font-weight: 900;
+    font-size: 11px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+
+  /* Reply mock — used inside annotated examples */
+  .mock {
+    display: flex; flex-direction: column;
+    gap: var(--space-md);
+  }
+  .mock__context {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    letter-spacing: -0.005em;
+  }
+  .mock__row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: var(--space-sm);
+    align-items: center;
+    padding: 10px var(--space-md);
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-sm);
+  }
+  .mock__thumb {
+    width: 36px; height: 36px;
+    border-radius: var(--radius-sm);
+    background: var(--color-action-primary-surface);
+    display: grid; place-items: center;
+    font-size: 18px;
+  }
+  .mock__name { font-size: 13px; font-weight: 700; line-height: 1.25; }
+  .mock__meta { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+  .mock__price { font-size: 13px; font-weight: 700; }
+
+  .mock__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .mock__chip {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 11px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface-secondary);
+    color: var(--color-text-primary);
+  }
+  .mock__chip--active {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+  }
+  .mock__edge {
+    display: flex; gap: var(--space-md);
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+  }
+  .mock__bubble {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    border-radius: 18px 18px 18px 4px;
+    padding: var(--space-md) var(--space-lg);
+    font-size: 15px;
+    line-height: 1.5;
+    max-width: 460px;
+  }
+  .mock__bubble strong { color: #fff; font-weight: 700; }
+  .mock__bubble--user {
+    background: var(--color-surface-secondary);
+    color: var(--color-text-primary);
+    border-radius: 18px 18px 4px 18px;
+    margin-left: auto;
+    margin-bottom: var(--space-sm);
+    max-width: 380px;
+  }
+  .mock__user-row {
+    display: flex; align-items: flex-end; gap: var(--space-sm); justify-content: flex-end;
+    margin-bottom: var(--space-md);
+  }
+  .mock__row-with-avatar {
+    display: flex; align-items: flex-start; gap: var(--space-sm);
+  }
+  .mock__row-with-avatar .mock__bubble { flex: 1; }
+
+  /* Annotated layout: visual on left, labels on right */
+  .annotated {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: var(--space-xxl);
+    align-items: start;
+    margin: var(--space-xl) 0;
+  }
+  .annotated__visual { min-width: 0; }
+  .annotated__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-lg);
+  }
+  .annotated__labels {
+    display: flex; flex-direction: column;
+    gap: var(--space-lg);
+    padding-top: var(--space-md);
+  }
+  .annotated__label { position: relative; }
+  .annotated__label .eb {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin-bottom: 4px;
+    color: var(--color-text-primary);
+  }
+  .annotated__label .body {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin: 0;
+  }
+  .annotated__label .body strong { color: var(--color-text-primary); font-weight: 700; }
+
+  /* Editable inline images — click or drag-drop to replace; overrides persist
+     to localStorage and "Reset" restores the original asset. Wraps standalone
+     <img> (hero, worked examples) the same way image-grid tiles work. */
+  .editable-img { position: relative; display: block; }
+  .editable-img > img { display: block; width: 100%; height: auto; }
+  .editable-img.is-dragover { outline: 2px dashed var(--color-action-primary); outline-offset: -4px; }
+  .editable-img__upload {
+    position: absolute; top: var(--space-sm); right: var(--space-sm);
+    display: flex; gap: 6px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 140ms;
+  }
+  .editable-img:hover .editable-img__upload,
+  .editable-img__upload:focus-within { opacity: 1; pointer-events: auto; }
+  .editable-img__btn {
+    appearance: none; border: none; cursor: pointer;
+    font-size: 12px; font-weight: 700; line-height: 1;
+    padding: 7px 13px; border-radius: var(--radius-pill);
+    background: var(--color-action-primary); color: var(--color-text-on-primary);
+    box-shadow: 0 2px 8px rgba(12,13,16,0.18);
+  }
+  .editable-img__btn--ghost {
+    background: var(--color-surface-primary);
+    color: var(--color-text-primary);
+    border: 0.5px solid var(--color-border-strong);
+  }
+
+  /* Voice four-beat strip */
+  .voice-strip {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+    margin: var(--space-xl) 0;
+  }
+  .voice-strip__beat {
+    background: var(--color-action-primary-pale);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    display: flex; flex-direction: column;
+    gap: var(--space-sm);
+  }
+  .voice-strip__num {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--color-text-primary);
+    line-height: 1;
+  }
+  .voice-strip__name {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+  .voice-strip__quote {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1.4;
+  }
+  .voice-strip__sub {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+  }
+
+  /* 3-language trio */
+  .lang-trio {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+    margin: var(--space-xl) 0;
+  }
+  .lang-trio__col {
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    display: flex; flex-direction: column;
+    gap: var(--space-sm);
+  }
+  .lang-trio__lang {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--color-action-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .lang-trio__copy {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--color-text-primary);
+  }
+  .lang-trio__copy em { color: var(--color-text-secondary); font-style: normal; font-size: 13px; display: block; margin-top: var(--space-sm); }
+
+  /* Forbidden vs preferred ladder */
+  .do-dont {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+    margin: var(--space-xl) 0;
+  }
+  .do-dont__col { display: flex; flex-direction: column; gap: var(--space-sm); }
+  .do-dont__head {
+    font-size: 18px;
+    font-weight: 800;
+    text-transform: none;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin-bottom: var(--space-xs);
+    color: var(--color-text-primary);
+  }
+  .do-dont__head--no { color: var(--color-text-primary); }
+  .do-dont__head--yes { color: var(--color-text-primary); }
+  .do-dont__item {
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-sm);
+    padding: 10px var(--space-md);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .do-dont__item--no {
+    color: var(--color-text-secondary);
+    text-decoration: line-through;
+    text-decoration-color: var(--color-error);
+    text-decoration-thickness: 1px;
+  }
+  .do-dont__item--yes {
+    background: var(--color-action-primary-surface);
+    color: var(--color-text-primary);
+    font-weight: 600;
+  }
+
+  /* Action-card — the visual UI that accompanies every assistant reply.
+     Sits beneath a .mock__bubble inside a .mock and is indented so it lines
+     up under the bubble (past the 28px avatar + 8px gap). */
+  .action-card {
+    margin-left: 36px;
+    max-width: 460px;
+    padding: var(--space-md) var(--space-lg);
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--color-action-primary);
+    display: flex; flex-direction: column;
+    gap: 10px;
+  }
+  .action-card--warn { border-left-color: var(--color-sparkle); }
+  .action-card--error { border-left-color: var(--color-error); }
+  .action-card__head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--space-sm);
+  }
+  .action-card__title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+  }
+  .action-card__status {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    background: var(--color-action-primary-surface);
+    color: var(--color-action-primary);
+    white-space: nowrap;
+  }
+  .action-card__status--warn {
+    background: var(--color-sparkle-surface);
+    color: var(--color-sparkle);
+  }
+  .action-card__status--error {
+    background: rgba(220,53,69,0.10);
+    color: var(--color-error);
+  }
+  .action-card__primary {
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: var(--color-text-primary);
+  }
+  .action-card__row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-sm);
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+  .action-card__row strong { color: var(--color-text-primary); font-weight: 700; }
+  .action-card__actions {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-top: 2px;
+  }
+  .action-card__action {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface-primary);
+    color: var(--color-text-primary);
+    border: 0.5px solid var(--color-border-default);
+    cursor: default;
+    line-height: 1;
+  }
+  .action-card__action--primary {
+    background: var(--color-action-primary);
+    color: var(--color-text-on-primary);
+    border-color: transparent;
+  }
+
+  /* Commitment card */
+  .commit-card {
+    background: var(--color-surface-primary);
+    border: 0.5px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    max-width: 380px;
+    margin: var(--space-xl) auto;
+    box-shadow: 0 8px 24px rgba(12,13,16,0.06);
+  }
+  .commit-card__eb {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--color-text-tertiary);
+    margin-bottom: var(--space-xs);
+  }
+  .commit-card__name {
+    font-size: 16px; font-weight: 700; letter-spacing: -0.02em;
+    margin-bottom: var(--space-md);
+  }
+  .commit-card__amount {
+    font-size: 40px; font-weight: 900; letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: var(--space-md);
+  }
+  .commit-card__row {
+    display: flex; justify-content: space-between;
+    font-size: 13px;
+    padding: 10px 0;
+    border-bottom: 0.5px solid var(--color-border-default);
+  }
+  .commit-card__row:last-of-type { border-bottom: none; }
+  .commit-card__key { color: var(--color-text-secondary); }
+  .commit-card__val { font-weight: 700; }
+  .commit-card__val--link { color: var(--color-action-primary); }
+  .commit-card__btn {
+    width: 100%;
+    margin-top: var(--space-md);
+    background: var(--color-action-primary);
+    color: white;
+    padding: 14px;
+    border-radius: var(--radius-pill);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+  }
+  .commit-card__note {
+    margin-top: var(--space-sm);
+    font-size: 11px;
+    text-align: center;
+    color: var(--color-text-secondary);
+  }
+
+  /* Image grid — 1:1 tiles with click/drop-to-upload. Persists per-tile to
+     localStorage so uploads survive reloads. */
+  .image-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+    margin: var(--space-md) 0 var(--space-xl);
+  }
+  .image-grid__cell { margin: 0; display: flex; flex-direction: column; gap: var(--space-sm); }
+  .image-grid__title {
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+    color: var(--color-text-primary);
+  }
+  .image-grid__title + .image-grid__caption { margin-top: calc(-1 * var(--space-xs)); }
+  .image-grid__caption {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--color-text-secondary);
+    letter-spacing: -0.005em;
+    outline: none;
+    min-height: 1.4em;
+    border-radius: var(--radius-sm);
+    padding: 2px 0;
+    transition: color 120ms ease;
+  }
+  .image-grid__caption:empty::before {
+    content: attr(data-placeholder);
+    color: var(--color-text-tertiary);
+    pointer-events: none;
+  }
+  .image-grid__caption:focus { color: var(--color-text-primary); }
+  .image-grid__tile {
+    aspect-ratio: 1 / 1;
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-md);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: background 120ms ease;
+  }
+  .image-grid__tile:hover { background: var(--color-surface-tertiary); }
+  .image-grid__tile.is-dragover { outline: 2px dashed var(--color-action-primary); outline-offset: -6px; }
+  .image-grid__placeholder {
+    font-size: 32px;
+    color: var(--color-text-tertiary);
+    font-weight: 300;
+    line-height: 1;
+    pointer-events: none;
+    text-align: center;
+  }
+  .image-grid__placeholder span {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: var(--space-xs);
+  }
+  .image-grid__img {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .image-grid__upload {
+    position: absolute;
+    right: 8px; bottom: 8px;
+    display: flex; gap: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+    z-index: 2;
+  }
+  .image-grid__tile:hover .image-grid__upload,
+  .image-grid__upload:focus-within { opacity: 1; pointer-events: auto; }
+  .image-grid__upload-btn {
+    appearance: none; border: 0; cursor: pointer;
+    font: inherit; font-weight: 600; font-size: 11px; line-height: 1;
+    padding: 6px 10px; border-radius: var(--radius-pill);
+    background: #111; color: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  }
+  .image-grid__upload-btn--ghost {
+    background: #fff; color: #111;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(0,0,0,0.08);
+  }
+
+  /* Mobile / narrow ---- */
+  @media (max-width: 900px) {
+    body { padding-left: 0; }
+    .toc {
+      transform: translateX(-100%);
+      width: 280px;
+    }
+    .toc.is-open { transform: translateX(0); }
+    .toc-burger { display: flex; }
+    .toc-close { display: flex; }
+    .toc-collapse { display: none; }
+    body.nav-collapsed .toc-expand { display: none; }
+    .page { padding: 80px var(--space-lg) var(--space-huge); }
+    .hero-title { font-size: 44px; }
+    .hero-lead { font-size: 18px; }
+    .cohort-grid { grid-template-columns: 1fr; }
+    .annotated { grid-template-columns: 1fr; gap: var(--space-lg); }
+    .voice-strip, .lang-trio, .do-dont { grid-template-columns: 1fr; }
+    .action-card { margin-left: 0; max-width: 100%; }
+    .image-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ---- Copy edit mode ---- */
+  /* In edit mode every editable copy element shows a faint dashed affordance and
+     a stronger one on hover/focus. Outside edit mode there is no visual change. */
+  body.is-editing [data-edit-id] {
+    outline: 1px dashed var(--color-border-strong);
+    outline-offset: 3px;
+    border-radius: 2px;
+    cursor: text;
+    transition: outline-color 120ms ease, background 120ms ease;
+  }
+  body.is-editing [data-edit-id]:hover { outline-color: var(--color-action-primary); }
+  body.is-editing [data-edit-id]:focus {
+    outline: 2px solid var(--color-action-primary);
+    outline-offset: 3px;
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .pb-edit-controls {
+    position: fixed;
+    right: 20px; bottom: 20px;
+    z-index: 50;
+    display: flex; gap: 10px;
+    font-family: var(--font-family);
+  }
+  .pb-edit-btn {
+    appearance: none; border: 0; cursor: pointer;
+    font: inherit; font-weight: 700; font-size: 14px; line-height: 1;
+    padding: 12px 18px; border-radius: var(--radius-pill);
+    background: #111; color: #fff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+    transition: transform 120ms ease, opacity 120ms ease;
+  }
+  .pb-edit-btn:hover { transform: translateY(-1px); }
+  .pb-edit-btn--ghost {
+    background: #fff; color: #111;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14), inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+  }
+  .pb-edit-btn--primary { background: var(--color-action-primary); }
+  .pb-edit-controls[hidden] { display: none; }
+
+  .pb-toast {
+    position: fixed;
+    left: 50%; bottom: 24px;
+    transform: translate(-50%, 16px);
+    z-index: 60;
+    background: #111; color: #fff;
+    font-size: 13px; font-weight: 600;
+    padding: 10px 16px; border-radius: var(--radius-pill);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+    opacity: 0; pointer-events: none;
+    transition: opacity 200ms ease, transform 200ms ease;
+  }
+  .pb-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+
+  @media print {
+    .pb-edit-controls, .pb-toast { display: none !important; }
+  }
+
+
+
+  /* ===== Chapter long-form normative document styles (page-scoped) ===== */
+  .chapterdoc .doc-sec {
+    margin: var(--space-huge) 0 var(--space-lg);
+    padding-top: var(--space-xl);
+    border-top: 1px solid var(--color-border-default);
+  }
+  .chapterdoc .doc-sec:first-of-type { border-top: 0; padding-top: 0; margin-top: var(--space-md); }
+  .chapterdoc .doc-sec__num { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--color-action-primary); letter-spacing: 0.04em; }
+  .chapterdoc .doc-sec__title { font-size: 26px; font-weight: 900; letter-spacing: -0.02em; line-height: 1.15; margin: var(--space-xs) 0 0; }
+  .chapterdoc .doc-sub { font-size: 17px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.3; color: var(--color-text-primary); margin: var(--space-xl) 0 var(--space-sm); }
+  .chapterdoc .doc-p { font-size: 16px; line-height: 1.6; color: var(--color-text-secondary); margin: 0 0 var(--space-md); max-width: 760px; }
+  .chapterdoc .doc-p strong { color: var(--color-text-primary); font-weight: 700; }
+  .chapterdoc ul.clean { margin: var(--space-sm) 0 var(--space-xl); max-width: 820px; }
+  .chapterdoc ul.clean li { font-size: 16px; }
+  .chapterdoc table.dmeta { border-collapse: collapse; width: 100%; max-width: 720px; margin: 0 0 var(--space-huge); font-size: 14px; }
+  .chapterdoc table.dmeta th { text-align: left; font-weight: 700; color: var(--color-text-secondary); white-space: nowrap; width: 1%; padding: var(--space-sm) var(--space-xl) var(--space-sm) 0; vertical-align: top; border-bottom: 0.5px solid var(--color-border-default); }
+  .chapterdoc table.dmeta td { padding: var(--space-sm) 0; color: var(--color-text-primary); line-height: 1.45; border-bottom: 0.5px solid var(--color-border-default); }
+  .chapterdoc table.dmeta tr:last-child th, .chapterdoc table.dmeta tr:last-child td { border-bottom: 0; }
+  .chapterdoc .table-wrap { overflow-x: auto; margin: var(--space-sm) 0 var(--space-xl); -webkit-overflow-scrolling: touch; }
+  .chapterdoc table.dtable { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14px; }
+  .chapterdoc table.dtable thead th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-text-tertiary); font-weight: 700; padding: 0 var(--space-lg) var(--space-sm) 0; border-bottom: 1px solid var(--color-border-strong); white-space: nowrap; }
+  .chapterdoc table.dtable td { text-align: left; vertical-align: top; padding: var(--space-md) var(--space-lg) var(--space-md) 0; border-bottom: 0.5px solid var(--color-border-default); line-height: 1.5; color: var(--color-text-secondary); }
+  .chapterdoc table.dtable td:first-child { color: var(--color-text-primary); font-weight: 600; padding-right: var(--space-xl); }
+  .chapterdoc table.dtable tbody tr:last-child td { border-bottom: 0; }
+  .chapterdoc .callout__body .sp { font-weight: 700; color: var(--color-text-primary); }
+  .chapterdoc .callout__body .dir { color: var(--color-text-secondary); font-size: 14px; }
+  .chapterdoc .doc-close { margin-top: var(--space-huge); padding-top: var(--space-xl); border-top: 1px solid var(--color-border-default); font-size: 16px; line-height: 1.6; color: var(--color-text-secondary); max-width: 760px; }
+
+</style>
+</head>
+<body>
+
+<button class="toc-burger" aria-label="Open navigation">&#9776;</button>
+
+<button class="toc-expand" aria-label="Expand navigation" title="Expand navigation">&#9776;</button>
+
+<aside id="sidebar" class="toc" role="navigation" aria-label="Chapter sections">
+  <div class="toc-brand">
+    <img class="toc-brand__mark" src="assets/logo.svg" alt="Jio" width="28" height="28">
+    <a class="toc-brand__name" href="voice-playbook.html" style="text-decoration: none; color: inherit;">JBIQ</a>
+    <button class="toc-collapse" aria-label="Collapse navigation" title="Collapse navigation">&lsaquo;</button>
+    <button class="toc-close" aria-label="Close navigation">&times;</button>
+  </div>
+
+  <a href="voice-playbook.html">&lsaquo; Full playbook</a>
+  <a href="voice-playbook-ch13.html">&lsaquo; Ch 13 &middot; What JBIQ never does</a>
+
+  <div class="toc-header" style="margin-top: var(--space-md)">Chapter 14 &middot; Measurement, QA &amp; governance</div>
+  <a href="#ch14-sec0"><span class="toc-num">00</span><span>Purpose &amp; Authority</span></a>
+  <a href="#ch14-sec1"><span class="toc-num">01</span><span>Scope &amp; Non-Goals</span></a>
+  <a href="#ch14-sec2"><span class="toc-num">02</span><span>Governance invariants</span></a>
+  <a href="#ch14-sec3"><span class="toc-num">03</span><span>The metrics that matter</span></a>
+  <a href="#ch14-sec4"><span class="toc-num">04</span><span>The north star — DEC</span></a>
+  <a href="#ch14-sec5"><span class="toc-num">05</span><span>Response-shape metrics</span></a>
+  <a href="#ch14-sec6"><span class="toc-num">06</span><span>Voice disclosure metrics</span></a>
+  <a href="#ch14-sec7"><span class="toc-num">07</span><span>Language metrics</span></a>
+  <a href="#ch14-sec8"><span class="toc-num">08</span><span>Reliability + cost</span></a>
+  <a href="#ch14-sec9"><span class="toc-num">09</span><span>Trust + guardrail metrics</span></a>
+  <a href="#ch14-sec10"><span class="toc-num">10</span><span>Repair metrics</span></a>
+  <a href="#ch14-sec11"><span class="toc-num">11</span><span>The QA regression suite</span></a>
+  <a href="#ch14-sec12"><span class="toc-num">12</span><span>Acceptance per chapter — the dashboard</span></a>
+  <a href="#ch14-sec13"><span class="toc-num">13</span><span>The change process</span></a>
+  <a href="#ch14-sec14"><span class="toc-num">14</span><span>Exception criteria</span></a>
+  <a href="#ch14-sec15"><span class="toc-num">15</span><span>Versioning</span></a>
+  <a href="#ch14-sec16"><span class="toc-num">16</span><span>Governance cadence</span></a>
+  <a href="#ch14-sec17"><span class="toc-num">17</span><span>Acceptance criteria mapped to metrics</span></a>
+  <a href="#ch14-sec18"><span class="toc-num">18</span><span>Cross-references</span></a>
+</aside>
+
+<div class="toc-backdrop" aria-hidden="true"></div>
+
+<div class="pb-edit-controls" id="pbEditView">
+  <button type="button" class="pb-edit-btn" id="pbEditStart">Edit text</button>
+</div>
+<div class="pb-edit-controls" id="pbEditActive" hidden>
+  <button type="button" class="pb-edit-btn pb-edit-btn--ghost" id="pbEditCancel">Cancel</button>
+  <button type="button" class="pb-edit-btn pb-edit-btn--primary" id="pbEditSave">Save</button>
+</div>
+<div class="pb-toast" id="pbToast" role="status" aria-live="polite"></div>
+
+<main class="page">
+
+  <header class="hero" id="top">
+    <div class="eyebrow">JioBharatIQ &middot; Voice Playbook &middot; Chapter 14</div>
+    <h1 class="hero-title">Measurement, QA &amp; governance</h1>
+    <p class="hero-lead">How we know it's working. The metrics, the QA regression suite, the change process, and the cadence that keeps the playbook honest.</p>
+  </header>
+
+  <section class="section chapterdoc" id="ch-14">
+    <table class="dmeta">
+      <tr><th>Version</th><td>V0.2 (GA-aligned)</td></tr>
+      <tr><th>Status</th><td>Normative draft · For review</td></tr>
+      <tr><th>Applies to</th><td>Product, Design, Engineering, AI Systems, QA, Data &amp; Analytics, Compliance</td></tr>
+      <tr><th>Owner</th><td>Matt Jarvis</td></tr>
+      <tr><th>Last Updated</th><td>May 2026</td></tr>
+      <tr><th>Aligned to</th><td>Consumer Intelligence GA Operating Goals 01–10 (May 2026)</td></tr>
+    </table>
+    <div class="doc-sec" id="ch14-sec0"><span class="doc-sec__num">00</span><h2 class="doc-sec__title">Purpose &amp; Authority</h2></div>
+    <p class="doc-p">This chapter closes the playbook. It defines the metrics every previous chapter ladders to, the QA regression suite that gates releases, the change process for the playbook itself, the exception system, and the governance cadence. It is the chapter that turns the rest of the playbook from a document into a living instrument.</p>
+    <p class="doc-p">It exists to:</p>
+    <ul class="clean">
+      <li>Map every chapter's acceptance criteria to a single, instrumented metrics dashboard.</li>
+      <li>Make Daily Engaged Conversations (DEC) — the GA north star — the primary success measurement.</li>
+      <li>Codify the regression suite that gates every model release.</li>
+      <li>Define the change process for the playbook itself.</li>
+      <li>Lock the exception criteria — what justifies a documented deviation.</li>
+      <li>Set the governance cadence — per-release, nightly, weekly, quarterly.</li>
+      <li>Make versioning and migration of the playbook predictable.</li>
+    </ul>
+    <p class="doc-p">This chapter is normative. A metric that's not measured cannot be governed; a change that bypasses the process is a structural defect.</p>
+    <div class="doc-sec" id="ch14-sec1"><span class="doc-sec__num">01</span><h2 class="doc-sec__title">Scope &amp; Non-Goals</h2></div>
+    <h3 class="doc-sub">1.1  In scope</h3>
+    <ul class="clean">
+      <li>The DEC north star and the metrics that ladder to it.</li>
+      <li>Response-shape, voice disclosure, language, reliability, trust, repair metrics.</li>
+      <li>The QA regression suite — what runs on every model update.</li>
+      <li>Acceptance per chapter — the cross-chapter dashboard structure.</li>
+      <li>The change process — propose, review, approve, communicate.</li>
+      <li>Exception criteria — what justifies documented deviation.</li>
+      <li>Versioning — minor vs major bumps, migration notes.</li>
+      <li>Governance cadence — per-release, nightly, weekly, quarterly.</li>
+    </ul>
+    <h3 class="doc-sub">1.2  Out of scope</h3>
+    <ul class="clean">
+      <li>Specific dashboard tooling and data pipeline architecture (governed by Data &amp; Analytics).</li>
+      <li>Per-pod OKR setting (governed by Pod Plans).</li>
+      <li>Commercial KPI tracking (governed by Business).</li>
+      <li>Per-language Localisation parity tooling (governed by Localisation).</li>
+    </ul>
+    <div class="doc-sec" id="ch14-sec2"><span class="doc-sec__num">02</span><h2 class="doc-sec__title">Governance invariants</h2></div>
+    <ul class="clean">
+      <li>Every chapter's acceptance criteria ladder to instrumented metrics. Metrics that are not instrumented are not governed.</li>
+      <li>Every metric has an owner, a target, a measurement method, and a cadence.</li>
+      <li>DEC (Daily Engaged Conversations) is the primary success metric. Task completion, satisfaction, retention, language parity, and trust metrics all ladder to it.</li>
+      <li>The QA regression suite runs on every model release. Suite failure blocks the release.</li>
+      <li>Section 2 invariants in every chapter are non-negotiable; their violation in production triggers automatic rollback and post-incident review.</li>
+      <li>The playbook is a living document. Changes follow the §13 process. In-place updates within minor versions are permitted; structural changes require version bumps.</li>
+      <li>Exceptions are documented in writing, time-bounded, and reviewed quarterly.</li>
+      <li>Quarterly governance review is held on schedule with all chapter owners + Trust &amp; Safety + Compliance + Legal as standing attendees.</li>
+      <li>Every measurement, every classifier, every regex rule is reviewed quarterly for accuracy and drift.</li>
+      <li>Metric breach &gt; 10% over a 7-day rolling window pages the chapter owner; a Section 2 invariant violation pages the playbook owner + Compliance.</li>
+    </ul>
+    <div class="doc-sec" id="ch14-sec3"><span class="doc-sec__num">03</span><h2 class="doc-sec__title">The metrics that matter</h2></div>
+    <p class="doc-p">GA Operating Goals 01–10 (Consumer Intelligence, May 2026) define the org-level commitments. Every metric in this chapter ladders to one or more of those goals. The table below is the canonical ladder.</p>
+    <div class="table-wrap">
+      <table class="dtable">
+        <thead><tr><th>GA Operating Goal</th><th>What it commits</th><th>Playbook chapters that ladder to it</th></tr></thead>
+        <tbody>
+          <tr><td>01 — Market reach (1M+/month)</td><td>1M+ Indians reached monthly.</td><td>Ch. 1, Ch. 6, Ch. 11 (GTM × language × ecosystem)</td></tr>
+          <tr><td>02 — Domain + experiences</td><td>5+ domains live, 15+ signature experiences.</td><td>Ch. 5 §12, Ch. 11 §12 (Vertical Lift)</td></tr>
+          <tr><td>03 — First / returning task completion</td><td>40%+ first-session task completion, 80%+ returning.</td><td>Ch. 4 (response shapes), Ch. 9 (failure recovery)</td></tr>
+          <tr><td>04 — Daily return</td><td>25%+ of monthly users return daily; DEC primary north star.</td><td>Every chapter — the playbook is the substrate for habit</td></tr>
+          <tr><td>05 — Satisfaction</td><td>80%+ response satisfaction; no domain below 70%.</td><td>Ch. 1, Ch. 2, Ch. 12 (sensitive moments)</td></tr>
+          <tr><td>06 — Languages</td><td>12+ Indian languages in production at parity; STT +5%; TTS MOS 4.0+.</td><td>Ch. 6 (full chapter) + Ch. 5 (voice prosody)</td></tr>
+          <tr><td>07 — Quality + scale</td><td>99%+ eval pass rate; stable at 100K+ concurrent.</td><td>This chapter + Ch. 9 + Ch. 13 (regression suite)</td></tr>
+          <tr><td>08 — Partner ecosystem</td><td>10+ partners live; 3+ new partners/month.</td><td>Ch. 11 (full chapter)</td></tr>
+          <tr><td>09 — Net-new signature experiences</td><td>2+ net-new signature experiences/month by partners or autonomously.</td><td>Ch. 11 §12 (Vertical Lift)</td></tr>
+          <tr><td>10 — AI-native org</td><td>100% of org uses AI tooling as primary workflow.</td><td>Not playbook-governed; operational</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc-sec" id="ch14-sec4"><span class="doc-sec__num">04</span><h2 class="doc-sec__title">The north star — DEC</h2></div>
+    <div class="callout callout--purple">
+      <div class="callout__label">DAILY ENGAGED CONVERSATIONS</div>
+      <p class="callout__body">DEC = DAU × Conversations/User/Day.   Target at year-1: ≥ 2 sessions/user/day at 25%+ DAU/MAU.   Every chapter's metrics ladder to it — engagement is what the playbook is for.</p>
+    </div>
+    <p class="doc-p">DEC is the GA primary metric. It is computed daily, broken out by domain, by intent shape, by language, by signature experience. The dashboard is live by Beta exit; per Data &amp; Analytics, freshness is 5 minutes.</p>
+    <div class="doc-sec" id="ch14-sec5"><span class="doc-sec__num">05</span><h2 class="doc-sec__title">Response-shape metrics</h2></div>
+    <p class="doc-p">Metrics that test the structural correctness of every rendered response. From Ch. 4.</p>
+    <div class="table-wrap">
+      <table class="dtable">
+        <thead><tr><th>Metric</th><th>Target</th><th>Owner</th><th>Cadence</th></tr></thead>
+        <tbody>
+          <tr><td>Context Line signal rate</td><td>≥ 95%</td><td>Content / AI</td><td>Nightly</td></tr>
+          <tr><td>Chip-vs-question refinement rate</td><td>≥ 90%</td><td>Product / AI</td><td>Nightly</td></tr>
+          <tr><td>Clarification rate — Multi-Option</td><td>&lt; 20%</td><td>AI</td><td>Nightly per intent shape</td></tr>
+          <tr><td>Clarification rate — Single-Path</td><td>&lt; 10%</td><td>AI</td><td>Nightly</td></tr>
+          <tr><td>First-card tap rate (top 3)</td><td>≥ 70%</td><td>Product</td><td>Daily</td></tr>
+          <tr><td>Intent-shape classification accuracy</td><td>≥ 95%</td><td>AI</td><td>Per release + nightly</td></tr>
+          <tr><td>Prohibited-pattern detection</td><td>0 in production</td><td>QA</td><td>Every release + nightly</td></tr>
+          <tr><td>Primary-result latency p90</td><td>&lt; 5s</td><td>Engineering</td><td>Per release + live</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc-sec" id="ch14-sec6"><span class="doc-sec__num">06</span><h2 class="doc-sec__title">Voice disclosure metrics</h2></div>
+    <p class="doc-p">Metrics that test voice-specific behaviour. From Ch. 5.</p>
+    <div class="table-wrap">
+      <table class="dtable">
+        <thead><tr><th>Metric</th><th>Target</th><th>Owner</th><th>Cadence</th></tr></thead>
+        <tbody>
+          <tr><td>Four-beat pattern present</td><td>≥ 95%</td><td>Voice / AI</td><td>Nightly</td></tr>
+          <tr><td>Word-count ceiling respected (≤ 40 words pre-pivot)</td><td>≥ 95%</td><td>Content / AI</td><td>Nightly</td></tr>
+          <tr><td>No list enumeration</td><td>0</td><td>QA</td><td>Per release + nightly</td></tr>
+          <tr><td>No commitment language at PARTIAL_RESULT_SHOWN</td><td>0</td><td>QA / Voice</td><td>Per release + nightly</td></tr>
+          <tr><td>Anchor matches UI primary result</td><td>≥ 99%</td><td>Product / AI / QA</td><td>Per turn × per release</td></tr>
+          <tr><td>TTS MOS per language per content type</td><td>≥ 4.0</td><td>Voice &amp; Multimodal</td><td>Monthly MOS panel</td></tr>
+          <tr><td>Cinematic persona consistency</td><td>Delta ≤ 0.05</td><td>Voice / Content</td><td>Per cinematic experience</td></tr>
+          <tr><td>Voice latency — simple</td><td>p50 ≤ 2.5s</td><td>Engineering</td><td>Live</td></tr>
+          <tr><td>Voice latency — multi-skill</td><td>p50 ≤ 15s</td><td>Engineering</td><td>Live</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc-sec" id="ch14-sec7"><span class="doc-sec__num">07</span><h2 class="doc-sec__title">Language metrics</h2></div>
+    <p class="doc-p">Metrics that test the 12+ languages at parity commitment. From Ch. 6.</p>
+    <div class="table-wrap">
+      <table class="dtable">
+        <thead><tr><th>Metric</th><th>Target</th><th>Owner</th><th>Cadence</th></tr></thead>
+        <tbody>
+          <tr><td>Production-language count</td><td>≥ 12</td><td>Localisation / AI</td><td>Per release</td></tr>
+          <tr><td>STT vs benchmark per language</td><td>+5% per lang</td><td>AI Core / Voice</td><td>Weekly</td></tr>
+          <tr><td>Response language match rate</td><td>≥ 95%</td><td>AI</td><td>Nightly</td></tr>
+          <tr><td>Mid-sentence code-switch handling</td><td>≥ 90% per pair</td><td>AI / Localisation</td><td>Nightly per pair</td></tr>
+          <tr><td>Per-language CSAT delta</td><td>≤ 10pp</td><td>Product / Quality</td><td>Weekly</td></tr>
+          <tr><td>Per-language CSAT floor</td><td>≥ 70% per lang</td><td>Product / Quality</td><td>Weekly</td></tr>
+          <tr><td>Tone-classifier delta across languages</td><td>≤ 0.10</td><td>Localisation / AI</td><td>Weekly</td></tr>
+          <tr><td>Cultural caricature flagging</td><td>0</td><td>Content / QA</td><td>Nightly</td></tr>
+          <tr><td>Zero-English audit per signature exp.</td><td>100% pre-GA</td><td>Localisation / QA</td><td>Release-gated</td></tr>
+          <tr><td>Bharat tier-2 / tier-3 usability floor</td><td>≥ 90%</td><td>Product / UXR</td><td>Quarterly panel</td></tr>
+          <tr><td>Indian convention rendering</td><td>0 deviations / 10k</td><td>Content / QA</td><td>Per release + nightly</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc-sec" id="ch14-sec8"><span class="doc-sec__num">08</span><h2 class="doc-sec__title">Reliability + cost</h2></div>
+    <p class="doc-p">Metrics that test platform reliability and unit economics. From Ch. 5 + Ch. 9 + GA Op. Goal 07.</p>
+    <div class="table-wrap">
+      <table class="dtable">
+        <thead><tr><th>Metric</th><th>Target</th><th>Owner</th><th>Cadence</th></tr></thead>
+        <tbody>
+          <tr><td>Quality eval pass rate (CI/CD gate)</td><td>≥ 99%</td><td>AI Core / QA</td><td>Per release</td></tr>
+          <tr><td>Stable at concurrent load</td><td>≥ 100K concurrent · 30% headroom</td><td>Engineering / Platform</td><td>Load test per release</td></tr>
+          <tr><td>Availability</td><td>≥ 99.5%</td><td>Engineering / Platform</td><td>Live</td></tr>
+          <tr><td>Voice p50 simple</td><td>≤ 2.5s</td><td>Engineering</td><td>Live</td></tr>
+          <tr><td>Voice p50 multi-skill</td><td>≤ 15s</td><td>Engineering</td><td>Live</td></tr>
+          <tr><td>Chat p50 simple</td><td>≤ 1.5s</td><td>Engineering</td><td>Live</td></tr>
+          <tr><td>Chat p50 multi-skill</td><td>≤ 10s</td><td>Engineering</td><td>Live</td></tr>
+          <tr><td>Cost per query</td><td>≤ ₹0.05</td><td>Engineering / AI</td><td>Daily</td></tr>
+          <tr><td>MTTD (mean time to detect)</td><td>&lt; 2 min</td><td>Platform</td><td>Live</td></tr>
+          <tr><td>MTTR (mean time to recover)</td><td>&lt; 30 min</td><td>Platform</td><td>Live</td></tr>
+          <tr><td>PR-to-prod gate time</td><td>≤ 2h</td><td>Engineering</td><td>Per release</td></tr>
+          <tr><td>New service stand-up time</td><td>≤ 2 days</td><td>Platform</td><td>Per service</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc-sec" id="ch14-sec9"><span class="doc-sec__num">09</span><h2 class="doc-sec__title">Trust + guardrail metrics</h2></div>
+    <p class="doc-p">Metrics that test the safety, privacy, and consent floors. From Ch. 8 + Ch. 9 + Ch. 13.</p>
+    <div class="table-wrap">
+      <table class="dtable">
+        <thead><tr><th>Metric</th><th>Target</th><th>Owner</th><th>Cadence</th></tr></thead>
+        <tbody>
+          <tr><td>Guardrail FNR per category</td><td>&lt; 5%</td><td>Guardrails / AI</td><td>Weekly</td></tr>
+          <tr><td>Guardrail hard-block FNR</td><td>0</td><td>Guardrails / Compliance</td><td>Per release</td></tr>
+          <tr><td>Guardrail FPR (over-refusal)</td><td>&lt; 2%</td><td>Guardrails / AI</td><td>Weekly</td></tr>
+          <tr><td>Guardrail uptime</td><td>≥ 99.9%</td><td>Engineering / Guardrails</td><td>Live</td></tr>
+          <tr><td>Compliance Ledger write success rate</td><td>≥ 99.99%</td><td>Engineering / Compliance</td><td>Live</td></tr>
+          <tr><td>Secrets in logs / memory / ledger</td><td>0</td><td>Compliance / Security</td><td>Daily sweep</td></tr>
+          <tr><td>Auth floor lowering events</td><td>0</td><td>Compliance</td><td>Per release audit</td></tr>
+          <tr><td>DPDP memory delete propagation p99</td><td>&lt; 24h</td><td>Memory team</td><td>Daily SLO</td></tr>
+          <tr><td>Deleted memory non-resurfacing</td><td>0</td><td>Memory / QA</td><td>Weekly audit</td></tr>
+          <tr><td>Cross-partner data exchange</td><td>0 unauthorised / 30d</td><td>Compliance</td><td>Rolling 30-day audit</td></tr>
+          <tr><td>Self-harm content provision</td><td>0</td><td>Trust &amp; Safety / Guardrails</td><td>Per release + nightly</td></tr>
+          <tr><td>Categorical confidentiality claims</td><td>0</td><td>QA / Compliance</td><td>Nightly</td></tr>
+          <tr><td>Sourced-verdict compliance</td><td>100%</td><td>Trust &amp; Safety</td><td>Per verdict-rendering surface</td></tr>
+          <tr><td>Cross-modal desync events</td><td>≤ 2 / 10k turns</td><td>Engineering / QA</td><td>Live</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc-sec" id="ch14-sec10"><span class="doc-sec__num">10</span><h2 class="doc-sec__title">Repair metrics</h2></div>
+    <p class="doc-p">Metrics that test how well JBIQ fails. From Ch. 9.</p>
+    <div class="table-wrap">
+      <table class="dtable">
+        <thead><tr><th>Metric</th><th>Target</th><th>Owner</th><th>Cadence</th></tr></thead>
+        <tbody>
+          <tr><td>Long-prompt loss rate (&gt; 60s voice prompts)</td><td>&lt; 1% post-deploy</td><td>Voice &amp; Multimodal / Engineering</td><td>Weekly</td></tr>
+          <tr><td>Incoming-call resumption success</td><td>≥ 95%</td><td>Voice &amp; Multimodal</td><td>Weekly</td></tr>
+          <tr><td>Silent failure rate</td><td>0 in production</td><td>Engineering / QA</td><td>Daily</td></tr>
+          <tr><td>User-rated repair quality (post-failure CSAT)</td><td>Within 0.5 of expert reference</td><td>Product / Quality</td><td>Weekly + quarterly recalibration</td></tr>
+          <tr><td>Repair vocabulary completeness per language</td><td>100% — 8 classes per language</td><td>Localisation</td><td>Per language before GA-quality release</td></tr>
+          <tr><td>Policy-detail leak in refusals</td><td>0</td><td>QA / Compliance</td><td>Nightly</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc-sec" id="ch14-sec11"><span class="doc-sec__num">11</span><h2 class="doc-sec__title">The QA regression suite</h2></div>
+    <p class="doc-p">The QA regression suite runs on every model release. Failure on any check blocks the release. New chapters and new rules add to the suite; rules are not retired without a documented exception process (§13).</p>
+    <h3 class="doc-sub">11.1  What runs on every release</h3>
+    <ul class="clean">
+      <li>Forbidden-phrase regex suite (all of Ch. 13 §3).</li>
+      <li>Forbidden-opener / closer regex (Ch. 3 §6.2, §7.2).</li>
+      <li>AI self-reference classifier (Ch. 1 invariant 2).</li>
+      <li>Secrets regex on logs / memory / ledger / adapter traces (Ch. 8 §7).</li>
+      <li>Prohibited-pattern classifier suite (Ch. 4 §10, Ch. 13 §4–§10).</li>
+      <li>Cross-modal anchor-match audit (Ch. 10 §5).</li>
+      <li>Compliance Ledger write success rate on synthetic commit-class flows (Ch. 8 §9).</li>
+      <li>Cinematic-experience persona consistency on the GA cinematic set (Ch. 5 §12).</li>
+      <li>Self-harm content hard-block test set (Ch. 12 §8.3, Ch. 13).</li>
+      <li>DPDP memory delete propagation synthetic check (Ch. 7 §13).</li>
+      <li>Cross-language tone-classifier delta across production languages (Ch. 6 §4).</li>
+      <li>Voice latency benchmark on a canonical intent set (Ch. 5 §15).</li>
+      <li>Sourced-verdict compliance audit on verdict-rendering surfaces (Ch. 11 + Ch. 13).</li>
+    </ul>
+    <h3 class="doc-sub">11.2  What runs nightly</h3>
+    <ul class="clean">
+      <li>Sampled production replies × tone-classifier × intent-shape stratification.</li>
+      <li>Sampled production voice transcripts × four-beat classifier.</li>
+      <li>Sampled refinement events × chip-vs-question classifier.</li>
+      <li>Sampled commitment-class flows × commitment-state audit.</li>
+      <li>Cross-modal desync audit on sampled voice + UI turns.</li>
+      <li>Sensitive-mode classifier × upsell-regex intersection check.</li>
+      <li>Surveillance-language classifier on sampled day-0-warm-start turns.</li>
+      <li>Convention-regex audit (₹, lakhs, DD/MM, am/pm, km).</li>
+      <li>Per-language match-rate sample × code-switch handling.</li>
+    </ul>
+    <h3 class="doc-sub">11.3  What runs weekly</h3>
+    <ul class="clean">
+      <li>Cross-surface consistency comparison.</li>
+      <li>Cross-language CSAT delta.</li>
+      <li>Guardrail FNR / FPR on labelled test sets.</li>
+      <li>Per-partner SLA health + cold-start budget audit.</li>
+      <li>Helpline directory accuracy.</li>
+    </ul>
+    <h3 class="doc-sub">11.4  What runs quarterly</h3>
+    <ul class="clean">
+      <li>Blind-attribution calibration panel (Ch. 1 §10).</li>
+      <li>Principle-weighted critique calibration panel (Ch. 2 §16).</li>
+      <li>Allowed-emoji vocabulary review (Ch. 1 §6).</li>
+      <li>Bharat tier-2 / tier-3 usability panel (Ch. 6 §13).</li>
+      <li>Helpline directory comprehensive review (Ch. 12 §6.3).</li>
+      <li>Cinematic-experience identity check (Ch. 5).</li>
+    </ul>
+    <div class="doc-sec" id="ch14-sec12"><span class="doc-sec__num">12</span><h2 class="doc-sec__title">Acceptance per chapter — the dashboard</h2></div>
+    <p class="doc-p">Each chapter has a section that maps its acceptance criteria to metrics. The dashboard structure mirrors that — every chapter's metrics are a section on the live dashboard, with current value, target, owner, and trend.</p>
+    <div class="table-wrap">
+      <table class="dtable">
+        <thead><tr><th>Chapter</th><th>Dashboard section</th><th>Lead metric</th></tr></thead>
+        <tbody>
+          <tr><td>Ch. 1 — Identity &amp; voice DNA</td><td>Voice / identity</td><td>Blind-attribution accuracy ≥ 85%</td></tr>
+          <tr><td>Ch. 2 — Ten conversation principles</td><td>Principles</td><td>DNA-check pass rate ≥ 90%</td></tr>
+          <tr><td>Ch. 3 — The reply rhythm</td><td>Rhythm</td><td>Beat-detection ≥ 95%</td></tr>
+          <tr><td>Ch. 4 — Response shapes &amp; anatomy</td><td>Response shape</td><td>Chip-vs-question ≥ 90%</td></tr>
+          <tr><td>Ch. 5 — Voice disclosure</td><td>Voice</td><td>Four-beat present ≥ 95%; anchor-match ≥ 99%</td></tr>
+          <tr><td>Ch. 6 — Language &amp; cultural fluency</td><td>Language</td><td>12+ langs live; parity delta ≤ 10pp</td></tr>
+          <tr><td>Ch. 7 — Memory, confidence &amp; autonomy</td><td>Memory</td><td>Hidden-assumption rate = 0; delete propagation &lt; 24h</td></tr>
+          <tr><td>Ch. 8 — Commitment &amp; security</td><td>Trust</td><td>Ledger ≥ 99.99%; secrets-in-logs = 0</td></tr>
+          <tr><td>Ch. 9 — Failing well</td><td>Repair</td><td>Long-prompt loss &lt; 1%; silent failures = 0</td></tr>
+          <tr><td>Ch. 10 — Multi-modal handoff</td><td>Multi-modal</td><td>Cross-modal desync ≤ 2 / 10k; anchor-match ≥ 99%</td></tr>
+          <tr><td>Ch. 11 — Partner ecosystem</td><td>Ecosystem</td><td>10+ partners; Vertical Lift cycle ≤ 7d</td></tr>
+          <tr><td>Ch. 12 — Sensitive moments</td><td>Sensitive</td><td>Upsell in sensitive sessions = 0; helpline accuracy ≥ 95%</td></tr>
+          <tr><td>Ch. 13 — What JBIQ never does</td><td>Regression</td><td>Prohibited-pattern detection = 0 in production</td></tr>
+          <tr><td>Ch. 14 — Measurement &amp; governance</td><td>DEC + governance</td><td>DEC ≥ 2 sessions/user/day; quarterly review on schedule</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc-sec" id="ch14-sec13"><span class="doc-sec__num">13</span><h2 class="doc-sec__title">The change process</h2></div>
+    <p class="doc-p">The playbook is a living document. Changes follow a defined process so the team can evolve the rules without losing coherence.</p>
+    <h3 class="doc-sub">13.1  Propose</h3>
+    <ul class="clean">
+      <li>Any team member may propose a change to the playbook.</li>
+      <li>Proposals are written: title, rationale, affected chapters, proposed text or table change, impact assessment on existing chapters and metrics.</li>
+      <li>Worked examples are required — at least one positive and one negative.</li>
+    </ul>
+    <h3 class="doc-sub">13.2  Cross-functional review</h3>
+    <p class="doc-p">Reviewers from Product, Design, Engineering, AI, Content, Localisation, Compliance, Trust &amp; Safety — depending on which chapters the proposal touches. Reviews are async by default; a synchronous review is called when reviewers disagree.</p>
+    <h3 class="doc-sub">13.3  Impact assessment</h3>
+    <ul class="clean">
+      <li>What chapters are affected?</li>
+      <li>What metrics change?</li>
+      <li>What machine specs (classifiers, regex, prompts) need to be updated?</li>
+      <li>What in-flight features or partners are affected?</li>
+      <li>What is the migration plan for existing flows?</li>
+    </ul>
+    <h3 class="doc-sub">13.4  Approval</h3>
+    <p class="doc-p">Chapter owner + playbook owner sign off. For changes that affect commitment authority, security, or Compliance Ledger contracts, Compliance and Legal must also sign off.</p>
+    <h3 class="doc-sub">13.5  Communicate</h3>
+    <ul class="clean">
+      <li>Change is published with version bump (§15).</li>
+      <li>All chapter owners and downstream pods are notified.</li>
+      <li>Machine specs are updated in parallel.</li>
+      <li>QA regression suite is updated to detect new rules.</li>
+    </ul>
+    <div class="doc-sec" id="ch14-sec14"><span class="doc-sec__num">14</span><h2 class="doc-sec__title">Exception criteria</h2></div>
+    <p class="doc-p">Sometimes a rule doesn't fit. Exceptions are permitted but must be documented and time-bounded. The exception criteria:</p>
+    <ul class="clean">
+      <li>Regulatory or legal requirement in direct conflict with a rule (e.g., RBI-mandated flow that doesn't fit the response anatomy).</li>
+      <li>Technical constraint making compliance infeasible, with documented mitigation.</li>
+      <li>User research evidence that the rule produces worse outcomes in a specific context.</li>
+      <li>Partner-specific obligation that overrides a default (rare).</li>
+    </ul>
+    <p class="doc-p">All exceptions are time-bounded (default 6 months), documented in writing, revisited quarterly, and either renewed, resolved, or terminated.</p>
+    <div class="doc-sec" id="ch14-sec15"><span class="doc-sec__num">15</span><h2 class="doc-sec__title">Versioning</h2></div>
+    <p class="doc-p">Versioning is semver-style at the playbook level.</p>
+    <ul class="clean">
+      <li>Major bump (V1 → V2) — structural change. New chapters, new invariants, deprecated rules. Migration notes required. Cross-team announcement.</li>
+      <li>Minor bump (V0.1 → V0.2) — additive change. New sub-sections, new metrics, GA additions. No deprecation of existing rules.</li>
+      <li>Patch bump (V0.2.1) — clarification, typo, calibration update. No rule change.</li>
+      <li>Every chapter carries its own version that may be bumped independently within the playbook major version.</li>
+      <li>Machine specs (classifiers, regex, prompts) are versioned alongside the playbook. Drift between the playbook and the machine specs is a structural defect.</li>
+    </ul>
+    <div class="doc-sec" id="ch14-sec16"><span class="doc-sec__num">16</span><h2 class="doc-sec__title">Governance cadence</h2></div>
+    <div class="table-wrap">
+      <table class="dtable">
+        <thead><tr><th>Cadence</th><th>What happens</th><th>Attendees</th></tr></thead>
+        <tbody>
+          <tr><td>Per release</td><td>QA regression suite runs. Release blocks on any failure. Per-release dashboard snapshot captured.</td><td>Engineering + QA + AI</td></tr>
+          <tr><td>Nightly</td><td>Sampled production audits. Daily SLO check. Auto-paged on Section 2 invariant violation.</td><td>Automated + on-call</td></tr>
+          <tr><td>Weekly</td><td>Cross-language parity check. Cross-surface consistency. Partner SLA health. Helpline directory check.</td><td>Localisation + QA + Partner Engineering + Trust &amp; Safety</td></tr>
+          <tr><td>Monthly</td><td>MOS panel (TTS per language per content type). Metric-trend review. Exception status check.</td><td>Voice &amp; Multimodal + Product + Compliance</td></tr>
+          <tr><td>Quarterly</td><td>Blind-attribution + principle-weighted critique calibration. Helpline directory comprehensive review. Allowed-emoji vocabulary review. Bharat tier-2 / tier-3 usability panel. Exception revisit. Playbook version review.</td><td>All chapter owners + Trust &amp; Safety + Compliance + Legal</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc-sec" id="ch14-sec17"><span class="doc-sec__num">17</span><h2 class="doc-sec__title">Acceptance criteria mapped to metrics</h2></div>
+    <p class="doc-p">The chapter that closes the playbook also closes the loop. The metrics below are the meta-metrics — they test whether the governance itself is working.</p>
+    <div class="table-wrap">
+      <table class="dtable">
+        <thead><tr><th>Acceptance criterion</th><th>Metric</th><th>Target</th><th>Owner</th><th>Instrumentation</th></tr></thead>
+        <tbody>
+          <tr><td>GA goals dashboard live</td><td>Dashboard availability + freshness</td><td>Live pre-GA; ≤ 5 min freshness</td><td>Data &amp; Analytics</td><td>Dashboard SLO telemetry</td></tr>
+          <tr><td>DEC tracked and broken out</td><td>DEC by domain, intent shape, language, signature experience</td><td>All cuts available pre-GA</td><td>Data &amp; Analytics / Product</td><td>Per-cut dashboard panel</td></tr>
+          <tr><td>QA regression suite gates every release</td><td>% of releases gated by suite</td><td>100%</td><td>Engineering / QA</td><td>CI/CD pipeline audit</td></tr>
+          <tr><td>Suite failure blocks release</td><td>% of suite-failing builds that ship</td><td>0</td><td>Engineering / QA</td><td>Per-release log audit</td></tr>
+          <tr><td>PR-to-prod time</td><td>Median pull-request-to-production</td><td>≤ 2h</td><td>Engineering</td><td>Pipeline telemetry</td></tr>
+          <tr><td>New eval suite for any pod</td><td>Time-to-first-eval after pod request</td><td>≤ 2 days</td><td>AI / QA</td><td>Per-request lead-time tracking</td></tr>
+          <tr><td>Weekly per-pod coverage published</td><td>Per-pod eval coverage report cadence</td><td>Weekly</td><td>AI / QA</td><td>Coverage-report publication audit</td></tr>
+          <tr><td>Quarterly governance review held on schedule</td><td>Review-meeting occurrence</td><td>On schedule, ≥ 4× per year</td><td>Playbook owner</td><td>Calendar audit + decisions log</td></tr>
+          <tr><td>Exception documentation complete</td><td>% of exceptions with full documentation</td><td>100%</td><td>Compliance</td><td>Exception register audit</td></tr>
+          <tr><td>Machine specs in sync with playbook</td><td>Drift between playbook version and active machine specs</td><td>0 unaccounted drift</td><td>AI / Engineering</td><td>Per-release version audit</td></tr>
+          <tr><td>Metric breach response time</td><td>Time from breach detection to chapter owner pageage</td><td>≤ 5 min for Section 2 invariants; ≤ 1h for metric &gt; 10% breach</td><td>Platform / Playbook owner</td><td>Pageage telemetry</td></tr>
+          <tr><td>Section 2 invariant violations in production</td><td>Invariant-violation event count</td><td>0 — auto-rollback on detection</td><td>All chapter owners + Compliance</td><td>Per-chapter invariant classifier</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc-sec" id="ch14-sec18"><span class="doc-sec__num">18</span><h2 class="doc-sec__title">Cross-references</h2></div>
+    <ul class="clean">
+      <li>Consumer Intelligence GA Operating Goals 01–10 — the canonical targets this chapter ladders to.</li>
+      <li>Pod Objectives (GA) and Pod Plans (GA) — the org-level commitments by pod.</li>
+      <li>Strategy Delta (Appendix E) — the pre-GA → GA shift this chapter codifies.</li>
+      <li>Ch. 1 through Ch. 13 — every chapter's acceptance criteria flow into this chapter's dashboard.</li>
+    </ul>
+    <p class="doc-close">End of Chapter 14. End of the playbook. The DEC north star, the QA regression suite, the change process, the quarterly review — together they turn the playbook from a document into a living instrument. Every chapter ladders here. The bar is high; the cadence is honest; the playbook is alive only because someone is measuring it.</p>
+    <p class="doc-p">JBIQ is India's daily AI Saathi. Voice-first, multilingual, default-on. The playbook is the substrate that makes that promise real — across every domain, in every production language, on every surface, every day.</p>
+  </section>
+
+  <!-- ============ BOTTOM CTA ============ -->
+  <section class="section try-cta">
+    <div class="try-cta__banner">
+      <div class="eyebrow">See it on the surface</div>
+      <h2 class="section-title">Every chapter, as a living conversation.</h2>
+      <p class="section-lead">The Conversation Playground turns this playbook into the real thing &mdash; pick a moment, a chapter, or a vertical and watch the principles play out on the actual JBIQ surface, in the languages people really speak.</p>
+      <a class="try-cta__btn" href="conversation-playground.html#try-live">Open the playground &rarr;</a>
+    </div>
+  </section>
+
+</main>
+
+<script>
+
+/* Mobile drawer */
+const sidebar = document.getElementById('sidebar');
+const burger = document.querySelector('.toc-burger');
+const backdrop = document.querySelector('.toc-backdrop');
+const closeBtn = document.querySelector('.toc-close');
+function openDrawer() {
+  sidebar.classList.add('is-open');
+  backdrop.classList.add('is-open');
+}
+function closeDrawer() {
+  sidebar.classList.remove('is-open');
+  backdrop.classList.remove('is-open');
+}
+if (burger) burger.addEventListener('click', openDrawer);
+if (backdrop) backdrop.addEventListener('click', closeDrawer);
+if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+sidebar.querySelectorAll('a').forEach(a => a.addEventListener('click', closeDrawer));
+
+/* Desktop collapse — independent of the mobile drawer; state persists. */
+const collapseBtn = document.querySelector('.toc-collapse');
+const expandBtn = document.querySelector('.toc-expand');
+const COLLAPSE_KEY = 'jbiq-nav-collapsed';
+function setCollapsed(collapsed) {
+  document.body.classList.toggle('nav-collapsed', collapsed);
+  try { localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0'); } catch (e) {}
+}
+if (collapseBtn) collapseBtn.addEventListener('click', () => setCollapsed(true));
+if (expandBtn) expandBtn.addEventListener('click', () => setCollapsed(false));
+try { if (localStorage.getItem(COLLAPSE_KEY) === '1') setCollapsed(true); } catch (e) {}
+
+/* Reveal-on-scroll — fade + slide-up sections as they enter the viewport.
+   Skipped when the document is hidden (CSS transitions are paused there, so the
+   reveal would never visually complete). Falls back to a manual bounding-rect
+   check alongside IntersectionObserver. */
+const revealTargets = document.querySelectorAll('.section, .hero');
+if (document.visibilityState === 'visible') {
+  revealTargets.forEach(el => el.classList.add('reveal'));
+
+  function revealIfInView() {
+    const trigger = window.innerHeight * 0.95;
+    for (const el of revealTargets) {
+      if (el.classList.contains('is-visible')) continue;
+      if (el.getBoundingClientRect().top < trigger) el.classList.add('is-visible');
+    }
+  }
+
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      }
+    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.05 });
+    revealTargets.forEach(el => io.observe(el));
+  }
+  revealIfInView();
+  window.addEventListener('scroll', revealIfInView, { passive: true });
+}
+
+/* Active-section highlight in sidebar */
+const navLinks = Array.from(sidebar.querySelectorAll('a[href^="#"]'));
+const tracked = navLinks
+  .map(a => document.getElementById(a.getAttribute('href').slice(1)))
+  .filter(Boolean);
+
+function setActiveId(id) {
+  navLinks.forEach(a => {
+    a.classList.toggle('is-active', a.getAttribute('href') === '#' + id);
+  });
+}
+
+function updateActive() {
+  const trigger = window.scrollY + 120;
+  let current = tracked[0];
+  for (const sec of tracked) {
+    const top = sec.getBoundingClientRect().top + window.scrollY;
+    if (top <= trigger) current = sec;
+    else break;
+  }
+  if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 4) {
+    current = tracked[tracked.length - 1];
+  }
+  if (current) setActiveId(current.id);
+}
+
+window.addEventListener('scroll', updateActive, { passive: true });
+window.addEventListener('resize', updateActive);
+window.addEventListener('hashchange', updateActive);
+updateActive();
+
+/* Image-grid uploader — click or drag-drop a tile to set its image. Each tile
+   is keyed by [data-grid] + [data-slot] and stored as a dataURL in
+   localStorage so uploads survive reloads. */
+(() => {
+  const STORAGE_KEY = 'jbiq-playbook-image-grid:v1';
+  const MAX_BYTES = 4 * 1024 * 1024;
+
+  const load = () => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; } };
+  const save = (data) => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) { console.warn('Override storage failed:', e); } };
+
+  const tileId = (tile) => {
+    const grid = tile.closest('.image-grid')?.dataset.grid || 'global';
+    const slot = tile.dataset.slot ?? '0';
+    return `${grid}::${slot}`;
+  };
+
+  const applyImage = (tile, dataUrl) => {
+    tile.querySelectorAll(':scope > .image-grid__img, :scope > .image-grid__placeholder').forEach(n => n.remove());
+    const img = document.createElement('img');
+    img.className = 'image-grid__img';
+    img.alt = 'Uploaded reference image';
+    img.src = dataUrl;
+    tile.insertBefore(img, tile.firstChild);
+  };
+
+  const setImage = (tile, dataUrl) => {
+    const id = tileId(tile);
+    const data = load();
+    data[id] = dataUrl;
+    save(data);
+    applyImage(tile, dataUrl);
+    ensureOverlay(tile, true);
+  };
+
+  const clearImage = (tile) => {
+    const id = tileId(tile);
+    const data = load();
+    delete data[id];
+    save(data);
+    tile.querySelectorAll(':scope > .image-grid__img').forEach(n => n.remove());
+    const ph = document.createElement('div');
+    ph.className = 'image-grid__placeholder';
+    ph.innerHTML = '+<span>Upload</span>';
+    tile.insertBefore(ph, tile.firstChild);
+    ensureOverlay(tile, false);
+  };
+
+  const readAsDataURL = (file) => new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) return reject(new Error('Not an image'));
+    if (file.size > MAX_BYTES) return reject(new Error(`Image too large (${(file.size/1024/1024).toFixed(1)}MB; max ${MAX_BYTES/1024/1024}MB)`));
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(file);
+  });
+
+  const handleFile = async (tile, file) => {
+    try { setImage(tile, await readAsDataURL(file)); }
+    catch (e) { alert(e.message || 'Could not load that image.'); }
+  };
+
+  const ensureOverlay = (tile, hasImage) => {
+    let overlay = tile.querySelector(':scope > .image-grid__upload');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'image-grid__upload';
+      tile.appendChild(overlay);
+    }
+    overlay.innerHTML = hasImage
+      ? '<button type="button" class="image-grid__upload-btn" data-action="upload">Replace</button>' +
+        '<button type="button" class="image-grid__upload-btn image-grid__upload-btn--ghost" data-action="reset">Reset</button>'
+      : '<button type="button" class="image-grid__upload-btn" data-action="upload">Upload</button>';
+  };
+
+  const decorate = (tile) => {
+    if (tile.dataset.static) return;
+    if (tile.dataset.decorated) return;
+    tile.dataset.decorated = '1';
+
+    const overrides = load();
+    const id = tileId(tile);
+    const hasImage = !!overrides[id];
+    if (hasImage) applyImage(tile, overrides[id]);
+    ensureOverlay(tile, hasImage);
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    tile.appendChild(fileInput);
+
+    tile.addEventListener('click', (e) => {
+      const action = e.target?.dataset?.action;
+      if (action === 'reset') { e.stopPropagation(); clearImage(tile); return; }
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files?.[0];
+      if (file) await handleFile(tile, file);
+      fileInput.value = '';
+    });
+
+    tile.addEventListener('dragenter', (e) => { e.preventDefault(); tile.classList.add('is-dragover'); });
+    tile.addEventListener('dragover',  (e) => { e.preventDefault(); tile.classList.add('is-dragover'); });
+    tile.addEventListener('dragleave', (e) => { if (!tile.contains(e.relatedTarget)) tile.classList.remove('is-dragover'); });
+    tile.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      tile.classList.remove('is-dragover');
+      const file = e.dataTransfer?.files?.[0];
+      if (file) await handleFile(tile, file);
+    });
+  };
+
+  document.querySelectorAll('.image-grid__tile').forEach(decorate);
+
+  /* Caption persistence — keyed by the same grid+slot id as the tile,
+     stored separately so an image can have/lose a caption independently. */
+  const CAPTION_KEY = 'jbiq-playbook-image-grid-captions:v1';
+  const loadCaps = () => { try { return JSON.parse(localStorage.getItem(CAPTION_KEY) || '{}'); } catch { return {}; } };
+  const saveCaps = (data) => { try { localStorage.setItem(CAPTION_KEY, JSON.stringify(data)); } catch (e) { console.warn('Caption storage failed:', e); } };
+
+  document.querySelectorAll('.image-grid__cell').forEach(cell => {
+    const tile = cell.querySelector('.image-grid__tile');
+    const cap = cell.querySelector('.image-grid__caption');
+    if (!tile || !cap) return;
+    const id = tileId(tile);
+    const caps = loadCaps();
+    if (caps[id]) cap.textContent = caps[id];
+    cap.addEventListener('input', () => {
+      const data = loadCaps();
+      const text = cap.textContent.trim();
+      if (text) data[id] = text; else delete data[id];
+      saveCaps(data);
+    });
+    cap.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); cap.blur(); }
+    });
+  });
+
+  /* Standalone editable images (hero + worked examples). Same upload/persist
+     model as the tiles, but each wraps an <img> that has a default asset src.
+     Overrides are stored as dataURLs keyed by [data-img-key]; "Reset" restores
+     the original asset (remembered from the img's initial src). */
+  const IMG_KEY = 'jbiq-playbook-editable-img:v1';
+  const loadImgs = () => { try { return JSON.parse(localStorage.getItem(IMG_KEY) || '{}'); } catch { return {}; } };
+  const saveImgs = (data) => { try { localStorage.setItem(IMG_KEY, JSON.stringify(data)); } catch (e) { console.warn('Image override storage failed:', e); } };
+
+  document.querySelectorAll('.editable-img').forEach(wrap => {
+    const img = wrap.querySelector(':scope > img');
+    if (!img) return;
+    const key = wrap.dataset.imgKey || img.getAttribute('src');
+    const original = img.getAttribute('src');
+
+    const overrides = loadImgs();
+    if (overrides[key]) img.src = overrides[key];
+
+    const renderOverlay = () => {
+      let overlay = wrap.querySelector(':scope > .editable-img__upload');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'editable-img__upload';
+        wrap.appendChild(overlay);
+      }
+      const hasOverride = !!loadImgs()[key];
+      overlay.innerHTML =
+        '<button type="button" class="editable-img__btn" data-action="upload">Replace</button>' +
+        (hasOverride ? '<button type="button" class="editable-img__btn editable-img__btn--ghost" data-action="reset">Reset</button>' : '');
+    };
+
+    const setImage = (dataUrl) => {
+      const data = loadImgs();
+      data[key] = dataUrl;
+      saveImgs(data);
+      img.src = dataUrl;
+      renderOverlay();
+    };
+    const resetImage = () => {
+      const data = loadImgs();
+      delete data[key];
+      saveImgs(data);
+      img.src = original;
+      renderOverlay();
+    };
+    const handleFile = async (file) => {
+      try { setImage(await readAsDataURL(file)); }
+      catch (e) { alert(e.message || 'Could not load that image.'); }
+    };
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    wrap.appendChild(fileInput);
+
+    renderOverlay();
+
+    wrap.addEventListener('click', (e) => {
+      const action = e.target?.dataset?.action;
+      if (action === 'reset') { e.stopPropagation(); resetImage(); return; }
+      if (action === 'upload') { e.stopPropagation(); fileInput.click(); }
+    });
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files?.[0];
+      if (file) await handleFile(file);
+      fileInput.value = '';
+    });
+    wrap.addEventListener('dragenter', (e) => { e.preventDefault(); wrap.classList.add('is-dragover'); });
+    wrap.addEventListener('dragover',  (e) => { e.preventDefault(); wrap.classList.add('is-dragover'); });
+    wrap.addEventListener('dragleave', (e) => { if (!wrap.contains(e.relatedTarget)) wrap.classList.remove('is-dragover'); });
+    wrap.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      wrap.classList.remove('is-dragover');
+      const file = e.dataTransfer?.files?.[0];
+      if (file) await handleFile(file);
+    });
+  });
+})();
+
+/* Copy edit mode — toggle contentEditable on body copy, persist edits to this
+   page's OWN server sidecar via /api/playbook-content?doc=ch14. */
+(() => {
+  const ENDPOINT = '/api/playbook-content?doc=ch14';
+  const main = document.querySelector('main.page');
+  if (!main) return;
+  const SELECTOR = [
+    '.eyebrow', '.hero-title', '.hero-lead',
+    '.dmeta th', '.dmeta td',
+    '.doc-sec__title', '.doc-sub', '.doc-p', '.doc-close',
+    '.callout__label', '.callout__body',
+    '.clean li', '.dtable th', '.dtable td',
+    '.section-title', '.section-lead'
+  ].join(',');
+  const els = Array.from(main.querySelectorAll(SELECTOR)).filter((el) => !el.querySelector(SELECTOR));
+  const counters = {}; const baseline = new Map();
+  els.forEach((el) => {
+    const sec = el.closest('section[id], header[id]');
+    const secId = sec ? sec.id : 'doc';
+    const n = counters[secId] = (counters[secId] ?? -1) + 1;
+    el.dataset.editId = secId + '::' + n;
+    baseline.set(el, el.innerHTML);
+  });
+  const byId = new Map(els.map((el) => [el.dataset.editId, el]));
+  fetch(ENDPOINT).then((r) => (r.ok ? r.json() : {})).then((data) => {
+    if (!data || typeof data !== 'object') return;
+    for (const [id, h] of Object.entries(data)) { const el = byId.get(id); if (el) el.innerHTML = h; }
+  }).catch(() => {});
+  const viewCtl = document.getElementById('pbEditView');
+  const activeCtl = document.getElementById('pbEditActive');
+  const startBtn = document.getElementById('pbEditStart');
+  const cancelBtn = document.getElementById('pbEditCancel');
+  const saveBtn = document.getElementById('pbEditSave');
+  const toastEl = document.getElementById('pbToast');
+  let snapshot = null, toastTimer = null;
+  const toast = (msg) => { if (!toastEl) return; toastEl.textContent = msg; toastEl.classList.add('is-visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('is-visible'), 2200); };
+  const onPaste = (e) => { e.preventDefault(); const t = (e.clipboardData || window.clipboardData).getData('text/plain'); document.execCommand('insertText', false, t); };
+  const enterEdit = () => { snapshot = new Map(els.map((el) => [el, el.innerHTML])); document.body.classList.add('is-editing'); els.forEach((el) => { el.setAttribute('contenteditable', 'true'); el.addEventListener('paste', onPaste); }); if (viewCtl) viewCtl.hidden = true; if (activeCtl) activeCtl.hidden = false; };
+  const exitEdit = () => { document.body.classList.remove('is-editing'); els.forEach((el) => { el.removeAttribute('contenteditable'); el.removeEventListener('paste', onPaste); }); if (activeCtl) activeCtl.hidden = true; if (viewCtl) viewCtl.hidden = false; snapshot = null; };
+  const save = async () => {
+    const payload = {};
+    els.forEach((el) => { const cur = el.innerHTML; if (cur.trim() !== (baseline.get(el) || '').trim()) payload[el.dataset.editId] = cur; });
+    saveBtn.disabled = true;
+    try {
+      const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || ('HTTP ' + res.status));
+      exitEdit(); const n = Object.keys(payload).length;
+      toast(n ? ('Saved ' + n + ' edit' + (n === 1 ? '' : 's')) : 'Saved (no changes)');
+    } catch (err) { alert('Could not save: ' + (err.message || err)); } finally { saveBtn.disabled = false; }
+  };
+  const cancel = () => { if (snapshot) snapshot.forEach((h, el) => { el.innerHTML = h; }); exitEdit(); };
+  if (startBtn) startBtn.addEventListener('click', enterEdit);
+  if (saveBtn) saveBtn.addEventListener('click', save);
+  if (cancelBtn) cancelBtn.addEventListener('click', cancel);
+})();
+
+</script>
+
+</body>
+</html>

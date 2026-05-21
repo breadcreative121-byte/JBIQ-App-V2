@@ -4,8 +4,9 @@ const express = require('express');
 const Anthropic = require('@anthropic-ai/sdk');
 const { buildSystemPrompt } = require('./shared/system-prompt');
 
+const fs = require('fs');
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 app.use(express.static(__dirname));
 
 const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -243,6 +244,56 @@ app.post('/api/partner/swiggy-menu', async (req, res) => {
     res.json({ view, debug: { mcpToolsCalled: mcpCalls, stopReason: data.stop_reason } });
   } catch (err) {
     console.error('[swiggy-menu] exception:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// === Voice Playbook copy editor ===
+// Stores in-browser copy edits as a sidecar JSON map { "<editId>": "<innerHTML>" }
+// keyed by data-edit-id. The raw HTML stays untouched. This is a local
+// single-author authoring tool, so validation is intentionally light.
+//
+// Each page gets its OWN sidecar via the optional ?doc=<name> query param so a
+// standalone chapter page (e.g. ?doc=ch5) can never overwrite the main playbook's
+// edits. No param → the main voice-playbook-content.json (backward compatible).
+const PLAYBOOK_CONTENT_FILE = path.join(__dirname, 'voice-playbook-content.json');
+
+function playbookContentFile(doc) {
+  if (doc === undefined || doc === null || doc === '') return PLAYBOOK_CONTENT_FILE;
+  if (typeof doc !== 'string' || !/^[a-z0-9-]{1,40}$/.test(doc)) return null;
+  return path.join(__dirname, `voice-playbook-${doc}-content.json`);
+}
+
+app.get('/api/playbook-content', (req, res) => {
+  const file = playbookContentFile(req.query.doc);
+  if (!file) return res.status(400).json({ error: 'Invalid doc parameter' });
+  try {
+    if (!fs.existsSync(file)) return res.json({});
+    const raw = fs.readFileSync(file, 'utf8');
+    res.json(JSON.parse(raw || '{}'));
+  } catch (err) {
+    console.error('[playbook-content] read error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/playbook-content', (req, res) => {
+  const file = playbookContentFile(req.query.doc);
+  if (!file) return res.status(400).json({ error: 'Invalid doc parameter' });
+  const body = req.body;
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return res.status(400).json({ error: 'Body must be a flat object of editId -> html string' });
+  }
+  for (const [k, v] of Object.entries(body)) {
+    if (typeof k !== 'string' || typeof v !== 'string') {
+      return res.status(400).json({ error: 'All keys and values must be strings' });
+    }
+  }
+  try {
+    fs.writeFileSync(file, JSON.stringify(body, null, 2), 'utf8');
+    res.json({ ok: true, count: Object.keys(body).length });
+  } catch (err) {
+    console.error('[playbook-content] write error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
