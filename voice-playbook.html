@@ -283,8 +283,25 @@
   }
   #tldr .section-title { font-size: clamp(34px, 4.5vw, 54px); }
 
-  /* Bottom CTA */
-  .try-cta { text-align: center; }
+  /* Bottom CTA — closing banner */
+  .try-cta__banner {
+    background: var(--color-text-primary);
+    color: var(--color-text-on-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-huge);
+    text-align: center;
+  }
+  .try-cta__banner .eyebrow { color: rgba(255,255,255,0.6); }
+  .try-cta__banner .section-title {
+    color: var(--color-text-on-primary);
+    max-width: 760px;
+    margin: 0 auto var(--space-md);
+  }
+  .try-cta__banner .section-lead {
+    color: rgba(255,255,255,0.72);
+    max-width: 640px;
+    margin: 0 auto var(--space-xl);
+  }
   .try-cta__btn {
     display: inline-flex;
     align-items: center;
@@ -300,6 +317,9 @@
     transition: background 120ms ease;
   }
   .try-cta__btn:hover { background: var(--color-action-primary-hover); }
+  @media (max-width: 640px) {
+    .try-cta__banner { padding: var(--space-xl); }
+  }
 
   /* Clean bullet list — purple dot */
   ul.clean { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-md); }
@@ -1897,7 +1917,12 @@
 
   <!-- ============ BOTTOM CTA ============ -->
   <section class="section try-cta">
-    <a class="try-cta__btn" href="conversation-playground.html#try-live">Try it</a>
+    <div class="try-cta__banner">
+      <div class="eyebrow">See it on the surface</div>
+      <h2 class="section-title">Every chapter, as a living conversation.</h2>
+      <p class="section-lead">The Conversation Playground turns this playbook into the real thing — pick a moment, a chapter, or a vertical and watch the principles play out on the actual JBIQ surface, in the languages people really speak.</p>
+      <a class="try-cta__btn" href="conversation-playground.html#try-live">Open the playground →</a>
+    </div>
   </section>
 
 </main>
