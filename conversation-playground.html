@@ -482,6 +482,266 @@
       color: var(--color-text-secondary);
     }
 
+    /* ========================================================================
+       PLAYGROUND CHROME — axis toggle, acceptance counter (left rail)
+       ======================================================================== */
+    .axis-toggle {
+      display: flex;
+      gap: 2px;
+      margin: 0 var(--space-xs) var(--space-xs);
+      background: var(--color-surface-tertiary);
+      border-radius: var(--radius-sm);
+      padding: 2px;
+    }
+    .axis-toggle__btn {
+      flex: 1;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 4px;
+      border: 0;
+      background: transparent;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      border-radius: calc(var(--radius-sm) - 2px);
+    }
+    .axis-toggle__btn[aria-pressed="true"] {
+      background: var(--color-surface-primary);
+      color: var(--color-text-primary);
+      box-shadow: 0 1px 2px rgba(12,13,16,0.06);
+    }
+    .picker__counter {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-text-tertiary);
+      padding: var(--space-xs) var(--space-md);
+    }
+    .picker__counter strong { color: var(--color-action-primary); }
+    .picker-filter {
+      font-family: inherit;
+      font-size: 13px;
+      width: calc(100% - var(--space-sm));
+      margin: 0 var(--space-xs) var(--space-xs);
+      padding: 8px var(--space-md);
+      border: 0.5px solid var(--color-border-default);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface-tertiary);
+      color: var(--color-text-primary);
+      outline: none;
+      box-sizing: border-box;
+    }
+    .picker-filter:focus { border-color: var(--color-action-primary); }
+    .picker-filter::placeholder { color: var(--color-text-tertiary); }
+    .picker__empty {
+      font-size: 12px;
+      color: var(--color-text-tertiary);
+      padding: var(--space-sm) var(--space-md);
+    }
+
+    /* ========================================================================
+       RIGHT-RAIL BADGES — chapter / intent / commitment / surface / etc.
+       ======================================================================== */
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin: 0 0 var(--space-lg);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: var(--shape-pill);
+      background: var(--color-surface-secondary);
+      color: var(--color-text-secondary);
+      border: 0.5px solid var(--color-border-default);
+      white-space: nowrap;
+    }
+    .badge--chapter { background: var(--color-action-primary); color: #fff; border-color: transparent; }
+    .badge--intent  { background: #eef4ff; color: #1f5fd6; border-color: #d6e4ff; }
+    .badge--commit  { background: #fff3e6; color: #b5650f; border-color: #ffe0bf; }
+    .badge--auth    { background: #fde8ef; color: #b3175a; border-color: #f8cfde; }
+    .badge--surface { background: #e8f7f0; color: #0a7a52; border-color: #c8ecdd; }
+    .badge--fail    { background: var(--color-feedback-error-bg); color: var(--color-feedback-error-text); border-color: var(--color-feedback-error-border); }
+    .badge--strategy{ background: #f0ecff; color: #5b21b6; border-color: #e0d7ff; }
+    .badge--warn    { background: #fdecc8; color: #92560a; border-color: #f6d488; }
+
+    /* Panel inner layouts (reuse .state-caption__panel chrome) */
+    .panel-rows { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .kv { display: grid; grid-template-columns: 92px 1fr; gap: var(--space-sm); font-size: var(--font-size-caption); }
+    .kv__k { color: var(--color-text-secondary); }
+    .kv__v { color: var(--color-text-primary); font-weight: 500; }
+
+    /* DNA check — five ✓ rows */
+    .dna-row { display: grid; grid-template-columns: 16px 100px 1fr; gap: var(--space-sm); align-items: start; font-size: var(--font-size-caption); line-height: 1.45; }
+    .dna-row__mark { color: var(--color-success); font-weight: 900; }
+    .dna-row__mark--revise { color: #b3261e; }
+    .dna-row__k { color: var(--color-text-primary); font-weight: 700; }
+    .dna-row__v { color: var(--color-text-secondary); }
+
+    /* Voice four-beat */
+    .fourbeat { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); }
+    .fourbeat__cell { background: var(--color-surface-secondary); border-radius: var(--radius-sm); padding: var(--space-sm); }
+    .fourbeat__n { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-action-primary); margin-bottom: 2px; }
+    .fourbeat__t { font-size: var(--font-size-caption); color: var(--color-text-primary); line-height: 1.4; }
+
+    /* Density gauge */
+    .gauge { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .gauge__row { display: grid; grid-template-columns: 70px 1fr 56px; gap: var(--space-sm); align-items: center; font-size: var(--font-size-caption); }
+    .gauge__k { color: var(--color-text-secondary); }
+    .gauge__track { height: 6px; border-radius: var(--shape-pill); background: var(--color-surface-secondary); overflow: hidden; }
+    .gauge__fill { height: 100%; border-radius: var(--shape-pill); }
+    .gauge__fill--ok   { background: var(--color-success); }
+    .gauge__fill--warn { background: #e6a008; }
+    .gauge__fill--over { background: #b3261e; }
+    .gauge__v { text-align: right; font-variant-numeric: tabular-nums; color: var(--color-text-primary); font-weight: 600; }
+    .gauge__v--over { color: #b3261e; }
+
+    /* Cross-modal anchor match */
+    .crossmodal { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .crossmodal__pair { display: grid; grid-template-columns: 1fr 20px 1fr; gap: var(--space-xs); align-items: center; }
+    .crossmodal__side { background: var(--color-surface-secondary); border-radius: var(--radius-sm); padding: var(--space-sm); font-size: var(--font-size-caption); }
+    .crossmodal__side em { font-style: normal; display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-tertiary); margin-bottom: 2px; }
+    .crossmodal__eq { text-align: center; color: var(--color-success); font-weight: 900; }
+    .crossmodal__line { font-size: var(--font-size-caption); color: var(--color-text-secondary); line-height: 1.45; }
+
+    /* Memory used */
+    .mem-row { display: flex; justify-content: space-between; gap: var(--space-sm); font-size: var(--font-size-caption); padding: 4px 0; border-bottom: 0.5px solid var(--color-border-default); }
+    .mem-row:last-child { border-bottom: 0; }
+    .mem-row__conf { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 6px; border-radius: var(--shape-pill); background: var(--color-action-primary-surface); color: var(--color-action-primary); white-space: nowrap; flex-shrink: 0; }
+    .mem-silent { font-size: var(--font-size-caption); color: var(--color-text-secondary); line-height: 1.45; margin-top: var(--space-sm); }
+    .mem-silent strong { color: var(--color-text-primary); }
+
+    /* Sensitive inversion */
+    .inv-group { font-size: var(--font-size-caption); line-height: 1.5; }
+    .inv-group + .inv-group { margin-top: var(--space-sm); }
+    .inv-group__h { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+    .inv-group--drop .inv-group__h { color: #b3261e; }
+    .inv-group--lift .inv-group__h { color: var(--color-success); }
+
+    /* Forbidden hits */
+    .forbid { display: flex; align-items: center; gap: var(--space-sm); }
+    .forbid__count { font-size: 22px; font-weight: 900; line-height: 1; }
+    .forbid__count--ok { color: var(--color-success); }
+    .forbid__count--bad { color: #b3261e; }
+    .forbid__label { font-size: var(--font-size-caption); color: var(--color-text-secondary); line-height: 1.4; }
+
+    /* Cinematic arc */
+    .arc-row { display: grid; grid-template-columns: 96px 1fr; gap: var(--space-sm); font-size: var(--font-size-caption); padding: 4px 0; }
+    .arc-row__k { color: var(--color-text-secondary); }
+    .arc-row__v { color: var(--color-text-primary); font-weight: 500; }
+
+    /* Try this in Live button */
+    .try-live-btn {
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-action-primary);
+      background: var(--color-action-primary-surface);
+      border: 0;
+      border-radius: var(--shape-pill);
+      padding: 8px 14px;
+      cursor: pointer;
+      margin: 0 0 var(--space-lg);
+      transition: background 120ms ease;
+    }
+    .try-live-btn:hover { background: rgba(116,66,228,0.12); }
+
+    /* Source references */
+    .refs { display: flex; flex-wrap: wrap; gap: 4px; }
+    .refs a { font-size: 11px; color: var(--color-action-primary); text-decoration: none; padding: 2px 8px; border: 0.5px solid var(--color-border-default); border-radius: var(--shape-pill); }
+    .refs a:hover { background: var(--color-action-primary-surface); }
+
+    /* ========================================================================
+       IN-FRAME EXTENSIONS — voice bubble, beat markers, stacked tension,
+       status banners, scoreboard.
+       ======================================================================== */
+    .turn__surface-tag {
+      align-self: flex-start;
+      font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-tertiary);
+      margin: 2px 0 -6px;
+    }
+    .turn--user + .turn__surface-tag,
+    .turn__surface-tag.is-user { align-self: flex-end; }
+    .turn--voice {
+      align-self: flex-start;
+      width: 100%;
+      display: flex; gap: 8px; align-items: flex-start;
+      background: var(--color-action-primary-surface);
+      border-radius: 4px 18px 18px 18px;
+      padding: 12px 14px;
+      font-size: 15px; line-height: 1.4; color: var(--text-high);
+    }
+    .turn--voice .turn__speaker { flex-shrink: 0; width: 18px; height: 18px; color: var(--color-action-primary); margin-top: 1px; }
+    .turn--voice .turn__speaker svg { width: 18px; height: 18px; }
+    .beat-tag {
+      align-self: flex-start;
+      font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-action-primary);
+      background: var(--color-action-primary-surface);
+      border-radius: var(--shape-pill);
+      padding: 2px 8px;
+      margin: 2px 0 -6px;
+    }
+    .frame-tension { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+    .frame-tension__col {
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      background: var(--color-surface-secondary);
+    }
+    .frame-tension__col--good { background: var(--color-action-primary-surface); }
+    .frame-tension__eb { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .frame-tension__col--bad  .frame-tension__eb { color: #b3261e; }
+    .frame-tension__col--good .frame-tension__eb { color: var(--color-action-primary); }
+    .frame-tension__quote { font-size: 14px; line-height: 1.45; color: var(--text-high); }
+    .turn-attachment .validator-banner { margin: 0; }
+    /* Chat-surface primitives carry their own side gutters; zero them inside the
+       transcript so they sit flush at the full 324px content width. */
+    .turn-attachment .collection,
+    .turn-attachment .timeline,
+    .turn-attachment .tracker,
+    .turn-attachment .confirm,
+    .turn-attachment .chips-prompt,
+    .turn-attachment .filter-chip-bar,
+    .turn-attachment .list-section-head,
+    .turn-attachment .subject-header,
+    .turn-attachment .edge-affordance,
+    .turn-attachment .receipt { padding-left: 0; padding-right: 0; margin-left: 0; margin-right: 0; }
+    .turn-attachment .confirm { padding: var(--space-lg); }
+    .turn-attachment .detail-sheet { padding: 8px 16px 16px; box-shadow: none; border: 1px solid var(--color-border-default); border-radius: var(--radius-lg); }
+    .turn-attachment .player { padding: 4px 0; }
+    .turn-attachment .catalog-card__media { font-size: 30px; }
+    .turn-attachment + .turn-attachment { margin-top: 8px; }
+    .catalog-card--anchor .catalog-card__media { box-shadow: 0 0 0 2px var(--color-action-primary); }
+    .catalog-card--anchor .catalog-card__title { color: var(--color-action-primary); }
+    .att-caption { font-size: 11px; color: var(--color-text-tertiary); margin-top: 6px; }
+    .validator-banner--ok {
+      background: #e8f7f0; border-color: #c8ecdd; color: #0a7a52;
+    }
+    .validator-banner--warn {
+      background: #fdecc8; border-color: #f6d488; color: #92560a;
+    }
+    .helpline-card {
+      border: 1px solid var(--color-border-default);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md) var(--space-lg);
+      display: flex; flex-direction: column; gap: var(--space-sm);
+    }
+    .helpline-card__title { font-size: var(--font-size-body); font-weight: 700; }
+    .helpline-card__row { display: flex; justify-content: space-between; gap: var(--space-sm); font-size: var(--font-size-caption); padding: 6px 0; border-bottom: 0.5px solid var(--color-border-default); }
+    .helpline-card__row:last-child { border-bottom: 0; }
+    .helpline-card__row b { color: var(--color-text-primary); }
+    .helpline-card__note { font-size: var(--font-size-caption); color: var(--color-text-secondary); line-height: 1.45; }
+    .score-head { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-action-primary); padding: 0 var(--space-lg) var(--space-xs); }
+
     @media (max-width: 720px) {
       body { padding-left: 0; padding-right: 0; }
       .page__title-block,
@@ -792,7 +1052,1960 @@
         ],
         avoid: '"Is there anything else I can help you with today?" — banned, in any language.',
       },
+
+      // ── Ch. 4 — Response anatomy (one specimen per intent shape) ───────────
+      {
+        id: 'ch4-informational',
+        group: 'Anatomy & intent', chapter: 4, vertical: 'JioCare',
+        intentShape: 'Informational', surface: 'chat', language: 'hinglish',
+        label: 'Informational query', chatTitle: 'Mumbai weather',
+        eyebrow: 'Intent shape · Informational',
+        title: 'Answer the question. No card, no commit, no follow-up.',
+        context: 'Asked at 9:02 pm · Mumbai',
+        transcript: [
+          { from: 'user', text: 'Kal Mumbai mein kitna garam?' },
+          { from: 'jbiq', text: 'Kal Mumbai mein around 34°C — subah halki humidity, dopahar tez dhoop. Paani saath rakhna, chhata ki zaroorat nahi.' },
+        ],
+        anatomy: { context: 'Optional — none needed here', primary: 'Inline prose (no card)', edge: 'None' },
+        principles: [
+          { name: 'Always simple', why: 'One question, one answer — no card forced onto a fact.' },
+          { name: 'Always smart', why: 'Adds the one useful judgement: carry water, skip the umbrella.' },
+          { name: 'Celebrate. We are from India.', why: 'Answers in the user\'s Hinglish register.' },
+        ],
+        metric: 'Informational shape: no card when prose will do.',
+        references: ['Ch. 4 §3'],
+        dna: { humanFirst: 'Reads like a person who checked, not a weather API.', simplest: 'Two sentences, no card.', acted: 'Gives the actionable read (water, no umbrella).', respected: 'No upsell off a simple question.', soundsLikeJio: 'Warm, brief, in-language.' },
+      },
+      {
+        id: 'ch4-single-path',
+        group: 'Anatomy & intent', chapter: 4, vertical: 'JioPay',
+        intentShape: 'Single-Path', surface: 'chat', language: 'en',
+        manifestPrimitive: 'CommitmentSummaryView', commitmentLevel: 'Hard-financial', auth: 'medium',
+        label: 'Single-path bill pay', chatTitle: 'Adani bill',
+        eyebrow: 'Intent shape · Single-Path',
+        title: 'One obvious action — surface it, confirm the money, then act.',
+        context: 'Adani Electricity linked · JioPay default UPI',
+        transcript: [
+          { from: 'user', text: 'Pay my Adani bill' },
+          {
+            from: 'jbiq',
+            text: 'Your Adani Electricity bill is ₹1,243, due 23 May. Pay it now from your linked JioPay?',
+            attachment: {
+              type: 'commitment', partner: { name: 'Adani Electricity' },
+              prompt: 'Pay Adani Electricity', summary: 'Due 23 May · A/C ••••8821',
+              total: '₹1,243', primary: 'Pay ₹1,243', secondary: 'Set reminder',
+            },
+          },
+        ],
+        anatomy: { context: 'Amount + due date', primary: 'CommitmentSummaryView (.confirm)', edge: 'Set reminder' },
+        principles: [
+          { name: 'Always secure', why: 'States amount, account, and date before anything is charged.' },
+          { name: 'Actions speak louder than words', why: 'One primary action, ready to go.' },
+          { name: 'Always simple', why: 'No menu — the single obvious path, plus a quiet alternative.' },
+        ],
+        metric: 'Single-Path: amount + due date in Slot 1, confirm before cost.',
+        references: ['Ch. 4 §3', 'Ch. 8 §3'],
+        dna: { humanFirst: 'Frames it as "pay it now?", not a transaction form.', simplest: 'One amount, one tap.', acted: 'Surfaces the bill and readies the payment.', respected: 'Confirms money before acting.', soundsLikeJio: 'Plain words, ₹ + day-month date.' },
+      },
+      {
+        id: 'ch4-multi-option',
+        group: 'Anatomy & intent', chapter: 4, vertical: 'JioMart',
+        intentShape: 'Multi-Option', surface: 'chat', language: 'en',
+        manifestPrimitive: 'DiscoveryView', resolutionStrategy: 'Single-Best',
+        label: 'Multi-option discovery', chatTitle: 'Diwali kurtas',
+        eyebrow: 'Intent shape · Multi-Option',
+        title: 'A few real options, one clear pick, refinement by chips.',
+        context: 'Budget under ₹2,000 · Diwali',
+        transcript: [
+          { from: 'user', text: 'Kurtas for Diwali under ₹2,000' },
+          {
+            from: 'jbiq',
+            text: 'Three under ₹2,000 — the Fabindia cotton is my pick for Diwali.',
+            attachment: {
+              type: 'discovery',
+              subject: { title: 'Kurtas under ₹2,000', subtitle: 'Diwali picks · 3 options' },
+              cards: [
+                { emoji: '🧥', title: 'Fabindia cotton kurta', brand: { name: 'Fabindia' }, price: '₹1,799', rating: '4.5', anchor: true },
+                { emoji: '🧥', title: 'Manyavar silk kurta', brand: { name: 'Manyavar' }, price: '₹1,950', rating: '4.4' },
+                { emoji: '🧥', title: 'Ajio festive kurta', brand: { name: 'Ajio' }, price: '₹1,499', rating: '4.2' },
+              ],
+              chipsPrompt: 'Narrow it down', chips: [{ label: 'Under ₹1,500' }, { label: 'Silk' }, { label: 'Cotton' }, { label: 'More' }],
+              edge: 'See more',
+            },
+          },
+        ],
+        anatomy: { context: 'Subject header', primary: 'DiscoveryView · carousel', refine: 'Refinement chips', edge: 'See more' },
+        principles: [
+          { name: 'Always simple', why: 'Three options, not thirty. One pick called out.' },
+          { name: 'Always smart', why: 'Refines via chips, never an interrogation.' },
+          { name: 'We care', why: 'Recommends instead of dumping a catalogue.' },
+        ],
+        metric: 'Multi-Option: ≤3 cards, one anchor, chips for refinement.',
+        references: ['Ch. 4 §3', 'Ch. 4 §7'],
+        dna: { humanFirst: 'Leads with a recommendation, like a friend would.', simplest: 'Three cards, one pick.', acted: 'Shows real products at real prices.', respected: 'No question wall — chips do the refining.', soundsLikeJio: 'Confident, brief, festive without caricature.' },
+      },
+      {
+        id: 'ch4-stateful',
+        group: 'Anatomy & intent', chapter: 4, vertical: 'JioPay',
+        intentShape: 'Stateful Query', surface: 'chat', language: 'en',
+        manifestPrimitive: 'StatusView',
+        label: 'Stateful query', chatTitle: 'HDFC balance',
+        eyebrow: 'Intent shape · Stateful Query',
+        title: 'Foreground the live state, mark how fresh it is, offer the next move.',
+        context: 'HDFC ••••4471 linked',
+        transcript: [
+          { from: 'user', text: "What's in my HDFC?" },
+          {
+            from: 'jbiq',
+            text: 'HDFC ••••4471 is at ₹18,420, updated just now. Last debit was ₹1,243 to Adani on 21 May.',
+            attachment: {
+              type: 'info',
+              rows: [
+                { label: 'Balance', value: '₹18,420' },
+                { label: 'Last debit', value: '₹1,243 · Adani' },
+                { label: 'As of', value: 'Just now' },
+              ],
+              updated: 'Live state — refreshed just now',
+              edge: 'Pay a bill',
+            },
+          },
+        ],
+        anatomy: { context: 'Account', primary: 'Live state (info-list)', edge: 'Pay now' },
+        principles: [
+          { name: 'Always smart', why: 'Surfaces the freshest state and the last movement.' },
+          { name: 'Always secure', why: 'Masks the account; states the as-of time.' },
+          { name: 'Always simple', why: 'Balance first, one next step.' },
+        ],
+        metric: 'Stateful Query: live state foregrounded with freshness marker.',
+        references: ['Ch. 4 §3'],
+        dna: { humanFirst: 'Answers the real worry — how much do I have.', simplest: 'Balance, last debit, freshness.', acted: 'Offers to pay a bill next.', respected: 'Masks the account number.', soundsLikeJio: 'Indian numerals, day-month date.' },
+      },
+      {
+        id: 'ch4-proactive',
+        group: 'Anatomy & intent', chapter: 4, vertical: 'JioPay',
+        intentShape: 'Proactive-Triggered', surface: 'chat', language: 'en',
+        manifestPrimitive: 'CommitmentSummaryView', commitmentLevel: 'Hard-financial', auth: 'medium',
+        label: 'Proactive nudge', chatTitle: 'Bill reminder',
+        eyebrow: 'Intent shape · Proactive-Triggered',
+        title: 'Earn the interruption — one helpful nudge, an easy way to dismiss it.',
+        context: 'Trigger: Adani bill due tomorrow · 8:00 am',
+        transcript: [
+          {
+            from: 'jbiq',
+            text: 'Heads up — your Adani bill of ₹1,243 is due tomorrow. Pay now, or remind you in the morning?',
+            attachment: {
+              type: 'commitment', partner: { name: 'Adani Electricity' },
+              prompt: 'Adani bill due tomorrow', summary: '₹1,243 · due 23 May',
+              total: '₹1,243', primary: 'Pay ₹1,243', secondary: 'Remind me',
+              caption: 'Edge: Don\'t suggest again',
+            },
+          },
+        ],
+        anatomy: { context: 'Trigger + why now', primary: 'confirm-prompt', edge: "Remind / Don't suggest again" },
+        principles: [
+          { name: 'Always smart', why: 'Raises the bill before it\'s late — proactive, not pushy.' },
+          { name: 'We care', why: 'Offers a graceful "don\'t suggest again".' },
+          { name: 'Always simple', why: 'One nudge, two easy outs.' },
+        ],
+        metric: 'Proactive: earns the interruption, easy dismissal surfaced.',
+        references: ['Ch. 4 §3'],
+        dna: { humanFirst: 'A timely heads-up, not an alert spam.', simplest: 'One line, one action, one snooze.', acted: 'Readies the payment.', respected: 'Lets the user mute it forever.', soundsLikeJio: 'Calm, brief, no exclamation pile-up.' },
+      },
+      {
+        id: 'ch4-cold-start',
+        group: 'Anatomy & intent', chapter: 4, vertical: 'JioMart',
+        intentShape: 'Multi-Option (low conf)', surface: 'chat', language: 'en',
+        manifestPrimitive: 'DiscoveryView',
+        label: 'Cold start (one chip)', chatTitle: 'Diwali kurtas',
+        eyebrow: 'Intent shape · Multi-Option, low confidence',
+        title: 'No profile? Still render — one clarification chip only when it\'s high-impact.',
+        context: 'No purchase history · gender not inferable',
+        transcript: [
+          { from: 'user', text: 'Diwali kurtas' },
+          {
+            from: 'jbiq',
+            text: "Showing a few — one quick check so I get the fit right:",
+            attachment: {
+              type: 'discovery',
+              subject: { title: 'Diwali kurtas', subtitle: 'A few to start' },
+              cards: [
+                { emoji: '🧥', title: 'Cotton festive kurta', brand: { name: 'Fabindia' }, price: '₹1,799' },
+                { emoji: '🧥', title: 'Silk blend kurta', brand: { name: 'Manyavar' }, price: '₹1,950' },
+                { emoji: '🧥', title: 'Everyday kurta', brand: { name: 'Ajio' }, price: '₹1,199' },
+              ],
+              chipsPrompt: 'Who are these for?', chips: [{ label: "Men's" }, { label: "Women's" }, { label: 'Kids' }],
+            },
+          },
+        ],
+        anatomy: { context: 'None (cold)', primary: 'DiscoveryView still renders', refine: 'One clarification chip (gender)', edge: 'See more' },
+        principles: [
+          { name: 'Always simple', why: 'Results first; only one question, and only because it matters.' },
+          { name: 'We care', why: 'Doesn\'t stall behind a profile wall.' },
+          { name: 'Always smart', why: 'Asks the one thing it genuinely can\'t infer.' },
+        ],
+        metric: 'Cold start: render anyway; ≤1 clarification chip, high-impact only.',
+        references: ['Ch. 4 §7'],
+        dna: { humanFirst: 'Helps immediately, then asks one thing.', simplest: 'One chip, not a form.', acted: 'Shows products before asking.', respected: 'No demographic guessing.', soundsLikeJio: 'Light, helpful, unhurried.' },
+      },
+      {
+        id: 'ch4-chip-rule',
+        group: 'Anatomy & intent', chapter: 4, vertical: 'JioMart',
+        intentShape: 'Multi-Option', surface: 'chat', language: 'en',
+        label: 'Chips, not questions', chatTitle: 'Refine the search',
+        eyebrow: 'Refinement · the chip rule',
+        title: 'Refine with chips the user can tap — never a wall of questions.',
+        context: 'Same result set, two ways to refine',
+        transcript: [
+          { from: 'user', text: 'Show me kurtas' },
+          {
+            from: 'jbiq',
+            text: 'Refine by tapping, not by answering an interview:',
+            attachment: {
+              type: 'tension',
+              avoid: { eb: 'Questions (avoid)', quote: 'What size? What colour? What fabric? What budget? What occasion?' },
+              good: { eb: 'Refinement chips', quote: '[Under ₹1,500]&nbsp; [Silk]&nbsp; [Cotton]&nbsp; [More]' },
+            },
+          },
+        ],
+        principles: [
+          { name: 'Always simple', why: 'Taps beat typing; chips beat questions.' },
+          { name: 'We care', why: 'Respects the user\'s effort — no interrogation.' },
+          { name: 'Always smart', why: 'Pre-computes the likely refinements.' },
+        ],
+        metric: 'Refinement: chips over questions.',
+        references: ['Ch. 4 §7'],
+        dna: { humanFirst: 'Feels like help, not a form.', simplest: 'Four chips.', acted: 'Refines on tap.', respected: 'No question wall.', soundsLikeJio: 'Quietly confident.' },
+      },
+      {
+        id: 'ch4-slotpicker',
+        group: 'Anatomy & intent', chapter: 4, vertical: 'Health',
+        intentShape: 'Single-Path', surface: 'chat', language: 'en',
+        manifestPrimitive: 'SlotPickerView',
+        label: 'Slot picker (consult)', chatTitle: 'Book Dr Mehta',
+        eyebrow: 'Primitive · SlotPickerView',
+        title: 'Booking a time? Show the open slots as tappable tiles.',
+        context: 'Apollo · Dr Mehta, paediatrics',
+        transcript: [
+          { from: 'user', text: 'Book me a paediatrician for tomorrow' },
+          {
+            from: 'jbiq', text: 'Dr Mehta has these open tomorrow — pick a slot:',
+            attachment: {
+              type: 'slotpicker', prompt: 'Tomorrow · Dr Mehta (Apollo)',
+              groups: [
+                { day: 'Morning', slots: [{ label: '9:30' }, { label: '10:15', selected: true }, { label: '11:00' }] },
+                { day: 'Evening', slots: [{ label: '5:00' }, { label: '6:30' }] },
+              ],
+            },
+          },
+        ],
+        anatomy: { context: 'Doctor + day', primary: 'SlotPickerView (tiles)', edge: 'See more times' },
+        principles: [
+          { name: 'Always simple', why: 'Tap a tile — no typing a time.' },
+          { name: 'Always smart', why: 'Shows only what\'s actually open.' },
+          { name: 'We care', why: 'Groups by morning/evening for quick scanning.' },
+        ],
+        metric: 'SlotPickerView: open times as tappable tiles.',
+        references: ['Ch. 4 §3', 'Ch. 11'],
+        dna: { humanFirst: 'Makes booking a tap.', simplest: 'Five tiles.', acted: 'Surfaces real openings.', respected: 'No free-text time.', soundsLikeJio: 'Effortless.' },
+      },
+      {
+        id: 'ch4-tracking',
+        group: 'Anatomy & intent', chapter: 4, vertical: 'JioMart',
+        intentShape: 'Stateful Query', surface: 'chat', language: 'en',
+        manifestPrimitive: 'TrackingView',
+        label: 'Order tracking', chatTitle: 'Where\'s my order?',
+        eyebrow: 'Primitive · TrackingView',
+        title: 'Live status gets a tracker — ETA big, steps clear.',
+        context: 'JioMart order #JM-7741',
+        transcript: [
+          { from: 'user', text: "Where's my order?" },
+          {
+            from: 'jbiq', text: 'Out for delivery — about 12 minutes away.',
+            attachment: {
+              type: 'tracking', partner: { name: 'JioMart' },
+              stage: 'OUT FOR DELIVERY', eta: '12 min', detail: 'Arriving by 2:40 pm · #JM-7741',
+              progress: 75,
+              steps: [{ label: 'Packed', state: 'done' }, { label: 'Shipped', state: 'done' }, { label: 'Out', state: 'active' }, { label: 'Delivered', state: '' }],
+            },
+          },
+        ],
+        anatomy: { context: 'Order id', primary: 'TrackingView (.tracker)', edge: 'Call rider' },
+        principles: [
+          { name: 'Always smart', why: 'Leads with the ETA, the thing they want.' },
+          { name: 'Always simple', why: 'One number, four steps.' },
+          { name: 'We connect', why: 'Carries the JioMart attribution.' },
+        ],
+        metric: 'TrackingView: live ETA + step progress.',
+        references: ['Ch. 4 §3'],
+        dna: { humanFirst: 'Answers "when".', simplest: 'ETA up top.', acted: 'Shows live progress.', respected: 'No spam updates.', soundsLikeJio: 'Reassuring.' },
+      },
+
+      // ── Ch. 5 — Voice disclosure & cinematic ──────────────────────────────
+      {
+        id: 'ch5-flight-voiceui',
+        group: 'Voice & cinematic', chapter: 5, vertical: 'Travel',
+        intentShape: 'Multi-Option', surface: 'voice+ui', language: 'en',
+        manifestPrimitive: 'DiscoveryView',
+        label: 'Flight — voice + UI', chatTitle: 'Flights to Delhi',
+        eyebrow: 'Surface · voice + UI handoff',
+        title: 'Speak the outcome and the anchor; hand the list to the screen.',
+        context: 'Spoken aloud · screen present',
+        transcript: [
+          { from: 'user', text: 'Find me a morning flight to Delhi' },
+          {
+            from: 'jbiq', voice: true,
+            text: "Found 3 morning flights. Cheapest is the 6:15 AM at ₹2,850 — I've put them on screen.",
+            attachment: {
+              type: 'discovery',
+              subject: { title: 'Morning flights to Delhi', subtitle: '3 options · cheapest first' },
+              cards: [
+                { emoji: '✈️', title: '6:15 AM · IndiGo', price: '₹2,850', anchor: true },
+                { emoji: '✈️', title: '8:40 AM · Air India', price: '₹3,200' },
+                { emoji: '✈️', title: '9:30 AM · Vistara', price: '₹3,450' },
+              ],
+            },
+          },
+        ],
+        voiceBeats: { outcome: 'Found 3 morning flights.', anchor: 'Cheapest: 6:15 AM, ₹2,850.', shape: "Put them on screen.", pivot: 'Book the 6:15, or see all three?' },
+        density: { words: 18, attributes: 3, items: 1 },
+        crossModal: { voiceAnchor: '6:15 AM · ₹2,850', screenAnchor: '6:15 AM IndiGo (highlighted)', handoffLine: "I've put them on screen." },
+        principles: [
+          { name: 'Always simple', why: 'Voice carries one number; the screen carries the rest.' },
+          { name: 'We connect', why: 'Voice and screen are one surface, anchored to the same flight.' },
+          { name: 'Actions speak louder than words', why: 'Names the cheapest, then offers to book.' },
+        ],
+        metric: 'Voice anchor matches UI = 99%; density all green.',
+        references: ['Ch. 5 §2', 'Ch. 10 §5'],
+        dna: { humanFirst: 'Says the one thing that matters out loud.', simplest: '≤40 words spoken, one item named.', acted: 'Surfaces flights and offers the booking.', respected: 'Doesn\'t read all three aloud.', soundsLikeJio: 'Calm hand-off, no "option 1, option 2".' },
+      },
+      {
+        id: 'ch5-speaker',
+        group: 'Voice & cinematic', chapter: 5, vertical: 'JioCare',
+        intentShape: 'Stateful Query', surface: 'speaker', language: 'en',
+        label: 'Pure voice (speaker)', chatTitle: 'On a JioSpeaker',
+        eyebrow: 'Surface · voice only',
+        title: 'No screen — outcome, anchor, pivot. Nothing to look at.',
+        context: 'JioSpeaker · no display',
+        transcript: [
+          { from: 'user', text: 'Did my recharge go through?' },
+          { from: 'jbiq', voice: true, text: "Yes — ₹239 recharged, valid till 16 June. You're all set." },
+        ],
+        voiceBeats: { outcome: 'Recharge went through.', anchor: '₹239, valid till 16 June.', shape: 'Voice only — nothing on screen.', pivot: 'Anything else before you go?' },
+        density: { words: 12, attributes: 2, items: 1 },
+        principles: [
+          { name: 'Always simple', why: 'One sentence; nothing to scroll.' },
+          { name: 'Actions speak louder than words', why: 'Confirms the outcome and the validity.' },
+          { name: 'We care', why: 'Lets the user go — no "anything else?" loop.' },
+        ],
+        metric: 'Voice-only: outcome + anchor + pivot, no screen dependency.',
+        references: ['Ch. 5 §2'],
+        dna: { humanFirst: 'Reassures first — "yes".', simplest: 'Twelve words.', acted: 'States the validity.', respected: 'No screen assumed.', soundsLikeJio: 'Spoken like a calm helper.' },
+      },
+      {
+        id: 'ch5-voice-antipatterns',
+        group: 'Voice & cinematic', chapter: 5, vertical: 'JioMart',
+        surface: 'voice', language: 'en',
+        label: 'Voice anti-patterns', chatTitle: 'What not to say',
+        eyebrow: 'Surface · voice — repaired',
+        title: 'No "option one, option two". No echoing the question. No trailing price.',
+        context: 'Three voice anti-patterns, each repaired',
+        transcript: [
+          { from: 'user', text: 'Cheapest flight to Delhi?' },
+          {
+            from: 'jbiq', voice: true, text: 'The 6:15 AM is cheapest at ₹2,850.',
+            attachment: {
+              type: 'tension',
+              pairs: [
+                { avoid: { eb: 'List read-out', quote: 'Option one is the 6:15, option two is the 8:40, option three is the 9:30…' }, good: { eb: 'Anchor only', quote: 'Cheapest is the 6:15 at ₹2,850.' } },
+                { avoid: { eb: 'Echoing the question', quote: 'You asked about the cheapest flight to Delhi. The cheapest flight to Delhi is…' }, good: { eb: 'Just answer', quote: '6:15 AM, ₹2,850.' } },
+                { avoid: { eb: 'Trailing price', quote: '…and that comes to two thousand eight hundred and fifty rupees.' }, good: { eb: 'Lead with it', quote: 'It\'s ₹2,850.' } },
+              ],
+            },
+          },
+        ],
+        principles: [
+          { name: 'Always simple', why: 'Voice says the one number, not the whole list.' },
+          { name: 'Consistency', why: 'Never re-states the question back to the user.' },
+          { name: 'We care', why: 'Respects the listener\'s attention.' },
+        ],
+        metric: 'Voice: no list read-out, no question-echo, no trailing total.',
+        references: ['Ch. 5 §3'],
+        dna: { humanFirst: 'Sounds like a person, not a menu.', simplest: 'One anchor.', acted: 'Answers immediately.', respected: 'No padding.', soundsLikeJio: 'Tight spoken cadence.' },
+      },
+      {
+        id: 'ch5-kundali',
+        group: 'Voice & cinematic', chapter: 5, vertical: 'Kundali',
+        surface: 'cinematic', language: 'hi',
+        label: 'Grand Kundali Reveal', chatTitle: 'Grand Kundali Reveal',
+        eyebrow: 'Surface · cinematic',
+        title: 'A 90-second opener — persona, pace, recap, micro-pivot.',
+        context: 'Cinematic · Hindi · 90s opener',
+        transcript: [
+          { from: 'user', text: 'मेरी कुंडली दिखाओ' },
+          {
+            from: 'jbiq', voice: true,
+            text: 'आपकी कुंडली तैयार है — चलिए शुरू करते हैं आपके जीवन की कहानी से।',
+            attachment: { type: 'player', art: '🔮', title: 'Grand Kundali Reveal', artist: '90-second opener · Hindi', progress: 16, elapsed: '0:14', total: '1:30' },
+          },
+        ],
+        cinematicArc: { persona: 'Warm astrologer-narrator', pace: '130–150 wpm', recapAt: '60–90s', microPivotAt: '90–120s', length: '90s opener' },
+        principles: [
+          { name: 'It starts with emotion', why: 'Opens on the user\'s story, not a data dump.' },
+          { name: 'Celebrate. We are from India.', why: 'Hindi narration, culturally grounded.' },
+          { name: 'We dream big', why: 'A cinematic moment, not a chat bubble.' },
+        ],
+        metric: 'Cinematic arc: persona + pace + recap + micro-pivot defined.',
+        references: ['Ch. 5 §12'],
+        dna: { humanFirst: 'Begins with "your story".', simplest: 'One scene at a time.', acted: 'Plays the reveal.', respected: 'Paced for listening.', soundsLikeJio: 'Warm, filmic Hindi.' },
+      },
+      {
+        id: 'ch5-ai-anchor',
+        group: 'Voice & cinematic', chapter: 5, vertical: 'AI-Anchor',
+        surface: 'cinematic', language: 'en',
+        label: 'AI Anchor Daily Brief', chatTitle: 'Daily Brief',
+        eyebrow: 'Surface · cinematic',
+        title: 'A 60-second news brief — composed register, faster pace.',
+        context: 'Cinematic · 60s · news register',
+        transcript: [
+          { from: 'user', text: "What's the news today?" },
+          {
+            from: 'jbiq', voice: true,
+            text: 'Good morning. Three headlines for Tuesday, 21 May — markets, monsoon, and cricket.',
+            attachment: { type: 'player', art: '📰', title: 'AI Anchor · Daily Brief', artist: '60-second brief · auto-scroll transcript', progress: 30, elapsed: '0:18', total: '1:00' },
+          },
+        ],
+        cinematicArc: { persona: 'Composed news anchor', pace: '150–170 wpm', recapAt: '—', microPivotAt: '45s', length: '60s brief' },
+        principles: [
+          { name: 'Always smart', why: 'Leads with the three that matter today.' },
+          { name: 'Always simple', why: 'Headlines, then depth on tap.' },
+          { name: 'Consistency', why: 'Same anchor voice every morning.' },
+        ],
+        metric: 'Cinematic: news register, 150–170 wpm, auto-scroll transcript.',
+        references: ['Ch. 5 §12'],
+        dna: { humanFirst: 'A warm "good morning".', simplest: 'Three headlines.', acted: 'Plays the brief.', respected: 'No clickbait.', soundsLikeJio: 'Composed, trustworthy.' },
+      },
+      {
+        id: 'ch5-cricket',
+        group: 'Voice & cinematic', chapter: 5, vertical: 'Cricket',
+        surface: 'voice+ui', language: 'en',
+        label: 'Cricket Match Companion', chatTitle: 'IND vs AUS',
+        eyebrow: 'Surface · voice + UI live',
+        title: 'Voice anchors the live moment; the screen carries the score.',
+        context: 'Live · cross-modal lag < 1.5s',
+        transcript: [
+          { from: 'user', text: "What's the score?" },
+          {
+            from: 'jbiq', voice: true,
+            text: 'Kohli pulls it for four — India 142 for 3 in the 16th.',
+            attachment: { type: 'scoreboard', head: 'IND vs AUS · 16.2 ov', rows: [{ label: 'India', value: '142/3' }, { label: 'Kohli', value: '68 (49)' }, { label: 'Req. rate', value: '8.4' }] },
+          },
+        ],
+        voiceBeats: { outcome: 'Four runs, Kohli.', anchor: 'India 142/3, 16th over.', shape: 'Score on screen.', pivot: 'Kohli\'s nearing his fifty.' },
+        density: { words: 12, attributes: 3, items: 1 },
+        crossModal: { voiceAnchor: '142/3, 16th over', screenAnchor: 'Scoreboard 142/3', handoffLine: "Score's on screen." },
+        principles: [
+          { name: 'It starts with emotion', why: 'Calls the moment like a commentator.' },
+          { name: 'We connect', why: 'Voice + scoreboard stay in lockstep.' },
+          { name: 'Always smart', why: 'Surfaces the required rate without being asked.' },
+        ],
+        metric: 'Cross-modal lag < 1.5s; voice anchor matches scoreboard.',
+        references: ['Ch. 5 §12', 'Ch. 11'],
+        dna: { humanFirst: 'Has the energy of live cricket.', simplest: 'One ball, one line.', acted: 'Updates the score live.', respected: 'No spoiler overload.', soundsLikeJio: 'Commentator cadence.' },
+      },
+
+      // ── Ch. 10 — Multi-modal handoff ──────────────────────────────────────
+      {
+        id: 'ch10-voice-text',
+        group: 'Voice & cinematic', chapter: 10, vertical: 'JioMart',
+        intentShape: 'Multi-Option', surface: 'voice+ui', language: 'en',
+        manifestPrimitive: 'DiscoveryView',
+        label: 'Voice → text mid-flow', chatTitle: 'Silk → cotton kurtas',
+        eyebrow: 'Handoff · voice to text',
+        title: 'User switches to typing mid-flow — language and refinement carry.',
+        context: 'Starts on voice, switches to text',
+        transcript: [
+          { from: 'user', voice: true, surfaceTag: 'Voice', text: 'Show me silk kurtas under 2000' },
+          { from: 'jbiq', voice: true, surfaceTag: 'Voice', text: 'Pulling up a few silk ones under ₹2,000.' },
+          { from: 'user', surfaceTag: 'Switched to text', text: 'actually make it cotton' },
+          {
+            from: 'jbiq', surfaceTag: 'Text', text: 'Done — swapped to cotton, same ₹2,000 budget.',
+            attachment: {
+              type: 'discovery',
+              subject: { title: 'Cotton kurtas under ₹2,000', subtitle: 'Refinement carried over' },
+              cards: [
+                { emoji: '🧥', title: 'Fabindia cotton kurta', brand: { name: 'Fabindia' }, price: '₹1,799', anchor: true },
+                { emoji: '🧥', title: 'Ajio cotton kurta', brand: { name: 'Ajio' }, price: '₹1,199' },
+              ],
+            },
+          },
+        ],
+        principles: [
+          { name: 'We connect', why: 'The thread survives the surface switch.' },
+          { name: 'Always smart', why: 'Carries the budget; only swaps the fabric.' },
+          { name: 'Consistency', why: 'Same voice, voice or text.' },
+        ],
+        metric: 'Handoff: language + refinement carry across surface switch.',
+        references: ['Ch. 10 §3'],
+        dna: { humanFirst: 'Picks up exactly where the user left off.', simplest: 'One swap, nothing re-asked.', acted: 'Re-renders cotton.', respected: 'Keeps the budget.', soundsLikeJio: 'Seamless.' },
+      },
+      {
+        id: 'ch10-screen-timeout',
+        group: 'Voice & cinematic', chapter: 10, vertical: 'JioPay',
+        surface: 'voice', language: 'en',
+        label: 'Screen times out → voice', chatTitle: 'Flights',
+        eyebrow: 'Handoff · screen off, voice recaps',
+        title: 'Screen went dark — recap the anchor by voice, don\'t restart.',
+        context: 'Screen timed out mid-flow',
+        transcript: [
+          { from: 'user', text: 'Still there?' },
+          { from: 'jbiq', voice: true, text: "Realised the screen's off — those three morning flights from earlier: cheapest's still the 6:15 at ₹2,850. Book it?" },
+        ],
+        voiceBeats: { outcome: 'Screen timed out.', anchor: '6:15, ₹2,850 — still cheapest.', shape: 'Recapped by voice.', pivot: 'Book it?' },
+        density: { words: 24, attributes: 2, items: 1 },
+        principles: [
+          { name: 'We connect', why: 'Bridges the dead screen with voice.' },
+          { name: 'Always smart', why: 'Recalls the earlier anchor, doesn\'t restart.' },
+          { name: 'We care', why: 'No "sorry, let\'s begin again".' },
+        ],
+        metric: 'Handoff: voice recaps the anchor when the screen drops.',
+        references: ['Ch. 10 §3'],
+        dna: { humanFirst: 'Acknowledges the screen, keeps going.', simplest: 'One recap + one action.', acted: 'Re-offers the booking.', respected: 'No re-asking.', soundsLikeJio: 'Easy continuity.' },
+      },
+      {
+        id: 'ch10-desync',
+        group: 'Voice & cinematic', chapter: 10, vertical: 'JioPay',
+        surface: 'voice+ui', language: 'en',
+        label: 'Cross-modal desync', chatTitle: 'Flights',
+        eyebrow: 'Handoff · desync detected',
+        title: 'Voice and screen disagreed — detect it, name it, re-render.',
+        context: 'Self-detected desync + correction',
+        transcript: [
+          { from: 'user', text: 'Which is cheapest again?' },
+          {
+            from: 'jbiq', voice: true, text: 'One sec — the screen and I drifted apart.',
+            attachment: { type: 'status', tone: 'warn', title: 'Cross-modal desync detected', body: 'Voice said 6:15; screen showed 8:40. Re-rendering to match.' },
+          },
+          {
+            from: 'jbiq', text: 'Re-rendered — cheapest is the 6:15 at ₹2,850, now matching on screen.',
+            attachment: {
+              type: 'discovery',
+              cards: [
+                { emoji: '✈️', title: '6:15 AM · IndiGo', price: '₹2,850', anchor: true },
+                { emoji: '✈️', title: '8:40 AM · Air India', price: '₹3,200' },
+              ],
+            },
+          },
+        ],
+        crossModal: { voiceAnchor: '6:15 AM · ₹2,850', screenAnchor: '6:15 AM (after re-render)', handoffLine: 'Re-rendering to match.' },
+        principles: [
+          { name: 'Always secure', why: 'Catches its own inconsistency before the user acts on it.' },
+          { name: 'We care', why: 'Owns the drift plainly, fixes it.' },
+          { name: 'Actions speak louder than words', why: 'Re-renders rather than just apologising.' },
+        ],
+        metric: 'Desync: detected, named, corrected — anchors re-match.',
+        references: ['Ch. 10 §5'],
+        dna: { humanFirst: '"The screen and I drifted apart."', simplest: 'One warning, one fix.', acted: 'Re-renders the correct anchor.', respected: 'Stops the user acting on bad data.', soundsLikeJio: 'Honest about the glitch.' },
+      },
+
+      // ── Ch. 6 — Language & code-switching ─────────────────────────────────
+      {
+        id: 'ch6-tamil',
+        group: 'Language parity', chapter: 6, vertical: 'JioPay',
+        intentShape: 'Single-Path', surface: 'chat', language: 'ta',
+        manifestPrimitive: 'CommitmentSummaryView', commitmentLevel: 'Hard-financial', auth: 'medium',
+        label: 'Tamil recharge', chatTitle: 'ரீசார்ஜ் ₹239',
+        eyebrow: 'Language · Tamil at parity',
+        title: 'Same surface, Tamil copy — including the screen-handoff phrase.',
+        context: 'User writes Tamil · last 10 messages Tamil',
+        transcript: [
+          { from: 'user', text: 'என் ஃபோனை ரீசார்ஜ் பண்ணு, 239 பிளான்' },
+          {
+            from: 'jbiq', text: '₹239 பிளான் — அடுத்த 28 நாட்களுக்கு. உறுதி செய்யவா? Screen-ல காட்டியிருக்கேன்.',
+            attachment: { type: 'commitment', prompt: 'ரீசார்ஜ் ₹239', summary: '28 நாட்கள் · ••••2143', total: '₹239', primary: 'ரீசார்ஜ் செய்', secondary: 'வேண்டாம்' },
+          },
+        ],
+        principles: [
+          { name: 'Celebrate. We are from India.', why: 'Full Tamil, including the handoff phrase — no English fallback.' },
+          { name: 'Consistency', why: 'Same brevity and warmth as the English recharge.' },
+          { name: 'Always secure', why: 'Confirms amount + validity before charging.' },
+        ],
+        metric: '12+ languages at parity: identical surface, native copy.',
+        references: ['Ch. 6 §2'],
+        dna: { humanFirst: 'Replies in the user\'s language, no switch.', simplest: 'One confirm.', acted: 'Readies the recharge.', respected: 'Masks the number.', soundsLikeJio: 'Same voice, in Tamil.' },
+      },
+      {
+        id: 'ch6-codeswitch',
+        group: 'Language parity', chapter: 6, vertical: 'JioMart',
+        intentShape: 'Multi-Option', surface: 'chat', language: 'hinglish',
+        manifestPrimitive: 'DiscoveryView',
+        label: 'Mid-sentence code-switch', chatTitle: 'Silk kurtas',
+        eyebrow: 'Language · code-mixed in, code-mixed out',
+        title: 'User mixes Hindi + English in one line — JBIQ matches the register.',
+        context: 'Code-mixed Hinglish input',
+        transcript: [
+          { from: 'user', text: 'Bhai, show me silk wale kurtas, under 2000 rupees' },
+          {
+            from: 'jbiq', text: 'Bilkul bhai — silk kurtas under ₹2,000, ye dekho. Manyavar wala sabse achha lag raha hai.',
+            attachment: {
+              type: 'discovery',
+              subject: { title: 'Silk kurtas under ₹2,000', subtitle: 'Manyavar is the pick' },
+              cards: [
+                { emoji: '🧥', title: 'Manyavar silk kurta', brand: { name: 'Manyavar' }, price: '₹1,950', anchor: true },
+                { emoji: '🧥', title: 'Fabindia silk-blend', brand: { name: 'Fabindia' }, price: '₹1,799' },
+              ],
+            },
+          },
+        ],
+        principles: [
+          { name: 'Celebrate. We are from India.', why: 'Mirrors the exact Hinglish register, "bhai" and all.' },
+          { name: 'Always smart', why: 'Anchors to the silk Manyavar with a clear pick.' },
+          { name: 'Consistency', why: 'No sudden switch to formal English.' },
+        ],
+        metric: 'Code-switch: register matched, no English fragment leakage.',
+        references: ['Ch. 6 §2'],
+        dna: { humanFirst: 'Talks like the user\'s friend.', simplest: 'Two cards, one pick.', acted: 'Shows silk options.', respected: 'Keeps the budget.', soundsLikeJio: 'Natural Hinglish.' },
+      },
+
+      // ── Ch. 7 — Memory, confidence, autonomy ──────────────────────────────
+      {
+        id: 'ch7-high-conf',
+        group: 'Memory & autonomy', chapter: 7, vertical: 'JioPay',
+        intentShape: 'Single-Path', surface: 'chat', language: 'en',
+        manifestPrimitive: 'CommitmentSummaryView', commitmentLevel: 'Hard-financial', auth: 'medium',
+        label: 'High-confidence defaults', chatTitle: 'Recharge',
+        eyebrow: 'Memory · surfaced, not performed',
+        title: 'Default silently to what you know — make it editable, never narrate it.',
+        context: 'Usual: ₹299 · PhonePe UPI',
+        transcript: [
+          { from: 'user', text: 'Recharge' },
+          {
+            from: 'jbiq', text: 'Recharging ₹299 on your usual PhonePe UPI — both editable if you want to change anything.',
+            attachment: { type: 'commitment', partner: { name: 'PhonePe UPI' }, prompt: 'Recharge ₹299', summary: 'Usual plan · PhonePe UPI', total: '₹299', primary: 'Pay ₹299', secondary: 'Change' },
+          },
+        ],
+        memoryUsed: { surfaced: [{ inference: 'Usual plan: ₹299', confidence: 'High' }, { inference: 'Default rail: PhonePe UPI', confidence: 'High' }], silent: 'No "I remember…" — defaults applied quietly, both one tap to edit.' },
+        principles: [
+          { name: 'Always smart', why: 'Uses what it knows without making a show of it.' },
+          { name: 'Always simple', why: 'One pre-filled action, editable.' },
+          { name: 'Always secure', why: 'Confirms the amount and rail before charging.' },
+        ],
+        metric: 'Memory: high-confidence defaults applied silently, editable.',
+        references: ['Ch. 7 §3'],
+        dna: { humanFirst: 'Just gets on with it.', simplest: 'One tap.', acted: 'Pre-fills plan + rail.', respected: 'No performative "I remember".', soundsLikeJio: 'Quietly smart.' },
+      },
+      {
+        id: 'ch7-performative',
+        group: 'Memory & autonomy', chapter: 7, vertical: 'JioMart',
+        surface: 'chat', language: 'en',
+        label: 'Performative memory caught', chatTitle: 'Cotton kurtas',
+        eyebrow: 'Memory · don\'t perform it',
+        title: 'Knowing a preference is smart. Announcing it is creepy.',
+        context: 'Known preference: cotton',
+        transcript: [
+          { from: 'user', text: 'Show me kurtas' },
+          {
+            from: 'jbiq', text: 'Cotton ones first, since that\'s usually your pick:',
+            attachment: {
+              type: 'tension',
+              avoid: { eb: 'Performed memory', quote: '"I remember you LOVE cotton! 😍 Here are cotton kurtas picked just for you!"' },
+              good: { eb: 'Quiet default', quote: 'Leads with cotton, no announcement — "since that\'s usually your pick".' },
+            },
+          },
+        ],
+        principles: [
+          { name: 'Always smart', why: 'Applies the preference; doesn\'t brag about it.' },
+          { name: 'We care', why: 'No surveillance theatre.' },
+          { name: 'Always simple', why: 'Defaults quietly.' },
+        ],
+        metric: 'Memory: preference applied, never performed.',
+        references: ['Ch. 7 §3'],
+        dna: { humanFirst: 'Helpful, not watchful.', simplest: 'One quiet default.', acted: 'Sorts cotton first.', respected: 'No "I remember" theatre.', soundsLikeJio: 'Understated.' },
+      },
+      {
+        id: 'ch7-autonomy-stepup',
+        group: 'Memory & autonomy', chapter: 7, vertical: 'JioPay',
+        intentShape: 'Single-Path', surface: 'chat', language: 'en',
+        autonomyLevel: 1, commitmentLevel: 'Soft', auth: 'medium',
+        label: 'Autonomy step-up offered', chatTitle: 'Recharge',
+        eyebrow: 'Autonomy · offered, never assumed',
+        title: 'After a pattern emerges, offer to take it over — and make "Not now" easy.',
+        context: '2nd manual recharge this month',
+        transcript: [
+          { from: 'user', text: 'Recharge again, ₹299' },
+          {
+            from: 'jbiq', text: "Done — ₹299 recharged. That's twice this month; want me to set up auto-recharge so you don't have to ask? Not now is totally fine.",
+            attachment: { type: 'commitment', prompt: 'Set up auto-recharge?', summary: 'Offered after 2 manual recharges', primary: 'Set it up', secondary: 'Not now' },
+          },
+        ],
+        memoryUsed: { surfaced: [{ inference: '2 manual recharges this month', confidence: 'High' }], silent: 'Offers autonomy — never silently enables it.' },
+        principles: [
+          { name: 'We dream big', why: 'Raises the horizon: less manual work.' },
+          { name: 'Always secure', why: 'Autonomy is opt-in, never assumed.' },
+          { name: 'We care', why: '"Not now" is framed as completely fine.' },
+        ],
+        metric: 'Autonomy: step-up offered after a pattern, opt-in only.',
+        references: ['Ch. 7 §8'],
+        dna: { humanFirst: 'Notices the pattern, asks nicely.', simplest: 'One offer, one easy no.', acted: 'Completes the recharge first.', respected: 'No silent automation.', soundsLikeJio: 'Gentle, optional.' },
+      },
+
+      // ── Ch. 8 — Commitment & security (one per level) ─────────────────────
+      {
+        id: 'ch8-soft',
+        group: 'Commitment & security', chapter: 8, vertical: 'JioMart',
+        commitmentLevel: 'Soft', surface: 'chat', language: 'en', reversibilityWindow: 60,
+        label: 'Save for later (Soft)', chatTitle: 'Save kurta',
+        eyebrow: 'Commitment · Soft',
+        title: 'A reversible save needs no auth — just an easy undo.',
+        context: 'No money, no auth',
+        transcript: [
+          { from: 'user', text: 'Save this kurta for later' },
+          {
+            from: 'jbiq', text: "Saved the Fabindia kurta to your list — undo if that wasn't you.",
+            attachment: { type: 'undo', label: 'Saved · Undo', window: 60 },
+          },
+        ],
+        principles: [
+          { name: 'Always simple', why: 'No confirm dialog for a reversible action.' },
+          { name: 'Always secure', why: 'Soft commit, so no auth — but undo is offered.' },
+          { name: 'We care', why: 'Leaves an easy way back.' },
+        ],
+        metric: 'Soft commit: no auth, 60s undo window surfaced.',
+        references: ['Ch. 8 §3'],
+        dna: { humanFirst: 'Confirms in one line.', simplest: 'No dialog.', acted: 'Saves it.', respected: 'Undo offered.', soundsLikeJio: 'Light-touch.' },
+      },
+      {
+        id: 'ch8-hard-financial',
+        group: 'Commitment & security', chapter: 8, vertical: 'JioPay',
+        intentShape: 'Single-Path', surface: 'voice+ui', language: 'en',
+        manifestPrimitive: 'CommitmentSummaryView', commitmentLevel: 'Hard-financial', auth: 'high',
+        label: 'Recharge — UPI handoff (Hard-financial)', chatTitle: 'Recharge ₹299',
+        eyebrow: 'Commitment · Hard-financial',
+        title: 'Money moving means a UPI handoff — the PIN is entered in the bank app, never here.',
+        context: 'PhonePe UPI · ₹299',
+        transcript: [
+          { from: 'user', text: 'Recharge 299' },
+          {
+            from: 'jbiq', voice: true, text: "₹299 on PhonePe UPI — opening your UPI app. Enter your PIN there; I never see it.",
+            attachment: { type: 'commitment', partner: { name: 'PhonePe UPI' }, prompt: 'Recharge ₹299', summary: 'PhonePe UPI · PIN in your bank app', total: '₹299', primary: 'Open UPI app', secondary: 'Change', caption: 'UPI PIN never touches JBIQ or the partner.' },
+          },
+        ],
+        voiceBeats: { outcome: 'Recharge ready.', anchor: '₹299 on PhonePe UPI.', shape: 'Opening your UPI app.', pivot: 'Enter your PIN there — I never see it.' },
+        density: { words: 16, attributes: 2, items: 1 },
+        consent: 'One-time UPI authorisation',
+        principles: [
+          { name: 'Always secure', why: 'PIN entry happens in the bank app; JBIQ never holds it.' },
+          { name: 'Actions speak louder than words', why: 'Hands off cleanly to UPI.' },
+          { name: 'Always simple', why: 'One amount, one rail.' },
+        ],
+        metric: 'Hard-financial: UPI PIN never in JBIQ; partner never sees it.',
+        references: ['Ch. 8 §5'],
+        dna: { humanFirst: 'Reassures about the PIN.', simplest: 'One handoff.', acted: 'Opens UPI.', respected: 'PIN stays with the bank.', soundsLikeJio: 'Protective, clear.' },
+      },
+      {
+        id: 'ch8-mandate',
+        group: 'Commitment & security', chapter: 8, vertical: 'JioPay',
+        surface: 'chat', language: 'en',
+        manifestPrimitive: 'DetailView', commitmentLevel: 'Critical', auth: 'critical',
+        label: 'Auto-pay mandate (Critical)', chatTitle: 'Set up auto-pay',
+        eyebrow: 'Commitment · Critical',
+        title: 'A mandate can\'t be set up by chat — every field is reviewed on a dedicated surface.',
+        context: 'e-NACH mandate · revocable',
+        transcript: [
+          { from: 'user', text: 'Set up auto-pay for my Adani bill' },
+          {
+            from: 'jbiq', text: "A mandate's a bigger commitment, so let's do it properly — here's every term before you authorise it in your bank app.",
+            attachment: {
+              type: 'detail', title: 'Auto-pay mandate · Adani Electricity', ref: 'e-NACH · revocable anytime',
+              rows: [
+                { label: 'Payee', value: 'Adani Electricity' },
+                { label: 'Cap', value: '₹3,000 / month' },
+                { label: 'Frequency', value: 'Monthly' },
+                { label: 'Expiry', value: '22 May 2027' },
+                { label: 'Revocation', value: 'Anytime, in-app' },
+              ],
+              note: 'A mandate cannot be entered conversationally — review each field, then authorise in your bank app.',
+              button: 'Review & authorise in bank app',
+            },
+          },
+        ],
+        consent: 'e-NACH mandate · explicit',
+        principles: [
+          { name: 'Always secure', why: 'Critical commit moves to a dedicated, auditable surface.' },
+          { name: 'We care', why: 'Spells out cap, expiry, and how to revoke.' },
+          { name: 'Always simple', why: 'Every term on one card before authorising.' },
+        ],
+        metric: 'Critical: mandate not conversational; payee/cap/freq/expiry/revocation shown.',
+        references: ['Ch. 8 §11'],
+        dna: { humanFirst: 'Explains why it\'s a bigger step.', simplest: 'All terms, one card.', acted: 'Routes to the bank app.', respected: 'Revocation made explicit.', soundsLikeJio: 'Careful with mandates.' },
+      },
+      {
+        id: 'ch8-dpdp',
+        group: 'Commitment & security', chapter: 8, vertical: 'Health',
+        surface: 'chat', language: 'en', consent: 'DPDP · granular',
+        label: 'DPDP consent UI', chatTitle: 'Connect Apollo',
+        eyebrow: 'Consent · DPDP',
+        title: 'Plain-language scope, per-permission toggles, nothing pre-checked.',
+        context: 'Connecting Apollo · health data',
+        transcript: [
+          { from: 'user', text: 'Connect my Apollo account' },
+          {
+            from: 'jbiq', text: "Before I connect Apollo, here's exactly what it can see — flip on only what you're comfortable with.",
+            attachment: {
+              type: 'consent', title: 'Connect Apollo 24|7', partner: 'You can revoke any of these anytime',
+              permissions: [
+                { label: 'Book and view consultations', on: true },
+                { label: 'Read past prescriptions', on: false },
+                { label: 'Share your city for nearby clinics', on: false },
+              ],
+              note: 'Why we ask: each toggle maps to one thing Apollo can do. None are pre-checked.',
+              button: 'Connect with these settings',
+            },
+          },
+        ],
+        principles: [
+          { name: 'Always secure', why: 'Granular scope, nothing on by default.' },
+          { name: 'We care', why: 'Plain language and a "Why we ask" line.' },
+          { name: 'Always simple', why: 'Three clear toggles, revocable.' },
+        ],
+        metric: 'DPDP: plain scope, per-permission, never pre-checked.',
+        references: ['Ch. 8 §11'],
+        dna: { humanFirst: 'Explains before connecting.', simplest: 'Three toggles.', acted: 'Connects on the user\'s terms.', respected: 'Nothing pre-checked.', soundsLikeJio: 'Consent as a conversation.' },
+      },
+      {
+        id: 'ch8-ledger-fail',
+        group: 'Commitment & security', chapter: 8, vertical: 'JioPay',
+        surface: 'chat', language: 'en', commitmentLevel: 'Hard-financial', auth: 'high',
+        failClass: 'compliance-fail',
+        label: 'Compliance Ledger fail-closed', chatTitle: 'Recharge',
+        eyebrow: 'Security · fail-closed',
+        title: 'If the audit log is down, nothing transacts — and we say so plainly.',
+        context: 'Compliance Ledger offline',
+        transcript: [
+          { from: 'user', text: 'Recharge 299' },
+          {
+            from: 'jbiq', text: "I can't safely complete this right now — our audit log is offline, so nothing's been charged. Try again in a few minutes.",
+            attachment: { type: 'status', tone: 'error', title: "Held — audit log offline", body: 'Fail-closed: no charge attempted. Your ₹299 is untouched.' },
+          },
+        ],
+        principles: [
+          { name: 'Always secure', why: 'No ledger write → no transaction. Fail-closed by design.' },
+          { name: 'Actions speak louder than words', why: 'States plainly that nothing was charged.' },
+          { name: 'We care', why: 'Gives a real "try again" window.' },
+        ],
+        metric: 'Fail-closed: ledger write precedes dispatch; nothing charged on failure.',
+        references: ['Ch. 8 §11'],
+        dna: { humanFirst: 'Reassures the money is safe.', simplest: 'One honest sentence.', acted: 'Holds, doesn\'t charge.', respected: 'No silent retry.', soundsLikeJio: 'Safety over speed.' },
+      },
+
+      // ── Ch. 9 — Failing well ──────────────────────────────────────────────
+      {
+        id: 'ch9-asr',
+        group: 'Failing well', chapter: 9, vertical: 'JioPay',
+        surface: 'voice', language: 'hinglish', failClass: 'ASR-uncertainty',
+        label: 'ASR uncertainty (critical word)', chatTitle: 'Recharge',
+        eyebrow: 'Failure · speech recognition',
+        title: 'Got the verb, missed the amount — ask only for the part you\'re unsure of.',
+        context: 'Noisy line · amount unclear',
+        transcript: [
+          { from: 'user', voice: true, text: 'Recharge kar do … [unclear] … wala' },
+          { from: 'jbiq', voice: true, text: 'Recharge samajh aaya, lekin amount clear nahi mila — ₹299, ₹399, ya kuch aur?' },
+        ],
+        voiceBeats: { outcome: 'Heard "recharge".', anchor: 'Amount unclear.', shape: 'Re-ask only the amount.', pivot: '₹299, ₹399, ya kuch aur?' },
+        density: { words: 14, attributes: 1, items: 1 },
+        principles: [
+          { name: 'Always simple', why: 'Re-asks one thing, not the whole request.' },
+          { name: 'We care', why: 'No "sorry, I didn\'t understand" reset.' },
+          { name: 'Always secure', why: 'Won\'t guess an amount on money.' },
+        ],
+        metric: 'ASR: confirm the uncertain token only, never the whole utterance.',
+        references: ['Ch. 9 §4'],
+        dna: { humanFirst: 'Keeps the momentum.', simplest: 'One question.', acted: 'Holds the recharge.', respected: 'No wrong-amount guess.', soundsLikeJio: 'Hinglish, calm.' },
+      },
+      {
+        id: 'ch9-partner-timeout',
+        group: 'Failing well', chapter: 9, vertical: 'JioMart',
+        intentShape: 'Multi-Option', surface: 'chat', language: 'en',
+        failClass: 'partner-timeout', resolutionStrategy: 'Sequential-Fallback',
+        manifestPrimitive: 'DiscoveryView',
+        label: 'Partner timeout → fallback', chatTitle: 'Biryani near me',
+        eyebrow: 'Failure · partner timeout',
+        title: 'One partner is slow — fall back to others and say where the results came from.',
+        context: 'Swiggy timed out',
+        transcript: [
+          { from: 'user', text: 'Order biryani' },
+          {
+            from: 'jbiq', text: "Swiggy's slow right now — pulled these from Zomato and MagicPin instead.",
+            attachment: {
+              type: 'discovery',
+              subject: { title: 'Biryani near you', subtitle: 'via Zomato + MagicPin' },
+              cards: [
+                { emoji: '🍛', title: 'Paradise Biryani', brand: { name: 'via Zomato' }, price: '₹320', rating: '4.5', anchor: true },
+                { emoji: '🍛', title: 'Bawarchi', brand: { name: 'via MagicPin' }, price: '₹280', rating: '4.3' },
+              ],
+            },
+          },
+        ],
+        partner: { name: 'Zomato + MagicPin', attributionLine: 'per-card "via" badge', whyThis: 'Swiggy timed out; fell back to the next working partners.' },
+        principles: [
+          { name: 'Actions speak louder than words', why: 'Falls back automatically, no dead end.' },
+          { name: 'We connect', why: 'Pulls across partners as one result set.' },
+          { name: 'We care', why: 'Tells you exactly where each came from.' },
+        ],
+        metric: 'Partner timeout: sequential fallback, per-item attribution.',
+        references: ['Ch. 9 §6', 'Ch. 11 §7'],
+        dna: { humanFirst: 'No "service unavailable".', simplest: 'Two options, attributed.', acted: 'Falls back live.', respected: 'Shows the source.', soundsLikeJio: 'Resourceful.' },
+      },
+      {
+        id: 'ch9-connection-loss',
+        group: 'Failing well', chapter: 9, vertical: 'JioPay',
+        surface: 'chat', language: 'en', failClass: 'connection-loss',
+        commitmentLevel: 'Hard-financial',
+        label: 'Connection loss + recovery', chatTitle: 'Recharge',
+        eyebrow: 'Failure · connection lost',
+        title: 'Dropped mid-transaction? Freeze it — never auto-execute on reconnect.',
+        context: 'Offline mid-recharge, then back',
+        transcript: [
+          { from: 'user', text: 'Recharge 299' },
+          {
+            from: 'jbiq', text: "You dropped offline mid-recharge — I froze it and didn't run anything. Back online now: still want the ₹299?",
+            attachment: { type: 'status', tone: 'ok', title: 'Back online', body: 'Recharge was frozen, not executed. Nothing charged.' },
+          },
+        ],
+        principles: [
+          { name: 'Always secure', why: 'A frozen transaction is never silently completed.' },
+          { name: 'We care', why: 'Explains exactly what happened on reconnect.' },
+          { name: 'Always simple', why: 'One clear question to resume.' },
+        ],
+        metric: 'Connection loss: pending transaction frozen, not auto-executed.',
+        references: ['Ch. 9 §8'],
+        dna: { humanFirst: 'Reassures nothing ran.', simplest: 'One resume question.', acted: 'Holds the recharge.', respected: 'No surprise charge.', soundsLikeJio: 'Steady through the drop.' },
+      },
+      {
+        id: 'ch9-guardrail',
+        group: 'Failing well', chapter: 9, vertical: 'Health',
+        surface: 'chat', language: 'en', failClass: 'guardrail',
+        label: 'Fail-closed guardrail refusal', chatTitle: 'Medicine dose',
+        eyebrow: 'Failure · guardrail',
+        title: 'Refuse softly, in-language, with a real next step — no policy lecture.',
+        context: 'Out-of-scope medical request',
+        transcript: [
+          { from: 'user', text: 'How much paracetamol can my 2-year-old take?' },
+          { from: 'jbiq', text: "I can't give medicine doses — that's one for a doctor. I can book a paediatric consult or find a clinic open now. (Got this wrong? Tell JioCare.)" },
+        ],
+        principles: [
+          { name: 'Always secure', why: 'Holds the safety line on dosing.' },
+          { name: 'We care', why: 'Offers a real route, not just a "no".' },
+          { name: 'Always simple', why: 'No policy detail, no lecture.' },
+        ],
+        metric: 'Guardrail: soft, in-language refusal + a real alternative + feedback path.',
+        references: ['Ch. 9 §12'],
+        dna: { humanFirst: 'Kind, not preachy.', simplest: 'One refusal + one route.', acted: 'Offers a consult.', respected: 'No method info.', soundsLikeJio: 'Warm boundary.' },
+      },
+
+      // ── Ch. 11 — Partner ecosystem (one per resolution strategy) ──────────
+      {
+        id: 'ch11-single-best',
+        group: 'Partners & ranking', chapter: 11, vertical: 'JioCare',
+        surface: 'chat', language: 'en', resolutionStrategy: 'Single-Best',
+        label: 'Single-Best translation', chatTitle: 'Translate',
+        eyebrow: 'Strategy · Single-Best',
+        title: 'One fact, one trusted source, one attribution.',
+        context: 'Single-source answer',
+        transcript: [
+          { from: 'user', text: 'How do you say "thank you" in Tamil?' },
+          {
+            from: 'jbiq', text: '"நன்றி" (nandri).',
+            attachment: { type: 'info', rows: [{ label: 'Tamil', value: 'நன்றி (nandri)' }], caption: 'via Google Translate' },
+          },
+        ],
+        partner: { name: 'Google Translate', attributionLine: 'via Google Translate', whyThis: 'A single trusted source for a single fact.' },
+        principles: [
+          { name: 'Always smart', why: 'Picks the one best source.' },
+          { name: 'Always secure', why: 'Attributes it plainly.' },
+          { name: 'Always simple', why: 'One answer, no menu.' },
+        ],
+        metric: 'Single-Best: one result, one attribution.',
+        references: ['Ch. 11 §7'],
+        dna: { humanFirst: 'Just answers.', simplest: 'One line.', acted: 'Translates.', respected: 'Cites the source.', soundsLikeJio: 'Crisp.' },
+      },
+      {
+        id: 'ch11-merged',
+        group: 'Partners & ranking', chapter: 11, vertical: 'JioMart',
+        intentShape: 'Multi-Option', surface: 'chat', language: 'en',
+        resolutionStrategy: 'Merged', manifestPrimitive: 'DiscoveryView',
+        label: 'Merged restaurants', chatTitle: 'Restaurants near me',
+        eyebrow: 'Strategy · Merged',
+        title: 'Intermix partners into one ranked list — badge each item with its source.',
+        context: 'Multiple delivery partners',
+        transcript: [
+          { from: 'user', text: "What's good near me right now?" },
+          {
+            from: 'jbiq', text: 'Closest open ones, merged across delivery apps:',
+            attachment: {
+              type: 'discovery',
+              subject: { title: 'Open near you', subtitle: 'Merged · ranked by distance' },
+              cards: [
+                { emoji: '🍜', title: 'Pho Bar', brand: { name: 'via Swiggy' }, price: '0.4 km', rating: '4.6', anchor: true },
+                { emoji: '🍕', title: 'Naples Pizza', brand: { name: 'via Zomato' }, price: '0.7 km', rating: '4.4' },
+                { emoji: '🥘', title: 'Curry House', brand: { name: 'via MagicPin' }, price: '0.9 km', rating: '4.3' },
+              ],
+            },
+          },
+        ],
+        partner: { name: 'Swiggy · Zomato · MagicPin', attributionLine: 'per-card "via" badge', whyThis: 'Ranked by distance, intermixed across partners.' },
+        principles: [
+          { name: 'We connect', why: 'One list, many partners.' },
+          { name: 'Always smart', why: 'Ranks by what matters — distance, open now.' },
+          { name: 'We care', why: 'Every item shows where it came from.' },
+        ],
+        metric: 'Merged: intermixed result set, per-item attribution.',
+        references: ['Ch. 11 §7'],
+        dna: { humanFirst: 'Feels like one helpful list.', simplest: 'Three, ranked.', acted: 'Merges live.', respected: 'Sources shown.', soundsLikeJio: 'One Jio across partners.' },
+      },
+      {
+        id: 'ch11-stratified',
+        group: 'Partners & ranking', chapter: 11, vertical: 'JioMart',
+        intentShape: 'Multi-Option', surface: 'chat', language: 'en',
+        resolutionStrategy: 'Stratified', manifestPrimitive: 'ComparisonView',
+        label: 'Stratified iPhone pricing', chatTitle: 'iPhone 15 price',
+        eyebrow: 'Strategy · Stratified',
+        title: 'Same item, several sellers — compare side by side, cheapest flagged.',
+        context: 'iPhone 15 · 128GB',
+        transcript: [
+          { from: 'user', text: 'iPhone 15 price' },
+          {
+            from: 'jbiq', text: 'iPhone 15 (128GB) across three sellers — Amazon\'s cheapest today:',
+            attachment: {
+              type: 'comparison', compareLabel: 'iPhone 15',
+              rows: [
+                { label: 'Price', values: ['₹66,999', '₹67,490', '₹68,900'], best: [0] },
+                { label: 'Delivery', values: ['Tomorrow', '2 days', 'Store pickup'] },
+                { label: 'Rating', values: ['4.6', '4.5', '4.4'] },
+              ],
+              options: [
+                { title: 'Amazon', badge: 'Cheapest', cta: 'Buy' },
+                { title: 'Flipkart', cta: 'Buy' },
+                { title: 'Croma', cta: 'Buy' },
+              ],
+            },
+          },
+        ],
+        partner: { name: 'Amazon · Flipkart · Croma', attributionLine: 'one labelled column each', whyThis: 'Same SKU; sellers stratified so you can compare like for like.' },
+        principles: [
+          { name: 'Always smart', why: 'Flags the cheapest without hiding the rest.' },
+          { name: 'Always simple', why: 'A scannable table, not three chats.' },
+          { name: 'Always secure', why: 'Each price labelled by seller.' },
+        ],
+        metric: 'Stratified: per-partner columns; best value flagged.',
+        references: ['Ch. 11 §7'],
+        dna: { humanFirst: 'Saves the user the comparison work.', simplest: 'One table.', acted: 'Shows live prices.', respected: 'No hidden sponsor.', soundsLikeJio: 'Even-handed.' },
+      },
+      {
+        id: 'ch11-choice-gated',
+        group: 'Partners & ranking', chapter: 11, vertical: 'Travel',
+        intentShape: 'Multi-Option', surface: 'chat', language: 'en',
+        resolutionStrategy: 'Choice-Gated', manifestPrimitive: 'ListView',
+        label: 'Choice-Gated cabs', chatTitle: 'Cab to airport',
+        eyebrow: 'Strategy · Choice-Gated',
+        title: 'For some things, the user must pick the provider — so present, don\'t choose.',
+        context: 'Cabs · user picks the app',
+        transcript: [
+          { from: 'user', text: 'Book a cab to the airport' },
+          {
+            from: 'jbiq', text: 'Three ready now — you pick the app:',
+            attachment: {
+              type: 'list',
+              items: [
+                { emoji: '🚕', title: 'Uber · ₹420', sub: '4 min away', cta: 'Open' },
+                { emoji: '🚖', title: 'Ola · ₹398', sub: '6 min away', cta: 'Open' },
+                { emoji: '🚙', title: 'BluSmart · ₹445', sub: '3 min · EV', cta: 'Open' },
+              ],
+            },
+          },
+        ],
+        partner: { name: 'Uber · Ola · BluSmart', attributionLine: 'per-card CTA', whyThis: 'For cabs you choose the provider — JBIQ never picks for you.' },
+        principles: [
+          { name: 'Always secure', why: 'Doesn\'t auto-book; the user gates the choice.' },
+          { name: 'Always simple', why: 'Three, with price + ETA.' },
+          { name: 'We care', why: 'Surfaces the EV option without pushing it.' },
+        ],
+        metric: 'Choice-Gated: present all, user selects the provider.',
+        references: ['Ch. 11 §7'],
+        dna: { humanFirst: 'Respects the user\'s loyalty/choice.', simplest: 'Three cards.', acted: 'Opens the chosen app.', respected: 'No auto-pick.', soundsLikeJio: 'Neutral broker.' },
+      },
+      {
+        id: 'ch11-sequential-fallback',
+        group: 'Partners & ranking', chapter: 11, vertical: 'JioPay',
+        surface: 'chat', language: 'en', resolutionStrategy: 'Sequential-Fallback',
+        manifestPrimitive: 'StatusView',
+        label: 'Sequential-Fallback OTP', chatTitle: 'OTP',
+        eyebrow: 'Strategy · Sequential-Fallback',
+        title: 'Try gateways in order; surface only the success unless they all fail.',
+        context: 'OTP across gateways',
+        transcript: [
+          { from: 'user', text: 'Send the OTP' },
+          {
+            from: 'jbiq', text: 'OTP sent — should land in a few seconds.',
+            attachment: { type: 'status', tone: 'ok', title: 'OTP sent', body: 'Delivered via the first working gateway. Earlier attempts stay hidden unless all fail.' },
+          },
+        ],
+        partner: { name: 'SMS gateways', attributionLine: 'first success surfaced', whyThis: 'Tried in order; the user only sees the one that worked.' },
+        principles: [
+          { name: 'Always simple', why: 'One "sent", not a log of retries.' },
+          { name: 'Actions speak louder than words', why: 'Falls through gateways silently.' },
+          { name: 'We care', why: 'No noise unless everything fails.' },
+        ],
+        metric: 'Sequential-Fallback: failed attempts hidden unless all fail.',
+        references: ['Ch. 11 §7'],
+        dna: { humanFirst: 'Just says "sent".', simplest: 'One status.', acted: 'Falls through gateways.', respected: 'No retry spam.', soundsLikeJio: 'Quiet reliability.' },
+      },
+      {
+        id: 'ch11-why-this',
+        group: 'Partners & ranking', chapter: 11, vertical: 'JioMart',
+        surface: 'chat', language: 'en', manifestPrimitive: 'DetailView',
+        label: '"Why this result?"', chatTitle: 'Why this kurta?',
+        eyebrow: 'Ranking · explainable',
+        title: 'Ranking is explainable in plain words — and the user can tune it.',
+        context: 'Ranking transparency',
+        transcript: [
+          { from: 'user', text: 'Why is this kurta first?' },
+          {
+            from: 'jbiq', text: "Here's the ranking in plain words — and you can change any of it:",
+            attachment: {
+              type: 'detail', title: 'Why Fabindia first?', ref: 'Ranking is yours to tune',
+              rows: [
+                { label: 'Your budget', value: 'Under ₹2,000 ✓' },
+                { label: 'Past picks', value: 'Cotton · Fabindia' },
+                { label: 'Rating', value: '4.5' },
+                { label: 'Sponsored?', value: 'No' },
+              ],
+              note: 'No paid placement here. Edit your per-domain preferences anytime.',
+              button: 'Manage ranking & memory',
+            },
+          },
+        ],
+        whyThis: 'Budget match + your past picks + rating; not sponsored.',
+        principles: [
+          { name: 'Always secure', why: 'Discloses there\'s no paid placement.' },
+          { name: 'We care', why: 'Explains in plain language, not a model dump.' },
+          { name: 'Always simple', why: 'Four reasons, editable.' },
+        ],
+        metric: 'Ranking: plain-language "why", per-domain preferences editable.',
+        references: ['Ch. 11 §10'],
+        dna: { humanFirst: 'Treats the user as owed an explanation.', simplest: 'Four rows.', acted: 'Opens preference controls.', respected: 'Sponsorship disclosed.', soundsLikeJio: 'Transparent.' },
+      },
+
+      // ── Ch. 12 — Sensitive moments (one per sub-type) ─────────────────────
+      {
+        id: 'ch12-financial-stress',
+        group: 'Sensitive & high-stakes', chapter: 12, vertical: 'JioPay',
+        senseMode: 'sensitive', sensitiveSubtype: 'Financial stress',
+        surface: 'chat', language: 'en',
+        label: 'Financial stress mid-payment', chatTitle: 'Recharge',
+        eyebrow: 'Sensitive · financial stress',
+        title: 'Stop the transaction the moment money becomes a worry. No nudge to spend.',
+        context: 'User hesitates mid-recharge',
+        transcript: [
+          { from: 'user', text: "actually things are really tight this month, I can't do it" },
+          {
+            from: 'jbiq', text: "Pausing the recharge — nothing happens unless you say so. No rush, and no charge in the meantime.",
+            attachment: { type: 'status', tone: 'warn', title: 'Recharge paused', body: 'Nothing charged. It\'ll wait here for whenever you\'re ready.' },
+          },
+        ],
+        sensitiveInversion: { dropped: ['Upsell / "cheaper plan?" nudge', 'Cheer + emoji', 'Cross-product suggestion'], elevated: ['Stop the transaction first', 'Reassure: no charge', 'Leave control with the user'] },
+        principles: [
+          { name: 'It starts with emotion', why: 'Hears the stress and stops, before anything else.' },
+          { name: 'We care', why: 'No "switch to a cheaper plan?" — that\'s a nudge to spend.' },
+          { name: 'Always secure', why: 'Nothing moves without an explicit yes.' },
+        ],
+        metric: 'Sensitive inversion: transaction paused, zero upsell.',
+        references: ['Ch. 12 §4'],
+        dna: { humanFirst: 'Responds to the worry, not the task.', simplest: 'Pause + reassure.', acted: 'Freezes the charge.', respected: 'No spend nudge.', soundsLikeJio: 'Gentle, no pressure.' },
+      },
+      {
+        id: 'ch12-distress',
+        group: 'Sensitive & high-stakes', chapter: 12, vertical: 'JioCare',
+        senseMode: 'sensitive', sensitiveSubtype: 'Distress',
+        surface: 'chat', language: 'en',
+        label: 'Distress signal', chatTitle: 'Support',
+        eyebrow: 'Sensitive · distress',
+        title: 'Acknowledge, stay present, surface real help — no assessment, no method talk.',
+        context: 'Distress signal in chat',
+        transcript: [
+          { from: 'user', text: "honestly I don't think I can keep going like this" },
+          {
+            from: 'jbiq', text: "I'm really glad you told me, and I'm sorry it's this heavy right now. You don't have to carry it alone — here are people who can talk with you any time, and I'm staying right here too.",
+            attachment: {
+              type: 'helpline', title: 'People you can talk to, right now',
+              resources: [
+                { label: 'KIRAN (24×7, free)', value: '1800-599-0019' },
+                { label: 'iCall (TISS)', value: '9152987821' },
+                { label: 'AASRA', value: '+91-98204 66726' },
+              ],
+              note: 'More than one option, on purpose — pick whoever feels right. I\'m here when you come back.',
+            },
+          },
+        ],
+        sensitiveInversion: { dropped: ['Emoji', 'Cheer / brightness', 'Any task or upsell', 'Safety-assessment questions'], elevated: ['Acknowledge + stay present', 'Several resources (never one)', 'No method information'] },
+        principles: [
+          { name: 'It starts with emotion', why: 'Leads with warmth and being glad they shared.' },
+          { name: 'We care', why: 'Offers people, plural — never a single forced option.' },
+          { name: 'Always secure', why: 'No assessment questions, no method info.' },
+        ],
+        metric: 'Distress: acknowledge, ≥2 resources, no assessment, no method info.',
+        references: ['Ch. 12 §6'],
+        dna: { humanFirst: 'Glad they told it.', simplest: 'Warmth + resources.', acted: 'Surfaces real helplines.', respected: 'No probing.', soundsLikeJio: 'Calm, human, present.' },
+      },
+      {
+        id: 'ch12-fp-recovery',
+        group: 'Sensitive & high-stakes', chapter: 12, vertical: 'JioMart',
+        senseMode: 'routine', sensitiveSubtype: 'False-positive recovery',
+        surface: 'chat', language: 'en',
+        label: 'False-positive recovery', chatTitle: 'My plan is dying',
+        eyebrow: 'Sensitive · false-positive recovery',
+        title: 'Read a worrying line gently — then recover gracefully when it was an idiom.',
+        context: 'Idiom misread, then corrected',
+        transcript: [
+          { from: 'user', text: 'ugh my plan is dying' },
+          { from: 'jbiq', text: "That sounds frustrating — what's not working?" },
+          { from: 'user', text: 'no no the data\'s just crawling today' },
+          { from: 'jbiq', text: "Ah, got it — back to normal then. Let's sort the speed: want me to check your data balance and the network in your area?" },
+        ],
+        principles: [
+          { name: 'It starts with emotion', why: 'Errs on the side of care when a line could be heavy.' },
+          { name: 'We care', why: 'Recovers without making it awkward.' },
+          { name: 'Always simple', why: 'Snaps straight back to the real task.' },
+        ],
+        metric: 'FP recovery: gentle read, graceful snap-back to task.',
+        references: ['Ch. 12 §8'],
+        dna: { humanFirst: 'Cares first, clarifies second.', simplest: 'One check.', acted: 'Offers to diagnose the speed.', respected: 'No over-reaction.', soundsLikeJio: 'Easy, warm.' },
+      },
+
+      // ── Ch. 13 — What JBIQ never does ─────────────────────────────────────
+      {
+        id: 'ch13-forbidden-gallery',
+        group: 'What JBIQ never does', chapter: 13, vertical: 'JioCare',
+        surface: 'chat', language: 'en',
+        label: 'Forbidden phrases — repair gallery', chatTitle: 'Phrases we never use',
+        eyebrow: 'Never · forbidden phrases',
+        title: 'Four phrases we never use — and exactly what we say instead.',
+        context: 'Repair gallery',
+        transcript: [
+          { from: 'user', text: 'Why does JBIQ sound different from other support bots?' },
+          {
+            from: 'jbiq', text: 'Partly because of what we never say. A few examples, with the replacement:',
+            attachment: {
+              type: 'tension',
+              pairs: [
+                { avoid: { eb: 'Never', quote: '"Kindly do the needful."' }, good: { eb: 'Instead', quote: 'Tell me what you\'d like and I\'ll handle it.' } },
+                { avoid: { eb: 'Never', quote: '"Greetings of the day."' }, good: { eb: 'Instead', quote: 'Morning ☕' } },
+                { avoid: { eb: 'Never', quote: '"Is there anything else I can help you with today?"' }, good: { eb: 'Instead', quote: 'Catch you later 👋' } },
+                { avoid: { eb: 'Never', quote: '"I\'m just an AI."' }, good: { eb: 'Instead', quote: 'I can\'t do that one — here\'s who can.' } },
+              ],
+            },
+          },
+        ],
+        principles: [
+          { name: 'Consistency', why: 'A fixed set of banned phrases, everywhere.' },
+          { name: 'We care', why: 'Every "never" comes with a warm replacement.' },
+          { name: 'Always simple', why: 'Plain human swaps for corporate filler.' },
+        ],
+        metric: 'Forbidden-phrase regex hits = 0 (the replacements pass).',
+        references: ['Ch. 13'],
+        dna: { humanFirst: 'Sounds like a person.', simplest: 'Swap, don\'t lecture.', acted: 'Shows the replacements.', respected: 'No jargon.', soundsLikeJio: 'Unmistakably Jio.' },
+      },
+      {
+        id: 'ch13-caricature',
+        group: 'What JBIQ never does', chapter: 13, vertical: 'JioMart',
+        surface: 'chat', language: 'en',
+        label: 'Caricature avoided', chatTitle: 'Greeting',
+        eyebrow: 'Never · caricature',
+        title: 'Indian, not a caricature of Indian.',
+        context: 'Greeting register',
+        transcript: [
+          { from: 'user', text: 'hi' },
+          {
+            from: 'jbiq', text: 'Natural beats theatrical:',
+            attachment: {
+              type: 'tension',
+              avoid: { eb: 'Caricature', quote: '"🙏 Namaste ji! Welcome welcome to JBIQ, most respected customer!"' },
+              good: { eb: 'Natural', quote: 'Hi — what are you looking for today?' },
+            },
+          },
+        ],
+        principles: [
+          { name: 'Celebrate. We are from India.', why: 'Warmth without performing "Indian-ness".' },
+          { name: 'Consistency', why: 'Same easy register for everyone.' },
+          { name: 'We care', why: 'No "respected customer" theatre.' },
+        ],
+        metric: 'No caricature: natural greeting, no performative honorifics.',
+        references: ['Ch. 13'],
+        dna: { humanFirst: 'Greets like a person.', simplest: 'One line.', acted: 'Gets to the point.', respected: 'No flattery.', soundsLikeJio: 'Grounded warmth.' },
+      },
+
+      // ── Ch. 14 — Measurement ──────────────────────────────────────────────
+      {
+        id: 'ch14-acceptance',
+        group: 'Measurement', chapter: 14, vertical: 'JioCare',
+        surface: 'chat', language: 'en',
+        label: 'Acceptance criteria', chatTitle: 'How we measure voice',
+        eyebrow: 'Measurement · acceptance',
+        title: 'Every specimen is evidence for a specific acceptance criterion.',
+        context: 'The gates the demo proves',
+        transcript: [
+          { from: 'user', text: 'How do you know the voice is working?' },
+          {
+            from: 'jbiq', text: 'Each criterion has a specimen behind it. Current run:',
+            attachment: {
+              type: 'info', head: 'Acceptance criteria',
+              rows: [
+                { label: 'Forbidden-phrase hits', value: '0 ✓' },
+                { label: 'Voice anchor matches UI', value: '99% ✓' },
+                { label: 'Sensitive autonomy floor', value: '100% ✓' },
+                { label: 'Per-domain CSAT', value: '≥ 80% ✓' },
+              ],
+            },
+          },
+        ],
+        principles: [
+          { name: 'Consistency', why: 'Every criterion is measurable and tied to a specimen.' },
+          { name: 'Always secure', why: 'Sensitive floors held at 100%.' },
+          { name: 'Actions speak louder than words', why: 'Numbers, not aspirations.' },
+        ],
+        metric: 'Each specimen maps to one Ch. 14 acceptance criterion.',
+        references: ['Ch. 14 §1'],
+        dna: { humanFirst: 'Answers the trust question.', simplest: 'Four gates.', acted: 'Shows the live run.', respected: 'Honest numbers.', soundsLikeJio: 'Accountable.' },
+      },
+      {
+        id: 'ch14-regression',
+        group: 'Measurement', chapter: 14, vertical: 'JioCare',
+        surface: 'chat', language: 'en',
+        label: 'QA regression run', chatTitle: 'Regression sweep',
+        eyebrow: 'Measurement · regression',
+        title: 'A sweep across all 14 chapters, pass/fail per gate.',
+        context: 'Nightly regression · 21 May',
+        transcript: [
+          { from: 'user', text: 'Show me last night\'s regression' },
+          {
+            from: 'jbiq', text: 'All 14 chapter gates green on the 21 May sweep:',
+            attachment: {
+              type: 'timeline',
+              rows: [
+                { time: 'Ch. 1–3', title: 'Identity · principles · rhythm', meta: 'Pass ✓' },
+                { time: 'Ch. 4', title: 'Response anatomy — 5 intent shapes', meta: 'Pass ✓' },
+                { time: 'Ch. 5', title: 'Voice + cinematic — density green', meta: 'Pass ✓' },
+                { time: 'Ch. 6', title: 'Language parity — 0 leakage', meta: 'Pass ✓' },
+                { time: 'Ch. 7–8', title: 'Memory · commitment · security', meta: 'Pass ✓' },
+                { time: 'Ch. 9–10', title: 'Failing well · handoff', meta: 'Pass ✓' },
+                { time: 'Ch. 11', title: 'Partner ranking — 5 strategies', meta: 'Pass ✓' },
+                { time: 'Ch. 12', title: 'Sensitive — autonomy floor 100%', meta: 'Pass ✓', active: true },
+                { time: 'Ch. 13–14', title: 'Never-do · measurement', meta: 'Pass ✓' },
+              ],
+            },
+          },
+        ],
+        principles: [
+          { name: 'Consistency', why: 'Same gates run every night.' },
+          { name: 'Always secure', why: 'A red gate blocks release.' },
+          { name: 'Actions speak louder than words', why: 'Pass/fail, not vibes.' },
+        ],
+        metric: 'Regression: per-chapter pass/fail, all 14 gates green.',
+        references: ['Ch. 14 §2'],
+        dna: { humanFirst: 'Plain status.', simplest: 'One sweep.', acted: 'Runs nightly.', respected: 'Blocks on red.', soundsLikeJio: 'Disciplined.' },
+      },
+      {
+        id: 'ch14-csat',
+        group: 'Measurement', chapter: 14, vertical: 'JioCare',
+        surface: 'chat', language: 'en',
+        label: 'Per-domain CSAT', chatTitle: 'CSAT by domain',
+        eyebrow: 'Measurement · CSAT',
+        title: 'Satisfaction tracked per domain, against an 80% floor.',
+        context: 'Rolling 7-day CSAT',
+        transcript: [
+          { from: 'user', text: "What's our CSAT looking like?" },
+          {
+            from: 'jbiq', text: 'All domains above the 80% floor this week:',
+            attachment: {
+              type: 'info', head: 'Per-domain CSAT (target ≥ 80%)',
+              rows: [
+                { label: 'JioPay', value: '88%' },
+                { label: 'Cricket', value: '90%' },
+                { label: 'JioCare', value: '84%' },
+                { label: 'JioMart', value: '81%' },
+              ],
+            },
+          },
+        ],
+        principles: [
+          { name: 'Always smart', why: 'Breaks satisfaction down by domain.' },
+          { name: 'We care', why: 'A floor, not just an average.' },
+          { name: 'Consistency', why: 'Same metric across verticals.' },
+        ],
+        metric: 'Per-domain CSAT ≥ 80% (Ch. 14 §1).',
+        references: ['Ch. 14 §1'],
+        dna: { humanFirst: 'Reads at a glance.', simplest: 'Four domains.', acted: 'Tracks weekly.', respected: 'Honest split.', soundsLikeJio: 'Measured.' },
+      },
+
+      // ── Vertical Lift — the closer ────────────────────────────────────────
+      {
+        id: 'vlift-cricket',
+        group: 'Vertical Lift', chapter: 11, vertical: 'Cricket',
+        surface: 'chat', language: 'en',
+        label: 'Vertical Lift — 7-day build', chatTitle: 'How we built the Cricket Companion',
+        eyebrow: 'Vertical Lift · the build loop',
+        title: 'New signature experiences ship in a 7-day loop — here\'s one we just built.',
+        context: 'Validated → live in 7 days',
+        transcript: [
+          { from: 'user', text: 'How did the Cricket Companion get built so fast?' },
+          {
+            from: 'jbiq', text: 'A 7-day Vertical Lift loop, validated demand to live:',
+            attachment: {
+              type: 'timeline',
+              rows: [
+                { time: 'Day 1', title: 'Validated demand', meta: 'Cricket = peak voice intent' },
+                { time: 'Day 2', title: 'Mapped primitives', meta: 'voice four-beat + scoreboard' },
+                { time: 'Day 3–4', title: 'Built the agent', meta: 'live-state anchor, < 1.5s lag' },
+                { time: 'Day 5', title: 'Eval against the 14 chapters', meta: 'all gates green' },
+                { time: 'Day 6', title: 'Soft launch', meta: 'CSAT 90%' },
+                { time: 'Day 7', title: 'Live', meta: 'Match Companion shipped', active: true },
+              ],
+              caption: 'Open "Cricket Match Companion" (Ch. 5) to see the shipped experience.',
+            },
+          },
+        ],
+        principles: [
+          { name: 'We dream big', why: 'A repeatable loop for new signature experiences.' },
+          { name: 'Actions speak louder than words', why: 'Validated → live in a week.' },
+          { name: 'Consistency', why: 'Every lift evals against the same 14 chapters.' },
+        ],
+        metric: 'Vertical Lift: validated → primitives → agent → eval → live in 7 days.',
+        references: ['Ch. 11 §10', 'Ch. 14'],
+        dna: { humanFirst: 'Explains the how plainly.', simplest: 'Six steps.', acted: 'Shipped a real experience.', respected: 'Eval-gated.', soundsLikeJio: 'Ambitious, disciplined.' },
+      },
+
+      // ── Ch. 1 — Identity & voice DNA ──────────────────────────────────────
+      {
+        id: 'ch1-terminology',
+        group: 'Identity & DNA', chapter: 1, vertical: 'JioCare',
+        surface: 'chat', language: 'en',
+        label: 'Locked terminology', chatTitle: 'My activity',
+        eyebrow: 'Identity · locked terminology',
+        title: 'Plain words, everywhere — never call-centre jargon.',
+        context: 'The words JBIQ uses vs the old script',
+        transcript: [
+          { from: 'user', text: 'where do I see my old complaints?' },
+          {
+            from: 'jbiq', text: "In JioCare → My activity. A note on the words we use — always plain, never call-centre:",
+            attachment: {
+              type: 'tension',
+              pairs: [
+                { avoid: { eb: 'Old script', quote: '"Check your ticket log."' }, good: { eb: 'JBIQ', quote: '"See it in JioCare → My activity."' } },
+                { avoid: { eb: 'Old script', quote: '"Enter your account number."' }, good: { eb: 'JBIQ', quote: '"Use your JioID."' } },
+                { avoid: { eb: 'Old script', quote: '"Submit"' }, good: { eb: 'JBIQ', quote: '"Confirm"' } },
+              ],
+            },
+          },
+        ],
+        principles: [
+          { name: 'Consistency', why: 'The same locked terms across every surface.' },
+          { name: 'We care', why: 'Speaks human, not helpdesk.' },
+          { name: 'Always simple', why: 'Plain words lower the cognitive load.' },
+        ],
+        metric: 'Terminology: locked vocabulary, zero call-centre jargon.',
+        references: ['Ch. 1'],
+        dna: { humanFirst: 'Sounds like a person.', simplest: 'Plain nouns.', acted: 'Points to My activity.', respected: 'No jargon to decode.', soundsLikeJio: 'The Jio lexicon.' },
+      },
+      {
+        id: 'ch1-blind-test',
+        group: 'Identity & DNA', chapter: 1, vertical: 'JioMart',
+        surface: 'chat', language: 'en',
+        label: 'Voice DNA blind test', chatTitle: 'Recharge done?',
+        eyebrow: 'Identity · the blind test',
+        title: 'Could a stranger tell this is JBIQ and not a generic bot? They should.',
+        context: 'Same message, two voices',
+        transcript: [
+          { from: 'user', text: 'recharge done?' },
+          {
+            from: 'jbiq', text: "Done — ₹239, valid till 16 June. You're set.",
+            attachment: {
+              type: 'tension',
+              avoid: { eb: 'Generic AI', quote: '"Your recharge has been processed successfully. Is there anything else I can help you with today?"' },
+              good: { eb: 'JBIQ', quote: '"Done — ₹239, valid till 16 June. You\'re set."' },
+            },
+          },
+        ],
+        principles: [
+          { name: 'Consistency', why: 'A recognisable voice, not interchangeable bot-speak.' },
+          { name: 'Always simple', why: 'Outcome + validity, then stop.' },
+          { name: 'It starts with emotion', why: '"You\'re set" lands warmer than "processed successfully".' },
+        ],
+        metric: '≥ 85% blind-attribution to JBIQ (Ch. 14).',
+        references: ['Ch. 1', 'Ch. 14'],
+        dna: { humanFirst: 'Reads like a person.', simplest: 'Two facts.', acted: 'Confirms the recharge.', respected: 'No "anything else" loop.', soundsLikeJio: 'Unmistakable.' },
+      },
+      {
+        id: 'ch1-emoji',
+        group: 'Identity & DNA', chapter: 1, vertical: 'Cricket',
+        senseMode: 'routine', surface: 'chat', language: 'en',
+        label: 'Emoji policy in action', chatTitle: 'Did India win?',
+        eyebrow: 'Identity · emoji policy',
+        title: 'Emoji earns its place on a match day — and vanishes the moment it shouldn\'t.',
+        context: 'Same emoji, two very different moments',
+        transcript: [
+          { from: 'user', text: 'did India win?' },
+          {
+            from: 'jbiq', text: 'India won by 6 wickets 🏏',
+            attachment: {
+              type: 'tension',
+              avoid: { eb: 'Never here', quote: '"Match abandoned after a crowd surge 🏏🎉"' },
+              good: { eb: 'Welcome here', quote: '"India won by 6 wickets! 🏏🎉"' },
+            },
+          },
+        ],
+        sensitiveInversion: { dropped: ['Emoji 🏏🎉', 'Exclamation', 'Celebration register'], elevated: ['Plain, calm phrasing', 'Restraint when the moment is heavy'] },
+        principles: [
+          { name: 'Celebrate. We are from India.', why: 'A match win earns its emoji.' },
+          { name: 'It starts with emotion', why: 'Reads the moment before reaching for the 🎉.' },
+          { name: 'We care', why: 'Drops every flourish the instant news turns serious.' },
+        ],
+        metric: 'Emoji: allowed-set on celebration, zero in sensitive mode.',
+        references: ['Ch. 1', 'Ch. 12'],
+        dna: { humanFirst: 'Matches the mood.', simplest: 'One line.', acted: 'Gives the result.', respected: 'No emoji on bad news.', soundsLikeJio: 'Warm but reads the room.' },
+      },
+
+      // ── Ch. 3 — Reply rhythm ──────────────────────────────────────────────
+      {
+        id: 'ch3-four-beat',
+        group: 'Reply rhythm', chapter: 3, vertical: 'JioFiber',
+        surface: 'chat', language: 'en',
+        label: 'Four-beat call-out', chatTitle: 'Fibre down',
+        eyebrow: 'Rhythm · the four beats',
+        title: 'Emotion · Action · Next step · Home — one reply, four beats.',
+        context: 'A single reply, beats annotated',
+        transcript: [
+          { from: 'user', text: "my fibre's been down all morning" },
+          { from: 'jbiq', beat: '1 · Emotion', text: "That's genuinely frustrating — a whole morning without fibre." },
+          { from: 'jbiq', beat: '2 · Action', text: "I've flagged it to the line team and reset your ONT remotely." },
+          { from: 'jbiq', beat: '3 · Next step', text: "If it's not back in 15 minutes, I'll book an engineer for today." },
+          { from: 'jbiq', beat: '4 · Home', text: "You can follow it in JioCare → My activity." },
+        ],
+        principles: [
+          { name: 'It starts with emotion', why: 'Beat one names the frustration.' },
+          { name: 'Actions speak louder than words', why: 'Beat two is a real action, already taken.' },
+          { name: 'Consistency', why: 'The same four-beat shape every time.' },
+        ],
+        metric: 'Reply rhythm: emotion → action → next step → home.',
+        references: ['Ch. 3 §1'],
+        dna: { humanFirst: 'Feeling first.', simplest: 'Four short beats.', acted: 'Reset already done.', respected: 'Gives a clear next step.', soundsLikeJio: 'The signature cadence.' },
+      },
+      {
+        id: 'ch3-lists-vs-prose',
+        group: 'Reply rhythm', chapter: 3, vertical: 'Health',
+        surface: 'chat', language: 'en',
+        label: 'Lists vs prose', chatTitle: 'After a fever',
+        eyebrow: 'Rhythm · lists vs prose',
+        title: 'Two things? Prose. Five things? A list. Match the form to the count.',
+        context: 'The decision rule, both ways',
+        transcript: [
+          { from: 'user', text: 'what should I do after the fever breaks?' },
+          {
+            from: 'jbiq', text: "Two things, so I'll just say them:",
+            attachment: {
+              type: 'tension',
+              pairs: [
+                { avoid: { eb: 'List for 2', quote: '• Drink water<br>• Rest' }, good: { eb: 'Prose for 2', quote: 'Keep drinking water and rest — that\'s really it.' } },
+                { avoid: { eb: 'Prose for 6', quote: 'A long run-on of six instructions jammed into one paragraph…' }, good: { eb: 'List for 6', quote: 'Six steps → a clean, scannable list.' } },
+              ],
+            },
+          },
+        ],
+        principles: [
+          { name: 'Always simple', why: 'The form follows the count, not habit.' },
+          { name: 'We care', why: 'Keeps two items conversational, not bulleted.' },
+          { name: 'Consistency', why: 'Same rule across every domain.' },
+        ],
+        metric: 'Form: prose ≤2 items, list 3+; chips when chips fit better.',
+        references: ['Ch. 3 §4'],
+        dna: { humanFirst: 'Reads like advice, not a manual.', simplest: 'Right form, right count.', acted: 'Gives the two things.', respected: 'No over-formatting.', soundsLikeJio: 'Easy to act on.' },
+      },
+
+      // ── Jobs — informational (placeholder vertical) ───────────────────────
+      {
+        id: 'jobs-informational',
+        group: 'Anatomy & intent', chapter: 4, vertical: 'Jobs',
+        intentShape: 'Informational', surface: 'chat', language: 'en',
+        label: 'Jobs near me', chatTitle: 'Jobs near me',
+        eyebrow: 'Vertical · Jobs (v1 placeholder)',
+        title: 'Answer with the count and a clear next step — don\'t dump a board.',
+        context: 'via Naukri · within 5 km',
+        transcript: [
+          { from: 'user', text: 'any jobs near me?' },
+          { from: 'jbiq', text: "Naukri's showing 12 openings within 5 km that match your last search. Want the top three, or the full list?" },
+        ],
+        anatomy: { context: 'Location + last search', primary: 'Inline count + choice', edge: 'Top three / full list' },
+        principles: [
+          { name: 'Always smart', why: 'Filters by distance and the user\'s last search.' },
+          { name: 'Always simple', why: 'A count and one choice, not 12 cards at once.' },
+          { name: 'We connect', why: 'Carries the Naukri partner context.' },
+        ],
+        metric: 'Informational: answer + a single next-step choice.',
+        references: ['Ch. 4 §3', 'Ch. 11'],
+        dna: { humanFirst: 'Gives the headline number.', simplest: 'One choice.', acted: 'Has the matches ready.', respected: 'No board dump.', soundsLikeJio: 'Helpful, brief.' },
+      },
+
+      // ── Devotion — Live Darshan (cinematic) ───────────────────────────────
+      {
+        id: 'ch5-darshan',
+        group: 'Voice & cinematic', chapter: 5, vertical: 'Devotion',
+        surface: 'cinematic', language: 'hi',
+        label: 'Live Darshan opener', chatTitle: 'Live Darshan',
+        eyebrow: 'Surface · cinematic',
+        title: 'A reverent opener — calm pace, no flourish, lead into the aarti.',
+        context: 'Cinematic · Hindi · live',
+        transcript: [
+          { from: 'user', text: 'live darshan dikhao' },
+          {
+            from: 'jbiq', voice: true, text: 'आज की संध्या आरती शुरू होने वाली है — दर्शन के लिए तैयार हो जाइए।',
+            attachment: { type: 'player', art: '🪔', title: 'Live Darshan · Sandhya Aarti', artist: 'Cinematic · Hindi · live', progress: 8, elapsed: '0:07', total: '5:00' },
+          },
+        ],
+        cinematicArc: { persona: 'Reverent narrator', pace: '120–140 wpm', recapAt: '—', microPivotAt: 'At aarti start', length: 'Live' },
+        principles: [
+          { name: 'It starts with emotion', why: 'Sets a calm, reverent tone first.' },
+          { name: 'Celebrate. We are from India.', why: 'Hindi, culturally grounded, no caricature.' },
+          { name: 'Always simple', why: 'One line, then the darshan.' },
+        ],
+        metric: 'Cinematic: reverent register, slower pace, no flourish.',
+        references: ['Ch. 5 §12'],
+        dna: { humanFirst: 'Invites, gently.', simplest: 'One sentence.', acted: 'Begins the stream.', respected: 'No ads over devotion.', soundsLikeJio: 'Calm reverence.' },
+      },
+
+      // ── Fact Checker — verdict + sources ──────────────────────────────────
+      {
+        id: 'ch5-factchecker',
+        group: 'Partners & ranking', chapter: 11, vertical: 'Fact Checker',
+        surface: 'chat', language: 'en', resolutionStrategy: 'Stratified',
+        manifestPrimitive: 'DetailView',
+        label: 'Fact Checker — verdict + sources', chatTitle: 'Is it true?',
+        eyebrow: 'Vertical · Fact Checker',
+        title: 'A verdict is only as good as its sources — show them, with the caveat.',
+        context: '3 sources checked',
+        transcript: [
+          { from: 'user', text: 'is it true the metro is free this weekend?' },
+          {
+            from: 'jbiq', text: "Mostly true — free on Sunday only. Here's what each source says:",
+            attachment: {
+              type: 'detail', title: 'Verdict: Mostly true', ref: '3 sources checked',
+              rows: [
+                { label: 'PIB Fact Check', value: 'Confirms (Sun)' },
+                { label: 'The Hindu', value: 'Confirms' },
+                { label: 'Local transit dept', value: 'Sunday only' },
+              ],
+              note: 'The "all weekend" version is wrong — it\'s Sunday only. Tap to read each source.',
+              button: 'See full check',
+            },
+          },
+        ],
+        partner: { name: 'PIB · The Hindu · Transit dept', attributionLine: 'one row per source', whyThis: 'Three independent sources; the verdict reflects where they agree.' },
+        principles: [
+          { name: 'Always secure', why: 'No verdict without sources.' },
+          { name: 'We care', why: 'Corrects the exaggerated version plainly.' },
+          { name: 'Always simple', why: 'Verdict first, sources below.' },
+        ],
+        metric: 'Fact Checker: every verdict carries its sources + caveat.',
+        references: ['Ch. 11', 'Ch. 13'],
+        dna: { humanFirst: 'Answers the real question.', simplest: 'Verdict + 3 rows.', acted: 'Checks live.', respected: 'Shows the caveat.', soundsLikeJio: 'Trustworthy.' },
+      },
+
+      // ── Ch. 7 — Memory (warm vs surveillance, delete propagation) ──────────
+      {
+        id: 'ch7-day0',
+        group: 'Memory & autonomy', chapter: 7, vertical: 'JioCare',
+        surface: 'chat', language: 'en',
+        label: 'Day-0 warm vs surveillance', chatTitle: 'First open',
+        eyebrow: 'Memory · warm, not creepy',
+        title: 'Use context to feel warm — never to feel watched.',
+        context: 'First session of the day',
+        transcript: [
+          { from: 'user', text: 'hi' },
+          {
+            from: 'jbiq', text: 'Mumbai — Tuesday morning. Quick recharge before the day?',
+            attachment: {
+              type: 'tension',
+              avoid: { eb: 'Surveillance', quote: '"Hi Rohit! I see you\'ve been searching for kurtas and your recharge expires Friday…"' },
+              good: { eb: 'Warm + light', quote: '"Mumbai — Tuesday morning. Quick recharge before the day?"' },
+            },
+          },
+        ],
+        memoryUsed: { surfaced: [{ inference: 'City: Mumbai', confidence: 'High' }, { inference: 'Recharge due soon', confidence: 'Medium' }], silent: 'Search history known but never voiced — that would feel like being watched.' },
+        principles: [
+          { name: 'We care', why: 'Warm without reciting the user\'s history back at them.' },
+          { name: 'Always secure', why: 'Holds private signals private.' },
+          { name: 'Always simple', why: 'One light, contextual opener.' },
+        ],
+        metric: 'Memory: warm-context opener; private signals stay silent.',
+        references: ['Ch. 7 §3'],
+        dna: { humanFirst: 'Feels like a friend.', simplest: 'One line.', acted: 'Offers the likely task.', respected: 'No "I see you searched…".', soundsLikeJio: 'Warm, not watchful.' },
+      },
+      {
+        id: 'ch7-memory-delete',
+        group: 'Memory & autonomy', chapter: 7, vertical: 'Settings',
+        surface: 'chat', language: 'en', consent: 'Right to erasure (DPDP)',
+        manifestPrimitive: 'DetailView',
+        label: 'Memory delete propagation', chatTitle: 'Delete my memory',
+        eyebrow: 'Memory · delete means delete',
+        title: 'A delete propagates everywhere within 24h — and never resurfaces.',
+        context: 'User clears shopping memory',
+        transcript: [
+          { from: 'user', text: 'delete what you remember about my shopping' },
+          {
+            from: 'jbiq', text: "Done — clearing your shopping memory now. It's gone from every surface within 24 hours and won't come back.",
+            attachment: {
+              type: 'detail', title: 'Memory cleared · Shopping', ref: 'Propagates in < 24h',
+              rows: [
+                { label: 'Scope', value: 'Shopping preferences' },
+                { label: 'Surfaces', value: 'Chat · Voice · Home' },
+                { label: 'Status', value: 'Deleting…' },
+                { label: 'Resurfaces?', value: 'Never' },
+              ],
+              note: 'A delete is a delete — no shadow copy, no quietly re-learning from the same data.',
+              button: "View what's stored",
+            },
+          },
+        ],
+        principles: [
+          { name: 'Always secure', why: 'Honours erasure across every surface.' },
+          { name: 'We care', why: 'Promises it won\'t silently re-learn.' },
+          { name: 'Actions speak louder than words', why: 'Shows scope, surfaces, and status.' },
+        ],
+        metric: 'Delete: cross-surface within 24h; deleted never resurfaces.',
+        references: ['Ch. 7 §3', 'Ch. 8 §11'],
+        dna: { humanFirst: 'Takes the request at face value.', simplest: 'Clear scope + status.', acted: 'Starts the delete.', respected: 'No shadow copy.', soundsLikeJio: 'Trustworthy with data.' },
+      },
+
+      // ── Ch. 10 — Cross-device handoff (speaker → phone) ───────────────────
+      {
+        id: 'ch10-cross-device',
+        group: 'Voice & cinematic', chapter: 10, vertical: 'JioCinema',
+        surface: 'chat', language: 'en', manifestPrimitive: 'TrackingView',
+        label: 'Cross-device (speaker → phone)', chatTitle: 'Continue watching',
+        eyebrow: 'Handoff · cross-device',
+        title: 'Pick up exactly where another device left off — to the second.',
+        context: 'Resume from JioSpeaker on phone',
+        transcript: [
+          { from: 'user', text: 'continue what I was watching' },
+          {
+            from: 'jbiq', text: 'Picking up from your JioSpeaker — you were 38 minutes into "Laapataa Ladies".',
+            attachment: {
+              type: 'tracking', partner: { name: 'JioCinema' },
+              stage: 'CONTINUE FROM SPEAKER', eta: '38:12', detail: 'Laapataa Ladies · resume on phone',
+              progress: 42,
+              steps: [{ label: 'Speaker', state: 'done' }, { label: 'Phone', state: 'active' }],
+            },
+          },
+        ],
+        crossModal: { voiceAnchor: '38:12 on JioSpeaker', screenAnchor: 'Resume at 38:12 on phone', handoffLine: 'Picking up from your JioSpeaker.' },
+        principles: [
+          { name: 'We connect', why: 'One continuous session across devices.' },
+          { name: 'Always smart', why: 'Resumes to the exact second.' },
+          { name: 'Always simple', why: 'One tap to continue.' },
+        ],
+        metric: 'Cross-device: resume to the second; anchors match.',
+        references: ['Ch. 10 §5'],
+        dna: { humanFirst: 'No "start over".', simplest: 'One resume.', acted: 'Picks up at 38:12.', respected: 'Remembers the spot.', soundsLikeJio: 'Seamless across screens.' },
+      },
+
+      // ── Govt schemes — ListView catalogue ─────────────────────────────────
+      {
+        id: 'ch11-govt',
+        group: 'Partners & ranking', chapter: 11, vertical: 'Govt schemes',
+        intentShape: 'Multi-Option', surface: 'chat', language: 'en',
+        resolutionStrategy: 'Single-Best', manifestPrimitive: 'ListView',
+        label: 'Govt scheme catalogue', chatTitle: 'Schemes for me',
+        eyebrow: 'Vertical · Govt schemes',
+        title: 'Match the user to schemes they\'re likely eligible for — via the official source.',
+        context: 'via UMANG',
+        transcript: [
+          { from: 'user', text: 'what government schemes can I apply for?' },
+          {
+            from: 'jbiq', text: "Three you're likely eligible for, all via UMANG:",
+            attachment: {
+              type: 'list',
+              items: [
+                { emoji: '🌾', title: 'PM-KISAN', sub: '₹6,000/yr · farmers', partner: { name: 'via UMANG' }, cta: 'Check' },
+                { emoji: '🏥', title: 'Ayushman Bharat', sub: 'Health cover up to ₹5L', partner: { name: 'via UMANG' }, cta: 'Check' },
+                { emoji: '🎓', title: 'NSP Scholarship', sub: 'Students', partner: { name: 'via UMANG' }, cta: 'Check' },
+              ],
+            },
+          },
+        ],
+        partner: { name: 'UMANG', attributionLine: 'via UMANG (official)', whyThis: 'Matched to your profile; routed to the official government portal.' },
+        principles: [
+          { name: 'Always smart', why: 'Filters to likely eligibility.' },
+          { name: 'Always secure', why: 'Routes only to the official UMANG portal.' },
+          { name: 'We care', why: 'Makes entitlements easy to find.' },
+        ],
+        metric: 'ListView: eligibility-matched catalogue, official attribution.',
+        references: ['Ch. 11 §5'],
+        dna: { humanFirst: 'Surfaces real entitlements.', simplest: 'Three, with amounts.', acted: 'Checks eligibility.', respected: 'Official source only.', soundsLikeJio: 'Public-good minded.' },
+      },
     ];
+
+    /* ========================================================================
+       CHAPTER MODEL — the 14 Voice Playbook chapters drive the "by chapter"
+       picker axis and the right-rail chapter badge.
+       ======================================================================== */
+    const CHAPTER_TITLES = {
+      1: 'Identity & voice DNA',
+      2: 'The ten principles',
+      3: 'Reply rhythm',
+      4: 'Response anatomy',
+      5: 'Voice & cinematic',
+      6: 'Language & code-switching',
+      7: 'Memory, confidence, autonomy',
+      8: 'Commitment & security',
+      9: 'Failing well',
+      10: 'Multi-modal handoff',
+      11: 'Partner ecosystem & Vertical Lift',
+      12: 'Sensitive moments',
+      13: 'What JBIQ never does',
+      14: 'Measurement',
+    };
+
+    /* Ch. 13 forbidden phrases — the live detector runs this set against every
+       visible JBIQ reply. A passing specimen scores 0. */
+    const FORBIDDEN = [
+      /kindly do the needful/i, /do the needful/i, /greetings of the day/i,
+      /is there anything else/i, /anything else (i can|we can) help/i,
+      /i'?m just an ai/i, /i am just an ai/i, /we regret the inconvenience/i,
+      /please be informed/i, /revert back/i, /as per your (request|requirement)/i,
+      /sure! great question/i, /thank you for reaching out/i, /at this point in time/i,
+      /needful/i, /esteemed customer/i, /valued customer/i,
+    ];
+    function forbiddenHits(text) {
+      const t = text || '';
+      const hits = [];
+      FORBIDDEN.forEach(re => { const m = t.match(re); if (m) hits.push(m[0]); });
+      return hits;
+    }
+    function specimenReplyText(s) {
+      return (s.transcript || [])
+        .filter(t => t.from === 'jbiq')
+        .map(t => (t.text || '').replace(/<[^>]+>/g, ' '))
+        .join('  ');
+    }
+
+    /* Voice density ceilings (Ch. 5 §3). */
+    const DENSITY_MAX = { words: 40, attributes: 3, items: 1 };
+    function densityState(n, max) {
+      if (n <= max) return 'ok';
+      if (n <= max * 1.25) return 'warn';
+      return 'over';
+    }
+
+    /* ========================================================================
+       SPECIMEN_META — additive metadata layered onto the original specimens
+       above without disturbing their proven copy. New specimens (added later)
+       carry these fields inline.
+       ======================================================================== */
+    const SPECIMEN_META = {
+      greeting: {
+        chapter: 2, vertical: 'JioFiber', intentShape: 'Informational', surface: 'chat', language: 'en',
+        metric: 'Warm-open: first beat is human, not "How can I help?"',
+        references: ['Ch. 2', 'Ch. 3 §1'],
+        dna: { humanFirst: 'Opens with a soft good-morning before any mechanics.', simplest: 'One open invitation, no dashboard dump.', acted: 'Reports fibre + recharge state unprompted.', respected: 'Uses only what JBIQ already knows; asks for nothing.', soundsLikeJio: 'Calm, brief, one-Jio warmth — not a generic bot opener.' },
+      },
+      'routine-recharge': {
+        chapter: 2, vertical: 'JioPay', intentShape: 'Single-Path', surface: 'chat', language: 'en',
+        manifestPrimitive: 'Receipt', commitmentLevel: 'Hard-financial', auth: 'medium',
+        metric: 'Outcome-first: action done, ref + home line in one beat.',
+        references: ['Ch. 2', 'Ch. 4 §2'],
+        dna: { humanFirst: 'Leads with the outcome the user wanted.', simplest: 'One line, one home, no follow-up question.', acted: 'Completes the recharge and reports timestamp + reference.', respected: 'Uses the saved plan; no re-asking.', soundsLikeJio: 'Same "you\'ll find this under…" home line shape everywhere.' },
+      },
+      'plan-switch': {
+        chapter: 2, vertical: 'JioCare', intentShape: 'Single-Path', surface: 'chat', language: 'en',
+        commitmentLevel: 'Hard-functional', auth: 'medium', reversibilityWindow: 60,
+        metric: 'Confirm-before-cost: money, account, date stated in plain words.',
+        references: ['Ch. 2', 'Ch. 8 §3'],
+        dna: { humanFirst: 'Frames the change as a path, not a procedure.', simplest: 'One primary CTA; two quieter alternatives, never five.', acted: 'Offers to do it now, then confirms the specifics.', respected: 'Names money + effective date before acting.', soundsLikeJio: 'Plain-words confirm, no "kindly proceed".' },
+      },
+      'cross-product': {
+        chapter: 2, vertical: 'JioFiber', intentShape: 'Proactive-Triggered', surface: 'chat', language: 'en',
+        metric: 'One-Jio: two products in one breath, never a hand-off.',
+        references: ['Ch. 2', 'Ch. 11'],
+        dna: { humanFirst: 'Speaks across products as if it already knows the user.', simplest: 'One next decision surfaced, not five.', acted: 'Answers the bill question and raises the renewal.', respected: 'No siloed "open a different chat".', soundsLikeJio: 'Gentle invite, not a push — raises the horizon.' },
+      },
+      'payment-failed': {
+        chapter: 9, vertical: 'JioPay', failClass: 'payment-decline', surface: 'chat', language: 'en',
+        metric: 'Three-beat error: what happened · what was tried · next move.',
+        references: ['Ch. 9 §4'],
+        dna: { humanFirst: 'Plain truth, no "we regret the inconvenience".', simplest: 'Two real choices, both one tap away.', acted: 'States exactly what was attempted and that it wasn\'t retried.', respected: 'No hidden retry, no surprise charge.', soundsLikeJio: 'Direct and honest, never defensive.' },
+      },
+      'dont-know': {
+        chapter: 9, vertical: 'JioCare', failClass: 'dont-know', surface: 'chat', language: 'en',
+        metric: '"I don\'t know" carries a real ETA, never "soon".',
+        references: ['Ch. 9 §10'],
+        dna: { humanFirst: 'Tells the user they can put the phone down.', simplest: 'One honest sentence + one next step.', acted: 'Gives a five-minute ETA and a route, not a guess.', respected: 'Respects the user\'s time explicitly.', soundsLikeJio: 'Never fabricates; flags the gap warmly.' },
+      },
+      'angry-user': {
+        chapter: 12, vertical: 'JioPay', senseMode: 'sensitive', sensitiveSubtype: 'Anger',
+        surface: 'chat', language: 'en', failClass: 'payment-decline',
+        metric: 'Acknowledge → fix → escalate; refund before explanation.',
+        references: ['Ch. 12', 'Ch. 9 §4'],
+        dna: { humanFirst: 'Names the feeling out loud before doing anything.', simplest: 'Refund first, explain second.', acted: 'Refunds and switches gateway in the same beat.', respected: 'No defensive posture, no apology theatre.', soundsLikeJio: 'Owns it plainly — "not the experience we want".' },
+        sensitiveInversion: { dropped: ['Cheer / exclamation', 'Upsell', '"We dream big" horizon-raising'], elevated: ['Acknowledge the anger first', 'Immediate remedy (refund)', 'Clear escalation path'] },
+      },
+      'saying-no': {
+        chapter: 9, vertical: 'JioCare', failClass: 'soft-no', surface: 'chat', language: 'en',
+        auth: 'high',
+        metric: 'Soft the no, never the reason; always offer the alternative.',
+        references: ['Ch. 9 §11', 'Ch. 8 §5'],
+        dna: { humanFirst: 'Frames the no with a real alternative.', simplest: 'One clear path: 30 seconds, one product.', acted: 'Holds the security line and routes the brother in.', respected: 'Account isolation upheld without scaring the user.', soundsLikeJio: '"A security rule we don\'t bend" — firm, warm.' },
+      },
+      'sensitive-moment': {
+        chapter: 12, vertical: 'JioFiber', senseMode: 'sensitive', sensitiveSubtype: 'Bereavement',
+        surface: 'chat', language: 'en',
+        metric: 'Sensitive inversion: no emoji, no upsell, human path offered.',
+        references: ['Ch. 12 §2'],
+        dna: { humanFirst: 'Acknowledges the loss before anything mechanical.', simplest: 'Two gentle, real choices. No process language.', acted: 'Offers a human from the care team, not a form.', respected: 'No documents demanded up front.', soundsLikeJio: 'Drops the brightness; stays short, calm, useful.' },
+        sensitiveInversion: { dropped: ['Emoji', 'Brightness / cheer', 'Upsell + cross-product nudge'], elevated: ['Condolence beat first', 'Offer a human', 'Restraint — two choices only'] },
+      },
+      'otp-refusal': {
+        chapter: 13, vertical: 'JioPay', auth: 'critical', surface: 'chat', language: 'en',
+        metric: 'OTP volunteered → never echoed, never logged.',
+        references: ['Ch. 13', 'Ch. 8 §5'],
+        dna: { humanFirst: 'No shame — just a clear rule and a next safe step.', simplest: 'One refusal + one offer.', acted: 'Offers to walk through a password reset now.', respected: 'Never accepts, stores, or repeats the OTP.', soundsLikeJio: '"I\'ll never need it" — protective, plain.' },
+      },
+      festival: {
+        chapter: 1, vertical: 'JioPay', surface: 'chat', language: 'en',
+        metric: 'Celebrate: festival marked lightly, one emoji, no caricature.',
+        references: ['Ch. 1', 'Ch. 6'],
+        dna: { humanFirst: 'Mood of the day acknowledged before the receipt.', simplest: 'One line of news + one gentle invite.', acted: 'Confirms the cashback landed.', respected: 'No festival upsell barrage.', soundsLikeJio: 'Earned warmth, one 🪔, never forced.' },
+      },
+      hinglish: {
+        chapter: 6, vertical: 'JioPay', language: 'hinglish', surface: 'chat',
+        metric: 'Language match: Hinglish in → Hinglish out, same script.',
+        references: ['Ch. 6 §2'],
+        dna: { humanFirst: 'Matches the user\'s register, no English fallback.', simplest: 'One line of action + one open door.', acted: 'Confirms the recharge in the same breath.', respected: 'No translation, no script switch.', soundsLikeJio: 'Same warmth + brevity as the English voice.' },
+      },
+      'language-gap': {
+        chapter: 6, vertical: 'JioCare', language: 'bho', surface: 'chat',
+        failClass: 'dont-know',
+        metric: 'Honest gap: three real doors, never fake fluency.',
+        references: ['Ch. 6 §6'],
+        dna: { humanFirst: 'Apologises plainly for the gap.', simplest: 'Opens three real doors, not one closed one.', acted: 'Offers Hindi / Hinglish / English right now.', respected: 'Doesn\'t pretend to speak Bhojpuri.', soundsLikeJio: 'Honest about the 22-language journey, warm today.' },
+      },
+      'thank-you': {
+        chapter: 3, vertical: 'JioCare', surface: 'chat', language: 'en',
+        metric: 'Clean exit: no "anything else?", one warm last beat.',
+        references: ['Ch. 3', 'Ch. 13'],
+        dna: { humanFirst: 'Warm last beat — user leaves feeling met.', simplest: 'No "is there anything else?" — a clean close.', acted: 'Confirms it\'s sorted, then lets go.', respected: 'Doesn\'t hold the user hostage to the flow.', soundsLikeJio: 'Same calm sign-off shape everywhere.' },
+      },
+    };
+
+    /* Merge metadata into the original specimens (new specimens already carry
+       their fields inline, so the spread is a no-op for them). */
+    SPECIMENS.forEach(s => { if (SPECIMEN_META[s.id]) Object.assign(s, SPECIMEN_META[s.id]); });
 
     /* ========================================================================
        RENDERING
@@ -819,6 +3032,17 @@
       return a;
     }
 
+    // Picker axis state — "by moment" (the original grouping) / "by chapter"
+    // (1–14) / "by vertical". Carried in the URL hash as <axis>/<id>.
+    let currentAxis = 'moment';
+    const AXES = [
+      { id: 'moment', label: 'By moment' },
+      { id: 'chapter', label: 'By chapter' },
+      { id: 'vertical', label: 'By vertical' },
+    ];
+    const visitedChapters = new Set();
+    let pickerMount, counterMount, pickerQuery = '';
+
     function renderHeader() {
       const block = el('div', { class: 'page__title-block' });
       block.appendChild(renderBrand());
@@ -827,52 +3051,94 @@
       inner.appendChild(el('h1', { class: 'page__title', text: 'Conversation Playground' }));
       inner.appendChild(el('p', {
         class: 'page__subtitle',
-        text: 'JBIQ voice in real moments — pick a situation to see it on the surface.',
+        text: 'Every chapter of the JBIQ Voice Playbook, on the surface — pick a moment, chapter, or vertical.',
       }));
       const link1 = el('p', { class: 'page__canonical-link' });
-      const a1 = el('a', { href: 'components-overview.html#voice-home', text: 'View voice principles →' });
-      link1.appendChild(a1);
+      link1.appendChild(el('a', { href: 'voice-playbook.html', text: 'Open the voice playbook →' }));
       inner.appendChild(link1);
-      const link2 = el('p', { class: 'page__canonical-link' });
-      const a2 = el('a', { href: 'voice-playbook.html', text: 'Open the voice playbook →' });
-      link2.appendChild(a2);
-      inner.appendChild(link2);
       block.appendChild(inner);
 
-      block.appendChild(renderPicker());
+      // Axis toggle.
+      const toggle = el('div', { class: 'axis-toggle', role: 'tablist', 'aria-label': 'Group specimens by' });
+      AXES.forEach(a => {
+        const b = el('button', { class: 'axis-toggle__btn', type: 'button', 'data-axis': a.id, 'aria-pressed': String(a.id === currentAxis), text: a.label });
+        b.addEventListener('click', () => setAxis(a.id));
+        toggle.appendChild(b);
+      });
+      block.appendChild(toggle);
+
+      // Acceptance counter.
+      counterMount = el('div', { class: 'picker__counter' });
+      block.appendChild(counterMount);
+
+      // Filter box — searches label + id across the active grouping.
+      const filter = el('input', { class: 'picker-filter', type: 'search', placeholder: 'Filter specimens…', 'aria-label': 'Filter specimens' });
+      filter.addEventListener('input', () => filterPicker(filter.value));
+      block.appendChild(filter);
+
+      pickerMount = renderPicker(currentAxis);
+      block.appendChild(pickerMount);
+      updateCounter();
       return block;
     }
 
-    function renderPicker() {
+    // Hide picker buttons / groups that don't match the filter query.
+    function filterPicker(q) {
+      pickerQuery = (q != null ? q : pickerQuery).trim().toLowerCase();
+      if (!pickerMount) return;
+      pickerMount.querySelectorAll('.picker__group').forEach(g => {
+        let anyVisible = false;
+        g.querySelectorAll('.picker__btn').forEach(btn => {
+          const id = btn.getAttribute('data-id') || '';
+          const txt = (btn.textContent + ' ' + id).toLowerCase();
+          const show = id === LIVE_ID || !pickerQuery || txt.includes(pickerQuery);
+          btn.style.display = show ? '' : 'none';
+          if (show && id !== LIVE_ID) anyVisible = true;
+        });
+        // Keep the live group always; hide others with no matches.
+        const isLiveGroup = !!g.querySelector('.picker__btn[data-id="' + LIVE_ID + '"]');
+        g.style.display = (isLiveGroup || anyVisible) ? '' : 'none';
+      });
+    }
+
+    // Build the grouped specimen list for the active axis.
+    function pickerGroups(axis) {
+      const groups = [];
+      const byKey = {};
+      const push = (key, s) => { if (!byKey[key]) { byKey[key] = []; groups.push({ key, items: byKey[key] }); } byKey[key].push(s); };
+      if (axis === 'chapter') {
+        const sorted = [...SPECIMENS].sort((a, b) => (a.chapter || 99) - (b.chapter || 99));
+        sorted.forEach(s => push('Ch. ' + (s.chapter || '?') + ' · ' + (CHAPTER_TITLES[s.chapter] || 'Other'), s));
+      } else if (axis === 'vertical') {
+        [...SPECIMENS].sort((a, b) => (a.vertical || 'zzz').localeCompare(b.vertical || 'zzz'))
+          .forEach(s => push(s.vertical || 'Other', s));
+      } else {
+        SPECIMENS.forEach(s => push(s.group || 'Other', s));
+      }
+      return groups;
+    }
+
+    function renderPicker(axis) {
       const picker = el('nav', { class: 'picker', 'aria-label': 'Specimens' });
 
       // Live mode — its own group at the top of the nav.
       const liveGroup = el('div', { class: 'picker__group' });
       liveGroup.appendChild(el('div', { class: 'picker__group-label', text: 'Test the skill' }));
-      const liveBtn = el('button', {
-        class: 'picker__btn',
-        type: 'button',
-        'data-id': LIVE_ID,
-        'aria-pressed': 'false',
-        text: 'Try it live',
-      });
+      const liveBtn = el('button', { class: 'picker__btn', type: 'button', 'data-id': LIVE_ID, 'aria-pressed': 'false', text: 'Try it live' });
       liveBtn.addEventListener('click', () => selectSpecimen(LIVE_ID, true));
       liveGroup.appendChild(liveBtn);
       picker.appendChild(liveGroup);
 
-      const groups = {};
-      SPECIMENS.forEach(s => { (groups[s.group] = groups[s.group] || []).push(s); });
-      Object.keys(groups).forEach(groupName => {
+      pickerGroups(axis).forEach(group => {
         const g = el('div', { class: 'picker__group' });
-        g.appendChild(el('div', { class: 'picker__group-label', text: groupName }));
-        groups[groupName].forEach(s => {
+        g.appendChild(el('div', { class: 'picker__group-label', text: group.key }));
+        group.items.forEach(s => {
           const btn = el('button', {
-            class: 'picker__btn',
-            type: 'button',
-            'data-id': s.id,
-            'aria-pressed': 'false',
-            text: s.label,
+            class: 'picker__btn', type: 'button', 'data-id': s.id,
+            'aria-pressed': String(s.id === currentId),
+            text: (axis === 'moment' ? s.label : (s.label + ' · ' + (s.vertical || ''))).replace(/ · $/, ''),
           });
+          if (s.lintFail) btn.title = 'Lint warning — see console';
           btn.addEventListener('click', () => selectSpecimen(s.id, true));
           g.appendChild(btn);
         });
@@ -881,14 +3147,71 @@
       return picker;
     }
 
-    function renderTurn(turn) {
-      return el('div', { class: 'turn turn--' + turn.from, html: turn.text });
+    function setAxis(axis) {
+      if (axis === currentAxis) return;
+      currentAxis = axis;
+      document.querySelectorAll('.axis-toggle__btn').forEach(b => b.setAttribute('aria-pressed', String(b.getAttribute('data-axis') === axis)));
+      const fresh = renderPicker(axis);
+      pickerMount.replaceWith(fresh);
+      pickerMount = fresh;
+      pickerButtons = Array.from(document.querySelectorAll('.picker__btn'));
+      if (pickerQuery) filterPicker(pickerQuery);
+      if (currentId) setHash(currentId);
     }
 
-    function renderAttachment(att) {
-      if (!att || att.type !== 'receipt') return null;
+    function updateCounter() {
+      if (!counterMount) return;
+      const total = Object.keys(CHAPTER_TITLES).length;
+      counterMount.innerHTML = '';
+      counterMount.appendChild(el('span', { html: 'Chapters seen <strong>' + visitedChapters.size + '/' + total + '</strong>' }));
+    }
+
+    const ICON_SPEAKER = '<svg viewBox="0 0 20 20" fill="none"><path d="M4 8v4h3l4 3V5L7 8H4z" fill="currentColor"/><path d="M14 7a4 4 0 010 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+
+    function renderTurn(turn) {
+      const frag = document.createDocumentFragment();
+      if (turn.beat) frag.appendChild(el('div', { class: 'beat-tag', text: turn.beat }));
+      if (turn.surfaceTag) frag.appendChild(el('div', { class: 'turn__surface-tag' + (turn.from === 'user' ? ' is-user' : ''), text: turn.surfaceTag }));
+      if (turn.voice) {
+        const b = el('div', { class: 'turn turn--voice' });
+        b.appendChild(el('span', { class: 'turn__speaker', 'aria-hidden': 'true', html: ICON_SPEAKER }));
+        b.appendChild(el('div', { html: turn.text }));
+        frag.appendChild(b);
+      } else {
+        frag.appendChild(el('div', { class: 'turn turn--' + turn.from, html: turn.text }));
+      }
+      return frag;
+    }
+
+    // ── Attachment renderers — one per manifest primitive (Ch. 11 §5) ────────
+    function attWrap(node, caption) {
       const wrap = el('div', { class: 'turn-attachment turn-attachment--jbiq' });
+      if (node) wrap.appendChild(node);
+      if (caption) wrap.appendChild(el('div', { class: 'att-caption', text: caption }));
+      return wrap;
+    }
+    function cardMedia(c) {
+      const m = el('div', { class: 'catalog-card__media' });
+      if (c.img) m.style.backgroundImage = "url('" + c.img + "')";
+      else if (c.emoji) m.textContent = c.emoji;
+      if (c.badge) m.appendChild(el('div', { class: 'catalog-card__badge', text: c.badge }));
+      return m;
+    }
+    function brandRow(b, cls) {
+      const row = el('div', { class: cls + '__brand' });
+      if (b.logo) row.appendChild(el('span', { class: cls + '__brand-logo', style: "background-image:url('" + b.logo + "')" }));
+      row.appendChild(el('span', { class: cls + '__brand-name', text: b.name }));
+      return row;
+    }
+
+    function receiptAtt(att) {
       const receipt = el('div', { class: 'receipt' });
+      if (att.partner) {
+        const p = el('div', { class: 'receipt-partner' });
+        if (att.partner.logo) p.appendChild(el('span', { class: 'receipt-partner-logo', style: "background-image:url('" + att.partner.logo + "')" }));
+        p.appendChild(el('span', { class: 'receipt-partner-name', text: att.partner.name }));
+        receipt.appendChild(p);
+      }
       const banner = el('div', { class: 'receipt-banner' });
       banner.appendChild(el('div', { class: 'receipt-check', text: '✓' }));
       const text = el('div');
@@ -897,13 +3220,333 @@
       banner.appendChild(text);
       receipt.appendChild(banner);
       (att.lines || []).forEach(l => {
-        const row = el('div', { class: 'receipt-line' });
+        const row = el('div', { class: 'receipt-line' + (l.total ? ' receipt-total' : '') });
         row.appendChild(el('span', { text: l.label }));
         row.appendChild(el('span', { text: l.value }));
         receipt.appendChild(row);
       });
-      wrap.appendChild(receipt);
-      return wrap;
+      return attWrap(receipt, att.caption);
+    }
+
+    function discoveryAtt(att) {
+      const frag = el('div');
+      if (att.subject) {
+        const sh = el('div', { class: 'subject-header' });
+        if (att.subject.partner) {
+          const pr = el('div', { class: 'subject-header__partner' });
+          pr.appendChild(el('span', { class: 'subject-header__partner-name', text: 'via ' + att.subject.partner }));
+          sh.appendChild(pr);
+        }
+        sh.appendChild(el('div', { class: 'subject-header__title', text: att.subject.title }));
+        if (att.subject.subtitle) sh.appendChild(el('div', { class: 'subject-header__subtitle', text: att.subject.subtitle }));
+        frag.appendChild(sh);
+        frag.appendChild(el('div', { style: 'height:10px' }));
+      }
+      const col = el('div', { class: 'collection collection--' + (att.layout || 'carousel') });
+      (att.cards || []).forEach(c => {
+        const card = el('div', { class: 'catalog-card' + (c.anchor ? ' catalog-card--anchor' : '') });
+        card.appendChild(cardMedia(c));
+        const content = el('div', { class: 'catalog-card__content' });
+        content.appendChild(el('div', { class: 'catalog-card__title', text: c.title }));
+        if (c.brand) content.appendChild(brandRow(c.brand, 'catalog-card'));
+        if (c.tags) content.appendChild(el('div', { class: 'catalog-card__tags', text: c.tags }));
+        const meta = el('div', { class: 'catalog-card__meta' });
+        if (c.price) meta.appendChild(el('span', { class: 'catalog-card__price', text: c.price }));
+        if (c.rating) meta.appendChild(el('span', { html: '<span class="catalog-card__rating-value">★ ' + escapeHtml(c.rating) + '</span>' }));
+        if (meta.childNodes.length) content.appendChild(meta);
+        card.appendChild(content);
+        col.appendChild(card);
+      });
+      frag.appendChild(col);
+      if (att.chips) {
+        if (att.chipsPrompt) frag.appendChild(el('div', { class: 'chips-prompt', text: att.chipsPrompt, style: 'padding-top:12px' }));
+        const bar = el('div', { class: 'filter-chip-bar', style: 'padding-top:8px' });
+        att.chips.forEach(ch => bar.appendChild(el('button', { class: 'filter-chip' + (ch.selected ? ' filter-chip--selected' : ''), type: 'button', text: ch.label })));
+        frag.appendChild(bar);
+      }
+      if (att.edge) {
+        const e = el('div', { class: 'edge-affordance', style: 'padding-top:10px' });
+        e.appendChild(el('button', { class: 'edge-affordance__btn', type: 'button', text: att.edge }));
+        frag.appendChild(e);
+      }
+      return attWrap(frag, att.caption);
+    }
+
+    function comparisonAtt(att) {
+      const table = el('div', { class: 'compare-table' });
+      const scroller = el('div', { class: 'compare-table__scroller' });
+      const labels = el('div', { class: 'compare-table__labels' });
+      labels.appendChild(el('div', { class: 'compare-table__header-label', text: att.compareLabel || 'Compare' }));
+      (att.rows || []).forEach(r => labels.appendChild(el('div', { class: 'compare-table__label-cell', text: r.label })));
+      labels.appendChild(el('div', { class: 'compare-table__label-cell', text: '' }));
+      scroller.appendChild(labels);
+      const opts = el('div', { class: 'compare-table__options' });
+      (att.options || []).forEach((o, oi) => {
+        const opt = el('div', { class: 'compare-table__option' + (o.recommended ? ' compare-table__option--recommended' : '') });
+        const head = el('div', { class: 'compare-table__header-cell' });
+        if (o.badge) head.appendChild(el('div', { class: 'compare-table__option-badge', text: o.badge }));
+        head.appendChild(el('div', { class: 'compare-table__option-title', text: o.title }));
+        if (o.sub) head.appendChild(el('div', { class: 'compare-table__option-subtitle', text: o.sub }));
+        opt.appendChild(head);
+        (att.rows || []).forEach(r => {
+          const best = (r.best || []).indexOf(oi) !== -1;
+          opt.appendChild(el('div', { class: 'compare-table__cell' + (best ? ' compare-table__cell--best' : ''), text: r.values[oi] }));
+        });
+        const ctaCell = el('div', { class: 'compare-table__cell compare-table__cell--cta' });
+        ctaCell.appendChild(el('button', { class: 'compare-table__cta', type: 'button', text: o.cta || 'Choose' }));
+        opt.appendChild(ctaCell);
+        opts.appendChild(opt);
+      });
+      scroller.appendChild(opts);
+      table.appendChild(scroller);
+      return attWrap(table, att.caption);
+    }
+
+    function slotpickerAtt(att) {
+      const frag = el('div');
+      if (att.prompt) frag.appendChild(el('div', { class: 'chips-prompt', text: att.prompt }));
+      (att.groups || []).forEach(g => {
+        if (g.day) frag.appendChild(el('div', { class: 'list-section-head', text: g.day, style: 'margin-top:8px' }));
+        const bar = el('div', { class: 'filter-chip-bar', style: 'padding-bottom:6px' });
+        g.slots.forEach(s => bar.appendChild(el('button', { class: 'filter-chip' + (s.selected ? ' filter-chip--selected' : ''), type: 'button', text: s.label })));
+        frag.appendChild(bar);
+      });
+      return attWrap(frag, att.caption);
+    }
+
+    function commitmentAtt(att) {
+      const c = el('div', { class: 'confirm' });
+      if (att.image) {
+        const im = el('div', { class: 'confirm-image' });
+        im.appendChild(el('img', { src: att.image, alt: '' }));
+        c.appendChild(im);
+      }
+      if (att.partner) {
+        const p = el('div', { class: 'confirm-partner' });
+        if (att.partner.logo) p.appendChild(el('span', { class: 'confirm-partner-logo', style: "background-image:url('" + att.partner.logo + "')" }));
+        p.appendChild(el('span', { class: 'confirm-partner-name', text: att.partner.name }));
+        c.appendChild(p);
+      }
+      c.appendChild(el('div', { class: 'confirm-prompt', text: att.prompt }));
+      if (att.summary) c.appendChild(el('div', { class: 'confirm-summary', text: att.summary }));
+      if (att.total) c.appendChild(el('div', { class: 'confirm-total', text: att.total }));
+      const actions = el('div', { class: 'confirm-actions' });
+      actions.appendChild(el('button', { class: 'btn-secondary', type: 'button', text: att.secondary || 'Not now' }));
+      actions.appendChild(el('button', { class: 'btn-primary', type: 'button', text: att.primary || 'Confirm' }));
+      c.appendChild(actions);
+      return attWrap(c, att.caption);
+    }
+
+    function trackingAtt(att) {
+      const t = el('div', { class: 'tracker' });
+      if (att.partner) {
+        const p = el('div', { class: 'tracker__partner' });
+        if (att.partner.logo) p.appendChild(el('span', { class: 'tracker__partner-logo', style: "background-image:url('" + att.partner.logo + "')" }));
+        p.appendChild(el('span', { class: 'tracker__partner-name', text: att.partner.name }));
+        t.appendChild(p);
+      }
+      const media = el('div', { class: 'tracker__media' });
+      media.appendChild(el('div', { class: 'tracker__stage', text: att.stage }));
+      if (att.eta) media.appendChild(el('div', { class: 'tracker__eta', text: att.eta }));
+      if (att.detail) media.appendChild(el('div', { class: 'tracker__detail', text: att.detail }));
+      t.appendChild(media);
+      const prog = el('div', { class: 'tracker__progress' });
+      prog.appendChild(el('div', { class: 'tracker__progress-fill', style: 'width:' + (att.progress || 33) + '%' }));
+      t.appendChild(prog);
+      if (att.steps) {
+        const steps = el('div', { class: 'tracker__steps' });
+        att.steps.forEach(s => steps.appendChild(el('span', { class: s.state || '', text: s.label })));
+        t.appendChild(steps);
+      }
+      return attWrap(t, att.caption);
+    }
+
+    function detailAtt(att) {
+      const d = el('div', { class: 'detail-sheet' });
+      d.appendChild(el('div', { class: 'detail-sheet__grabber' }));
+      d.appendChild(el('div', { class: 'detail-sheet__title', text: att.title }));
+      if (att.ref) d.appendChild(el('div', { class: 'detail-sheet__ref', text: att.ref }));
+      if (att.rows) {
+        const rows = el('div', { class: 'detail-sheet__rows' });
+        att.rows.forEach(r => {
+          const row = el('div', { class: 'detail-sheet__row' + (r.total ? ' detail-sheet__row--total' : '') });
+          row.appendChild(el('span', { class: 'detail-sheet__row-label', text: r.label }));
+          row.appendChild(el('span', { class: 'detail-sheet__row-value', text: r.value }));
+          rows.appendChild(row);
+        });
+        d.appendChild(rows);
+      }
+      if (att.note) d.appendChild(el('div', { class: 'detail-sheet__note', text: att.note }));
+      if (att.button) d.appendChild(el('button', { class: 'detail-sheet__btn detail-sheet__btn--primary', type: 'button', text: att.button }));
+      return attWrap(d, att.caption);
+    }
+
+    function listAtt(att) {
+      const frag = el('div');
+      const renderItems = (items) => {
+        const col = el('div', { class: 'collection collection--list' });
+        items.forEach(it => {
+          const card = el('div', { class: 'catalog-card' });
+          card.appendChild(cardMedia(it));
+          const content = el('div', { class: 'catalog-card__content' });
+          content.appendChild(el('div', { class: 'catalog-card__title', text: it.title }));
+          if (it.partner) content.appendChild(brandRow(it.partner, 'catalog-card'));
+          if (it.sub) content.appendChild(el('div', { class: 'catalog-card__subtitle', text: it.sub }));
+          if (it.meta) content.appendChild(el('div', { class: 'catalog-card__meta', text: it.meta }));
+          card.appendChild(content);
+          if (it.cta) card.appendChild(el('button', { class: 'catalog-card__commit', type: 'button', text: it.cta }));
+          col.appendChild(card);
+        });
+        return col;
+      };
+      if (att.sections) {
+        att.sections.forEach((s, i) => {
+          frag.appendChild(el('div', { class: 'list-section-head', text: s.head, style: i ? 'margin-top:14px' : '' }));
+          frag.appendChild(renderItems(s.items));
+        });
+      } else {
+        frag.appendChild(renderItems(att.items || []));
+      }
+      return attWrap(frag, att.caption);
+    }
+
+    function statusAtt(att) {
+      const tone = att.tone || 'ok';
+      const b = el('div', { class: 'validator-banner' + (tone === 'ok' ? ' validator-banner--ok' : tone === 'warn' ? ' validator-banner--warn' : '') });
+      if (att.title) b.appendChild(el('div', { class: 'validator-banner__title', text: att.title }));
+      if (att.body) b.appendChild(el('div', { text: att.body }));
+      return attWrap(b, att.caption);
+    }
+
+    function infoAtt(att) {
+      const frag = el('div');
+      if (att.head) frag.appendChild(el('div', { class: 'score-head', text: att.head }));
+      const list = el('div', { class: 'info-list' });
+      (att.rows || []).forEach(r => {
+        const row = el('div', { class: 'info-row' });
+        row.appendChild(el('div', { class: 'info-row__label', text: r.label }));
+        row.appendChild(el('div', { class: 'info-row__value', text: r.value }));
+        list.appendChild(row);
+      });
+      frag.appendChild(list);
+      if (att.updated) frag.appendChild(el('div', { class: 'att-caption', text: att.updated }));
+      if (att.edge) {
+        const e = el('div', { class: 'edge-affordance', style: 'padding-top:8px' });
+        e.appendChild(el('button', { class: 'edge-affordance__btn', type: 'button', text: att.edge }));
+        frag.appendChild(e);
+      }
+      return attWrap(frag, att.caption);
+    }
+
+    function timelineAtt(att) {
+      const tl = el('div', { class: 'timeline' });
+      (att.rows || []).forEach(r => {
+        const row = el('div', { class: 'tl-row', 'data-active': String(!!r.active) });
+        row.appendChild(el('div', { class: 'tl-time', text: r.time }));
+        const main = el('div');
+        main.appendChild(el('div', { class: 'tl-title', text: r.title }));
+        if (r.meta) main.appendChild(el('div', { class: 'tl-meta', text: r.meta }));
+        row.appendChild(main);
+        tl.appendChild(row);
+      });
+      return attWrap(tl, att.caption);
+    }
+
+    function tensionAtt(att) {
+      const wrap = el('div', { class: 'frame-tension' });
+      const pairs = att.pairs || [{ avoid: att.avoid, good: att.good }];
+      pairs.forEach(p => {
+        if (p.avoid) {
+          const col = el('div', { class: 'frame-tension__col frame-tension__col--bad' });
+          col.appendChild(el('div', { class: 'frame-tension__eb', text: p.avoid.eb || 'Avoid' }));
+          col.appendChild(el('div', { class: 'frame-tension__quote', html: p.avoid.quote }));
+          wrap.appendChild(col);
+        }
+        if (p.good) {
+          const col = el('div', { class: 'frame-tension__col frame-tension__col--good' });
+          col.appendChild(el('div', { class: 'frame-tension__eb', text: p.good.eb || 'JBIQ' }));
+          col.appendChild(el('div', { class: 'frame-tension__quote', html: p.good.quote }));
+          wrap.appendChild(col);
+        }
+      });
+      return attWrap(wrap, att.caption);
+    }
+
+    function helplineAtt(att) {
+      const c = el('div', { class: 'helpline-card' });
+      if (att.title) c.appendChild(el('div', { class: 'helpline-card__title', text: att.title }));
+      (att.resources || []).forEach(r => {
+        const row = el('div', { class: 'helpline-card__row' });
+        row.appendChild(el('span', { text: r.label }));
+        row.appendChild(el('b', { text: r.value }));
+        c.appendChild(row);
+      });
+      if (att.note) c.appendChild(el('div', { class: 'helpline-card__note', text: att.note }));
+      return attWrap(c, att.caption);
+    }
+
+    function undoAtt(att) {
+      const frag = el('div');
+      const e = el('div', { class: 'edge-affordance' });
+      e.appendChild(el('button', { class: 'edge-affordance__btn', type: 'button', text: att.label || 'Saved · Undo' }));
+      frag.appendChild(e);
+      frag.appendChild(el('div', { class: 'att-caption', text: (att.window || 60) + 's undo window — nothing committed yet.' }));
+      return attWrap(frag, att.caption);
+    }
+
+    function playerAtt(att) {
+      const p = el('div', { class: 'player' });
+      p.appendChild(el('div', { class: 'player-art', text: att.art || '🎬' }));
+      const info = el('div');
+      info.appendChild(el('div', { class: 'player-title', text: att.title }));
+      if (att.artist) info.appendChild(el('div', { class: 'player-artist', text: att.artist }));
+      const bar = el('div', { class: 'player-bar' });
+      bar.appendChild(el('div', { class: 'player-bar-fill', style: 'width:' + (att.progress || 20) + '%' }));
+      info.appendChild(bar);
+      const times = el('div', { class: 'player-times' });
+      times.appendChild(el('span', { text: att.elapsed || '0:00' }));
+      times.appendChild(el('span', { text: att.total || '1:30' }));
+      info.appendChild(times);
+      p.appendChild(info);
+      const controls = el('div', { class: 'player-controls' });
+      controls.appendChild(el('button', { class: 'player-control--prev', type: 'button', 'aria-label': 'Previous', html: '<span class="player-control__icon player-control__icon--next"></span>' }));
+      controls.appendChild(el('button', { class: 'player-control--play', type: 'button', 'aria-label': 'Play', html: '<span class="player-control__icon player-control__icon--play"></span>' }));
+      controls.appendChild(el('button', { class: 'player-control--next', type: 'button', 'aria-label': 'Next', html: '<span class="player-control__icon player-control__icon--next"></span>' }));
+      p.appendChild(controls);
+      return attWrap(p, att.caption);
+    }
+
+    function consentAtt(att) {
+      const d = el('div', { class: 'detail-sheet connect-sheet' });
+      d.appendChild(el('div', { class: 'detail-sheet__grabber' }));
+      d.appendChild(el('div', { class: 'detail-sheet__title', text: att.title }));
+      if (att.partner) d.appendChild(el('div', { class: 'detail-sheet__ref', text: att.partner }));
+      const list = el('div', { class: 'permission-toggle-list' });
+      list.appendChild(el('div', { class: 'permission-toggle-list__eyebrow', text: 'You control each one' }));
+      (att.permissions || []).forEach(p => {
+        const row = el('div', { class: 'permission-toggle-row' });
+        row.appendChild(el('span', { class: 'permission-toggle-row__label', text: p.label }));
+        row.appendChild(el('button', { class: 'toggle-switch', type: 'button', 'aria-checked': String(!!p.on), role: 'switch', 'aria-label': p.label }));
+        list.appendChild(row);
+      });
+      d.appendChild(list);
+      if (att.note) d.appendChild(el('div', { class: 'detail-sheet__note', text: att.note }));
+      if (att.button) d.appendChild(el('button', { class: 'detail-sheet__btn detail-sheet__btn--primary', type: 'button', text: att.button }));
+      return attWrap(d, att.caption);
+    }
+
+    const ATT_RENDERERS = {
+      receipt: receiptAtt, discovery: discoveryAtt, comparison: comparisonAtt,
+      slotpicker: slotpickerAtt, commitment: commitmentAtt, tracking: trackingAtt,
+      detail: detailAtt, list: listAtt, status: statusAtt, info: infoAtt,
+      scoreboard: infoAtt, timeline: timelineAtt, tension: tensionAtt,
+      helpline: helplineAtt, undo: undoAtt, player: playerAtt, consent: consentAtt,
+    };
+
+    function renderAttachment(att) {
+      if (!att) return null;
+      const fn = ATT_RENDERERS[att.type];
+      return fn ? fn(att) : null;
     }
 
     // SVGs lifted verbatim from index.html's .voice-header and .chat-input-bar.
@@ -972,6 +3615,7 @@
     const LIVE_ID = 'try-live';
     let liveHistory = [];
     let liveBusy = false;
+    let liveForbidEl = null, liveIntentEl = null, liveSeed = null;
 
     function renderLiveTurn(from, text) {
       // textContent (not html) — user input and model output are untrusted.
@@ -1015,6 +3659,7 @@
         const reply = (data && data.text) ? data.text : "I didn't quite catch that — mind sending it again?";
         transcriptEl.appendChild(renderLiveTurn('jbiq', reply));
         if (data && data.text) liveHistory.push({ role: 'assistant', content: reply });
+        updateLiveChecks(reply);
       } catch (e) {
         thinking.remove();
         transcriptEl.appendChild(renderLiveTurn('jbiq', "That didn't go through — the connection dropped on my end. Send it once more and I'll pick it right up."));
@@ -1077,6 +3722,13 @@
       input.appendChild(speakButton());
       frame.appendChild(input);
 
+      // Consume a seed from a specimen's "Try this in Live →" button.
+      if (liveSeed) {
+        field.value = liveSeed; liveSeed = null;
+        input.classList.add('frame__input--has-text');
+        setTimeout(() => field.focus(), 0);
+      }
+
       return frame;
     }
 
@@ -1090,14 +3742,47 @@
       return stage;
     }
 
+    function guessIntent(t) {
+      t = (t || '').toLowerCase();
+      if (/i can'?t|don'?t know|sorry|unable|won'?t be able/.test(t)) return 'Failure / refusal';
+      if (/here are|a few options|options:|choose from|recommend|pick one|some options/.test(t)) return 'Multi-Option';
+      if (/(recharge|\bpay\b|confirm|tap the confirmation|complete your|\bbook\b|switch to)/.test(t) && /₹|\?|confirm|tap|complete/.test(t)) return 'Single-Path (confirm)';
+      if (/\?\s*$/.test(t.trim())) return 'Clarification';
+      return 'Informational';
+    }
+    function updateLiveChecks(reply) {
+      if (liveForbidEl) {
+        const hits = forbiddenHits(reply);
+        liveForbidEl.innerHTML = '';
+        const wrap = el('div', { class: 'forbid' });
+        wrap.appendChild(el('span', { class: 'forbid__count ' + (hits.length ? 'forbid__count--bad' : 'forbid__count--ok'), text: String(hits.length) }));
+        wrap.appendChild(el('span', { class: 'forbid__label', text: hits.length ? 'Hits: ' + hits.join(', ') : 'Last reply ran clean against the Ch. 13 set.' }));
+        liveForbidEl.appendChild(wrap);
+      }
+      if (liveIntentEl) liveIntentEl.textContent = guessIntent(reply);
+    }
+
     function renderLiveCaption() {
+      liveForbidEl = null; liveIntentEl = null;
       const aside = el('aside', { class: 'state-caption', 'aria-live': 'polite' });
       aside.appendChild(el('div', { class: 'state-caption__eyebrow', text: 'Live' }));
       aside.appendChild(el('p', { class: 'state-caption__title', text: 'Type anything — JBIQ replies on-brand, in real time.' }));
       const panels = el('div', { class: 'state-caption__panels' });
       panels.appendChild(renderPanel('Same skill', 'Replies run on the same voice system prompt — the ten principles, reply shape, and tone rules — as every specimen on the left.', '01'));
-      panels.appendChild(renderPanel('DNA check', 'Each reply leads with the human, keeps it simple, acts over narrates, respects data and time, and sounds like only Jio.', '02'));
-      panels.appendChild(renderPanel('Plain text', 'No markdown. Indian numerals and ₹, day-month dates, your language and script matched back to you.', '03'));
+
+      // Live forbidden-hit detector (Ch. 13) — updates on every reply.
+      const fp = panelEl('Forbidden-hit detector', 'Ch.13', null);
+      liveForbidEl = fp.body;
+      liveForbidEl.appendChild(el('div', { class: 'forbid__label', text: 'Send a message — every reply is scored against the Ch. 13 set here.' }));
+      panels.appendChild(fp.panel);
+
+      // Lightweight intent-shape classifier (Ch. 4).
+      const ip = panelEl('Intent shape (guessed)', 'Ch.4', null);
+      liveIntentEl = el('div', { text: '—' });
+      ip.body.appendChild(liveIntentEl);
+      panels.appendChild(ip.panel);
+
+      panels.appendChild(renderPanel('Plain text', 'No markdown. Indian numerals and ₹, day-month dates, your language and script matched back to you.', '02'));
       aside.appendChild(panels);
       return aside;
     }
@@ -1113,19 +3798,275 @@
       return panel;
     }
 
+    // Panel chrome that returns its body element so builders can append nodes.
+    function panelEl(title, tag, variant) {
+      const cls = 'state-caption__panel' + (variant ? ' state-caption__panel--' + variant : '');
+      const panel = el('div', { class: cls });
+      const head = el('div', { class: 'state-caption__panel-head' });
+      head.appendChild(el('div', { class: 'state-caption__panel-title', text: title }));
+      if (tag) head.appendChild(el('div', { class: 'state-caption__panel-tag', text: tag }));
+      panel.appendChild(head);
+      const body = el('div', { class: 'state-caption__panel-body' });
+      panel.appendChild(body);
+      return { panel, body };
+    }
+
+    const LANG_LABEL = { en: 'English', hinglish: 'Hinglish', hi: 'हिन्दी', ta: 'தமிழ்', te: 'తెలుగు', bn: 'বাংলা', mr: 'मराठी', bho: 'भोजपुरी' };
+
+    function badge(label, kind) {
+      return el('span', { class: 'badge' + (kind ? ' badge--' + kind : ''), text: label });
+    }
+    function renderBadges(s) {
+      const wrap = el('div', { class: 'badges' });
+      if (s.chapter) wrap.appendChild(badge('Ch. ' + s.chapter, 'chapter'));
+      if (s.intentShape) wrap.appendChild(badge(s.intentShape, 'intent'));
+      if (s.commitmentLevel) wrap.appendChild(badge('Commit: ' + s.commitmentLevel, 'commit'));
+      if (s.auth) wrap.appendChild(badge('Auth: ' + s.auth, 'auth'));
+      if (typeof s.autonomyLevel === 'number') wrap.appendChild(badge('Autonomy ' + s.autonomyLevel, 'intent'));
+      if (s.surface && s.surface !== 'chat') wrap.appendChild(badge(s.surface, 'surface'));
+      if (s.resolutionStrategy) wrap.appendChild(badge(s.resolutionStrategy, 'strategy'));
+      if (s.failClass) wrap.appendChild(badge(s.failClass, 'fail'));
+      if (s.senseMode === 'sensitive') wrap.appendChild(badge('Sensitive', 'warn'));
+      if (s.language && s.language !== 'en') wrap.appendChild(badge(LANG_LABEL[s.language] || s.language));
+      if (s.manifestPrimitive) wrap.appendChild(badge(s.manifestPrimitive));
+      if (s.vertical) wrap.appendChild(badge(s.vertical));
+      return wrap.childNodes.length ? wrap : null;
+    }
+
+    function dnaPanel(d) {
+      const { panel, body } = panelEl('DNA check', '5/5', null);
+      const rows = [
+        ['Human first', d.humanFirst], ['Simplest', d.simplest], ['Acted, not narrated', d.acted],
+        ['Respected', d.respected], ['Sounds like Jio', d.soundsLikeJio],
+      ];
+      rows.forEach(([k, v]) => {
+        const revise = /^revise:/i.test(v || '');
+        const row = el('div', { class: 'dna-row' });
+        row.appendChild(el('span', { class: 'dna-row__mark' + (revise ? ' dna-row__mark--revise' : ''), text: revise ? '✕' : '✓' }));
+        row.appendChild(el('span', { class: 'dna-row__k', text: k }));
+        row.appendChild(el('span', { class: 'dna-row__v', text: (v || '').replace(/^revise:\s*/i, '') }));
+        body.appendChild(row);
+      });
+      body.classList.add('panel-rows');
+      return panel;
+    }
+
+    function intentPanel(s) {
+      const { panel, body } = panelEl('Intent + anatomy', s.intentShape, null);
+      body.classList.add('panel-rows');
+      const a = s.anatomy || {};
+      const slots = [
+        ['Slot 1 · Context', a.context], ['Slot 2 · Primary', a.primary || s.manifestPrimitive],
+        ['Slot 3 · Refine', a.refine], ['Slot 4 · Edge', a.edge],
+      ];
+      slots.forEach(([k, v]) => {
+        if (!v) return;
+        const row = el('div', { class: 'kv' });
+        row.appendChild(el('span', { class: 'kv__k', text: k }));
+        row.appendChild(el('span', { class: 'kv__v', text: v }));
+        body.appendChild(row);
+      });
+      if (!body.childNodes.length) body.appendChild(el('div', { text: s.intentShape + ' shape — see the surface for the anatomy in action.' }));
+      return panel;
+    }
+
+    function fourbeatPanel(v) {
+      const { panel, body } = panelEl('Voice four-beat', 'Ch.5 §2', null);
+      const grid = el('div', { class: 'fourbeat' });
+      [['1 · Outcome', v.outcome], ['2 · Anchor', v.anchor], ['3 · Shape', v.shape], ['4 · Pivot', v.pivot]].forEach(([n, t]) => {
+        const cell = el('div', { class: 'fourbeat__cell' });
+        cell.appendChild(el('div', { class: 'fourbeat__n', text: n }));
+        cell.appendChild(el('div', { class: 'fourbeat__t', text: t || '—' }));
+        grid.appendChild(cell);
+      });
+      body.appendChild(grid);
+      return panel;
+    }
+
+    function densityPanel(d) {
+      const { panel, body } = panelEl('Density gauge', 'Ch.5 §3', null);
+      const gauge = el('div', { class: 'gauge' });
+      [['Words', d.words, DENSITY_MAX.words], ['Attributes', d.attributes, DENSITY_MAX.attributes], ['Items', d.items, DENSITY_MAX.items]].forEach(([k, n, max]) => {
+        const st = densityState(n, max);
+        const row = el('div', { class: 'gauge__row' });
+        row.appendChild(el('span', { class: 'gauge__k', text: k }));
+        const track = el('div', { class: 'gauge__track' });
+        track.appendChild(el('div', { class: 'gauge__fill gauge__fill--' + st, style: 'width:' + Math.min(100, (n / max) * 100) + '%' }));
+        row.appendChild(track);
+        row.appendChild(el('span', { class: 'gauge__v' + (st === 'over' ? ' gauge__v--over' : ''), text: n + ' / ' + max }));
+        gauge.appendChild(row);
+      });
+      body.appendChild(gauge);
+      return panel;
+    }
+
+    function crossModalPanel(c) {
+      const { panel, body } = panelEl('Anchors match', 'Ch.10 §5', null);
+      const wrap = el('div', { class: 'crossmodal' });
+      const pair = el('div', { class: 'crossmodal__pair' });
+      const v = el('div', { class: 'crossmodal__side', html: '<em>Voice anchor</em>' + escapeHtml(c.voiceAnchor || '') });
+      const eq = el('div', { class: 'crossmodal__eq', text: '✓' });
+      const sc = el('div', { class: 'crossmodal__side', html: '<em>Screen anchor</em>' + escapeHtml(c.screenAnchor || '') });
+      pair.appendChild(v); pair.appendChild(eq); pair.appendChild(sc);
+      wrap.appendChild(pair);
+      if (c.handoffLine) wrap.appendChild(el('div', { class: 'crossmodal__line', html: '<strong>Handoff:</strong> "' + escapeHtml(c.handoffLine) + '"' }));
+      body.appendChild(wrap);
+      return panel;
+    }
+
+    function cinematicArcPanel(a) {
+      const { panel, body } = panelEl('Cinematic arc', 'Ch.5 §12', null);
+      [['Persona', a.persona], ['Pace', a.pace], ['Recap at', a.recapAt], ['Micro-pivot at', a.microPivotAt], ['Length', a.length]].forEach(([k, v]) => {
+        if (!v) return;
+        const row = el('div', { class: 'arc-row' });
+        row.appendChild(el('span', { class: 'arc-row__k', text: k }));
+        row.appendChild(el('span', { class: 'arc-row__v', text: v }));
+        body.appendChild(row);
+      });
+      return panel;
+    }
+
+    function memoryPanel(m) {
+      const { panel, body } = panelEl('What JBIQ inferred', 'Ch.7 §3', null);
+      (m.surfaced || []).forEach(it => {
+        const row = el('div', { class: 'mem-row' });
+        row.appendChild(el('span', { text: it.inference }));
+        row.appendChild(el('span', { class: 'mem-row__conf', text: it.confidence }));
+        body.appendChild(row);
+      });
+      if (m.silent) body.appendChild(el('div', { class: 'mem-silent', html: '<strong>Stayed silent:</strong> ' + escapeHtml(m.silent) }));
+      return panel;
+    }
+
+    function commitPanel(s) {
+      const { panel, body } = panelEl('Commitment + auth', s.commitmentLevel || '—', null);
+      body.classList.add('panel-rows');
+      const rows = [
+        ['Level', s.commitmentLevel], ['Auth floor', s.auth],
+        ['Reversibility', typeof s.reversibilityWindow === 'number' ? s.reversibilityWindow + 's undo window' : null],
+        ['Consent', s.consent], ['Compliance Ledger', s.ledger || (s.commitmentLevel ? 'Written before dispatch ✓' : null)],
+      ];
+      rows.forEach(([k, v]) => {
+        if (!v) return;
+        const row = el('div', { class: 'kv' });
+        row.appendChild(el('span', { class: 'kv__k', text: k }));
+        row.appendChild(el('span', { class: 'kv__v', text: v }));
+        body.appendChild(row);
+      });
+      return panel;
+    }
+
+    function partnerPanel(s) {
+      const { panel, body } = panelEl('Partner & ranking', s.resolutionStrategy || 'Partner', null);
+      body.classList.add('panel-rows');
+      const p = s.partner || {};
+      const rows = [
+        ['Partner', p.name], ['Attribution', p.attributionLine], ['Why this?', p.whyThis || s.whyThis],
+        ['Strategy', s.resolutionStrategy],
+      ];
+      rows.forEach(([k, v]) => {
+        if (!v) return;
+        const row = el('div', { class: 'kv' });
+        row.appendChild(el('span', { class: 'kv__k', text: k }));
+        row.appendChild(el('span', { class: 'kv__v', text: v }));
+        body.appendChild(row);
+      });
+      return panel;
+    }
+
+    function sensitivePanel(inv) {
+      const { panel, body } = panelEl('Sensitive inversion', 'Ch.12', 'avoid');
+      const drop = el('div', { class: 'inv-group inv-group--drop' });
+      drop.appendChild(el('div', { class: 'inv-group__h', text: 'Dropped' }));
+      drop.appendChild(el('div', { text: (inv.dropped || []).join(' · ') }));
+      const lift = el('div', { class: 'inv-group inv-group--lift' });
+      lift.appendChild(el('div', { class: 'inv-group__h', text: 'Elevated' }));
+      lift.appendChild(el('div', { text: (inv.elevated || []).join(' · ') }));
+      body.appendChild(drop); body.appendChild(lift);
+      return panel;
+    }
+
+    function forbiddenPanel(s) {
+      const hits = forbiddenHits(specimenReplyText(s));
+      const { panel, body } = panelEl('Forbidden-hit detector', 'Ch.13', null);
+      const wrap = el('div', { class: 'forbid' });
+      wrap.appendChild(el('span', { class: 'forbid__count ' + (hits.length ? 'forbid__count--bad' : 'forbid__count--ok'), text: String(hits.length) }));
+      wrap.appendChild(el('span', { class: 'forbid__label', text: hits.length ? 'Hits: ' + hits.join(', ') : 'Ch. 13 regex set ran on every reply — clean.' }));
+      body.appendChild(wrap);
+      return panel;
+    }
+
+    function refsPanel(refs) {
+      const { panel, body } = panelEl('Source', 'Playbook', null);
+      const wrap = el('div', { class: 'refs' });
+      refs.forEach(r => wrap.appendChild(el('a', { href: 'voice-playbook.html', text: r })));
+      body.appendChild(wrap);
+      return panel;
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    }
+
     function renderCaption(specimen) {
       const aside = el('aside', { class: 'state-caption', 'aria-live': 'polite' });
       aside.appendChild(el('div', { class: 'state-caption__eyebrow', text: specimen.eyebrow }));
       aside.appendChild(el('p', { class: 'state-caption__title', text: specimen.title }));
+
+      const badges = renderBadges(specimen);
+      if (badges) aside.appendChild(badges);
+
+      const firstUser = (specimen.transcript || []).find(t => t.from === 'user' && t.text);
+      if (firstUser) {
+        const tryBtn = el('button', { class: 'try-live-btn', type: 'button', text: 'Try this in Live →' });
+        tryBtn.addEventListener('click', () => { liveSeed = firstUser.text; selectSpecimen(LIVE_ID, true); });
+        aside.appendChild(tryBtn);
+      }
+
       const panels = el('div', { class: 'state-caption__panels' });
-      specimen.principles.forEach((p, i) => {
+      (specimen.principles || []).forEach((p, i) => {
         panels.appendChild(renderPanel(p.name, p.why, String(i + 1).padStart(2, '0')));
       });
-      if (specimen.avoid) {
-        panels.appendChild(renderPanel('Avoid', specimen.avoid, 'Don\'t', 'avoid'));
-      }
+      if (specimen.avoid) panels.appendChild(renderPanel('Avoid', specimen.avoid, "Don't", 'avoid'));
+      if (specimen.intentShape) panels.appendChild(intentPanel(specimen));
+      if (specimen.voiceBeats) panels.appendChild(fourbeatPanel(specimen.voiceBeats));
+      if (specimen.density) panels.appendChild(densityPanel(specimen.density));
+      if (specimen.crossModal) panels.appendChild(crossModalPanel(specimen.crossModal));
+      if (specimen.cinematicArc) panels.appendChild(cinematicArcPanel(specimen.cinematicArc));
+      if (specimen.memoryUsed) panels.appendChild(memoryPanel(specimen.memoryUsed));
+      if (specimen.commitmentLevel || specimen.auth || typeof specimen.reversibilityWindow === 'number' || specimen.consent) panels.appendChild(commitPanel(specimen));
+      if (specimen.partner || specimen.resolutionStrategy || specimen.whyThis) panels.appendChild(partnerPanel(specimen));
+      if (specimen.sensitiveInversion) panels.appendChild(sensitivePanel(specimen.sensitiveInversion));
+      if (specimen.dna) panels.appendChild(dnaPanel(specimen.dna));
+      panels.appendChild(forbiddenPanel(specimen));
+      if (specimen.metric) panels.appendChild(renderPanel('Acceptance metric', specimen.metric, 'Ch.14'));
+      if (specimen.references) panels.appendChild(refsPanel(specimen.references));
+
       aside.appendChild(panels);
       return aside;
+    }
+
+    /* ========================================================================
+       LINT — runs on load. Flags forbidden phrases, voice over-density, and
+       sensitive-mode tone breaks. Console warnings + a red flag on the picker.
+       ======================================================================== */
+    const EMOJI_RE = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F1E6}-\u{1F1FF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}]/u;
+    function lintSpecimen(s) {
+      const reply = specimenReplyText(s);
+      const warns = [];
+      const hits = forbiddenHits(reply);
+      if (hits.length) warns.push('forbidden phrase(s): ' + hits.join(', '));
+      if (s.density) {
+        if (s.density.words > DENSITY_MAX.words) warns.push('voice over-density: ' + s.density.words + ' words');
+        if (s.density.attributes > DENSITY_MAX.attributes) warns.push('voice over-density: ' + s.density.attributes + ' attributes');
+        if (s.density.items > DENSITY_MAX.items) warns.push('voice over-density: ' + s.density.items + ' items');
+      }
+      if (s.senseMode === 'sensitive') {
+        if (EMOJI_RE.test(reply)) warns.push('emoji in a sensitive reply');
+        if (/we dream big/i.test(reply)) warns.push('"we dream big" horizon-raise in a sensitive reply');
+      }
+      if (warns.length) { s.lintFail = true; console.warn('[lint] ' + s.id + ' — ' + warns.join('; ')); }
+      return warns;
     }
 
     /* ========================================================================
@@ -1145,6 +4086,19 @@
       return id === LIVE_ID ? renderLiveCaption() : renderCaption(SPECIMENS.find(s => s.id === id));
     }
 
+    // Hash format: #<axis>/<id>  (legacy #<id> still resolves).
+    function parseHash() {
+      const raw = decodeURIComponent(location.hash.slice(1));
+      if (!raw) return { axis: null, id: null };
+      const parts = raw.split('/');
+      if (parts.length === 2 && AXES.some(a => a.id === parts[0])) return { axis: parts[0], id: parts[1] };
+      return { axis: null, id: raw };
+    }
+    function setHash(id) {
+      const next = currentAxis + '/' + id;
+      if (location.hash.slice(1) !== next) history.replaceState(null, '', '#' + next);
+    }
+
     function selectSpecimen(id, updateHash) {
       const resolved = resolveId(id);
       currentId = resolved;
@@ -1161,24 +4115,32 @@
         btn.setAttribute('aria-pressed', btn.getAttribute('data-id') === resolved ? 'true' : 'false');
       });
 
-      if (updateHash && location.hash.slice(1) !== resolved) {
-        history.replaceState(null, '', '#' + resolved);
-      }
+      // Acceptance tracking — mark the chapter as seen.
+      const spec = SPECIMENS.find(s => s.id === resolved);
+      if (spec && spec.chapter) { visitedChapters.add(spec.chapter); updateCounter(); }
+
+      if (updateHash) setHash(resolved);
     }
 
     function init() {
       const root = document.getElementById('root');
 
+      // Run the linter once on load — warnings to console, red flag on the picker.
+      SPECIMENS.forEach(lintSpecimen);
+
+      const parsed = parseHash();
+      if (parsed.axis) currentAxis = parsed.axis;
+
       const page = el('div', { class: 'page' });
       page.appendChild(renderHeader());
 
-      const initialId = resolveId(location.hash.slice(1) || SPECIMENS[0].id);
+      const initialId = resolveId(parsed.id || SPECIMENS[0].id);
+      currentId = initialId;
 
       stageMount = renderStageFor(initialId);
       page.appendChild(stageMount);
 
       captionMount = renderCaptionFor(initialId);
-      // caption is fixed-position so it can live at the page level
       page.appendChild(captionMount);
 
       root.appendChild(page);
@@ -1187,23 +4149,25 @@
       pickerButtons.forEach(btn => {
         btn.setAttribute('aria-pressed', btn.getAttribute('data-id') === initialId ? 'true' : 'false');
       });
-      currentId = initialId;
+      const initSpec = SPECIMENS.find(s => s.id === initialId);
+      if (initSpec && initSpec.chapter) visitedChapters.add(initSpec.chapter);
+      updateCounter();
 
       window.addEventListener('hashchange', () => {
-        const id = location.hash.slice(1);
-        if (id && id !== currentId) selectSpecimen(id, false);
+        const p = parseHash();
+        if (p.axis && p.axis !== currentAxis) setAxis(p.axis);
+        if (p.id && p.id !== currentId) selectSpecimen(p.id, false);
       });
 
       window.addEventListener('keydown', (e) => {
         if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
         if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-        const i = SPECIMENS.findIndex(s => s.id === currentId);
+        // Walk the visible (axis-grouped) order so arrows match the picker.
+        const order = pickerGroups(currentAxis).flatMap(g => g.items.map(s => s.id));
+        const i = order.indexOf(currentId);
         if (i < 0) return;
-        const next = e.key === 'ArrowDown' ? Math.min(i + 1, SPECIMENS.length - 1) : Math.max(i - 1, 0);
-        if (SPECIMENS[next].id !== currentId) {
-          selectSpecimen(SPECIMENS[next].id, true);
-          e.preventDefault();
-        }
+        const next = e.key === 'ArrowDown' ? Math.min(i + 1, order.length - 1) : Math.max(i - 1, 0);
+        if (order[next] !== currentId) { selectSpecimen(order[next], true); e.preventDefault(); }
       });
     }
 
