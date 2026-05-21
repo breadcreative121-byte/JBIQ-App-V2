@@ -333,6 +333,9 @@
   .try-cta__btn:hover { background: var(--color-action-primary-hover); }
   @media (max-width: 640px) {
     .try-cta__banner { padding: var(--space-xl); }
+    /* Stack image comparisons one-per-row on phones. !important overrides the
+       inline 3-column grid styles on the ch-6 / ch-10 / ch-11 grids. */
+    .image-grid { grid-template-columns: 1fr !important; }
   }
 
   /* Clean bullet list — purple dot */
@@ -958,6 +961,10 @@
   }
   .pb-edit-btn--primary { background: var(--color-action-primary); }
   .pb-edit-controls[hidden] { display: none; }
+  /* Copy editing is a local-authoring tool only. Hidden by default so it can
+     NEVER appear in a deployed / git build; revealed only when JS confirms a
+     local dev host and adds body.is-local-dev. Fail-safe: no class, no button. */
+  body:not(.is-local-dev) .pb-edit-controls { display: none !important; }
 
   .pb-toast {
     position: fixed;
@@ -2327,6 +2334,15 @@ updateActive();
   const main = document.querySelector('main.page');
   if (!main) return;
 
+  // Copy editing is a local-authoring tool only — it must NEVER be available in
+  // a deployed / git build. On a local dev host we add body.is-local-dev (CSS
+  // then reveals the controls); anywhere else the class is absent, CSS keeps the
+  // controls hidden, and we skip wiring the buttons. Saved overrides still load
+  // and render everywhere, so display is unchanged.
+  const LOCAL_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '::1', ''];
+  const isLocalDev = LOCAL_HOSTS.includes(location.hostname) || location.hostname.endsWith('.local');
+  if (isLocalDev) document.body.classList.add('is-local-dev');
+
   // All editable copy classes found in the document. Images, nav, buttons and
   // the localStorage-backed image captions are intentionally excluded.
   const SELECTOR = [
@@ -2448,9 +2464,11 @@ updateActive();
     exitEdit();
   };
 
-  if (startBtn) startBtn.addEventListener('click', enterEdit);
-  if (saveBtn) saveBtn.addEventListener('click', save);
-  if (cancelBtn) cancelBtn.addEventListener('click', cancel);
+  if (isLocalDev) {
+    if (startBtn) startBtn.addEventListener('click', enterEdit);
+    if (saveBtn) saveBtn.addEventListener('click', save);
+    if (cancelBtn) cancelBtn.addEventListener('click', cancel);
+  }
 })();
 </script>
 

@@ -958,6 +958,10 @@
   }
   .pb-edit-btn--primary { background: var(--color-action-primary); }
   .pb-edit-controls[hidden] { display: none; }
+  /* Copy editing is a local-authoring tool only. Hidden by default so it can
+     NEVER appear in a deployed / git build; revealed only when JS confirms a
+     local dev host and adds body.is-local-dev. Fail-safe: no class, no button. */
+  body:not(.is-local-dev) .pb-edit-controls { display: none !important; }
 
   .pb-toast {
     position: fixed;
@@ -1792,6 +1796,15 @@ updateActive();
   const ENDPOINT = '/api/playbook-content?doc=ch4';
   const main = document.querySelector('main.page');
   if (!main) return;
+
+  // Copy editing is a local-authoring tool only — it must NEVER be available in
+  // a deployed / git build. On a local dev host we add body.is-local-dev (CSS
+  // then reveals the controls); anywhere else the class is absent, CSS keeps the
+  // controls hidden, and we skip wiring the buttons. Saved overrides still load
+  // and render everywhere, so display is unchanged.
+  const LOCAL_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '::1', ''];
+  const isLocalDev = LOCAL_HOSTS.includes(location.hostname) || location.hostname.endsWith('.local');
+  if (isLocalDev) document.body.classList.add('is-local-dev');
   const SELECTOR = [
     '.eyebrow', '.hero-title', '.hero-lead',
     '.dmeta th', '.dmeta td',
@@ -1837,9 +1850,11 @@ updateActive();
     } catch (err) { alert('Could not save: ' + (err.message || err)); } finally { saveBtn.disabled = false; }
   };
   const cancel = () => { if (snapshot) snapshot.forEach((h, el) => { el.innerHTML = h; }); exitEdit(); };
-  if (startBtn) startBtn.addEventListener('click', enterEdit);
-  if (saveBtn) saveBtn.addEventListener('click', save);
-  if (cancelBtn) cancelBtn.addEventListener('click', cancel);
+  if (isLocalDev) {
+    if (startBtn) startBtn.addEventListener('click', enterEdit);
+    if (saveBtn) saveBtn.addEventListener('click', save);
+    if (cancelBtn) cancelBtn.addEventListener('click', cancel);
+  }
 })();
 
 </script>
