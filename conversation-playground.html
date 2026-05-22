@@ -155,6 +155,7 @@
        come from index.html, not components.css.
        ------------------------------------------------------------------------ */
     .frame {
+      position: relative;
       width: var(--frame-width);
       height: var(--frame-height);
       border-radius: 30px;
@@ -359,27 +360,27 @@
 
     /* Voice-surface bottom bar — clover logo + round +/mic/keyboard buttons,
        mirroring the production voice surface in index.html. */
+    /* Floats over the transcript so messages scroll underneath the avatar,
+       fading out into white behind the action buttons. */
     .frame__voicebar {
-      flex-shrink: 0;
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
       display: flex; flex-direction: column;
-      align-items: center; gap: 18px;
-      padding: 16px 16px 24px;
-      background: #fff;
+      align-items: center; gap: 10px;
+      padding: 24px 16px 24px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.92) 50%, #fff 72%);
+      pointer-events: none;
     }
-    .frame__voice-dots {
-      width: 120px; height: 120px;
-      display: flex; flex-wrap: wrap;
-      align-items: center; justify-content: center;
-      gap: 8px;
-    }
-    .frame__voice-dot {
-      width: 48px; height: 48px;
-      border-radius: 50%;
-      background: var(--surface-bold);
+    .frame:has(.frame__voicebar) .frame__transcript { padding-bottom: 150px; }
+    .frame__voice-avatar {
+      width: 58px; height: 58px;
+      object-fit: cover;
+      display: block;
     }
     .frame__voice-actions {
       display: flex; gap: 16px;
       align-items: center; justify-content: center;
+      pointer-events: auto;
     }
     .frame__voice-action {
       width: 42px; height: 42px;
@@ -3598,13 +3599,17 @@
       return btn;
     }
 
-    // Voice-surface bottom bar — clover logo + decorative +/mic/keyboard buttons.
+    // Voice-surface bottom bar — speaking avatar + decorative +/mic/keyboard buttons.
     const VOICE_SURFACES = new Set(['voice', 'voice+ui', 'speaker']);
     function voiceBar() {
       const bar = el('div', { class: 'frame__voicebar' });
-      const dots = el('div', { class: 'frame__voice-dots' });
-      for (let i = 0; i < 4; i++) dots.appendChild(el('div', { class: 'frame__voice-dot' }));
-      bar.appendChild(dots);
+      // muted/autoplay set as properties (not attributes) so the browser's
+      // autoplay policy lets the loop play without a user gesture.
+      const avatar = el('video', { class: 'frame__voice-avatar', src: 'assets/speaking-avatar.mp4', loop: '', playsinline: '' });
+      avatar.muted = true;
+      avatar.autoplay = true;
+      bar.appendChild(avatar);
+      avatar.play().catch(() => {});
       const actions = el('div', { class: 'frame__voice-actions' });
       actions.appendChild(el('button', { class: 'frame__voice-action', type: 'button', 'aria-label': 'Add', html: ICON_ADD }));
       actions.appendChild(el('button', { class: 'frame__voice-action', type: 'button', 'aria-label': 'Microphone', html: ICON_MIC }));
