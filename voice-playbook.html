@@ -980,13 +980,44 @@
   }
   .pb-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
 
+  /* Download-skill CTA — fixed top-right. The .skill bundle is served as a
+     static file, so this is a plain download link styled as a pill button. */
+  .pb-download-cta {
+    position: fixed;
+    top: var(--space-md); right: var(--space-md);
+    z-index: 40;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-family);
+    font-weight: 700; font-size: 14px; line-height: 1;
+    text-decoration: none;
+    padding: 11px 18px; border-radius: var(--radius-pill);
+    background: var(--color-action-primary); color: #fff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+    transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+  .pb-download-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.26); }
+  .pb-download-cta:active { transform: translateY(0); }
+  .pb-download-cta svg { width: 16px; height: 16px; flex: 0 0 auto; }
+  @media (max-width: 600px) {
+    .pb-download-cta { padding: 10px 14px; font-size: 13px; }
+    .pb-download-cta__label { display: none; }
+    .pb-download-cta { gap: 0; }
+  }
+
   @media print {
-    .pb-edit-controls, .pb-toast { display: none !important; }
+    .pb-edit-controls, .pb-toast, .pb-download-cta { display: none !important; }
   }
 
 </style>
 </head>
 <body>
+
+<a class="pb-download-cta" href="jbiq-voice.skill" download="jbiq-voice.skill" aria-label="Download the JBIQ voice skill">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>
+  </svg>
+  <span class="pb-download-cta__label">Download skill</span>
+</a>
 
 <button class="toc-burger" aria-label="Open navigation">☰</button>
 
@@ -1114,7 +1145,6 @@
 
   <!-- ============ HOW IT INTERLOCKS ============ -->
   <section class="section" id="interlock">
-    <div class="eyebrow">How it fits together</div>
     <h2 class="section-title">How the chapters fit together.</h2>
     <p class="section-lead">Identity and principles are the bedrock. The reply rhythm and response anatomy shape every reply, and voice disclosure is that same anatomy spoken aloud. Memory, commitment, and failing well are the conditions JBIQ works under day to day. Multi-modal and partners cover sharing the screen with others. Sensitive moments and the never-does card are the hard edges. Measurement and governance checks it's all working.</p>
 

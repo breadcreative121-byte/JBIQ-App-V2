@@ -357,6 +357,39 @@
     @keyframes voiceBar2 { 0%,100% { height: 16px; y: 5; } 50% { height: 8px; y: 9; } }
     @keyframes voiceBar3 { 0%,100% { height: 12px; y: 7; } 50% { height: 16px; y: 5; } }
 
+    /* Voice-surface bottom bar — clover logo + round +/mic/keyboard buttons,
+       mirroring the production voice surface in index.html. */
+    .frame__voicebar {
+      flex-shrink: 0;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 18px;
+      padding: 16px 16px 24px;
+      background: #fff;
+    }
+    .frame__voice-dots {
+      width: 120px; height: 120px;
+      display: flex; flex-wrap: wrap;
+      align-items: center; justify-content: center;
+      gap: 8px;
+    }
+    .frame__voice-dot {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: var(--surface-bold);
+    }
+    .frame__voice-actions {
+      display: flex; gap: 16px;
+      align-items: center; justify-content: center;
+    }
+    .frame__voice-action {
+      width: 42px; height: 42px;
+      background: #ede7ff;
+      border-radius: var(--shape-pill);
+      display: flex; align-items: center; justify-content: center;
+      border: 0; cursor: pointer; flex-shrink: 0;
+    }
+    .frame__voice-action svg { width: 24px; height: 24px; }
+
     /* Live turns carry model output verbatim — preserve its line breaks. */
     .turn--live.turn--jbiq { white-space: pre-wrap; }
 
@@ -3555,12 +3588,29 @@
     const ICON_ADD = '<svg viewBox="0 0 26 26" fill="none"><path d="M13 6v14M6 13h14" stroke="#6d17ce" stroke-width="2" stroke-linecap="round"/></svg>';
     const ICON_SPEAK = '<svg viewBox="0 0 26 26" fill="none" aria-hidden="true"><rect x="6" y="9" width="2.5" height="8" rx="1.25" fill="white"/><rect x="11.75" y="5" width="2.5" height="16" rx="1.25" fill="white"/><rect x="17.5" y="7" width="2.5" height="12" rx="1.25" fill="white"/></svg>';
     const ICON_SEND = '<svg viewBox="0 0 20 20" fill="none"><path d="M10 16V4m0 0l5 5m-5-5L5 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const ICON_MIC = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 003-3V5a3 3 0 00-6 0v7a3 3 0 003 3zm6-5a1 1 0 00-1 1v1a5 5 0 11-10 0v-1a1 1 0 10-2 0v1a7 7 0 1014 0v-1a1 1 0 00-1-1zm-3 10H9a1 1 0 000 2h6a1 1 0 000-2z" fill="#6d17ce"/></svg>';
+    const ICON_KEYBOARD = '<svg viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="3" stroke="#6d17ce" stroke-width="1.5"/><circle cx="7" cy="10" r="1" fill="#6d17ce"/><circle cx="12" cy="10" r="1" fill="#6d17ce"/><circle cx="17" cy="10" r="1" fill="#6d17ce"/><rect x="7" y="14" width="10" height="1.5" rx=".75" fill="#6d17ce"/></svg>';
 
     // Speak button — purple pill with animated waveform + "Speak" label.
     function speakButton() {
       const btn = el('button', { class: 'frame__speak', type: 'button', 'aria-label': 'Speak', html: ICON_SPEAK });
       btn.appendChild(el('span', { class: 'frame__speak-label', text: 'Speak' }));
       return btn;
+    }
+
+    // Voice-surface bottom bar — clover logo + decorative +/mic/keyboard buttons.
+    const VOICE_SURFACES = new Set(['voice', 'voice+ui', 'speaker']);
+    function voiceBar() {
+      const bar = el('div', { class: 'frame__voicebar' });
+      const dots = el('div', { class: 'frame__voice-dots' });
+      for (let i = 0; i < 4; i++) dots.appendChild(el('div', { class: 'frame__voice-dot' }));
+      bar.appendChild(dots);
+      const actions = el('div', { class: 'frame__voice-actions' });
+      actions.appendChild(el('button', { class: 'frame__voice-action', type: 'button', 'aria-label': 'Add', html: ICON_ADD }));
+      actions.appendChild(el('button', { class: 'frame__voice-action', type: 'button', 'aria-label': 'Microphone', html: ICON_MIC }));
+      actions.appendChild(el('button', { class: 'frame__voice-action', type: 'button', 'aria-label': 'Keyboard', html: ICON_KEYBOARD }));
+      bar.appendChild(actions);
+      return bar;
     }
 
     function renderFrame(specimen) {
@@ -3587,12 +3637,17 @@
       });
       frame.appendChild(transcript);
 
-      // Input bar — + / "Ask anything" pill / purple Speak button.
-      const input = el('div', { class: 'frame__input' });
-      input.appendChild(el('button', { class: 'frame__add', type: 'button', 'aria-label': 'Add', html: ICON_ADD }));
-      input.appendChild(el('div', { class: 'frame__input-pill', text: 'Ask anything' }));
-      input.appendChild(speakButton());
-      frame.appendChild(input);
+      // Bottom bar — voice surfaces get the clover voice view; everything else
+      // gets the + / "Ask anything" pill / purple Speak text bar.
+      if (VOICE_SURFACES.has(specimen.surface)) {
+        frame.appendChild(voiceBar());
+      } else {
+        const input = el('div', { class: 'frame__input' });
+        input.appendChild(el('button', { class: 'frame__add', type: 'button', 'aria-label': 'Add', html: ICON_ADD }));
+        input.appendChild(el('div', { class: 'frame__input-pill', text: 'Ask anything' }));
+        input.appendChild(speakButton());
+        frame.appendChild(input);
+      }
 
       return frame;
     }
