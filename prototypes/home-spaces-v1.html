@@ -5,7 +5,7 @@
 <style>
   /* JioType — real JDS font, with system fallback if the CDN is blocked */
   @font-face{font-family:'JioType';font-weight:100 900;font-style:normal;
-    src:url('https://raw.githubusercontent.com/sunit1986/JioBharatIQ_Server/main/assets/fonts/woff2/JioTypeVarW05-Regular.woff2') format('woff2');}
+    src:url('assets/fonts/JioTypeVarW05-Regular.woff2') format('woff2'),url('assets/fonts/JioTypeVarW05-Regular.woff') format('woff');}
 
   :root{
     /* JDS colour */
@@ -222,8 +222,59 @@
   .legend b{color:var(--ink)}
   footer{margin-top:34px;font-size:12.5px;color:var(--ink-38);line-height:1.6}
 
+  /* help "?" chip in the pager Home header */
+  .help-b{width:30px;height:30px;border-radius:var(--r-pill);border:1px solid var(--line-strong);background:var(--surface);
+    color:var(--ink-65);font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .help-b:active{transform:scale(.94)}
+
+  /* ---- Meet-Spaces first-run bottom sheet (interactive phone only) ---- */
+  #paperphone .sheet-scrim{position:absolute;inset:0;background:rgba(12,13,16,.42);opacity:0;pointer-events:none;
+    transition:opacity var(--mid) var(--ease);z-index:14}
+  #paperphone .sheet-scrim.on{opacity:1;pointer-events:auto}
+  #paperphone .ssheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);
+    border-radius:24px 24px 0 0;padding:8px 20px 22px;box-shadow:0 -18px 44px -14px rgba(49,0,100,.4);
+    transform:translateY(101%);transition:transform var(--slow) var(--ease);z-index:15}
+  #paperphone .ssheet.on{transform:translateY(0)}
+  .ss-grab{width:36px;height:4px;border-radius:var(--r-pill);background:rgba(12,13,16,.16);margin:0 auto 12px;cursor:pointer}
+  .ss-peek{position:relative;height:120px;border-radius:var(--r-md);overflow:hidden;
+    background:linear-gradient(180deg,#faf7ff,#efe8ff);border:1px solid var(--primary-30)}
+  .ss-peek-track{position:absolute;top:14px;left:0;width:200%;height:78px;display:flex;
+    animation:ssSlide 3.8s var(--ease) infinite}
+  .ss-card{flex:0 0 50%;padding:0 12px;display:flex}
+  .ss-mini{flex:1;border-radius:10px;padding:9px;display:flex;flex-direction:column;gap:6px;
+    box-shadow:0 8px 16px -9px rgba(49,0,100,.5)}
+  .ss-mini.home{background:#fff}
+  .ss-mini.space{background:#ede7ff}
+  .ss-orb{width:26px;height:26px;border-radius:50%;align-self:center;margin:2px 0 3px;
+    background:radial-gradient(circle at 34% 30%,#fff,#8a3bef 60%,var(--primary))}
+  .ss-bar{height:7px;border-radius:4px;background:rgba(12,13,16,.10)}
+  .ss-bar.w1{width:72%}.ss-bar.w2{width:46%}
+  .ss-hero{height:30px;border-radius:8px;background:var(--primary);opacity:.9}
+  .ss-hand{position:absolute;right:30px;bottom:16px;font-size:24px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.25));
+    animation:ssHand 3.8s var(--ease) infinite}
+  .ss-peekdots{position:absolute;left:0;right:0;bottom:8px;display:flex;gap:4px;justify-content:center}
+  .ss-peekdots i{width:5px;height:5px;border-radius:50%;background:rgba(12,13,16,.16)}
+  .ss-peekdots i.on{width:14px;border-radius:3px;background:var(--primary)}
+  @keyframes ssSlide{0%,24%{transform:translateX(0)}58%,100%{transform:translateX(-50%)}}
+  @keyframes ssHand{0%,18%{transform:translateX(8px);opacity:.95}52%,100%{transform:translateX(-34px);opacity:.45}}
+  .ss-title{font-size:21px;font-weight:800;letter-spacing:-.02em;margin:15px 0 5px}
+  .ss-desc{font-size:13.5px;color:var(--ink-65);line-height:1.5}
+  .ss-desc b{color:var(--ink);font-weight:700}
+  .ss-hint{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--warm-ink);
+    background:var(--warm);border:1px solid var(--warm-line);border-radius:var(--r-pill);padding:9px 14px;margin:14px 0 2px}
+  .ss-cta{width:100%;border:0;font:inherit;cursor:pointer;background:var(--primary);color:#fff;font-size:15px;font-weight:800;
+    border-radius:var(--r-pill);padding:14px;margin-top:12px;box-shadow:0 10px 22px -8px rgba(109,23,206,.6);
+    transition:transform var(--fast) var(--ease)}
+  .ss-cta:active{transform:scale(.98)}
+  .ss-voice{width:100%;border:0;font:inherit;cursor:pointer;background:transparent;color:var(--primary);
+    font-size:13px;font-weight:700;padding:11px;display:flex;align-items:center;justify-content:center;gap:7px}
+  .ss-later{width:100%;border:0;font:inherit;cursor:pointer;background:transparent;color:var(--ink-38);
+    font-size:13px;font-weight:600;padding:2px}
+
   @media (prefers-reduced-motion: reduce){
     .orb,.orb::after,.wave i,.live-dot,.hero.arrive{animation:none!important}
+    .ss-peek-track,.ss-hand{animation:none!important}
+    .ss-peek-track{transform:translateX(-25%)}
   }
 </style>
 
@@ -410,7 +461,7 @@
 
           <!-- PANEL 0 — HOME -->
           <div class="panel" id="homePanel">
-            <div class="apphdr"><div class="greet" id="pGreet">Namaste, Arjun</div><div class="hdr-right"><div class="avatar">A</div></div></div>
+            <div class="apphdr"><div class="greet" id="pGreet">Namaste, Arjun</div><div class="hdr-right"><button class="help-b" id="spacesHelp" aria-label="What is Spaces?">?</button><div class="avatar">A</div></div></div>
             <div class="toolbar">
               <div class="seg" id="sigSeg"><button data-sig="warm" class="active">warm</button><button data-sig="cold">cold</button><button data-sig="moment">moment</button></div>
               <div class="seg" id="langSeg"><button data-lang="en" class="active">EN</button><button data-lang="hi">हिं</button><button data-lang="ta">தமிழ்</button></div>
@@ -541,6 +592,26 @@
         <div class="micbar"><div class="ph" id="pMic">Speak or type</div><button class="micbtn" data-listen="Listening…"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12h-2Z"/></svg></button></div>
         <div class="listen"><div class="orb lorb"></div><div class="lbl">Listening…</div><div class="heard"></div><div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="close">tap to close</div></div>
         <div class="toast"></div>
+
+        <!-- Meet-Spaces first-run bottom sheet -->
+        <div class="sheet-scrim"></div>
+        <div class="ssheet" role="dialog" aria-label="Meet Spaces">
+          <div class="ss-grab"></div>
+          <div class="ss-peek" aria-hidden="true">
+            <div class="ss-peek-track">
+              <div class="ss-card"><div class="ss-mini home"><div class="ss-orb"></div><div class="ss-bar w1"></div><div class="ss-bar w2"></div></div></div>
+              <div class="ss-card"><div class="ss-mini space"><div class="ss-hero"></div><div class="ss-bar w1"></div><div class="ss-bar w2"></div></div></div>
+            </div>
+            <div class="ss-hand">👆</div>
+            <div class="ss-peekdots"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <div class="ss-title">Meet Spaces</div>
+          <div class="ss-desc">A space for every part of your day — <b>faith, health, work, someone to talk to,</b> and whatever else life brings. Each one’s ready when you are.</div>
+          <div class="ss-hint">👈 Swipe left any time — or tap below to peek in</div>
+          <button class="ss-cta" id="ssGo">Show me Spaces →</button>
+          <button class="ss-voice" id="ssVoice">🎙️ Or just say “Show me Spaces”</button>
+          <button class="ss-later" id="ssLater">Maybe later</button>
+        </div>
       </div>
     </div>
 
@@ -666,5 +737,28 @@
   document.querySelectorAll('#sigSeg button').forEach(function(b){ b.addEventListener('click',function(){ var s=b.getAttribute('data-sig'); if(s==='moment'&&st.sig==='moment'){ st.mi++; } document.querySelectorAll('#sigSeg button').forEach(function(x){x.classList.remove('active')}); b.classList.add('active'); st.sig=s; render(); }); });
   document.querySelectorAll('#langSeg button').forEach(function(b){ b.addEventListener('click',function(){ document.querySelectorAll('#langSeg button').forEach(function(x){x.classList.remove('active')}); b.classList.add('active'); st.lang=b.getAttribute('data-lang'); render(); }); });
   render();
+
+  // ---- Meet-Spaces first-run bottom sheet ----
+  (function(){
+    var scrim=phone.querySelector('.sheet-scrim'), sh=phone.querySelector('.ssheet');
+    if(!scrim||!sh) return;
+    function openSheet(){ scrim.classList.add('on'); sh.classList.add('on'); }
+    function closeSheet(){ scrim.classList.remove('on'); sh.classList.remove('on'); }
+    scrim.addEventListener('click',closeSheet);
+    phone.querySelector('.ss-grab').addEventListener('click',closeSheet);
+    document.getElementById('ssLater').addEventListener('click',closeSheet);
+    document.getElementById('ssGo').addEventListener('click',function(){ closeSheet(); goTo(1); });
+    document.getElementById('ssVoice').addEventListener('click',function(){
+      closeSheet();
+      var ov=phone.querySelector('.listen'), h=ov.querySelector('.heard'); h.textContent=''; ov.classList.add('on');
+      setTimeout(function(){ h.textContent='“Show me Spaces”'; },700);
+      setTimeout(function(){ ov.classList.remove('on'); goTo(1); },1750);
+    });
+    var help=document.getElementById('spacesHelp'); if(help) help.addEventListener('click',openSheet);
+    // First-run: auto-present after the screen settles. In production this is gated
+    // to the first session + the new / Day-0 Home states; here it shows on each load
+    // so the moment stays reviewable. Re-open any time via the "?" in the Home header.
+    setTimeout(openSheet, 650);
+  })();
 })();
 </script>
