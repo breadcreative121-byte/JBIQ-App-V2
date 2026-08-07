@@ -1,0 +1,67 @@
+{
+  "expo": {
+    "name": "JBIQ Saathi",
+    "slug": "jbiq-saathi",
+    "scheme": "jbiq",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.jio.jbiq.ios",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "JBIQ Saathi uses the microphone for voice conversation.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.jio.jbiq.ios",
+      "adaptiveIcon": {
+        "backgroundColor": "#6d17ce",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "JBIQ Saathi",
+      "shortName": "Saathi",
+      "themeColor": "#5A2EFF",
+      "backgroundColor": "#FFFFFF",
+      "display": "standalone",
+      "description": "JBIQ Saathi — voice-led assistant prototype",
+      "meta": {
+        "apple-mobile-web-app-capable": "yes",
+        "apple-mobile-web-app-status-bar-style": "default"
+      }
+    },
+    "assetBundlePatterns": ["**/*"],
+    "experiments": {
+      "baseUrl": "/app",
+      "onDemandFilesystem": false
+    },
+    "extra": {
+      "apiBaseUrl": "https://jbiq-app-v2.onrender.com"
+    },
+    "plugins": [
+      "expo-video",
+      "expo-audio",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#6d17ce"
+        }
+      ],
+      "expo-font",
+      "expo-asset"
+    ]
+  }
+}

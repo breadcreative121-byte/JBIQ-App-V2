@@ -1,0 +1,13 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@theme": ["src/theme/tokens"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", "../../tokens/tokens.ts"]
+}
