@@ -1,6 +1,8 @@
-/* Compact action card in a Space (the 2-up grid + full-width rows). Optional
-   "Soon" state shows a tag and a Notify affordance instead of a dead end. */
+/* A full-width action row in a Space (Figma 168:1941): a bordered card with the
+   peach icon chip stacked above the title + subtitle, and a chevron on the
+   right. Optional "Soon" state dims the row and routes the tap to Notify. */
 import { View, Text, Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { fig } from '@/theme/figma';
 import { font } from '@/theme/fonts';
 import { AccentIconChip, type GlyphName } from './AccentIconChip';
@@ -27,46 +29,43 @@ export function ActionCard({
 }) {
   return (
     <Pressable
-      onPress={soon ? undefined : onPress}
+      onPress={soon ? onNotify : onPress}
       accessibilityRole="button"
       accessibilityLabel={title}
-      style={({ pressed }) => [
-        styles.card,
-        soon && styles.soon,
-        pressed && !soon && styles.pressed,
-        style,
-      ]}
+      style={({ pressed }) => [styles.card, soon && styles.soon, pressed && styles.pressed, style]}
     >
-      <AccentIconChip icon={icon} jds={jds} size={24} iconSize={16} />
-      <View style={styles.textWrap}>
-        <View style={styles.titleRow}>
-          <Text style={styles.title}>{title}</Text>
-          {soon ? <Text style={styles.soonTag}>SOON</Text> : null}
+      <View style={styles.content}>
+        <AccentIconChip icon={icon} jds={jds} size={28} iconSize={16} />
+        <View style={styles.textCol}>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>{title}</Text>
+            {soon ? <Text style={styles.soonTag}>SOON</Text> : null}
+          </View>
+          <Text style={styles.subtitle}>{subtitle}</Text>
         </View>
-        <Text style={styles.subtitle}>{subtitle}</Text>
       </View>
-      {soon && onNotify ? (
-        <Pressable onPress={onNotify} accessibilityRole="button" style={styles.notify}>
-          <Text style={styles.notifyLabel}>Notify me</Text>
-        </Pressable>
-      ) : null}
+      <Ionicons name={soon ? 'notifications-outline' : 'chevron-forward'} size={20} color={fig.textLow} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: fig.strokeCard,
     backgroundColor: fig.surface,
-    padding: 12,
-    gap: 8,
+    paddingLeft: 12,
+    paddingRight: 8,
+    paddingVertical: 12,
   },
   soon: { opacity: 0.72 },
   pressed: { backgroundColor: fig.surfaceMinimal },
-  textWrap: { gap: 3 },
+  content: { flex: 1, gap: 8 },
+  textCol: { gap: 5 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
   title: { fontSize: 16, fontWeight: '700', color: fig.textHigh, lineHeight: 20, ...font('700') },
   subtitle: { fontSize: 12, fontWeight: '400', color: fig.textLow, lineHeight: 18, ...font('400') },
@@ -82,14 +81,4 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...font('800'),
   },
-  notify: {
-    alignSelf: 'flex-start',
-    marginTop: 2,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: fig.strokeCard,
-  },
-  notifyLabel: { fontSize: 12, fontWeight: '700', color: fig.textHigh, ...font('700') },
 });
