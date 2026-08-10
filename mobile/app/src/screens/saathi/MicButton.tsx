@@ -3,6 +3,7 @@ import { Animated, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { fig } from '@/theme/figma';
+import { useReducedMotion } from '@/lib/useReducedMotion';
 import { useRecorder } from './useRecorder';
 import type { CueId } from './types';
 
@@ -21,6 +22,7 @@ export function MicButton({ cue, onStart, onResult, onError, onListeningChange, 
   const { start, stopAndTranscribe, recording } = useRecorder();
   const scale = useRef(new Animated.Value(1)).current;
   const loopRef = useRef<Animated.CompositeAnimation | null>(null);
+  const reduced = useReducedMotion();
 
   // Surface recording state to the screen so it can show "Listening…".
   useEffect(() => {
@@ -28,7 +30,8 @@ export function MicButton({ cue, onStart, onResult, onError, onListeningChange, 
   }, [recording, onListeningChange]);
 
   useEffect(() => {
-    if (recording) {
+    // Colour still changes on record; only the looping pulse is suppressed.
+    if (recording && !reduced) {
       loopRef.current = Animated.loop(
         Animated.sequence([
           Animated.timing(scale, { toValue: 1.08, duration: 500, useNativeDriver: true }),
@@ -41,7 +44,7 @@ export function MicButton({ cue, onStart, onResult, onError, onListeningChange, 
       scale.setValue(1);
     }
     return () => loopRef.current?.stop();
-  }, [recording, scale]);
+  }, [recording, scale, reduced]);
 
   const handlePressIn = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});

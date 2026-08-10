@@ -47,6 +47,7 @@ import {
   getSpacesIntroSeen,
   setSpacesIntroSeen,
 } from '@/lib/onboarding';
+import { useReducedMotion } from '@/lib/useReducedMotion';
 import { VERTICALS, type Vertical } from '../spaces/verticals';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -133,6 +134,7 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
 
+  const reduced = useReducedMotion();
   const scrollRef = useRef<any>(null);
   const scrollX = useRef(new Animated.Value(width)).current; // start on Home
   const [active, setActive] = useState(HOME);
@@ -351,6 +353,7 @@ export function HomeScreen() {
   // A gentle, periodic lift on the "more" cue nudges the eye toward the gesture.
   const hintBounce = useRef(new Animated.Value(0)).current;
   useEffect(() => {
+    if (reduced) return;
     const loop = Animated.loop(
       Animated.sequence([
         Animated.delay(2200),
@@ -370,7 +373,7 @@ export function HomeScreen() {
     );
     loop.start();
     return () => loop.stop();
-  }, [hintBounce]);
+  }, [hintBounce, reduced]);
 
   // Staggered entrance for the phrase rows.
   const anims = useRef([0, 1, 2, 3].map(() => new Animated.Value(0))).current;
@@ -720,6 +723,7 @@ function CoachTip({
 }) {
   const a = useRef(new Animated.Value(0)).current;
   const b = useRef(new Animated.Value(0)).current;
+  const reduced = useReducedMotion();
   useEffect(() => {
     const enter = Animated.timing(a, {
       toValue: 1,
@@ -730,7 +734,7 @@ function CoachTip({
     });
     let loop: Animated.CompositeAnimation | undefined;
     enter.start(({ finished }) => {
-      if (finished && bounce !== 'none') {
+      if (finished && bounce !== 'none' && !reduced) {
         const dir = bounce === 'down' ? 1 : -1;
         loop = Animated.loop(
           Animated.sequence([
@@ -751,7 +755,7 @@ function CoachTip({
       enter.stop();
       loop?.stop();
     };
-  }, [a, b, delay, bounce]);
+  }, [a, b, delay, bounce, reduced]);
   return (
     <Animated.View
       pointerEvents="box-none"

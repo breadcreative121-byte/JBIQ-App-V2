@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, Easing, Platform, StyleSheet, View } from 'react-native';
 import Svg, { Defs, ClipPath, LinearGradient, Stop, Rect, Text as SvgText } from 'react-native-svg';
 import { familyFor } from '@/theme/fonts';
+import { useReducedMotion } from '@/lib/useReducedMotion';
 
 /* A status label (e.g. "Listening…" / "Thinking") with a light band that sweeps
    across the glyphs. Base text sits underneath; a translucent white gradient
@@ -33,8 +34,14 @@ export function ListeningLabel({
   align?: 'center' | 'start';
 }) {
   const x = useRef(new Animated.Value(-BAND)).current;
+  const reduced = useReducedMotion();
 
   useEffect(() => {
+    // Hold the band off-glyph and skip the sweep when motion is reduced.
+    if (reduced) {
+      x.setValue(-BAND);
+      return;
+    }
     x.setValue(-BAND);
     const anim = Animated.loop(
       Animated.sequence([
@@ -49,7 +56,7 @@ export function ListeningLabel({
     );
     anim.start();
     return () => anim.stop();
-  }, [x, text, width]);
+  }, [x, text, width, reduced]);
 
   const common = {
     x: align === 'start' ? 0 : width / 2,
