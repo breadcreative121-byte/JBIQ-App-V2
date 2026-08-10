@@ -32,6 +32,7 @@ import { Composer } from '@/components/Composer';
 import { JioLogo } from '@/components/JioLogo';
 import { JdsIcon } from '@/components/JdsIcon';
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Stop, Rect } from 'react-native-svg';
+import { BlurView } from 'expo-blur';
 import { TabStrip } from '@/components/TabStrip';
 import { SpacesIntroSheet } from '@/components/SpacesIntroSheet';
 import { MicPermissionSheet } from '@/components/MicPermissionSheet';
@@ -526,6 +527,7 @@ export function HomeScreen() {
 
       {/* Fixed shared header — cross-fades Menu ⇄ Home ⇄ Spaces */}
       <View style={[styles.headerWrap, { paddingTop: insets.top, height: insets.top + HEADER_H }]} pointerEvents="box-none">
+        <FrostedBar />
         <Animated.View
           style={[styles.headerRow, styles.headerAbs, { opacity: menuOpacity }]}
           pointerEvents={active === MENU ? 'box-none' : 'none'}
@@ -570,6 +572,7 @@ export function HomeScreen() {
         style={[styles.tabWrap, { top: insets.top + HEADER_H, opacity: spacesOpacity }]}
         pointerEvents={active >= SPACES ? 'auto' : 'none'}
       >
+        <FrostedBar />
         <TabStrip
           tabs={VERTICALS.map((v) => v.tab)}
           active={Math.max(0, active - SPACES)}
@@ -591,6 +594,11 @@ export function HomeScreen() {
           <View style={styles.dotActive} />
         </View>
       </Animated.View>
+
+      {/* Frosted chrome behind the bottom bar (composer / menu bar) */}
+      <View style={styles.bottomFrost} pointerEvents="none">
+        <FrostedBar />
+      </View>
 
       {/* Composer — visible on Home + Spaces */}
       <Animated.View
@@ -773,6 +781,18 @@ function CoachTip({
     >
       {children}
     </Animated.View>
+  );
+}
+
+// Frosted-glass fill for the fixed chrome (header, tab strip, bottom bar): an
+// iOS blur behind a soft white tint, so the bars stay translucent yet legible
+// over busy scrolling content. Uses expo-blur (native module).
+function FrostedBar() {
+  return (
+    <>
+      <BlurView intensity={32} tint="light" style={StyleSheet.absoluteFill} pointerEvents="none" />
+      <View style={[StyleSheet.absoluteFill, styles.frostTint]} pointerEvents="none" />
+    </>
   );
 }
 
@@ -1031,8 +1051,21 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(255,255,255,0.72)',
+    overflow: 'hidden', // clip the frosted blur to the bar
     zIndex: 10,
+  },
+  frostTint: { backgroundColor: 'rgba(255,255,255,0.4)' },
+  bottomFrost: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 84,
+    overflow: 'hidden',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(12,13,16,0.06)',
+    // No zIndex: paints above the content ScrollView (JSX order) but below the
+    // composer / menu bar, which are rendered after it.
   },
   headerRow: {
     height: HEADER_H,
@@ -1071,7 +1104,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: TAB_H,
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.72)',
+    overflow: 'hidden',
     zIndex: 9,
   },
 
