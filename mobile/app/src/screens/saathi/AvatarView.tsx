@@ -1,27 +1,30 @@
 import { StyleSheet, View } from 'react-native';
 import LottieView from 'lottie-react-native';
+import { AVATAR_SOURCES, AVATAR_LOOPS, type AvatarState } from './avatarSources';
 
-// A looping Lottie orb. Defaults to the "listening" dot-ring; pass a different
-// `source` (e.g. thinking.json) and `size` to reuse it elsewhere. `thinking`
-// just nudges the loop a touch faster.
-const LISTENING = require('../../../assets/lottie/listening.json');
-
+// The Saathi orb. Pass a `state` to drive its animation (idle / listening /
+// thinking / speaking + the two transitions); steady states loop, transitions
+// play once. `source` stays supported as a legacy override (e.g. the permission
+// sheet). Keyed by state so each change restarts the clip from its first frame.
 export function AvatarView({
-  thinking = false,
-  source = LISTENING,
+  state = 'listening',
+  source,
   size = 58,
 }: {
-  thinking?: boolean;
+  state?: AvatarState;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   source?: any;
   size?: number;
 }) {
+  const src = source ?? AVATAR_SOURCES[state];
+  const loop = source ? true : AVATAR_LOOPS[state];
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>
       <LottieView
-        source={source}
+        key={source ? 'src' : state}
+        source={src}
         autoPlay
-        loop
-        speed={thinking ? 1.4 : 1}
+        loop={loop}
         resizeMode="contain"
         style={{ width: size, height: size }}
       />

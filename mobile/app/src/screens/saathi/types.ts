@@ -4,12 +4,11 @@ export type ConversationState = 'idle' | 'sending' | 'thinking' | 'speaking' | '
 
 export type TranscriptItem =
   | { id: string; kind: 'user'; text: string }
-  | { id: string; kind: 'assistant'; text: string }
+  | { id: string; kind: 'assistant'; text: string; card?: 'darshan' }
   | { id: string; kind: 'error'; text: string };
 
 export type CueId =
   | 'wakeup'
-  | 'welcome'
   | 'va-understood'
   | 'message-sent'
   | 'mic-on'

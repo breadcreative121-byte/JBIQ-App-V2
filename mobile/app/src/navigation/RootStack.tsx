@@ -11,7 +11,7 @@ import { PlaygroundScreen } from '@/screens/PlaygroundScreen';
 
 export type RootStackParamList = {
   Home: undefined;
-  Saathi: { prompt?: string; mode?: 'text' | 'voice' } | undefined;
+  Saathi: { prompt?: string; mode?: 'text' | 'voice'; coach?: 'firstRun' } | undefined;
   Playbook: undefined;
   Playground: undefined;
 };

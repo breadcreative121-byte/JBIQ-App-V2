@@ -1,44 +1,41 @@
 import { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import lottie, { type AnimationItem } from 'lottie-web';
+import { AVATAR_SOURCES, AVATAR_LOOPS, type AvatarState } from './avatarSources';
 
-// Web build of the Lottie orb. lottie-react-native has no web renderer, so we
-// drive lottie-web against a <div>. On web, require('*.json') resolves to the
-// parsed animation object, so the same `source` prop works as on native.
-const LISTENING = require('../../../assets/lottie/listening.json');
-
+// Web build of the Saathi orb. lottie-react-native has no web renderer, so we
+// drive lottie-web against a <div>, reloading whenever the state (and thus the
+// clip / loop) changes so each state plays from its first frame.
 export function AvatarView({
-  thinking = false,
-  source = LISTENING,
+  state = 'listening',
+  source,
   size = 58,
 }: {
-  thinking?: boolean;
+  state?: AvatarState;
   source?: unknown;
   size?: number;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const animRef = useRef<AnimationItem | null>(null);
 
+  const src = source ?? AVATAR_SOURCES[state];
+  const loop = source ? true : AVATAR_LOOPS[state];
+
   useEffect(() => {
     if (!containerRef.current) return;
     const anim = lottie.loadAnimation({
       container: containerRef.current,
       renderer: 'svg',
-      loop: true,
+      loop,
       autoplay: true,
-      animationData: source as Record<string, unknown>,
+      animationData: src as Record<string, unknown>,
     });
     animRef.current = anim;
-    anim.setSpeed(thinking ? 1.4 : 1);
     return () => {
       anim.destroy();
       animRef.current = null;
     };
-  }, [source]);
-
-  useEffect(() => {
-    animRef.current?.setSpeed(thinking ? 1.4 : 1);
-  }, [thinking]);
+  }, [src, loop]);
 
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>

@@ -6,12 +6,20 @@ type Handlers = {
 };
 
 // Web build of the TTS player. expo-audio's web AudioPlayer never emits
-// `didJustFinish`, so the native useTtsPlayer would leave the turn stuck in
-// "speaking". Here we drive a plain HTMLAudioElement and use its `ended` event.
-// Same surface as the native hook: play / stop / replayLast / isPlaying.
+// `didJustFinish`, so we drive a plain HTMLAudioElement and use its `ended`
+// event. Same surface as the native hook: play / stop / replayLast / isPlaying —
+// and, like native, play() resolves when the clip ends OR is stopped/replaced so
+// scripted scenes can `await` each line without ever hanging.
 export function useTtsPlayer({ onStart, onDone }: Handlers = {}) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastUriRef = useRef<string | null>(null);
+  const pendingResolveRef = useRef<(() => void) | null>(null);
+
+  const settle = useCallback(() => {
+    const resolve = pendingResolveRef.current;
+    pendingResolveRef.current = null;
+    resolve?.();
+  }, []);
 
   const stop = useCallback(() => {
     const a = audioRef.current;
@@ -25,35 +33,36 @@ export function useTtsPlayer({ onStart, onDone }: Handlers = {}) {
       a.onerror = null;
       audioRef.current = null;
     }
-  }, []);
+    settle();
+  }, [settle]);
 
   const play = useCallback(
-    (uri: string) => {
-      stop();
+    (uri: string): Promise<void> => {
+      stop(); // resolves any previous pending play()
       lastUriRef.current = uri;
-      const a = new Audio(uri);
-      audioRef.current = a;
-      a.onended = () => {
-        if (audioRef.current === a) audioRef.current = null;
-        onDone?.();
-      };
-      a.onerror = () => {
-        if (audioRef.current === a) audioRef.current = null;
-        onDone?.(); // voice is best-effort — never strand the UI
-      };
-      // The user just tapped (send/mic), so autoplay is allowed; if it isn't,
-      // fall back to idle so the transcript still reads.
-      a.play().catch(() => {
-        if (audioRef.current === a) audioRef.current = null;
-        onDone?.();
+      return new Promise<void>((resolve) => {
+        pendingResolveRef.current = resolve;
+        const a = new Audio(uri);
+        audioRef.current = a;
+        const finish = () => {
+          if (audioRef.current === a) audioRef.current = null;
+          settle();
+          onDone?.();
+        };
+        a.onended = finish;
+        a.onerror = finish; // voice is best-effort — never strand the UI
+        // The user just tapped (send/mic), so autoplay is allowed; if it isn't,
+        // resolve to idle so the scene/transcript still proceeds.
+        a.play().catch(finish);
+        onStart?.();
       });
-      onStart?.();
     },
-    [stop, onStart, onDone],
+    [stop, settle, onStart, onDone],
   );
 
-  const replayLast = useCallback(() => {
-    if (lastUriRef.current) play(lastUriRef.current);
+  const replayLast = useCallback((): Promise<void> => {
+    if (lastUriRef.current) return play(lastUriRef.current);
+    return Promise.resolve();
   }, [play]);
 
   useEffect(() => stop, [stop]);

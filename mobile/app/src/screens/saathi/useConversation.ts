@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
+import { Asset } from 'expo-asset';
 import * as api from '@/api/client';
 import { ApiError } from '@/api/client';
 import type { ChatMessage } from '@/api/types';
@@ -81,6 +82,74 @@ export function useConversation() {
     [interrupt, cue, pushItem, runTurn],
   );
 
+  // Speak an arbitrary line and resolve when it finishes — the building block for
+  // the scripted first-run scene. State goes thinking → speaking → idle via the
+  // player handlers; a TTS failure resolves silently so captions still carry on.
+  const speak = useCallback(
+    async (raw: string) => {
+      const text = raw.trim();
+      if (!text) return;
+      setState('thinking');
+      try {
+        const { uri } = await api.tts(text);
+        await player.play(uri);
+      } catch {
+        setState('idle'); // no audio; the caller proceeds regardless
+      }
+    },
+    [player],
+  );
+
+  // Speak a bundled audio clip (a pre-recorded line) with the same states/await
+  // as speak(). Resolves the require()'d asset to a URI so it plays on native and
+  // web through the one player.
+  const speakClip = useCallback(
+    async (mod: number) => {
+      setState('thinking');
+      try {
+        const asset = Asset.fromModule(mod);
+        if (!asset.downloaded) await asset.downloadAsync();
+        await player.play(asset.localUri ?? asset.uri);
+      } catch {
+        setState('idle'); // no audio; the caller proceeds regardless
+      }
+    },
+    [player],
+  );
+
+  // Record the user's request bubble and play the small "sent" cue. Split out so
+  // the scene can stagger the card in after it (and let the cue finish before the
+  // task-complete voiceover).
+  const pushUser = useCallback(
+    (raw: string) => {
+      const text = raw.trim();
+      if (!text) return;
+      cue('message-sent');
+      pushItem({ id: uid(), kind: 'user', text });
+      messagesRef.current = [...messagesRef.current, { role: 'user', content: text }];
+    },
+    [cue, pushItem],
+  );
+
+  // Pull up the scripted "live darshan" widget. No TTS here — the scene controls
+  // the spoken lines around it.
+  const showDarshanCard = useCallback(() => {
+    pushItem({ id: uid(), kind: 'assistant', text: 'Live darshan — Kashi Vishwanath', card: 'darshan' });
+    messagesRef.current = [
+      ...messagesRef.current,
+      { role: 'assistant', content: 'Showed the live Kashi Vishwanath darshan.' },
+    ];
+  }, [pushItem]);
+
+  // One-shot: user bubble + card together (used by the barge-in skip path).
+  const showDarshan = useCallback(
+    (userText?: string) => {
+      if (userText?.trim()) pushUser(userText);
+      showDarshanCard();
+    },
+    [pushUser, showDarshanCard],
+  );
+
   // Prototype: push the user's message and sit in "thinking" forever — never
   // calls the backend, so no reply appears. Used for tapped Home prompts.
   const sendPrototype = useCallback(
@@ -127,5 +196,19 @@ export function useConversation() {
     return () => sub.remove();
   }, [player, pushItem]);
 
-  return { state, transcript, send, sendPrototype, retry, clear, interrupt, cue };
+  return {
+    state,
+    transcript,
+    send,
+    sendPrototype,
+    speak,
+    speakClip,
+    pushUser,
+    showDarshanCard,
+    showDarshan,
+    retry,
+    clear,
+    interrupt,
+    cue,
+  };
 }

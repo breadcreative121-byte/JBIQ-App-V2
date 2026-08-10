@@ -34,12 +34,14 @@ import { JdsIcon } from '@/components/JdsIcon';
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Stop, Rect } from 'react-native-svg';
 import { TabStrip } from '@/components/TabStrip';
 import { SpacesIntroSheet } from '@/components/SpacesIntroSheet';
+import { MicPermissionSheet } from '@/components/MicPermissionSheet';
 import { HomeMomentBanner } from '@/components/HomeMomentBanner';
 import { HeroCard } from '@/components/HeroCard';
 import { ActionCard } from '@/components/ActionCard';
 import type { GlyphName } from '@/components/AccentIconChip';
 import type { JdsName } from '@/theme/jdsIcons';
 import type { RootStackParamList } from '@/navigation/RootStack';
+import { getOnboardingComplete, setOnboardingComplete } from '@/lib/onboarding';
 import { VERTICALS, type Vertical } from '../spaces/verticals';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -65,9 +67,9 @@ type Phrase = { icon?: GlyphName; jds?: JdsName; text: string };
 const PHRASE_SETS: Phrase[][] = [
   [
     { icon: 'lightbulb-on-outline', text: 'Pay the electricity bill' },
-    { icon: 'white-balance-sunny', text: "Show today's panchang" },
+    { icon: 'newspaper-variant-outline', text: 'Read me the news brief' },
     { icon: 'cricket', text: 'How did yesterdays match go' },
-    { jds: 'ic_health_conditions', text: 'Find a doctor near me' },
+    { icon: 'microphone-outline', text: 'How do I talk to you?' },
   ],
   [
     { icon: 'cellphone', text: 'Recharge my number' },
@@ -79,7 +81,7 @@ const PHRASE_SETS: Phrase[][] = [
     { icon: 'star-four-points', text: 'Kal ka rashifal batao' },
     { jds: 'ic_new_chat', text: 'Talk to me for a bit' },
     { icon: 'meditation', text: 'Guide me through breathing' },
-    { icon: 'newspaper-variant-outline', text: 'Read me the news brief' },
+    { icon: 'weather-partly-cloudy', text: "What's the weather today?" },
   ],
 ];
 
@@ -123,6 +125,8 @@ export function HomeScreen() {
   // Educational sheet on the first Spaces arrival (once per session).
   const [showSpacesIntro, setShowSpacesIntro] = useState(false);
   const seenSpaces = useRef(false);
+  // First-run voice onboarding: the mic "warm ask" sheet, shown once per install.
+  const [showPermit, setShowPermit] = useState(false);
   // Return-visit "live moment" banner: appears after the app has been
   // backgrounded and reopened; dismissed for the session with "Later".
   const [returnedFromBg, setReturnedFromBg] = useState(false);
@@ -173,6 +177,33 @@ export function HomeScreen() {
   const openVoice = (prompt?: string) => {
     sawVoice.current = true;
     navigation.navigate('Saathi', prompt ? { prompt } : {});
+  };
+
+  // First launch (never onboarded): slide up the mic "warm ask" over Home.
+  useEffect(() => {
+    let alive = true;
+    getOnboardingComplete().then((done) => {
+      if (alive && !done) setShowPermit(true);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // "Okay, listen" → permission already requested by the sheet → enter the
+  // guided voice flow (real path, coached first turn).
+  const startFirstRun = () => {
+    setShowPermit(false);
+    sawVoice.current = true;
+    navigation.navigate('Saathi', { coach: 'firstRun' });
+  };
+
+  // Demo helper: wipe the persisted flag and replay onboarding from the top —
+  // jump to Home and slide the "warm ask" back up, no reinstall needed.
+  const replayOnboarding = () => {
+    setOnboardingComplete(false);
+    scrollToPage(HOME);
+    setShowPermit(true);
   };
 
   const scrollToPage = (page: number) =>
@@ -382,7 +413,10 @@ export function HomeScreen() {
         >
           <View style={styles.headerStart}>
             <IconButton icon="menu" onPress={() => scrollToPage(MENU)} accessibilityLabel="Menu" />
-            <JioLogo size={40} />
+            {/* Demo gesture: tap the Jio logo to reset & replay onboarding. */}
+            <Pressable onPress={replayOnboarding} accessibilityRole="button" accessibilityLabel="Replay welcome" hitSlop={8}>
+              <JioLogo size={40} />
+            </Pressable>
           </View>
           <IconButton jds="ic_widgets" onPress={() => scrollToPage(SPACES)} accessibilityLabel="Spaces" />
         </Animated.View>
@@ -456,7 +490,7 @@ export function HomeScreen() {
       </Animated.View>
 
       {/* Coach tooltips (Home only, before the first interaction) */}
-      {active === HOME && !returnedFromBg && coachStage === 'talk' ? (
+      {active === HOME && !returnedFromBg && !showPermit && coachStage === 'talk' ? (
         <CoachTip style={[styles.tipWrap, { bottom: 82 }]} delay={650} bounce="down">
           <Pressable style={styles.tipPill} onPress={() => setCoachStage('done')}>
             <Text style={styles.tipText}>Tap to talk</Text>
@@ -464,7 +498,7 @@ export function HomeScreen() {
           </Pressable>
         </CoachTip>
       ) : null}
-      {active === HOME && !returnedFromBg && coachStage === 'spaces' ? (
+      {active === HOME && !returnedFromBg && !showPermit && coachStage === 'spaces' ? (
         <CoachTip style={[styles.tipWrap, { top: insets.top + 54 }]} delay={650} bounce="up">
           <Pressable style={styles.tipPill} onPress={() => setCoachStage('done')}>
             <View style={styles.caretUp} />
@@ -489,6 +523,10 @@ export function HomeScreen() {
       ) : null}
 
       {showSpacesIntro ? <SpacesIntroSheet onClose={() => setShowSpacesIntro(false)} /> : null}
+
+      {showPermit ? (
+        <MicPermissionSheet onAllow={startFirstRun} onDismiss={() => setShowPermit(false)} />
+      ) : null}
     </View>
   );
 }

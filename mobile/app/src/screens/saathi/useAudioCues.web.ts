@@ -7,7 +7,6 @@ import type { CueId } from './types';
 // fire-and-forget — any failure stays silent and never breaks the conversation.
 const CUE_SOURCES: Record<CueId, number> = {
   wakeup: require('../../../assets/audio/wakeup.mp3'),
-  welcome: require('../../../assets/audio/welcome.mp3'),
   'va-understood': require('../../../assets/audio/va-understood.mp3'),
   'message-sent': require('../../../assets/audio/message-sent.mp3'),
   'mic-on': require('../../../assets/audio/VA_mic_on.mp3'),
