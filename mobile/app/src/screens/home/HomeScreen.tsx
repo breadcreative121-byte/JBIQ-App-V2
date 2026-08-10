@@ -41,14 +41,32 @@ import { ActionCard } from '@/components/ActionCard';
 import type { GlyphName } from '@/components/AccentIconChip';
 import type { JdsName } from '@/theme/jdsIcons';
 import type { RootStackParamList } from '@/navigation/RootStack';
-import { getOnboardingComplete, setOnboardingComplete } from '@/lib/onboarding';
+import {
+  getOnboardingComplete,
+  setOnboardingComplete,
+  getSpacesIntroSeen,
+  setSpacesIntroSeen,
+} from '@/lib/onboarding';
 import { VERTICALS, type Vertical } from '../spaces/verticals';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type IoniconName = keyof typeof Ionicons.glyphMap;
 type MciName = keyof typeof MaterialCommunityIcons.glyphMap;
 
-const NAME = 'Arjun';
+// The signed-in user's name, when known. Personalised greetings are a
+// shared-device leak if faked, so this is the single source: set it only from a
+// real identity signal. `null` degrades to a plain "Namaste". 'Arjun' is the
+// demo persona.
+const USER_NAME: string | null = 'Arjun';
+
+// The four Home states from docs/home-spaces-nav-v1.md §2. `new-cold` suppresses
+// the name (shared/untrusted device), `new-warm` is the Day-0 named greeting,
+// `return-task` fires the gated slot-1 context line, `return-moment` leads with a
+// live vertical moment (the existing banner).
+type HomeState = 'new-cold' | 'new-warm' | 'return-task' | 'return-moment';
+const DEMO_STATES: HomeState[] = ['new-warm', 'new-cold', 'return-task', 'return-moment'];
+// A low-sensitivity, beneficial nudge (never a balance, never auto-charged).
+const TASK_LINE = 'Recharge kal khatam ho raha hai — renew karun?';
 const HEADER_H = 56;
 const TAB_H = 44;
 const MENU = 0;
@@ -57,6 +75,7 @@ const SPACES = 2; // first Space page
 const DOT_SIZE = 7;
 const DOT_GAP = 9;
 const DOT_STEP = DOT_SIZE + DOT_GAP;
+const MOMENT_MIN_AWAY_MS = 1200; // ignore brief blips; only a real reopen counts
 const DOT_WINDOW = 4; // max dots visible (iOS-style windowed indicator)
 const DOT_CLIP_W = DOT_WINDOW * DOT_STEP;
 const DOT_CENTER_X = DOT_CLIP_W / 2 - DOT_SIZE / 2;
@@ -127,26 +146,48 @@ export function HomeScreen() {
   const seenSpaces = useRef(false);
   // First-run voice onboarding: the mic "warm ask" sheet, shown once per install.
   const [showPermit, setShowPermit] = useState(false);
+  // New-vs-return Home model. `onboarded` + `returnedFromBg` derive the auto
+  // state; `demoIdx` is a hidden long-press override cycling all four states for
+  // pitching; `taskDismissed` collapses the context line back to the phrase list.
+  const [onboarded, setOnboarded] = useState(false);
+  const [demoIdx, setDemoIdx] = useState<number | null>(null);
+  const [taskDismissed, setTaskDismissed] = useState(false);
   // Return-visit "live moment" banner: appears after the app has been
   // backgrounded and reopened; dismissed for the session with "Later".
   const [returnedFromBg, setReturnedFromBg] = useState(false);
   const [momentDismissed, setMomentDismissed] = useState(false);
-  const wasBackgrounded = useRef(false);
+  const backgroundedAt = useRef(0);
   const momentFade = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next) => {
-      if (next === 'background') wasBackgrounded.current = true;
-      else if (next === 'active' && wasBackgrounded.current) {
-        wasBackgrounded.current = false;
-        setReturnedFromBg(true);
+      if (next === 'background') backgroundedAt.current = Date.now();
+      else if (next === 'active' && backgroundedAt.current) {
+        // Only a genuine reopen counts — ignore momentary background blips
+        // (a permission prompt, a fast app-switch) that fire nearly instantly.
+        const away = Date.now() - backgroundedAt.current;
+        backgroundedAt.current = 0;
+        if (away >= MOMENT_MIN_AWAY_MS) setReturnedFromBg(true);
       }
     });
     return () => sub.remove();
   }, []);
 
+  // Derive the current Home state, then let the demo override win if set.
+  const autoState: HomeState = !onboarded
+    ? USER_NAME
+      ? 'new-warm'
+      : 'new-cold'
+    : returnedFromBg
+      ? 'return-task'
+      : 'new-warm';
+  const homeState: HomeState = demoIdx == null ? autoState : DEMO_STATES[demoIdx];
+  const isReturn = homeState === 'return-task' || homeState === 'return-moment';
+  const showTaskLine = homeState === 'return-task' && !taskDismissed;
+
+  const momentEligible = homeState === 'return-moment' && !momentDismissed && !showPermit;
   useEffect(() => {
-    if (returnedFromBg && !momentDismissed) {
+    if (momentEligible) {
       Animated.timing(momentFade, {
         toValue: 1,
         duration: 300,
@@ -154,7 +195,7 @@ export function HomeScreen() {
         useNativeDriver: true,
       }).start();
     }
-  }, [returnedFromBg, momentDismissed, momentFade]);
+  }, [momentEligible, momentFade]);
 
   const dismissMoment = () =>
     Animated.timing(momentFade, {
@@ -166,6 +207,8 @@ export function HomeScreen() {
 
   useEffect(() => {
     const unsub = navigation.addListener('focus', () => {
+      // Refresh onboarding status — the first-run scene may have completed it.
+      getOnboardingComplete().then(setOnboarded);
       if (sawVoice.current) {
         sawVoice.current = false;
         if (!seenSpaces.current) setCoachStage('spaces');
@@ -180,10 +223,16 @@ export function HomeScreen() {
   };
 
   // First launch (never onboarded): slide up the mic "warm ask" over Home.
+  // Also hydrate the "seen Spaces" flag so a returning user skips the intro.
   useEffect(() => {
     let alive = true;
     getOnboardingComplete().then((done) => {
-      if (alive && !done) setShowPermit(true);
+      if (!alive) return;
+      setOnboarded(done);
+      if (!done) setShowPermit(true);
+    });
+    getSpacesIntroSeen().then((seen) => {
+      if (alive && seen) seenSpaces.current = true;
     });
     return () => {
       alive = false;
@@ -202,6 +251,8 @@ export function HomeScreen() {
   // jump to Home and slide the "warm ask" back up, no reinstall needed.
   const replayOnboarding = () => {
     setOnboardingComplete(false);
+    setSpacesIntroSeen(false);
+    seenSpaces.current = false;
     scrollToPage(HOME);
     setShowPermit(true);
   };
@@ -269,6 +320,7 @@ export function HomeScreen() {
       const i = Math.round(e.nativeEvent.contentOffset.x / width);
       if (!seenSpaces.current && i >= SPACES) {
         seenSpaces.current = true;
+        setSpacesIntroSeen(true); // once per install, not per session
         setShowSpacesIntro(true);
         setCoachStage('done'); // interacted with Spaces → no need to hint again
       }
@@ -276,16 +328,49 @@ export function HomeScreen() {
     },
   });
 
-  // Swipe up on the Home page cycles the suggestion set.
+  // Swipe up on the Home page — or tap the cue below the chips — cycles the set.
+  const cyclePhrases = () => setPhraseSet((i) => (i + 1) % PHRASE_SETS.length);
+
+  // Demo: long-press the greeting to cycle the four Home states, then back to
+  // auto — pitch new-vs-return without backgrounding the app.
+  const cycleDemo = () => {
+    setTaskDismissed(false);
+    setMomentDismissed(false);
+    setDemoIdx((i) => (i == null ? 0 : i + 1 >= DEMO_STATES.length ? null : i + 1));
+  };
   const swipeUp = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_e, g) =>
         g.dy < -16 && Math.abs(g.dy) > Math.abs(g.dx) * 1.7,
       onPanResponderRelease: (_e, g) => {
-        if (g.dy < -55) setPhraseSet((i) => (i + 1) % PHRASE_SETS.length);
+        if (g.dy < -55) cyclePhrases();
       },
     }),
   ).current;
+
+  // A gentle, periodic lift on the "more" cue nudges the eye toward the gesture.
+  const hintBounce = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.delay(2200),
+        Animated.timing(hintBounce, {
+          toValue: -4,
+          duration: 200,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.spring(hintBounce, {
+          toValue: 0,
+          friction: 3,
+          tension: 140,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [hintBounce]);
 
   // Staggered entrance for the phrase rows.
   const anims = useRef([0, 1, 2, 3].map(() => new Animated.Value(0))).current;
@@ -364,23 +449,64 @@ export function HomeScreen() {
         {/* Page 1 — Home */}
         <View style={{ width }} {...swipeUp.panHandlers}>
           <View style={[styles.homeBody, { paddingTop: insets.top + HEADER_H }]}>
-            <Text style={styles.greeting}>Namaste, {NAME}</Text>
+            <Pressable onLongPress={cycleDemo} delayLongPress={450}>
+              <Text style={styles.greeting}>
+                {USER_NAME && homeState !== 'new-cold' ? `Namaste, ${USER_NAME}` : 'Namaste'}
+              </Text>
+            </Pressable>
             <Text style={styles.teach}>What can I do for you today?</Text>
+            {demoIdx != null ? <Text style={styles.demoTag}>demo · {homeState}</Text> : null}
             <View style={styles.phrases}>
-              {PHRASE_SETS[phraseSet].map((p, i) => (
+              {showTaskLine ? (
                 <Animated.View
-                  key={i}
                   style={{
-                    opacity: anims[i],
+                    alignSelf: 'stretch',
+                    opacity: anims[0],
                     transform: [
-                      { translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+                      { translateY: anims[0].interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
                     ],
                   }}
                 >
-                  <PhraseRow icon={p.icon} jds={p.jds} text={p.text} onPress={() => ask(p.text)} />
+                  <ContextLineCard
+                    line={TASK_LINE}
+                    onYes={() => ask('Recharge renew kar do')}
+                    onLater={() => setTaskDismissed(true)}
+                  />
                 </Animated.View>
-              ))}
+              ) : null}
+              {PHRASE_SETS[phraseSet].map((p, i) => {
+                if (showTaskLine && i === 0) return null; // slot 1 → context line
+                return (
+                  <Animated.View
+                    key={i}
+                    style={{
+                      opacity: anims[i],
+                      transform: [
+                        { translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+                      ],
+                    }}
+                  >
+                    <PhraseRow icon={p.icon} jds={p.jds} text={p.text} onPress={() => ask(p.text)} />
+                  </Animated.View>
+                );
+              })}
             </View>
+            <Animated.View style={[styles.moreHint, { transform: [{ translateY: hintBounce }] }]}>
+              <Pressable
+                onPress={cyclePhrases}
+                hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel="Show more suggestions"
+                style={styles.moreHintBtn}
+              >
+                <Ionicons name="chevron-up" size={14} color={fig.textLow} />
+                <View style={styles.setDots}>
+                  {PHRASE_SETS.map((_, i) => (
+                    <View key={i} style={[styles.setDot, i === phraseSet && styles.setDotActive]} />
+                  ))}
+                </View>
+              </Pressable>
+            </Animated.View>
           </View>
         </View>
 
@@ -426,8 +552,13 @@ export function HomeScreen() {
           pointerEvents={active >= SPACES ? 'box-none' : 'none'}
         >
           <IconButton jds="ic_chevron_left" onPress={() => scrollToPage(HOME)} accessibilityLabel="Back" />
-          <Text style={styles.headerTitle}>Spaces</Text>
-          <IconButton icon="options-outline" accessibilityLabel="Filter" />
+          <View style={styles.headerEnd}>
+            <IconButton icon="options-outline" accessibilityLabel="Filter" />
+            <IconButton icon="add" accessibilityLabel="New" />
+          </View>
+          <View style={styles.headerTitleWrap} pointerEvents="none">
+            <Text style={styles.headerTitle}>Spaces</Text>
+          </View>
         </Animated.View>
       </View>
 
@@ -490,7 +621,7 @@ export function HomeScreen() {
       </Animated.View>
 
       {/* Coach tooltips (Home only, before the first interaction) */}
-      {active === HOME && !returnedFromBg && !showPermit && coachStage === 'talk' ? (
+      {active === HOME && !isReturn && !showPermit && coachStage ==='talk' ? (
         <CoachTip style={[styles.tipWrap, { bottom: 82 }]} delay={650} bounce="down">
           <Pressable style={styles.tipPill} onPress={() => setCoachStage('done')}>
             <Text style={styles.tipText}>Tap to talk</Text>
@@ -498,7 +629,7 @@ export function HomeScreen() {
           </Pressable>
         </CoachTip>
       ) : null}
-      {active === HOME && !returnedFromBg && !showPermit && coachStage === 'spaces' ? (
+      {active === HOME && !isReturn && !showPermit && coachStage ==='spaces' ? (
         <CoachTip style={[styles.tipWrap, { top: insets.top + 54 }]} delay={650} bounce="up">
           <Pressable style={styles.tipPill} onPress={() => setCoachStage('done')}>
             <View style={styles.caretUp} />
@@ -508,7 +639,7 @@ export function HomeScreen() {
       ) : null}
 
       {/* Return-visit live moment — Home only, fades with the pager */}
-      {returnedFromBg && !momentDismissed ? (
+      {momentEligible ? (
         <Animated.View
           style={[styles.momentWrap, { opacity: homeOpacity }]}
           pointerEvents={active === HOME ? 'box-none' : 'none'}
@@ -527,6 +658,49 @@ export function HomeScreen() {
       {showPermit ? (
         <MicPermissionSheet onAllow={startFirstRun} onDismiss={() => setShowPermit(false)} />
       ) : null}
+    </View>
+  );
+}
+
+// The returning-user "it already knows me" moment (docs §2 · Concept 2): a gated
+// slot-1 line rendered as JBIQ speaking, with one-tap Haan / Baad mein. Framed as
+// a question — Haan starts the flow in the assistant, it never charges anything.
+function ContextLineCard({
+  line,
+  onYes,
+  onLater,
+}: {
+  line: string;
+  onYes: () => void;
+  onLater: () => void;
+}) {
+  return (
+    <View style={styles.ctxCard}>
+      <View style={styles.ctxHead}>
+        <MaterialCommunityIcons name="lightning-bolt" size={13} color={fig.brand} />
+        <Text style={styles.ctxEyebrow}>For you</Text>
+      </View>
+      <Text style={styles.ctxLine}>{line}</Text>
+      <View style={styles.ctxChips}>
+        <Pressable
+          onPress={onYes}
+          accessibilityRole="button"
+          style={({ pressed }) => [
+            styles.ctxChip,
+            styles.ctxChipPrimary,
+            pressed && styles.ctxChipPressed,
+          ]}
+        >
+          <Text style={styles.ctxChipPrimaryText}>Haan, renew karo</Text>
+        </Pressable>
+        <Pressable
+          onPress={onLater}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.ctxChip, pressed && styles.ctxChipPressed]}
+        >
+          <Text style={styles.ctxChipText}>Baad mein</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -640,6 +814,21 @@ function VerticalBoard({
           case 'hero': {
             const isFirstHero = !firstHeroSeen;
             if (isFirstHero) firstHeroSeen = true;
+            // The lead moment stays a hero card; any later "signature" hero
+            // collapses into a row to match the list layout.
+            if (!isFirstHero) {
+              return (
+                <View key={i} style={styles.rowGap}>
+                  <ActionCard
+                    icon={block.hero.icon}
+                    jds={block.hero.jds}
+                    title={block.hero.title}
+                    subtitle={block.hero.body}
+                    onPress={() => onAction(block.hero.prompt)}
+                  />
+                </View>
+              );
+            }
             return (
               <View key={i} style={styles.blockGap}>
                 <HeroCard
@@ -649,7 +838,7 @@ function VerticalBoard({
                   eyebrow={block.hero.eyebrow}
                   title={block.hero.title}
                   body={block.hero.body}
-                  tinted={isFirstHero}
+                  tinted
                   button={{
                     label: block.hero.buttonLabel,
                     variant: block.hero.buttonVariant,
@@ -662,7 +851,7 @@ function VerticalBoard({
           }
           case 'grid':
             return (
-              <View key={i} style={[styles.blockGap, styles.grid]}>
+              <View key={i} style={styles.grid}>
                 {block.items.map((a) => (
                   <ActionCard
                     key={a.title}
@@ -679,7 +868,7 @@ function VerticalBoard({
             );
           case 'action':
             return (
-              <View key={i} style={styles.blockGap}>
+              <View key={i} style={styles.rowGap}>
                 <ActionCard
                   icon={block.item.icon}
                   jds={block.item.jds}
@@ -776,6 +965,61 @@ const styles = StyleSheet.create({
     ...font('400'),
   },
   phrases: { gap: 12, alignItems: 'center' },
+  demoTag: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    color: fig.textLow,
+    textAlign: 'center',
+    marginTop: 6,
+    ...font('700'),
+  },
+
+  // Returning-user context line (slot 1)
+  ctxCard: {
+    alignSelf: 'stretch',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: fig.strokeCard,
+    backgroundColor: fig.heroTint,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+  },
+  ctxHead: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 6 },
+  ctxEyebrow: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    color: fig.brand,
+    ...font('800'),
+  },
+  ctxLine: { fontSize: 16, fontWeight: '700', lineHeight: 21, color: fig.textHigh, ...font('700') },
+  ctxChips: { flexDirection: 'row', gap: 8, marginTop: 12 },
+  ctxChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: fig.strokeCard,
+    backgroundColor: fig.surface,
+  },
+  ctxChipPressed: { opacity: 0.7 },
+  ctxChipPrimary: { backgroundColor: fig.brand, borderColor: fig.brand },
+  ctxChipPrimaryText: { fontSize: 13, fontWeight: '800', color: fig.textOnBrand, ...font('800') },
+  ctxChipText: { fontSize: 13, fontWeight: '700', color: fig.textHigh, ...font('700') },
+  moreHint: { alignSelf: 'center', marginTop: 18 },
+  moreHintBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  setDots: { flexDirection: 'row', gap: 6 },
+  setDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(12,13,16,0.18)' },
+  setDotActive: { backgroundColor: fig.brand },
 
   // Fixed header
   headerWrap: {
@@ -796,6 +1040,16 @@ const styles = StyleSheet.create({
   headerAbs: { position: 'absolute', left: 0, right: 0, bottom: 0 },
   headerStart: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerTitle: { fontSize: 16, fontWeight: '700', lineHeight: 16, color: fig.textHigh, ...font('700') },
+  headerEnd: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  headerTitleWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   brand: { fontSize: 20, fontWeight: '800', color: fig.textHigh, letterSpacing: -0.3, ...font('800') },
   circleBtn: {
     width: 36,
@@ -849,7 +1103,8 @@ const styles = StyleSheet.create({
   board: { paddingHorizontal: 16, paddingBottom: 96 },
   contextLine: { fontSize: 20, fontWeight: '800', lineHeight: 22, color: fig.textHigh, marginBottom: 4, ...font('800') },
   blockGap: { marginTop: 12 },
-  grid: { flexDirection: 'row', gap: 10 },
+  rowGap: { marginTop: 10 },
+  grid: { marginTop: 10, gap: 10 },
   sectionLabel: {
     fontSize: 11,
     fontWeight: '800',
