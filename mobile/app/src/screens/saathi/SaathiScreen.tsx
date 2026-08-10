@@ -74,6 +74,11 @@ export function SaathiScreen() {
   );
   const scene = useFirstRunScene(conv);
 
+  // Leaving Saathi mid-scene must cancel the scene's pending timers/async chain,
+  // otherwise they keep firing (setState) on an unmounted screen.
+  const resetScene = scene.reset;
+  useEffect(() => () => resetScene(), [resetScene]);
+
   const sceneStarted = useRef(false);
   useEffect(() => {
     if (firstRun && !sceneStarted.current) {
@@ -127,7 +132,7 @@ export function SaathiScreen() {
             ? 'speaking'
             : sceneEnded
               ? 'listening'
-              : 'idle';
+              : 'listening'; // entering voice rests in the listening state
 
   const [toast, setToast] = useState<string | null>(null);
   const toastOpacity = useRef(new Animated.Value(0)).current;
@@ -202,7 +207,13 @@ export function SaathiScreen() {
                   onSkip={scene.skip}
                 />
               ) : (
-                <Transcript items={transcript} onRetry={retry} anchorTop={firstRun} />
+                <Transcript
+                  items={transcript}
+                  onRetry={retry}
+                  anchorTop={firstRun}
+                  onJoinDarshan={() => showToast('Opening live darshan…')}
+                  onRemindDarshan={() => showToast('Done — I’ll remind you before the aarti.')}
+                />
               )}
             </View>
             {showVoice ? (

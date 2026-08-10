@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
-import { color, space } from '@theme';
-import { text as type } from '@/theme/typography';
+import { FlatList, StyleSheet, View } from 'react-native';
+import { space } from '@theme';
 import { Bubble } from './Bubble';
 import { DarshanWinCard } from './DarshanWinCard';
 import { VoiceSuggestions } from './VoiceSuggestions';
@@ -13,15 +12,17 @@ type Props = {
   // Anchor the conversation to the TOP of the screen (the first-run onboarding
   // turn) instead of the default bottom-pinned, inverted list.
   anchorTop?: boolean;
+  onJoinDarshan?: () => void;
+  onRemindDarshan?: () => void;
 };
 
-export function Transcript({ items, onRetry, anchorTop }: Props) {
+export function Transcript({ items, onRetry, anchorTop, onJoinDarshan, onRemindDarshan }: Props) {
   // Inverted list reverses the data so newest sits at index 0 (bottom-pinned).
   const data = useMemo(() => [...items].reverse(), [items]);
 
   const renderItem = ({ item }: { item: TranscriptItem }) =>
     item.kind === 'assistant' && item.card === 'darshan' ? (
-      <DarshanWinCard />
+      <DarshanWinCard onJoin={onJoinDarshan} onRemind={onRemindDarshan} />
     ) : (
       <Bubble item={item} onRetry={onRetry} />
     );
@@ -29,9 +30,6 @@ export function Transcript({ items, onRetry, anchorTop }: Props) {
   if (items.length === 0) {
     return (
       <View style={styles.empty}>
-        <Text style={[type.bodyM, { color: color.textLow, textAlign: 'center' }]}>
-          Namaste. I’m Saathi — ask me anything.
-        </Text>
         <VoiceSuggestions />
       </View>
     );

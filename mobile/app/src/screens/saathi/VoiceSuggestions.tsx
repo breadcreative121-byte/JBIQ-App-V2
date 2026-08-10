@@ -3,8 +3,11 @@ import { Animated, StyleSheet } from 'react-native';
 import { color } from '@theme';
 import { text as type } from '@/theme/typography';
 
-/* A rotating "what to say" hint for the voice/listening screen — cycles through
-   varied example prompts with a gentle cross-fade. */
+/* The voice/listening screen's prompt: it opens with "Start talking", holds a
+   beat, then cross-fades into rotating "what to say" example prompts. */
+const LEAD = 'Start talking';
+const LEAD_HOLD = 2200; // beat before the first suggestion appears
+
 const SUGGESTIONS = [
   'Try “Aaj ka rashifal batao”',
   'Ask “How did yesterday’s match go?”',
@@ -16,22 +19,33 @@ const SUGGESTIONS = [
 ];
 
 export function VoiceSuggestions() {
-  const [i, setI] = useState(0);
+  const [text, setText] = useState(LEAD);
   const fade = useRef(new Animated.Value(1)).current;
+  const next = useRef(0);
 
   useEffect(() => {
-    const id = setInterval(() => {
+    let interval: ReturnType<typeof setInterval> | undefined;
+    const advance = () => {
       Animated.timing(fade, { toValue: 0, duration: 280, useNativeDriver: true }).start(() => {
-        setI((p) => (p + 1) % SUGGESTIONS.length);
+        setText(SUGGESTIONS[next.current % SUGGESTIONS.length]);
+        next.current += 1;
         Animated.timing(fade, { toValue: 1, duration: 280, useNativeDriver: true }).start();
       });
-    }, 3000);
-    return () => clearInterval(id);
+    };
+    // Hold "Start talking", reveal the first suggestion, then rotate.
+    const lead = setTimeout(() => {
+      advance();
+      interval = setInterval(advance, 3000);
+    }, LEAD_HOLD);
+    return () => {
+      clearTimeout(lead);
+      if (interval) clearInterval(interval);
+    };
   }, [fade]);
 
   return (
     <Animated.Text style={[type.bodyM, styles.text, { opacity: fade }]} numberOfLines={1}>
-      {SUGGESTIONS[i]}
+      {text}
     </Animated.Text>
   );
 }
