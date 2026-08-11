@@ -535,7 +535,9 @@ export function HomeScreen() {
 
   const ask = (prompt: string) => navigation.navigate('Saathi', { prompt, mode: 'text' });
   const go = (screen: keyof RootStackParamList) => navigation.navigate(screen as never);
-  const boardTop = insets.top + HEADER_H + TAB_H + 8;
+  // Content sits just under the tab strip; the first block's own top margin
+  // supplies the small gap, so no extra padding below the tabs.
+  const boardTop = insets.top + HEADER_H + TAB_H - 12;
   const menuTop = insets.top + HEADER_H + 8;
 
   return (
