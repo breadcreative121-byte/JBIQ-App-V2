@@ -47,6 +47,9 @@ import {
   setSpacesIntroSeen,
 } from '@/lib/onboarding';
 import { useReducedMotion } from '@/lib/useReducedMotion';
+import { InterestsIntro } from '@/components/InterestsIntro';
+import { buildPhraseSets, type InterestId } from '@/lib/interests';
+import { setPreferences, clearPreferences } from '@/lib/preferences';
 import { VERTICALS, type Vertical, type VerticalDepth } from '../spaces/verticals';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -184,6 +187,9 @@ export function HomeScreen() {
   const [onboarded, setOnboarded] = useState(false);
   const [demoStageIdx, setDemoStageIdx] = useState<number | null>(null);
   const [taskDismissed, setTaskDismissed] = useState(false);
+  // First-run interests picker + the chosen interests that personalise Home.
+  const [showPrefs, setShowPrefs] = useState(false);
+  const [prefs, setPrefs] = useState<InterestId[]>([]);
   // Demo: per-vertical depth for the Astrology Space (long-press its context line).
   // Defaults to New (index 0) — Astrology's default state, no "Auto" option.
   const [astroDepthIdx, setAstroDepthIdx] = useState<number>(0);
@@ -230,6 +236,9 @@ export function HomeScreen() {
   const greet = timeGreeting();
   const engaged = stage === 'activated' || stage === 'habitual' || stage === 'power' || stage === 'dormant';
   const showUsuals = trusted && (stage === 'habitual' || stage === 'power');
+  // Personalised suggestion sets from the interests picker; empty → today's
+  // defaults. Same shape as PHRASE_SETS so cycling / dots stay unchanged.
+  const activeSets = buildPhraseSets(prefs) ?? PHRASE_SETS;
 
   // The return-visit moment banner leads on a real reopen (auto mode); it wins
   // slot 1, so the context/jump-back card stands down when it's showing.
@@ -315,6 +324,11 @@ export function HomeScreen() {
     seenSpaces.current = false;
     setOnboardingComplete(false);
     setSpacesIntroSeen(false);
+    // Interests picker is the first thing shown; reset the persisted + in-memory
+    // selection so Home starts on defaults until the user chooses.
+    setShowPrefs(true);
+    setPrefs([]);
+    clearPreferences();
   }, []);
 
   // "Okay, listen" → permission already requested by the sheet → enter the
@@ -339,6 +353,10 @@ export function HomeScreen() {
     setMomentDismissed(false);
     scrollToPage(HOME);
     setShowPermit(true);
+    // Re-run the interests picker from the top.
+    setPrefs([]);
+    clearPreferences();
+    setShowPrefs(true);
   };
 
   const scrollToPage = (page: number) =>
@@ -413,7 +431,7 @@ export function HomeScreen() {
   });
 
   // Swipe up on the Home page — or tap the cue below the chips — cycles the set.
-  const cyclePhrases = () => setPhraseSet((i) => (i + 1) % PHRASE_SETS.length);
+  const cyclePhrases = () => setPhraseSet((i) => (i + 1) % activeSets.length);
 
   // Demo: long-press the greeting to cycle the engagement stages (incl. the
   // untrusted 'cold' floor), then back to auto — pitch the ladder without signals.
@@ -564,7 +582,7 @@ export function HomeScreen() {
             </Pressable>
             <Text style={styles.teach}>What can I do for you today?</Text>
             <View style={styles.phrases}>
-              {(showUsuals ? USUALS : PHRASE_SETS[phraseSet]).map((p, i) => (
+              {(showUsuals ? USUALS : activeSets[phraseSet % activeSets.length]).map((p, i) => (
                 <Animated.View
                   key={i}
                   style={{
@@ -589,7 +607,7 @@ export function HomeScreen() {
               >
                 <Ionicons name="chevron-up" size={14} color={fig.textLow} />
                 <View style={styles.setDots}>
-                  {PHRASE_SETS.map((_, i) => (
+                  {activeSets.map((_, i) => (
                     <View key={i} style={[styles.setDot, i === phraseSet && styles.setDotActive]} />
                   ))}
                 </View>
@@ -806,6 +824,17 @@ export function HomeScreen() {
 
       {showPermit ? (
         <MicPermissionSheet onAllow={startFirstRun} onDismiss={() => setShowPermit(false)} />
+      ) : null}
+
+      {/* First-run interests picker — opaque, above every other overlay */}
+      {showPrefs ? (
+        <InterestsIntro
+          onDone={(ids) => {
+            setPrefs(ids);
+            setPreferences(ids);
+            setShowPrefs(false);
+          }}
+        />
       ) : null}
     </View>
   );
