@@ -459,7 +459,6 @@ export function HomeScreen() {
     setMomentDismissed(false);
     setDemoStageIdx((i) => (i == null ? 0 : i + 1 >= DEMO_STAGES.length ? null : i + 1));
   };
-  const cycleAstroDepth = () => setAstroDepthIdx((i) => (i + 1) % ASTRO_DEPTHS.length);
   // Demo sheet "Update": commit the picked stage + depth, then restart into a
   // fresh Home view of that state. Auto (s === null) is the new user's first
   // open, so it also brings up the voice-onboarding sheet; every other stage
@@ -645,7 +644,6 @@ export function HomeScreen() {
             topPad={boardTop}
             onAction={ask}
             depth={v.id === 'astrology' ? ASTRO_DEPTHS[astroDepthIdx] : undefined}
-            onCycleDepth={v.id === 'astrology' ? cycleAstroDepth : undefined}
           />
         ))}
       </Animated.ScrollView>
@@ -1094,14 +1092,12 @@ function VerticalBoard({
   topPad,
   onAction,
   depth,
-  onCycleDepth,
 }: {
   vertical: Vertical;
   width: number;
   topPad: number;
   onAction: (prompt: string) => void;
   depth?: VerticalDepth;
-  onCycleDepth?: () => void;
 }) {
   let firstHeroSeen = false;
   // Per-vertical depth override (docs …engagement-v1 §6); falls back to the
@@ -1113,10 +1109,6 @@ function VerticalBoard({
       contentContainerStyle={[styles.board, { paddingTop: topPad }]}
       showsVerticalScrollIndicator={false}
     >
-      <Pressable onLongPress={onCycleDepth} disabled={!onCycleDepth} delayLongPress={450}>
-        <Text style={styles.contextLine}>{content.contextLine}</Text>
-      </Pressable>
-
       {content.blocks.map((block, i) => {
         switch (block.kind) {
           case 'hero': {
@@ -1416,7 +1408,6 @@ const styles = StyleSheet.create({
 
   // Board
   board: { paddingHorizontal: 16, paddingBottom: 96 },
-  contextLine: { fontSize: 20, fontWeight: '800', lineHeight: 22, color: fig.textHigh, marginBottom: 4, ...font('800') },
   depthTag: {
     fontSize: 10,
     fontWeight: '700',
