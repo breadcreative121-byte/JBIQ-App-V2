@@ -398,18 +398,17 @@ export function HomeScreen() {
   };
   const cycleAstroDepth = () =>
     setAstroDepthIdx((i) => (i == null ? 0 : i + 1 >= ASTRO_DEPTHS.length ? null : i + 1));
-  // Demo sheet picks: apply, close, and jump to the surface it affects.
-  const pickStage = (idx: number | null) => {
+  // Demo sheet "Update": commit the picked stage + depth, then restart into a
+  // fresh Home view of that state (hide onboarding, reset session flags).
+  const applyDemo = (s: number | null, d: number | null) => {
+    setDemoStageIdx(s);
+    setAstroDepthIdx(d);
     setTaskDismissed(false);
     setMomentDismissed(false);
-    setDemoStageIdx(idx);
+    setShowPermit(false);
+    setCoachStage('talk');
     setShowDemo(false);
     scrollToPage(HOME);
-  };
-  const pickDepth = (idx: number | null) => {
-    setAstroDepthIdx(idx);
-    setShowDemo(false);
-    scrollToPage(SPACES);
   };
   const swipeUp = useRef(
     PanResponder.create({
@@ -764,8 +763,7 @@ export function HomeScreen() {
         <DemoSheet
           stageIdx={demoStageIdx}
           depthIdx={astroDepthIdx}
-          onStage={pickStage}
-          onDepth={pickDepth}
+          onApply={applyDemo}
           onClose={() => setShowDemo(false)}
           bottomInset={insets.bottom}
         />
@@ -833,18 +831,19 @@ function ContextLineCard({
 function DemoSheet({
   stageIdx,
   depthIdx,
-  onStage,
-  onDepth,
+  onApply,
   onClose,
   bottomInset,
 }: {
   stageIdx: number | null;
   depthIdx: number | null;
-  onStage: (idx: number | null) => void;
-  onDepth: (idx: number | null) => void;
+  onApply: (stage: number | null, depth: number | null) => void;
   onClose: () => void;
   bottomInset: number;
 }) {
+  // Stage the picks locally; nothing changes until "Update" commits + restarts.
+  const [pStage, setPStage] = useState<number | null>(stageIdx);
+  const [pDepth, setPDepth] = useState<number | null>(depthIdx);
   return (
     <View style={styles.sheetRoot}>
       <Pressable style={styles.sheetBackdrop} onPress={onClose} accessibilityLabel="Close demo controls" />
@@ -855,19 +854,27 @@ function DemoSheet({
 
         <Text style={styles.sheetLabel}>Home · app stage</Text>
         <View style={styles.sheetChips}>
-          <DemoChip label="Auto" on={stageIdx == null} onPress={() => onStage(null)} />
+          <DemoChip label="Auto" on={pStage == null} onPress={() => setPStage(null)} />
           {DEMO_STAGES.map((s, i) => (
-            <DemoChip key={s} label={s} on={stageIdx === i} onPress={() => onStage(i)} />
+            <DemoChip key={s} label={s} on={pStage === i} onPress={() => setPStage(i)} />
           ))}
         </View>
 
         <Text style={styles.sheetLabel}>Astrology · depth</Text>
         <View style={styles.sheetChips}>
-          <DemoChip label="Auto" on={depthIdx == null} onPress={() => onDepth(null)} />
+          <DemoChip label="Auto" on={pDepth == null} onPress={() => setPDepth(null)} />
           {ASTRO_DEPTHS.map((d, i) => (
-            <DemoChip key={d} label={d} on={depthIdx === i} onPress={() => onDepth(i)} />
+            <DemoChip key={d} label={d} on={pDepth === i} onPress={() => setPDepth(i)} />
           ))}
         </View>
+
+        <Pressable
+          onPress={() => onApply(pStage, pDepth)}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.sheetUpdate, pressed && { backgroundColor: fig.brandPressed }]}
+        >
+          <Text style={styles.sheetUpdateText}>Update</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -1370,6 +1377,14 @@ const styles = StyleSheet.create({
   demoChipOn: { backgroundColor: fig.brand, borderColor: fig.brand },
   demoChipText: { fontSize: 13, fontWeight: '700', color: fig.textHigh, textTransform: 'capitalize', ...font('700') },
   demoChipTextOn: { color: fig.textOnBrand },
+  sheetUpdate: {
+    marginTop: 20,
+    backgroundColor: fig.brand,
+    borderRadius: 999,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  sheetUpdateText: { fontSize: 15, fontWeight: '800', color: fig.textOnBrand, ...font('800') },
   blockGap: { marginTop: 12 },
   rowGap: { marginTop: 10 },
   grid: { marginTop: 10, gap: 10 },
