@@ -578,34 +578,6 @@ export function HomeScreen() {
               </Pressable>
             </Animated.View>
             )}
-            {showCard ? (
-              <Animated.View
-                style={{
-                  alignSelf: 'stretch',
-                  marginTop: 20,
-                  opacity: anims[4],
-                  transform: [
-                    { translateY: anims[4].interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
-                  ],
-                }}
-              >
-                <ContextLineCard
-                  eyebrow={
-                    cardKind === 'jumpback'
-                      ? 'Pick up where you left off'
-                      : stage === 'activated'
-                        ? 'Because you’re on Jio'
-                        : 'For you'
-                  }
-                  line={cardKind === 'jumpback' ? JUMPBACK_LINE : TASK_LINE}
-                  yesLabel={cardKind === 'jumpback' ? 'Yes, play it' : 'Yes, renew'}
-                  onYes={() =>
-                    ask(cardKind === 'jumpback' ? 'Read my horoscope' : 'Renew my recharge')
-                  }
-                  onLater={() => setTaskDismissed(true)}
-                />
-              </Animated.View>
-            ) : null}
           </View>
         </View>
 
@@ -710,6 +682,30 @@ export function HomeScreen() {
           onSubmit={(text) => navigation.navigate('Saathi', { prompt: text })}
         />
       </Animated.View>
+
+      {/* Contextual banner — pinned to the bottom, 8px above the composer, Home only */}
+      {showCard ? (
+        <Animated.View
+          style={[styles.homeCardWrap, { opacity: homeOpacity }]}
+          pointerEvents={active === HOME ? 'box-none' : 'none'}
+        >
+          <ContextLineCard
+            eyebrow={
+              cardKind === 'jumpback'
+                ? 'Pick up where you left off'
+                : stage === 'activated'
+                  ? 'Because you’re on Jio'
+                  : 'For you'
+            }
+            line={cardKind === 'jumpback' ? JUMPBACK_LINE : TASK_LINE}
+            yesLabel={cardKind === 'jumpback' ? 'Yes, play it' : 'Yes, renew'}
+            onYes={() =>
+              ask(cardKind === 'jumpback' ? 'Read my horoscope' : 'Renew my recharge')
+            }
+            onLater={() => setTaskDismissed(true)}
+          />
+        </Animated.View>
+      ) : null}
 
       {/* Menu bottom bar — visible on the Menu page */}
       <Animated.View
@@ -1435,6 +1431,8 @@ const styles = StyleSheet.create({
 
   // Return-visit live-moment banner (Home only)
   momentWrap: { position: 'absolute', left: 16, right: 16, bottom: 82, zIndex: 9 },
+  // Pinned 8px above the composer (composer sits at bottom:24, height 42 → 24+42+8).
+  homeCardWrap: { position: 'absolute', left: 16, right: 16, bottom: 74, zIndex: 9 },
 
   // iOS-style windowed carousel dots (Spaces swipe indicator)
   dotsWrap: { position: 'absolute', left: 0, right: 0, bottom: 82, alignItems: 'center', zIndex: 9 },
