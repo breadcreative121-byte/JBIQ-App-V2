@@ -178,6 +178,8 @@ export function HomeScreen() {
   const [taskDismissed, setTaskDismissed] = useState(false);
   // Demo: per-vertical depth for the Astrology Space (long-press its context line).
   const [astroDepthIdx, setAstroDepthIdx] = useState<number | null>(null);
+  // Demo control sheet (opened from the Menu gear) to pick stage / depth directly.
+  const [showDemo, setShowDemo] = useState(false);
   // Return-visit "live moment" banner: appears after the app has been
   // backgrounded and reopened; dismissed for the session with "Later".
   const [returnedFromBg, setReturnedFromBg] = useState(false);
@@ -387,6 +389,19 @@ export function HomeScreen() {
   };
   const cycleAstroDepth = () =>
     setAstroDepthIdx((i) => (i == null ? 0 : i + 1 >= ASTRO_DEPTHS.length ? null : i + 1));
+  // Demo sheet picks: apply, close, and jump to the surface it affects.
+  const pickStage = (idx: number | null) => {
+    setTaskDismissed(false);
+    setMomentDismissed(false);
+    setDemoStageIdx(idx);
+    setShowDemo(false);
+    scrollToPage(HOME);
+  };
+  const pickDepth = (idx: number | null) => {
+    setAstroDepthIdx(idx);
+    setShowDemo(false);
+    scrollToPage(SPACES);
+  };
   const swipeUp = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_e, g) =>
@@ -687,7 +702,12 @@ export function HomeScreen() {
         pointerEvents={active === MENU ? 'box-none' : 'none'}
       >
         <View style={[styles.menuBar, { bottom: 24 }]}>
-          <Pressable style={styles.gear} accessibilityLabel="Settings">
+          <Pressable
+            style={styles.gear}
+            onPress={() => setShowDemo(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Demo controls"
+          >
             <Ionicons name="settings-outline" size={20} color={fig.textHigh} />
           </Pressable>
           <Pressable
@@ -732,6 +752,17 @@ export function HomeScreen() {
             />
           </Animated.View>
         </Animated.View>
+      ) : null}
+
+      {showDemo ? (
+        <DemoSheet
+          stageIdx={demoStageIdx}
+          depthIdx={astroDepthIdx}
+          onStage={pickStage}
+          onDepth={pickDepth}
+          onClose={() => setShowDemo(false)}
+          bottomInset={insets.bottom}
+        />
       ) : null}
 
       {showSpacesIntro ? <SpacesIntroSheet onClose={() => setShowSpacesIntro(false)} /> : null}
@@ -787,6 +818,65 @@ function ContextLineCard({
         </Pressable>
       </View>
     </View>
+  );
+}
+
+// Demo control sheet (opened from the Menu gear): pick an engagement stage or an
+// Astrology depth directly, instead of the hidden long-press gestures. Local demo
+// tooling — production has no such surface.
+function DemoSheet({
+  stageIdx,
+  depthIdx,
+  onStage,
+  onDepth,
+  onClose,
+  bottomInset,
+}: {
+  stageIdx: number | null;
+  depthIdx: number | null;
+  onStage: (idx: number | null) => void;
+  onDepth: (idx: number | null) => void;
+  onClose: () => void;
+  bottomInset: number;
+}) {
+  return (
+    <View style={styles.sheetRoot}>
+      <Pressable style={styles.sheetBackdrop} onPress={onClose} accessibilityLabel="Close demo controls" />
+      <View style={[styles.sheetCard, { paddingBottom: bottomInset + 16 }]}>
+        <View style={styles.sheetHandle} />
+        <Text style={styles.sheetTitle}>Demo controls</Text>
+        <Text style={styles.sheetHint}>Preview how Home &amp; Spaces adapt by engagement.</Text>
+
+        <Text style={styles.sheetLabel}>Home · app stage</Text>
+        <View style={styles.sheetChips}>
+          <DemoChip label="Auto" on={stageIdx == null} onPress={() => onStage(null)} />
+          {DEMO_STAGES.map((s, i) => (
+            <DemoChip key={s} label={s} on={stageIdx === i} onPress={() => onStage(i)} />
+          ))}
+        </View>
+
+        <Text style={styles.sheetLabel}>Astrology · depth</Text>
+        <View style={styles.sheetChips}>
+          <DemoChip label="Auto" on={depthIdx == null} onPress={() => onDepth(null)} />
+          {ASTRO_DEPTHS.map((d, i) => (
+            <DemoChip key={d} label={d} on={depthIdx === i} onPress={() => onDepth(i)} />
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function DemoChip({ label, on, onPress }: { label: string; on: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected: on }}
+      style={[styles.demoChip, on && styles.demoChipOn]}
+    >
+      <Text style={[styles.demoChipText, on && styles.demoChipTextOn]}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -1239,6 +1329,42 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     ...font('700'),
   },
+
+  // Demo control sheet
+  sheetRoot: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'flex-end', zIndex: 50 },
+  sheetBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(12,13,16,0.35)' },
+  sheetCard: {
+    backgroundColor: fig.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+  },
+  sheetHandle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: fig.surfaceGhost, marginBottom: 12 },
+  sheetTitle: { fontSize: 18, fontWeight: '800', color: fig.textHigh, ...font('800') },
+  sheetHint: { fontSize: 13, color: fig.textLow, marginTop: 2, marginBottom: 8, ...font('400') },
+  sheetLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: fig.textLow,
+    marginTop: 12,
+    marginBottom: 8,
+    ...font('800'),
+  },
+  sheetChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  demoChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: fig.strokeCard,
+    backgroundColor: fig.surface,
+  },
+  demoChipOn: { backgroundColor: fig.brand, borderColor: fig.brand },
+  demoChipText: { fontSize: 13, fontWeight: '700', color: fig.textHigh, textTransform: 'capitalize', ...font('700') },
+  demoChipTextOn: { color: fig.textOnBrand },
   blockGap: { marginTop: 12 },
   rowGap: { marginTop: 10 },
   grid: { marginTop: 10, gap: 10 },
