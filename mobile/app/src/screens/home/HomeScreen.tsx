@@ -63,7 +63,7 @@ const USER_NAME: string | null = 'Arjun';
 // App-level engagement stage (docs/home-spaces-engagement-v1.md §2/§5). Home
 // consumes this — production reads it from the Consumer Lifecycle pod; here it's
 // simulated. Density grows by stage; the trust ceiling (below) can override it.
-type Stage = 'cold' | 'warm' | 'activated' | 'habitual' | 'power' | 'dormant';
+type Stage = 'cold' | 'warm' | 'activated' | 'habitual' | 'power' | 'dormant' | 'return-moment';
 // Demo cycle (long-press the greeting). 'warm' is omitted — "Auto" already renders
 // the new (warm) user, so there's no separate Warm chip. 'cold' last = the
 // untrusted / shared-device floor, so the leak fix is demonstrable too.
@@ -232,8 +232,10 @@ export function HomeScreen() {
 
   // The return-visit moment banner leads on a real reopen (auto mode); it wins
   // slot 1, so the context/jump-back card stands down when it's showing.
-  const momentEligible =
-    trusted && returnedFromBg && demoStageIdx == null && !momentDismissed && !showPermit;
+  // Live Darshan moment banner is OFF for now: it only fires for the
+  // 'return-moment' stage, which isn't in DEMO_STAGES. Re-add 'return-moment'
+  // to DEMO_STAGES to bring it back as a settings variable.
+  const momentEligible = stage === 'return-moment' && !momentDismissed && !showPermit;
 
   // Slot-1 earned card: transactional context (activated/dormant) or a habit
   // jump-back (habitual/power). Suppressed when untrusted, dismissed, or the
@@ -566,33 +568,6 @@ export function HomeScreen() {
                   <PhraseRow icon={p.icon} jds={p.jds} text={p.text} onPress={() => ask(p.text)} />
                 </Animated.View>
               ))}
-              {showCard ? (
-                <Animated.View
-                  style={{
-                    alignSelf: 'stretch',
-                    opacity: anims[4],
-                    transform: [
-                      { translateY: anims[4].interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
-                    ],
-                  }}
-                >
-                  <ContextLineCard
-                    eyebrow={
-                      cardKind === 'jumpback'
-                        ? 'Pick up where you left off'
-                        : stage === 'activated'
-                          ? 'Because you’re on Jio'
-                          : 'For you'
-                    }
-                    line={cardKind === 'jumpback' ? JUMPBACK_LINE : TASK_LINE}
-                    yesLabel={cardKind === 'jumpback' ? 'Yes, play it' : 'Yes, renew'}
-                    onYes={() =>
-                      ask(cardKind === 'jumpback' ? 'Read my horoscope' : 'Renew my recharge')
-                    }
-                    onLater={() => setTaskDismissed(true)}
-                  />
-                </Animated.View>
-              ) : null}
             </View>
             {showUsuals ? null : (
             <Animated.View style={[styles.moreHint, { transform: [{ translateY: hintBounce }] }]}>
@@ -612,6 +587,34 @@ export function HomeScreen() {
               </Pressable>
             </Animated.View>
             )}
+            {showCard ? (
+              <Animated.View
+                style={{
+                  alignSelf: 'stretch',
+                  marginTop: 20,
+                  opacity: anims[4],
+                  transform: [
+                    { translateY: anims[4].interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+                  ],
+                }}
+              >
+                <ContextLineCard
+                  eyebrow={
+                    cardKind === 'jumpback'
+                      ? 'Pick up where you left off'
+                      : stage === 'activated'
+                        ? 'Because you’re on Jio'
+                        : 'For you'
+                  }
+                  line={cardKind === 'jumpback' ? JUMPBACK_LINE : TASK_LINE}
+                  yesLabel={cardKind === 'jumpback' ? 'Yes, play it' : 'Yes, renew'}
+                  onYes={() =>
+                    ask(cardKind === 'jumpback' ? 'Read my horoscope' : 'Renew my recharge')
+                  }
+                  onLater={() => setTaskDismissed(true)}
+                />
+              </Animated.View>
+            ) : null}
           </View>
         </View>
 
