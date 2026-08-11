@@ -151,6 +151,14 @@ const RECENTS = [
   'Order groceries',
 ];
 
+// Time-of-day greeting (device clock). Three buckets covering the full day.
+function timeGreeting(): string {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return 'Good morning';
+  if (h >= 12 && h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
 export function HomeScreen() {
   const navigation = useNavigation<Nav>();
   const insets = useSafeAreaInsets();
@@ -216,6 +224,7 @@ export function HomeScreen() {
   // gate that stops the shared-device leak (docs …engagement-v1 §0).
   const trusted = TRUST_SIMULATED && stage !== 'cold';
   const showName = trusted && !!USER_NAME;
+  const greet = timeGreeting();
   const engaged = stage === 'activated' || stage === 'habitual' || stage === 'power' || stage === 'dormant';
   const showUsuals = trusted && (stage === 'habitual' || stage === 'power');
 
@@ -516,7 +525,7 @@ export function HomeScreen() {
           <View style={[styles.homeBody, { paddingTop: insets.top + HEADER_H }]}>
             <Pressable onLongPress={cycleDemo} delayLongPress={450}>
               <Text style={styles.greeting}>
-                {showName ? `Namaste, ${USER_NAME}` : 'Namaste'}
+                {showName ? `${greet}, ${USER_NAME}` : greet}
               </Text>
             </Pressable>
             <Text style={styles.teach}>What can I do for you today?</Text>
