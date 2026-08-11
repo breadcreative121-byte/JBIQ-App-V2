@@ -186,7 +186,8 @@ export function HomeScreen() {
   const [demoStageIdx, setDemoStageIdx] = useState<number | null>(null);
   const [taskDismissed, setTaskDismissed] = useState(false);
   // Demo: per-vertical depth for the Astrology Space (long-press its context line).
-  const [astroDepthIdx, setAstroDepthIdx] = useState<number | null>(null);
+  // Defaults to New (index 0) — Astrology's default state, no "Auto" option.
+  const [astroDepthIdx, setAstroDepthIdx] = useState<number>(0);
   // Demo control sheet (opened from the Menu gear) to pick stage / depth directly.
   const [showDemo, setShowDemo] = useState(false);
   // Return-visit "live moment" banner: appears after the app has been
@@ -397,13 +398,12 @@ export function HomeScreen() {
     setMomentDismissed(false);
     setDemoStageIdx((i) => (i == null ? 0 : i + 1 >= DEMO_STAGES.length ? null : i + 1));
   };
-  const cycleAstroDepth = () =>
-    setAstroDepthIdx((i) => (i == null ? 0 : i + 1 >= ASTRO_DEPTHS.length ? null : i + 1));
+  const cycleAstroDepth = () => setAstroDepthIdx((i) => (i + 1) % ASTRO_DEPTHS.length);
   // Demo sheet "Update": commit the picked stage + depth, then restart into a
   // fresh Home view of that state. Auto (s === null) is the new user's first
   // open, so it also brings up the voice-onboarding sheet; every other stage
   // is a returning user, so onboarding stays hidden.
-  const applyDemo = (s: number | null, d: number | null) => {
+  const applyDemo = (s: number | null, d: number) => {
     setDemoStageIdx(s);
     setAstroDepthIdx(d);
     setTaskDismissed(false);
@@ -605,9 +605,7 @@ export function HomeScreen() {
             width={width}
             topPad={boardTop}
             onAction={ask}
-            depth={
-              v.id === 'astrology' && astroDepthIdx != null ? ASTRO_DEPTHS[astroDepthIdx] : undefined
-            }
+            depth={v.id === 'astrology' ? ASTRO_DEPTHS[astroDepthIdx] : undefined}
             onCycleDepth={v.id === 'astrology' ? cycleAstroDepth : undefined}
           />
         ))}
@@ -839,14 +837,14 @@ function DemoSheet({
   bottomInset,
 }: {
   stageIdx: number | null;
-  depthIdx: number | null;
-  onApply: (stage: number | null, depth: number | null) => void;
+  depthIdx: number;
+  onApply: (stage: number | null, depth: number) => void;
   onClose: () => void;
   bottomInset: number;
 }) {
   // Stage the picks locally; nothing changes until "Update" commits + restarts.
   const [pStage, setPStage] = useState<number | null>(stageIdx);
-  const [pDepth, setPDepth] = useState<number | null>(depthIdx);
+  const [pDepth, setPDepth] = useState<number>(depthIdx);
   return (
     <View style={styles.sheetRoot}>
       <Pressable style={styles.sheetBackdrop} onPress={onClose} accessibilityLabel="Close demo controls" />
@@ -857,7 +855,7 @@ function DemoSheet({
 
         <Text style={styles.sheetLabel}>Home · app stage</Text>
         <View style={styles.sheetChips}>
-          <DemoChip label="Auto" on={pStage == null} onPress={() => setPStage(null)} />
+          <DemoChip label="New" on={pStage == null} onPress={() => setPStage(null)} />
           {DEMO_STAGES.map((s, i) => (
             <DemoChip key={s} label={s} on={pStage === i} onPress={() => setPStage(i)} />
           ))}
@@ -865,7 +863,6 @@ function DemoSheet({
 
         <Text style={styles.sheetLabel}>Astrology · depth</Text>
         <View style={styles.sheetChips}>
-          <DemoChip label="Auto" on={pDepth == null} onPress={() => setPDepth(null)} />
           {ASTRO_DEPTHS.map((d, i) => (
             <DemoChip key={d} label={d} on={pDepth === i} onPress={() => setPDepth(i)} />
           ))}
