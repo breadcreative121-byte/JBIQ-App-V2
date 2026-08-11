@@ -44,7 +44,6 @@ import type { RootStackParamList } from '@/navigation/RootStack';
 import {
   getOnboardingComplete,
   setOnboardingComplete,
-  getSpacesIntroSeen,
   setSpacesIntroSeen,
 } from '@/lib/onboarding';
 import { useReducedMotion } from '@/lib/useReducedMotion';
@@ -287,25 +286,17 @@ export function HomeScreen() {
   // First launch (never onboarded): slide up the mic "warm ask" over Home.
   // Also hydrate the "seen Spaces" flag so a returning user skips the intro.
   useEffect(() => {
-    let alive = true;
-    Promise.all([getOnboardingComplete(), getSpacesIntroSeen()]).then(([done, spacesSeen]) => {
-      if (!alive) return;
-      setOnboarded(done);
-      if (done) {
-        seenSpaces.current = spacesSeen;
-      } else {
-        // First launch (onboarding not complete) → guarantee the full first-time
-        // experience: the voice-onboarding sheet, the coach tooltips, and the
-        // Spaces intro sheet on first Spaces arrival.
-        setShowPermit(true);
-        setCoachStage('talk');
-        sawVoice.current = false;
-        seenSpaces.current = false;
-      }
-    });
-    return () => {
-      alive = false;
-    };
+    // Demo: every app launch runs the full new-user flow — the voice-onboarding
+    // bottom sheet, the coach tooltips, and the Spaces intro — regardless of any
+    // prior session. Reset the persisted flags so a mid-session onboarding
+    // completion doesn't carry over to the next launch.
+    setOnboarded(false);
+    setShowPermit(true);
+    setCoachStage('talk');
+    sawVoice.current = false;
+    seenSpaces.current = false;
+    setOnboardingComplete(false);
+    setSpacesIntroSeen(false);
   }, []);
 
   // "Okay, listen" → permission already requested by the sheet → enter the
