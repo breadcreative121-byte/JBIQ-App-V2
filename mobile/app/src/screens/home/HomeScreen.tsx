@@ -48,7 +48,7 @@ import {
   setSpacesIntroSeen,
 } from '@/lib/onboarding';
 import { useReducedMotion } from '@/lib/useReducedMotion';
-import { VERTICALS, type Vertical } from '../spaces/verticals';
+import { VERTICALS, type Vertical, type VerticalDepth } from '../spaces/verticals';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type IoniconName = keyof typeof Ionicons.glyphMap;
@@ -67,6 +67,8 @@ type Stage = 'cold' | 'warm' | 'activated' | 'habitual' | 'power' | 'dormant';
 // Demo cycle (long-press the greeting). 'cold' last = the untrusted / shared-device
 // floor, so the leak fix is demonstrable in the same gesture.
 const DEMO_STAGES: Stage[] = ['warm', 'activated', 'habitual', 'power', 'dormant', 'cold'];
+// Per-vertical depth demo cycle (Astrology worked example).
+const ASTRO_DEPTHS: VerticalDepth[] = ['new', 'casual', 'regular', 'invested'];
 
 // Device-trust confidence. PRODUCTION wires this to the auth/identity-continuity
 // signal and defaults DOWN (untrusted → floor) when uncertain — the homepage only
@@ -174,6 +176,8 @@ export function HomeScreen() {
   const [onboarded, setOnboarded] = useState(false);
   const [demoStageIdx, setDemoStageIdx] = useState<number | null>(null);
   const [taskDismissed, setTaskDismissed] = useState(false);
+  // Demo: per-vertical depth for the Astrology Space (long-press its context line).
+  const [astroDepthIdx, setAstroDepthIdx] = useState<number | null>(null);
   // Return-visit "live moment" banner: appears after the app has been
   // backgrounded and reopened; dismissed for the session with "Later".
   const [returnedFromBg, setReturnedFromBg] = useState(false);
@@ -381,6 +385,8 @@ export function HomeScreen() {
     setMomentDismissed(false);
     setDemoStageIdx((i) => (i == null ? 0 : i + 1 >= DEMO_STAGES.length ? null : i + 1));
   };
+  const cycleAstroDepth = () =>
+    setAstroDepthIdx((i) => (i == null ? 0 : i + 1 >= ASTRO_DEPTHS.length ? null : i + 1));
   const swipeUp = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_e, g) =>
@@ -570,7 +576,17 @@ export function HomeScreen() {
 
         {/* Pages 2–7 — Spaces */}
         {VERTICALS.map((v) => (
-          <VerticalBoard key={v.id} vertical={v} width={width} topPad={boardTop} onAction={ask} />
+          <VerticalBoard
+            key={v.id}
+            vertical={v}
+            width={width}
+            topPad={boardTop}
+            onAction={ask}
+            depth={
+              v.id === 'astrology' && astroDepthIdx != null ? ASTRO_DEPTHS[astroDepthIdx] : undefined
+            }
+            onCycleDepth={v.id === 'astrology' ? cycleAstroDepth : undefined}
+          />
         ))}
       </Animated.ScrollView>
 
@@ -884,22 +900,32 @@ function VerticalBoard({
   width,
   topPad,
   onAction,
+  depth,
+  onCycleDepth,
 }: {
   vertical: Vertical;
   width: number;
   topPad: number;
   onAction: (prompt: string) => void;
+  depth?: VerticalDepth;
+  onCycleDepth?: () => void;
 }) {
   let firstHeroSeen = false;
+  // Per-vertical depth override (docs …engagement-v1 §6); falls back to the
+  // default content when this vertical has no depth variants or none is set.
+  const content = (depth && vertical.depth?.[depth]) || vertical;
   return (
     <ScrollView
       style={{ width }}
       contentContainerStyle={[styles.board, { paddingTop: topPad }]}
       showsVerticalScrollIndicator={false}
     >
-      <Text style={styles.contextLine}>{vertical.contextLine}</Text>
+      <Pressable onLongPress={onCycleDepth} disabled={!onCycleDepth} delayLongPress={450}>
+        <Text style={styles.contextLine}>{content.contextLine}</Text>
+        {depth ? <Text style={styles.depthTag}>depth · {depth}</Text> : null}
+      </Pressable>
 
-      {vertical.blocks.map((block, i) => {
+      {content.blocks.map((block, i) => {
         switch (block.kind) {
           case 'hero': {
             const isFirstHero = !firstHeroSeen;
@@ -950,6 +976,7 @@ function VerticalBoard({
                     title={a.title}
                     subtitle={a.subtitle}
                     soon={a.soon}
+                    locked={a.locked}
                     onPress={() => onAction(a.prompt)}
                     onNotify={() => onAction(`${a.title} ke liye notify karo`)}
                   />
@@ -965,6 +992,7 @@ function VerticalBoard({
                   title={block.item.title}
                   subtitle={block.item.subtitle}
                   soon={block.item.soon}
+                  locked={block.item.locked}
                   onPress={() => onAction(block.item.prompt)}
                   onNotify={() => onAction(`${block.item.title} ke liye notify karo`)}
                 />
@@ -1202,6 +1230,15 @@ const styles = StyleSheet.create({
   // Board
   board: { paddingHorizontal: 16, paddingBottom: 96 },
   contextLine: { fontSize: 20, fontWeight: '800', lineHeight: 22, color: fig.textHigh, marginBottom: 4, ...font('800') },
+  depthTag: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    color: fig.textLow,
+    marginBottom: 4,
+    ...font('700'),
+  },
   blockGap: { marginTop: 12 },
   rowGap: { marginTop: 10 },
   grid: { marginTop: 10, gap: 10 },

@@ -14,6 +14,7 @@ export function ActionCard({
   title,
   subtitle,
   soon,
+  locked,
   onPress,
   onNotify,
   style,
@@ -23,16 +24,19 @@ export function ActionCard({
   title: string;
   subtitle: string;
   soon?: boolean;
+  locked?: boolean; // causally gated — dimmed, states the reason, no SOON tag
   onPress?: () => void;
   onNotify?: () => void;
   style?: StyleProp<ViewStyle>;
 }) {
+  const dim = soon || locked;
   return (
     <Pressable
       onPress={soon ? onNotify : onPress}
       accessibilityRole="button"
       accessibilityLabel={title}
-      style={({ pressed }) => [styles.card, soon && styles.soon, pressed && styles.pressed, style]}
+      accessibilityState={{ disabled: locked }}
+      style={({ pressed }) => [styles.card, dim && styles.soon, pressed && styles.pressed, style]}
     >
       <View style={styles.content}>
         <AccentIconChip icon={icon} jds={jds} size={28} iconSize={16} />
@@ -44,7 +48,11 @@ export function ActionCard({
           <Text style={styles.subtitle}>{subtitle}</Text>
         </View>
       </View>
-      <Ionicons name={soon ? 'notifications-outline' : 'chevron-forward'} size={20} color={fig.textLow} />
+      <Ionicons
+        name={locked ? 'lock-closed-outline' : soon ? 'notifications-outline' : 'chevron-forward'}
+        size={20}
+        color={fig.textLow}
+      />
     </Pressable>
   );
 }

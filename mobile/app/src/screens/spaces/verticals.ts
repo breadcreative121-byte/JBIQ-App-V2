@@ -16,7 +16,12 @@ export type SpaceAction = {
   subtitle: string;
   prompt: string;
   soon?: boolean;
+  locked?: boolean; // causally gated (e.g. needs birth data) — dimmed, states the reason
 };
+
+// Per-vertical engagement depth (docs/home-spaces-engagement-v1.md §6). Independent
+// of app-level stage: a user can be Invested here while new to the app overall.
+export type VerticalDepth = 'new' | 'casual' | 'regular' | 'invested';
 
 export type SpaceHero = {
   icon?: GlyphName;
@@ -45,7 +50,15 @@ export type SpaceBlock =
     }
   | { kind: 'disclaimer'; text: string };
 
-export type Vertical = { id: string; tab: string; contextLine: string; blocks: SpaceBlock[] };
+export type SpaceContent = { contextLine: string; blocks: SpaceBlock[] };
+export type Vertical = {
+  id: string;
+  tab: string;
+  contextLine: string;
+  blocks: SpaceBlock[];
+  // Optional per-depth overrides. When absent, `blocks` renders at every depth.
+  depth?: Partial<Record<VerticalDepth, SpaceContent>>;
+};
 
 export const VERTICALS: Vertical[] = [
   {
@@ -96,6 +109,188 @@ export const VERTICALS: Vertical[] = [
       },
       { kind: 'disclaimer', text: 'AI-generated · general guidance, not professional advice.' },
     ],
+    // Per-depth Astrology (docs …engagement-v1 §6): teaching at New → streak +
+    // unlocked Reveal at Regular → "daily ritual" at Invested. Density grows by
+    // swapping content into the fixed skeleton, never by lengthening the list.
+    depth: {
+      new: {
+        contextLine: 'Yahan apni rashi ka haal jaano',
+        blocks: [
+          {
+            kind: 'hero',
+            hero: {
+              icon: 'star-four-points',
+              eyebrow: 'Pehli baar?',
+              title: 'Apni rashi batao',
+              body: '12 rashiyon mein se ek chuno — ya bolo.',
+              buttonLabel: 'Rashi chuno',
+              prompt: 'Meri rashi Mesh hai',
+            },
+          },
+          {
+            kind: 'action',
+            item: {
+              icon: 'flower-outline',
+              title: 'Aaj Ka Upay',
+              subtitle: 'General remedy for today',
+              prompt: 'Aaj ka upay batao',
+            },
+          },
+          {
+            kind: 'action',
+            item: {
+              icon: 'star-shooting-outline',
+              title: 'Grand Kundali Reveal',
+              subtitle: 'Rashi batane ke baad unlock hoga',
+              prompt: 'Pehle apni rashi batao',
+              locked: true,
+            },
+          },
+          { kind: 'disclaimer', text: 'AI-generated · general guidance, not professional advice.' },
+        ],
+      },
+      casual: {
+        contextLine: 'Aaj ka rashifal ready — Mesh.',
+        blocks: [
+          {
+            kind: 'hero',
+            hero: {
+              icon: 'star-four-points',
+              eyebrow: 'Aaj ka Rashifal',
+              title: 'Today · Mesh (Aries)',
+              body: 'A steady day for money matters. 2 min · audio + video.',
+              buttonLabel: 'Tap to hear',
+              buttonIcon: 'play',
+              prompt: 'Aaj ka rashifal sunao',
+            },
+          },
+          {
+            kind: 'action',
+            item: {
+              icon: 'star-circle-outline',
+              title: 'Banao apni Kundali',
+              subtitle: '2 min · unlocks deeper readings',
+              prompt: 'Meri kundali banao',
+            },
+          },
+          {
+            kind: 'action',
+            item: {
+              icon: 'flower-outline',
+              title: 'Aaj Ka Upay',
+              subtitle: 'Venus remedy for today',
+              prompt: 'Aaj ka upay batao',
+            },
+          },
+          {
+            kind: 'action',
+            item: {
+              icon: 'star-shooting-outline',
+              title: 'Grand Kundali Reveal',
+              subtitle: 'Kundali banane ke baad',
+              prompt: 'Pehle kundali banao',
+              locked: true,
+            },
+          },
+          { kind: 'disclaimer', text: 'AI-generated · general guidance, not professional advice.' },
+        ],
+      },
+      regular: {
+        contextLine: 'Aaj ka rashifal ready — Mesh.',
+        blocks: [
+          {
+            kind: 'hero',
+            hero: {
+              icon: 'star-four-points',
+              eyebrow: 'Aaj ka Rashifal · 🔥 5 din se',
+              title: 'Today · Mesh (Aries)',
+              body: 'A steady day for money matters. 2 min · audio + video.',
+              buttonLabel: 'Tap to hear',
+              buttonIcon: 'play',
+              prompt: 'Aaj ka rashifal sunao',
+            },
+          },
+          {
+            kind: 'action',
+            item: {
+              icon: 'star-circle-outline',
+              title: 'Meri Kundali',
+              subtitle: 'Tumhara saved chart — dekho ya update karo',
+              prompt: 'Meri kundali dikhao',
+            },
+          },
+          {
+            kind: 'hero',
+            hero: {
+              icon: 'star-shooting-outline',
+              eyebrow: 'Signature · unlocked',
+              title: 'Ready to go deeper?',
+              body: 'Your birth chart, narrated — voice-first.',
+              buttonLabel: 'Begin reveal',
+              buttonVariant: 'ghost',
+              prompt: 'Grand Kundali Reveal shuru karo',
+            },
+          },
+          {
+            kind: 'action',
+            item: {
+              icon: 'flower-outline',
+              title: 'Aaj Ka Upay',
+              subtitle: 'Venus remedy for today',
+              prompt: 'Aaj ka upay batao',
+            },
+          },
+          { kind: 'disclaimer', text: 'AI-generated · general guidance, not professional advice.' },
+        ],
+      },
+      invested: {
+        contextLine: 'Your daily ritual — Mesh.',
+        blocks: [
+          {
+            kind: 'hero',
+            hero: {
+              icon: 'star-four-points',
+              eyebrow: 'Your daily ritual · 🔥 21 din',
+              title: 'Rashifal + upay — dono ready',
+              body: 'Aaj ka rashifal aur Venus upay, ek saath.',
+              buttonLabel: 'Tap to hear',
+              buttonIcon: 'play',
+              prompt: 'Aaj ka rashifal aur upay sunao',
+            },
+          },
+          {
+            kind: 'grid',
+            items: [
+              {
+                icon: 'star-circle-outline',
+                title: 'Meri Kundali',
+                subtitle: 'Saved chart',
+                prompt: 'Meri kundali dikhao',
+              },
+              {
+                icon: 'moon-waning-crescent',
+                title: 'Moon · Nakshatra',
+                subtitle: 'Aaj ka Chandrama',
+                prompt: 'Aaj ka nakshatra batao',
+              },
+            ],
+          },
+          {
+            kind: 'hero',
+            hero: {
+              icon: 'star-shooting-outline',
+              eyebrow: 'Signature',
+              title: 'Grand Kundali Reveal',
+              body: 'Revisit your full chart, narrated.',
+              buttonLabel: 'Begin reveal',
+              buttonVariant: 'ghost',
+              prompt: 'Grand Kundali Reveal shuru karo',
+            },
+          },
+          { kind: 'disclaimer', text: 'AI-generated · general guidance, not professional advice.' },
+        ],
+      },
+    },
   },
   {
     id: 'devotion',
