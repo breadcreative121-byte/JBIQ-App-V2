@@ -141,7 +141,8 @@ const styles = StyleSheet.create({
   chipLabel: { fontSize: 14, fontWeight: '700', color: fig.textHigh, ...font('700') },
   chipLabelOn: { color: fig.textOnBrand },
   footer: { paddingTop: 12, gap: 6 },
-  cta: { alignSelf: 'stretch' },
+  // Medium button size from the JDS scale (3xl = 40px).
+  cta: { alignSelf: 'stretch', height: 40, paddingVertical: 0 },
   ctaDisabled: { opacity: 0.45 },
   skip: { alignSelf: 'center', paddingVertical: 10 },
   skipText: { fontSize: 15, fontWeight: '600', color: fig.textLow, ...font('600') },
