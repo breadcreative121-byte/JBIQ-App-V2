@@ -195,6 +195,8 @@ export function HomeScreen() {
   const [momentDismissed, setMomentDismissed] = useState(false);
   const backgroundedAt = useRef(0);
   const momentFade = useRef(new Animated.Value(0)).current;
+  // Contextual banner dismiss: 0 = resting, 1 = sprung out (slide down + fade).
+  const cardDismiss = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next) => {
@@ -265,6 +267,22 @@ export function HomeScreen() {
       easing: Easing.in(Easing.cubic),
       useNativeDriver: true,
     }).start(() => setMomentDismissed(true));
+
+  // Reset the dismiss spring whenever the banner (re)appears, so a later demo
+  // state that re-enables it starts from rest rather than the sprung-out pose.
+  useEffect(() => {
+    if (showCard) cardDismiss.setValue(0);
+  }, [showCard, cardDismiss]);
+
+  // "Later" springs the banner down + out, then collapses it for the session.
+  const dismissCard = () =>
+    Animated.spring(cardDismiss, {
+      toValue: 1,
+      useNativeDriver: true,
+      damping: 22,
+      stiffness: 220,
+      mass: 0.9,
+    }).start(() => setTaskDismissed(true));
 
   useEffect(() => {
     const unsub = navigation.addListener('focus', () => {
@@ -689,21 +707,30 @@ export function HomeScreen() {
           style={[styles.homeCardWrap, { opacity: homeOpacity }]}
           pointerEvents={active === HOME ? 'box-none' : 'none'}
         >
-          <ContextLineCard
-            eyebrow={
-              cardKind === 'jumpback'
-                ? 'Pick up where you left off'
-                : stage === 'activated'
-                  ? 'Because you’re on Jio'
-                  : 'For you'
-            }
-            line={cardKind === 'jumpback' ? JUMPBACK_LINE : TASK_LINE}
-            yesLabel={cardKind === 'jumpback' ? 'Yes, play it' : 'Yes, renew'}
-            onYes={() =>
-              ask(cardKind === 'jumpback' ? 'Read my horoscope' : 'Renew my recharge')
-            }
-            onLater={() => setTaskDismissed(true)}
-          />
+          <Animated.View
+            style={{
+              opacity: cardDismiss.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }),
+              transform: [
+                { translateY: cardDismiss.interpolate({ inputRange: [0, 1], outputRange: [0, 32] }) },
+              ],
+            }}
+          >
+            <ContextLineCard
+              eyebrow={
+                cardKind === 'jumpback'
+                  ? 'Pick up where you left off'
+                  : stage === 'activated'
+                    ? 'Because you’re on Jio'
+                    : 'For you'
+              }
+              line={cardKind === 'jumpback' ? JUMPBACK_LINE : TASK_LINE}
+              yesLabel={cardKind === 'jumpback' ? 'Yes, play it' : 'Yes, renew'}
+              onYes={() =>
+                ask(cardKind === 'jumpback' ? 'Read my horoscope' : 'Renew my recharge')
+              }
+              onLater={dismissCard}
+            />
+          </Animated.View>
         </Animated.View>
       ) : null}
 
