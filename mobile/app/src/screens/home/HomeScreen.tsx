@@ -408,8 +408,16 @@ export function HomeScreen() {
     setAstroDepthIdx(d);
     setTaskDismissed(false);
     setMomentDismissed(false);
-    setCoachStage('talk');
-    setShowPermit(s === null);
+    // New (s === null) is a genuine first-time user: replay the whole first-run —
+    // the voice-onboarding sheet, the coach tooltips, and the Spaces intro sheet.
+    // Every returning stage skips all coaching.
+    const isNew = s === null;
+    setShowPermit(isNew);
+    setCoachStage(isNew ? 'talk' : 'done');
+    sawVoice.current = false;
+    seenSpaces.current = !isNew;
+    setSpacesIntroSeen(!isNew);
+    setShowSpacesIntro(false);
     setShowDemo(false);
     scrollToPage(HOME);
   };
