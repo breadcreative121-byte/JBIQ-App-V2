@@ -38,7 +38,8 @@ import { MicPermissionSheet } from '@/components/MicPermissionSheet';
 import { HomeMomentBanner } from '@/components/HomeMomentBanner';
 import { HeroCard } from '@/components/HeroCard';
 import { ActionCard } from '@/components/ActionCard';
-import { AccentIconChip, type GlyphName } from '@/components/AccentIconChip';
+import { type GlyphName } from '@/components/AccentIconChip';
+import { AgentPulse } from '@/components/AgentPulse';
 import type { JdsName } from '@/theme/jdsIcons';
 import type { RootStackParamList } from '@/navigation/RootStack';
 import {
@@ -190,6 +191,10 @@ export function HomeScreen() {
   // First-run interests picker + the chosen interests that personalise Home.
   const [showPrefs, setShowPrefs] = useState(false);
   const [prefs, setPrefs] = useState<InterestId[]>([]);
+  // New-user flow: let Home settle for a beat before the voice sheet slides in,
+  // rather than having it there straight away. `pendingVoice` covers the pause.
+  const [pendingVoice, setPendingVoice] = useState(false);
+  const permitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Demo: per-vertical depth for the Astrology Space (long-press its context line).
   // Defaults to New (index 0) — Astrology's default state, no "Auto" option.
   const [astroDepthIdx, setAstroDepthIdx] = useState<number>(0);
@@ -318,7 +323,7 @@ export function HomeScreen() {
     // prior session. Reset the persisted flags so a mid-session onboarding
     // completion doesn't carry over to the next launch.
     setOnboarded(false);
-    setShowPermit(true);
+    setShowPermit(false); // revealed after the picker + a short pause, not instantly
     setCoachStage('talk');
     sawVoice.current = false;
     seenSpaces.current = false;
@@ -329,6 +334,20 @@ export function HomeScreen() {
     setShowPrefs(true);
     setPrefs([]);
     clearPreferences();
+  }, []);
+
+  // Show Home first, then slide the voice "warm ask" sheet up after a short beat
+  // so it isn't there the instant Home appears.
+  const revealVoiceSoon = (delay = 900) => {
+    if (permitTimer.current) clearTimeout(permitTimer.current);
+    setPendingVoice(true);
+    permitTimer.current = setTimeout(() => {
+      setPendingVoice(false);
+      setShowPermit(true);
+    }, delay);
+  };
+  useEffect(() => () => {
+    if (permitTimer.current) clearTimeout(permitTimer.current);
   }, []);
 
   // "Okay, listen" → permission already requested by the sheet → enter the
@@ -352,7 +371,7 @@ export function HomeScreen() {
     setTaskDismissed(false);
     setMomentDismissed(false);
     scrollToPage(HOME);
-    setShowPermit(true);
+    setShowPermit(false); // picker's onDone reveals the voice sheet after a pause
     // Re-run the interests picker from the top.
     setPrefs([]);
     clearPreferences();
@@ -778,7 +797,7 @@ export function HomeScreen() {
       </Animated.View>
 
       {/* Coach tooltips (Home only, before the first interaction) */}
-      {active === HOME && !engaged && !showPermit && coachStage ==='talk' ? (
+      {active === HOME && !engaged && !showPermit && !pendingVoice && coachStage ==='talk' ? (
         <CoachTip style={[styles.tipWrap, { bottom: 82 }]} delay={650} bounce="down">
           <Pressable style={styles.tipPill} onPress={() => setCoachStage('done')}>
             <Text style={styles.tipText}>Tap to talk</Text>
@@ -786,7 +805,7 @@ export function HomeScreen() {
           </Pressable>
         </CoachTip>
       ) : null}
-      {active === HOME && !engaged && !showPermit && coachStage ==='spaces' ? (
+      {active === HOME && !engaged && !showPermit && !pendingVoice && coachStage ==='spaces' ? (
         <CoachTip style={[styles.tipWrap, { top: insets.top + 54 }]} delay={650} bounce="up">
           <Pressable style={styles.tipPill} onPress={() => setCoachStage('done')}>
             <View style={styles.caretUp} />
@@ -833,6 +852,8 @@ export function HomeScreen() {
             setPrefs(ids);
             setPreferences(ids);
             setShowPrefs(false);
+            // Home is now visible — bring the voice sheet in after a short beat.
+            revealVoiceSoon();
           }}
         />
       ) : null}
@@ -860,7 +881,9 @@ function ContextLineCard({
     <View style={styles.ctxCard}>
       <View style={styles.ctxBody}>
         <View style={styles.ctxHead}>
-          <AccentIconChip icon="lightning-bolt" size={22} iconSize={13} />
+          <View style={styles.ctxAvatar}>
+            <AgentPulse size={15} />
+          </View>
           <Text style={styles.ctxEyebrow}>{eyebrow}</Text>
         </View>
         <Text style={styles.ctxLine}>{line}</Text>
@@ -1275,6 +1298,7 @@ const styles = StyleSheet.create({
   },
   ctxBody: { gap: 6 },
   ctxHead: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  ctxAvatar: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
   ctxEyebrow: { flex: 1, fontSize: 12, lineHeight: 18, color: fig.textHigh, ...font('400') },
   ctxLine: { fontSize: 16, fontWeight: '700', lineHeight: 20, color: fig.textHigh, ...font('700') },
   ctxChips: { flexDirection: 'row', gap: 4 },
