@@ -9,7 +9,7 @@ const LEAD = 'Start talking';
 const LEAD_HOLD = 2200; // beat before the first suggestion appears
 
 const SUGGESTIONS = [
-  'Try “Aaj ka rashifal batao”',
+  'Try “Read my horoscope”',
   'Ask “How did yesterday’s match go?”',
   'Say “Recharge my number”',
   'Try “Find a doctor near me”',

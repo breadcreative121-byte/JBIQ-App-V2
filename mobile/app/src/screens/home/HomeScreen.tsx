@@ -79,8 +79,8 @@ const TRUST_SIMULATED = true;
 
 // Slot-1 lines. Low-sensitivity, beneficial nudges — never a balance, never
 // auto-charged. TASK = transactional context line; JUMPBACK = habit resumption.
-const TASK_LINE = 'Recharge kal khatam ho raha hai — renew karun?';
-const JUMPBACK_LINE = 'Aaj ka rashifal — 5 din se. Aaj bhi sunoge?';
+const TASK_LINE = 'Your recharge ends tomorrow — renew it?';
+const JUMPBACK_LINE = 'Your horoscope — 5 days running. Hear today’s?';
 const HEADER_H = 56;
 const TAB_H = 44;
 const MENU = 0;
@@ -111,7 +111,7 @@ const PHRASE_SETS: Phrase[][] = [
     { icon: 'bus', text: 'Book a bus to Pune' },
   ],
   [
-    { icon: 'star-four-points', text: 'Kal ka rashifal batao' },
+    { icon: 'star-four-points', text: "Read tomorrow's horoscope" },
     { jds: 'ic_new_chat', text: 'Talk to me for a bit' },
     { icon: 'meditation', text: 'Guide me through breathing' },
     { icon: 'weather-partly-cloudy', text: "What's the weather today?" },
@@ -121,10 +121,10 @@ const PHRASE_SETS: Phrase[][] = [
 // A returning (habitual/power) user's "usuals" — their frequent asks worded as
 // sentences, so slot 1+ becomes their actual next tasks, not a teaching set.
 const USUALS: Phrase[] = [
-  { icon: 'star-four-points', text: 'Aaj ka rashifal sunao' },
-  { icon: 'lightbulb-on-outline', text: 'Bijli ka bill bharo' },
-  { icon: 'cellphone', text: 'Recharge ₹239 karo' },
-  { icon: 'cricket', text: 'Kal ka match kaisa raha?' },
+  { icon: 'star-four-points', text: 'Read my horoscope' },
+  { icon: 'lightbulb-on-outline', text: 'Pay the electricity bill' },
+  { icon: 'cellphone', text: 'Recharge ₹239' },
+  { icon: 'cricket', text: "How did yesterday's match go?" },
 ];
 
 type MenuItem = {
@@ -520,9 +520,6 @@ export function HomeScreen() {
               </Text>
             </Pressable>
             <Text style={styles.teach}>What can I do for you today?</Text>
-            {demoStageIdx != null ? (
-              <Text style={styles.demoTag}>demo · {stage}{trusted ? '' : ' · untrusted'}</Text>
-            ) : null}
             <View style={styles.phrases}>
               {showCard ? (
                 <Animated.View
@@ -543,9 +540,9 @@ export function HomeScreen() {
                           : 'For you'
                     }
                     line={cardKind === 'jumpback' ? JUMPBACK_LINE : TASK_LINE}
-                    yesLabel={cardKind === 'jumpback' ? 'Haan, sunao' : 'Haan, renew karo'}
+                    yesLabel={cardKind === 'jumpback' ? 'Yes, play it' : 'Yes, renew'}
                     onYes={() =>
-                      ask(cardKind === 'jumpback' ? 'Aaj ka rashifal sunao' : 'Recharge renew kar do')
+                      ask(cardKind === 'jumpback' ? 'Read my horoscope' : 'Renew my recharge')
                     }
                     onLater={() => setTaskDismissed(true)}
                   />
@@ -747,7 +744,7 @@ export function HomeScreen() {
         >
           <Animated.View style={{ opacity: momentFade }}>
             <HomeMomentBanner
-              onJoin={() => ask('Kashi Vishwanath darshan join karo')}
+              onJoin={() => ask('Join the Kashi Vishwanath darshan')}
               onLater={dismissMoment}
             />
           </Animated.View>
@@ -780,7 +777,7 @@ export function HomeScreen() {
 function ContextLineCard({
   eyebrow = 'For you',
   line,
-  yesLabel = 'Haan',
+  yesLabel = 'Yes',
   onYes,
   onLater,
 }: {
@@ -814,7 +811,7 @@ function ContextLineCard({
           accessibilityRole="button"
           style={({ pressed }) => [styles.ctxChip, pressed && styles.ctxChipPressed]}
         >
-          <Text style={styles.ctxChipText}>Baad mein</Text>
+          <Text style={styles.ctxChipText}>Later</Text>
         </Pressable>
       </View>
     </View>
@@ -1012,7 +1009,6 @@ function VerticalBoard({
     >
       <Pressable onLongPress={onCycleDepth} disabled={!onCycleDepth} delayLongPress={450}>
         <Text style={styles.contextLine}>{content.contextLine}</Text>
-        {depth ? <Text style={styles.depthTag}>depth · {depth}</Text> : null}
       </Pressable>
 
       {content.blocks.map((block, i) => {
