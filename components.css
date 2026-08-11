@@ -24,6 +24,12 @@
    ========================================================================== */
 
 
+/* Generated JDS token base. Keep this @import FIRST (CSS requires @import
+   before @font-face and style rules) so the semantic aliases in :root below
+   can reference the --jds-* custom properties. Regenerate via `npm run tokens`. */
+@import "tokens/jds-vars.css";
+
+
 /* ----------------------------------------------------------------------------
    FONT — JioType via CDN. Available globally after this file loads.
    ---------------------------------------------------------------------------- */
@@ -48,35 +54,37 @@
    surface uses a different default typeface.
    ---------------------------------------------------------------------------- */
 :root {
-  /* color.surface */
-  --color-surface-primary:   #ffffff;
-  --color-surface-secondary: #f5f5f5;
-  --color-surface-tertiary:  #eeeeef;
+  /* color.surface — aliased to the generated --jds-* base (literal fallback
+     preserves the exact value if jds-vars.css ever fails to load). */
+  --color-surface-primary:   var(--jds-color-surface-default, #ffffff);
+  --color-surface-secondary: var(--jds-color-surface-minimal, #f5f5f5);
+  --color-surface-tertiary:  var(--jds-color-surface-ghost, #eeeeef);
 
   /* color.text */
-  --color-text-primary:    #0c0d10;
-  --color-text-secondary:  rgba(12,13,16,0.65);
-  --color-text-tertiary:   rgba(12,13,16,0.38);
-  --color-text-on-primary: #ffffff;
+  --color-text-primary:    var(--jds-color-text-high, #0c0d10);
+  --color-text-secondary:  var(--jds-color-text-low, rgba(12,13,16,0.65));
+  --color-text-tertiary:   var(--jds-color-text-disabled, rgba(12,13,16,0.38));
+  --color-text-on-primary: var(--jds-color-text-on-bold, #ffffff);
 
   /* color.action — JDS primary (purple) */
-  --color-action-primary:         #6d17ce;
-  --color-action-primary-hover:   #310064;
-  --color-action-primary-surface: #ede7ff;
-  --color-action-primary-pale:    #f6f3ff;
+  --color-action-primary:         var(--jds-color-primary-50, #6d17ce);
+  --color-action-primary-hover:   var(--jds-color-primary-60, #310064);
+  --color-action-primary-surface: var(--jds-color-primary-30, #ede7ff);
+  --color-action-primary-pale:    var(--jds-color-primary-20, #f6f3ff);
 
   /* color.accent — secondary (teal) and sparkle (blue) accents used by
      editorial scaffolding (callouts, annotated labels, etc.). */
-  --color-secondary:         #00ad8b;
-  --color-secondary-surface: #ddfef2;
-  --color-sparkle:           #0078ad;
-  --color-sparkle-surface:   #ecf7ff;
+  --color-secondary:         var(--jds-color-secondary-50, #00ad8b);
+  --color-secondary-surface: var(--jds-color-secondary-20, #ddfef2);
+  --color-sparkle:           var(--jds-color-sparkle-50, #0078ad);
+  --color-sparkle-surface:   var(--jds-color-sparkle-20, #ecf7ff);
 
   /* color.border */
-  --color-border-default: rgba(12,13,16,0.08);
-  --color-border-strong:  rgba(12,13,16,0.12);
+  --color-border-default: var(--jds-color-stroke-minimal, rgba(12,13,16,0.08));
+  --color-border-strong:  var(--jds-color-stroke-subtle, rgba(12,13,16,0.12));
 
-  /* color.overlay — badges over media */
+  /* color.overlay — badges over media. No JDS equivalent (JDS ships overlay
+     opacity tokens, not pre-tinted colours), so these stay literal. */
   --color-overlay-dark:    rgba(12,13,16,0.6);
   --color-overlay-warning: rgba(240,109,15,0.9);
 
@@ -84,34 +92,36 @@
      For status badges sitting ON card media (place-card__status-badge variants)
      we use the semi-transparent `--color-overlay-*` tokens below so the badge
      reads cleanly against any underlying photo. */
-  --color-status-open:         #0c0d10;
-  --color-status-closing-soon: #f06d0f;
-  --color-status-closed:       rgba(12,13,16,0.65);
+  --color-status-open:         var(--jds-color-neutral-100, #0c0d10);
+  --color-status-closing-soon: var(--jds-color-warning, #f06d0f);
+  --color-status-closed:       var(--jds-color-text-low, rgba(12,13,16,0.65));
 
-  /* color.feedback */
+  /* color.feedback — error text maps to the JDS error token; the tinted bg/border
+     have no JDS equivalent and stay literal. */
   --color-feedback-error-bg:     rgba(250,47,64,0.08);
-  --color-feedback-error-text:   #fa2f40;
+  --color-feedback-error-text:   var(--jds-color-error, #fa2f40);
   --color-feedback-error-border: rgba(250,47,64,0.3);
 
   /* color.semantic */
-  --color-success: #25ab21;
-  --color-warning: #f06d0f;
-  --color-error:   #fa2f40;
+  --color-success: var(--jds-color-success, #25ab21);
+  --color-warning: var(--jds-color-warning, #f06d0f);
+  --color-error:   var(--jds-color-error, #fa2f40);
 
-  /* space */
-  --space-xs:   4px;
-  --space-sm:   8px;
-  --space-md:  12px;
-  --space-lg:  16px;
-  --space-xl:  24px;
-  --space-xxl: 32px;
+  /* space — mapped to the JDS spacing scale by value. --space-huge (56px) has
+     no JDS step (JDS jumps 48 → 64) so it stays literal. */
+  --space-xs:   var(--jds-space-3xs, 4px);
+  --space-sm:   var(--jds-space-xs, 8px);
+  --space-md:  var(--jds-space-s, 12px);
+  --space-lg:  var(--jds-space-m, 16px);
+  --space-xl:  var(--jds-space-xl, 24px);
+  --space-xxl: var(--jds-space-2xl, 32px);
   --space-huge: 56px;
 
   /* radius */
-  --radius-sm:   8px;
-  --radius-md:  12px;
-  --radius-lg:  16px;
-  --radius-pill: 999px;
+  --radius-sm:   var(--jds-radius-shape-sm, 8px);
+  --radius-md:  var(--jds-radius-shape-md, 12px);
+  --radius-lg:  var(--jds-radius-shape-lg, 16px);
+  --radius-pill: var(--jds-radius-shape-pill, 999px);
 
   /* font (size/weight/tracking — NOT family; consumers own that) */
   --font-mono:   ui-monospace, 'SF Mono', Menlo, 'Roboto Mono', monospace;
