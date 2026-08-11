@@ -400,14 +400,16 @@ export function HomeScreen() {
   const cycleAstroDepth = () =>
     setAstroDepthIdx((i) => (i == null ? 0 : i + 1 >= ASTRO_DEPTHS.length ? null : i + 1));
   // Demo sheet "Update": commit the picked stage + depth, then restart into a
-  // fresh Home view of that state (hide onboarding, reset session flags).
+  // fresh Home view of that state. Auto (s === null) is the new user's first
+  // open, so it also brings up the voice-onboarding sheet; every other stage
+  // is a returning user, so onboarding stays hidden.
   const applyDemo = (s: number | null, d: number | null) => {
     setDemoStageIdx(s);
     setAstroDepthIdx(d);
     setTaskDismissed(false);
     setMomentDismissed(false);
-    setShowPermit(false);
     setCoachStage('talk');
+    setShowPermit(s === null);
     setShowDemo(false);
     scrollToPage(HOME);
   };
