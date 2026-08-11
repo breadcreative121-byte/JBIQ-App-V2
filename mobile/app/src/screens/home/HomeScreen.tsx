@@ -38,7 +38,7 @@ import { MicPermissionSheet } from '@/components/MicPermissionSheet';
 import { HomeMomentBanner } from '@/components/HomeMomentBanner';
 import { HeroCard } from '@/components/HeroCard';
 import { ActionCard } from '@/components/ActionCard';
-import type { GlyphName } from '@/components/AccentIconChip';
+import { AccentIconChip, type GlyphName } from '@/components/AccentIconChip';
 import type { JdsName } from '@/theme/jdsIcons';
 import type { RootStackParamList } from '@/navigation/RootStack';
 import {
@@ -457,7 +457,7 @@ export function HomeScreen() {
   }, [hintBounce, reduced]);
 
   // Staggered entrance for the phrase rows.
-  const anims = useRef([0, 1, 2, 3].map(() => new Animated.Value(0))).current;
+  const anims = useRef([0, 1, 2, 3, 4].map(() => new Animated.Value(0))).current;
   useLayoutEffect(() => {
     anims.forEach((v) => v.setValue(0));
     Animated.stagger(
@@ -540,13 +540,26 @@ export function HomeScreen() {
             </Pressable>
             <Text style={styles.teach}>What can I do for you today?</Text>
             <View style={styles.phrases}>
+              {(showUsuals ? USUALS : PHRASE_SETS[phraseSet]).map((p, i) => (
+                <Animated.View
+                  key={i}
+                  style={{
+                    opacity: anims[i],
+                    transform: [
+                      { translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+                    ],
+                  }}
+                >
+                  <PhraseRow icon={p.icon} jds={p.jds} text={p.text} onPress={() => ask(p.text)} />
+                </Animated.View>
+              ))}
               {showCard ? (
                 <Animated.View
                   style={{
                     alignSelf: 'stretch',
-                    opacity: anims[0],
+                    opacity: anims[4],
                     transform: [
-                      { translateY: anims[0].interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+                      { translateY: anims[4].interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
                     ],
                   }}
                 >
@@ -567,22 +580,6 @@ export function HomeScreen() {
                   />
                 </Animated.View>
               ) : null}
-              {(showUsuals ? USUALS : PHRASE_SETS[phraseSet]).map((p, i) => {
-                if (showCard && i === 0) return null; // slot 1 → the earned card
-                return (
-                  <Animated.View
-                    key={i}
-                    style={{
-                      opacity: anims[i],
-                      transform: [
-                        { translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
-                      ],
-                    }}
-                  >
-                    <PhraseRow icon={p.icon} jds={p.jds} text={p.text} onPress={() => ask(p.text)} />
-                  </Animated.View>
-                );
-              })}
             </View>
             {showUsuals ? null : (
             <Animated.View style={[styles.moreHint, { transform: [{ translateY: hintBounce }] }]}>
@@ -659,9 +656,6 @@ export function HomeScreen() {
           <View style={styles.headerEnd}>
             <IconButton icon="options-outline" accessibilityLabel="Filter" />
             <IconButton icon="add" accessibilityLabel="New" />
-          </View>
-          <View style={styles.headerTitleWrap} pointerEvents="none">
-            <Text style={styles.headerTitle}>Spaces</Text>
           </View>
         </Animated.View>
       </View>
@@ -805,11 +799,13 @@ function ContextLineCard({
 }) {
   return (
     <View style={styles.ctxCard}>
-      <View style={styles.ctxHead}>
-        <MaterialCommunityIcons name="lightning-bolt" size={13} color={fig.brand} />
-        <Text style={styles.ctxEyebrow}>{eyebrow}</Text>
+      <View style={styles.ctxBody}>
+        <View style={styles.ctxHead}>
+          <AccentIconChip icon="lightning-bolt" size={22} iconSize={13} />
+          <Text style={styles.ctxEyebrow}>{eyebrow}</Text>
+        </View>
+        <Text style={styles.ctxLine}>{line}</Text>
       </View>
-      <Text style={styles.ctxLine}>{line}</Text>
       <View style={styles.ctxChips}>
         <Pressable
           onPress={onYes}
@@ -825,9 +821,13 @@ function ContextLineCard({
         <Pressable
           onPress={onLater}
           accessibilityRole="button"
-          style={({ pressed }) => [styles.ctxChip, pressed && styles.ctxChipPressed]}
+          style={({ pressed }) => [
+            styles.ctxChip,
+            styles.ctxChipSecondary,
+            pressed && styles.ctxChipPressed,
+          ]}
         >
-          <Text style={styles.ctxChipText}>Later</Text>
+          <Text style={styles.ctxChipSecondaryText}>Later</Text>
         </Pressable>
       </View>
     </View>
@@ -1208,35 +1208,29 @@ const styles = StyleSheet.create({
   ctxCard: {
     alignSelf: 'stretch',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: fig.strokeCard,
     backgroundColor: fig.heroTint,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
+    paddingTop: 12,
+    paddingBottom: 16,
+    paddingHorizontal: 12,
+    gap: 10,
   },
-  ctxHead: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 6 },
-  ctxEyebrow: {
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    color: fig.brand,
-    ...font('800'),
-  },
-  ctxLine: { fontSize: 16, fontWeight: '700', lineHeight: 21, color: fig.textHigh, ...font('700') },
-  ctxChips: { flexDirection: 'row', gap: 8, marginTop: 12 },
+  ctxBody: { gap: 6 },
+  ctxHead: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  ctxEyebrow: { flex: 1, fontSize: 12, lineHeight: 18, color: fig.textHigh, ...font('400') },
+  ctxLine: { fontSize: 16, fontWeight: '700', lineHeight: 20, color: fig.textHigh, ...font('700') },
+  ctxChips: { flexDirection: 'row', gap: 4 },
   ctxChip: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: 999,
-    borderWidth: 1,
-    borderColor: fig.strokeCard,
-    backgroundColor: fig.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  ctxChipPressed: { opacity: 0.7 },
-  ctxChipPrimary: { backgroundColor: fig.brand, borderColor: fig.brand },
-  ctxChipPrimaryText: { fontSize: 13, fontWeight: '800', color: fig.textOnBrand, ...font('800') },
-  ctxChipText: { fontSize: 13, fontWeight: '700', color: fig.textHigh, ...font('700') },
+  ctxChipPressed: { opacity: 0.85 },
+  ctxChipPrimary: { backgroundColor: fig.brand },
+  ctxChipPrimaryText: { fontSize: 14, fontWeight: '700', color: fig.textOnBrand, ...font('700') },
+  ctxChipSecondary: { backgroundColor: fig.lilac },
+  ctxChipSecondaryText: { fontSize: 14, fontWeight: '700', color: fig.brand, ...font('700') },
   moreHint: { alignSelf: 'center', marginTop: 18 },
   moreHintBtn: {
     flexDirection: 'row',
