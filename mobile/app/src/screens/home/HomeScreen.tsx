@@ -64,9 +64,10 @@ const USER_NAME: string | null = 'Arjun';
 // consumes this — production reads it from the Consumer Lifecycle pod; here it's
 // simulated. Density grows by stage; the trust ceiling (below) can override it.
 type Stage = 'cold' | 'warm' | 'activated' | 'habitual' | 'power' | 'dormant';
-// Demo cycle (long-press the greeting). 'cold' last = the untrusted / shared-device
-// floor, so the leak fix is demonstrable in the same gesture.
-const DEMO_STAGES: Stage[] = ['warm', 'activated', 'habitual', 'power', 'dormant', 'cold'];
+// Demo cycle (long-press the greeting). 'warm' is omitted — "Auto" already renders
+// the new (warm) user, so there's no separate Warm chip. 'cold' last = the
+// untrusted / shared-device floor, so the leak fix is demonstrable too.
+const DEMO_STAGES: Stage[] = ['activated', 'habitual', 'power', 'dormant', 'cold'];
 // Per-vertical depth demo cycle (Astrology worked example).
 const ASTRO_DEPTHS: VerticalDepth[] = ['new', 'casual', 'regular', 'invested'];
 
