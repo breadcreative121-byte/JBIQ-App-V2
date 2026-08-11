@@ -32,7 +32,6 @@ import { Composer } from '@/components/Composer';
 import { JioLogo } from '@/components/JioLogo';
 import { JdsIcon } from '@/components/JdsIcon';
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Stop, Rect } from 'react-native-svg';
-import { BlurView } from 'expo-blur';
 import { TabStrip } from '@/components/TabStrip';
 import { SpacesIntroSheet } from '@/components/SpacesIntroSheet';
 import { MicPermissionSheet } from '@/components/MicPermissionSheet';
@@ -61,14 +60,25 @@ type MciName = keyof typeof MaterialCommunityIcons.glyphMap;
 // demo persona.
 const USER_NAME: string | null = 'Arjun';
 
-// The four Home states from docs/home-spaces-nav-v1.md §2. `new-cold` suppresses
-// the name (shared/untrusted device), `new-warm` is the Day-0 named greeting,
-// `return-task` fires the gated slot-1 context line, `return-moment` leads with a
-// live vertical moment (the existing banner).
-type HomeState = 'new-cold' | 'new-warm' | 'return-task' | 'return-moment';
-const DEMO_STATES: HomeState[] = ['new-warm', 'new-cold', 'return-task', 'return-moment'];
-// A low-sensitivity, beneficial nudge (never a balance, never auto-charged).
+// App-level engagement stage (docs/home-spaces-engagement-v1.md §2/§5). Home
+// consumes this — production reads it from the Consumer Lifecycle pod; here it's
+// simulated. Density grows by stage; the trust ceiling (below) can override it.
+type Stage = 'cold' | 'warm' | 'activated' | 'habitual' | 'power' | 'dormant';
+// Demo cycle (long-press the greeting). 'cold' last = the untrusted / shared-device
+// floor, so the leak fix is demonstrable in the same gesture.
+const DEMO_STAGES: Stage[] = ['warm', 'activated', 'habitual', 'power', 'dormant', 'cold'];
+
+// Device-trust confidence. PRODUCTION wires this to the auth/identity-continuity
+// signal and defaults DOWN (untrusted → floor) when uncertain — the homepage only
+// consumes it (docs/home-spaces-engagement-v1.md §0/§4). The prototype assumes a
+// trusted device so the warm state is demoable; the 'cold' stage flips it to prove
+// the floor. This gate — not a device-scoped flag — is what contains the leak.
+const TRUST_SIMULATED = true;
+
+// Slot-1 lines. Low-sensitivity, beneficial nudges — never a balance, never
+// auto-charged. TASK = transactional context line; JUMPBACK = habit resumption.
 const TASK_LINE = 'Recharge kal khatam ho raha hai — renew karun?';
+const JUMPBACK_LINE = 'Aaj ka rashifal — 5 din se. Aaj bhi sunoge?';
 const HEADER_H = 56;
 const TAB_H = 44;
 const MENU = 0;
@@ -104,6 +114,15 @@ const PHRASE_SETS: Phrase[][] = [
     { icon: 'meditation', text: 'Guide me through breathing' },
     { icon: 'weather-partly-cloudy', text: "What's the weather today?" },
   ],
+];
+
+// A returning (habitual/power) user's "usuals" — their frequent asks worded as
+// sentences, so slot 1+ becomes their actual next tasks, not a teaching set.
+const USUALS: Phrase[] = [
+  { icon: 'star-four-points', text: 'Aaj ka rashifal sunao' },
+  { icon: 'lightbulb-on-outline', text: 'Bijli ka bill bharo' },
+  { icon: 'cellphone', text: 'Recharge ₹239 karo' },
+  { icon: 'cricket', text: 'Kal ka match kaisa raha?' },
 ];
 
 type MenuItem = {
@@ -149,11 +168,11 @@ export function HomeScreen() {
   const seenSpaces = useRef(false);
   // First-run voice onboarding: the mic "warm ask" sheet, shown once per install.
   const [showPermit, setShowPermit] = useState(false);
-  // New-vs-return Home model. `onboarded` + `returnedFromBg` derive the auto
-  // state; `demoIdx` is a hidden long-press override cycling all four states for
-  // pitching; `taskDismissed` collapses the context line back to the phrase list.
+  // Engagement model. `onboarded` + `returnedFromBg` derive the auto stage;
+  // `demoStageIdx` is a hidden long-press override cycling the stages for pitching;
+  // `taskDismissed` collapses the slot-1 card back to the phrase list.
   const [onboarded, setOnboarded] = useState(false);
-  const [demoIdx, setDemoIdx] = useState<number | null>(null);
+  const [demoStageIdx, setDemoStageIdx] = useState<number | null>(null);
   const [taskDismissed, setTaskDismissed] = useState(false);
   // Return-visit "live moment" banner: appears after the app has been
   // backgrounded and reopened; dismissed for the session with "Later".
@@ -176,19 +195,40 @@ export function HomeScreen() {
     return () => sub.remove();
   }, []);
 
-  // Derive the current Home state, then let the demo override win if set.
-  const autoState: HomeState = !onboarded
+  // Derive the current engagement stage, then let the demo override win if set.
+  const autoStage: Stage = !onboarded
     ? USER_NAME
-      ? 'new-warm'
-      : 'new-cold'
+      ? 'warm'
+      : 'cold'
     : returnedFromBg
-      ? 'return-task'
-      : 'new-warm';
-  const homeState: HomeState = demoIdx == null ? autoState : DEMO_STATES[demoIdx];
-  const isReturn = homeState === 'return-task' || homeState === 'return-moment';
-  const showTaskLine = homeState === 'return-task' && !taskDismissed;
+      ? 'activated'
+      : 'warm';
+  const stage: Stage = demoStageIdx == null ? autoStage : DEMO_STAGES[demoStageIdx];
 
-  const momentEligible = homeState === 'return-moment' && !momentDismissed && !showPermit;
+  // Trust ceiling: 'cold' is the untrusted / shared-device floor. Every personal
+  // element (name, earned card, "usuals") renders only when trusted — this is the
+  // gate that stops the shared-device leak (docs …engagement-v1 §0).
+  const trusted = TRUST_SIMULATED && stage !== 'cold';
+  const showName = trusted && !!USER_NAME;
+  const engaged = stage === 'activated' || stage === 'habitual' || stage === 'power' || stage === 'dormant';
+  const showUsuals = trusted && (stage === 'habitual' || stage === 'power');
+
+  // The return-visit moment banner leads on a real reopen (auto mode); it wins
+  // slot 1, so the context/jump-back card stands down when it's showing.
+  const momentEligible =
+    trusted && returnedFromBg && demoStageIdx == null && !momentDismissed && !showPermit;
+
+  // Slot-1 earned card: transactional context (activated/dormant) or a habit
+  // jump-back (habitual/power). Suppressed when untrusted, dismissed, or the
+  // moment banner owns the slot.
+  const cardKind: 'none' | 'context' | 'jumpback' = !trusted
+    ? 'none'
+    : stage === 'habitual' || stage === 'power'
+      ? 'jumpback'
+      : stage === 'activated' || stage === 'dormant'
+        ? 'context'
+        : 'none';
+  const showCard = cardKind !== 'none' && !taskDismissed && !momentEligible;
   useEffect(() => {
     if (momentEligible) {
       Animated.timing(momentFade, {
@@ -334,12 +374,12 @@ export function HomeScreen() {
   // Swipe up on the Home page — or tap the cue below the chips — cycles the set.
   const cyclePhrases = () => setPhraseSet((i) => (i + 1) % PHRASE_SETS.length);
 
-  // Demo: long-press the greeting to cycle the four Home states, then back to
-  // auto — pitch new-vs-return without backgrounding the app.
+  // Demo: long-press the greeting to cycle the engagement stages (incl. the
+  // untrusted 'cold' floor), then back to auto — pitch the ladder without signals.
   const cycleDemo = () => {
     setTaskDismissed(false);
     setMomentDismissed(false);
-    setDemoIdx((i) => (i == null ? 0 : i + 1 >= DEMO_STATES.length ? null : i + 1));
+    setDemoStageIdx((i) => (i == null ? 0 : i + 1 >= DEMO_STAGES.length ? null : i + 1));
   };
   const swipeUp = useRef(
     PanResponder.create({
@@ -455,13 +495,15 @@ export function HomeScreen() {
           <View style={[styles.homeBody, { paddingTop: insets.top + HEADER_H }]}>
             <Pressable onLongPress={cycleDemo} delayLongPress={450}>
               <Text style={styles.greeting}>
-                {USER_NAME && homeState !== 'new-cold' ? `Namaste, ${USER_NAME}` : 'Namaste'}
+                {showName ? `Namaste, ${USER_NAME}` : 'Namaste'}
               </Text>
             </Pressable>
             <Text style={styles.teach}>What can I do for you today?</Text>
-            {demoIdx != null ? <Text style={styles.demoTag}>demo · {homeState}</Text> : null}
+            {demoStageIdx != null ? (
+              <Text style={styles.demoTag}>demo · {stage}{trusted ? '' : ' · untrusted'}</Text>
+            ) : null}
             <View style={styles.phrases}>
-              {showTaskLine ? (
+              {showCard ? (
                 <Animated.View
                   style={{
                     alignSelf: 'stretch',
@@ -472,14 +514,24 @@ export function HomeScreen() {
                   }}
                 >
                   <ContextLineCard
-                    line={TASK_LINE}
-                    onYes={() => ask('Recharge renew kar do')}
+                    eyebrow={
+                      cardKind === 'jumpback'
+                        ? 'Pick up where you left off'
+                        : stage === 'activated'
+                          ? 'Because you’re on Jio'
+                          : 'For you'
+                    }
+                    line={cardKind === 'jumpback' ? JUMPBACK_LINE : TASK_LINE}
+                    yesLabel={cardKind === 'jumpback' ? 'Haan, sunao' : 'Haan, renew karo'}
+                    onYes={() =>
+                      ask(cardKind === 'jumpback' ? 'Aaj ka rashifal sunao' : 'Recharge renew kar do')
+                    }
                     onLater={() => setTaskDismissed(true)}
                   />
                 </Animated.View>
               ) : null}
-              {PHRASE_SETS[phraseSet].map((p, i) => {
-                if (showTaskLine && i === 0) return null; // slot 1 → context line
+              {(showUsuals ? USUALS : PHRASE_SETS[phraseSet]).map((p, i) => {
+                if (showCard && i === 0) return null; // slot 1 → the earned card
                 return (
                   <Animated.View
                     key={i}
@@ -495,6 +547,7 @@ export function HomeScreen() {
                 );
               })}
             </View>
+            {showUsuals ? null : (
             <Animated.View style={[styles.moreHint, { transform: [{ translateY: hintBounce }] }]}>
               <Pressable
                 onPress={cyclePhrases}
@@ -511,6 +564,7 @@ export function HomeScreen() {
                 </View>
               </Pressable>
             </Animated.View>
+            )}
           </View>
         </View>
 
@@ -595,9 +649,9 @@ export function HomeScreen() {
         </View>
       </Animated.View>
 
-      {/* Frosted chrome behind the bottom bar (composer / menu bar) */}
+      {/* Scrim gradient behind the bottom bar (composer / menu bar) */}
       <View style={styles.bottomFrost} pointerEvents="none">
-        <FrostedBar />
+        <FrostedBar reversed />
       </View>
 
       {/* Composer — visible on Home + Spaces */}
@@ -632,7 +686,7 @@ export function HomeScreen() {
       </Animated.View>
 
       {/* Coach tooltips (Home only, before the first interaction) */}
-      {active === HOME && !isReturn && !showPermit && coachStage ==='talk' ? (
+      {active === HOME && !engaged && !showPermit && coachStage ==='talk' ? (
         <CoachTip style={[styles.tipWrap, { bottom: 82 }]} delay={650} bounce="down">
           <Pressable style={styles.tipPill} onPress={() => setCoachStage('done')}>
             <Text style={styles.tipText}>Tap to talk</Text>
@@ -640,7 +694,7 @@ export function HomeScreen() {
           </Pressable>
         </CoachTip>
       ) : null}
-      {active === HOME && !isReturn && !showPermit && coachStage ==='spaces' ? (
+      {active === HOME && !engaged && !showPermit && coachStage ==='spaces' ? (
         <CoachTip style={[styles.tipWrap, { top: insets.top + 54 }]} delay={650} bounce="up">
           <Pressable style={styles.tipPill} onPress={() => setCoachStage('done')}>
             <View style={styles.caretUp} />
@@ -677,11 +731,15 @@ export function HomeScreen() {
 // slot-1 line rendered as JBIQ speaking, with one-tap Haan / Baad mein. Framed as
 // a question — Haan starts the flow in the assistant, it never charges anything.
 function ContextLineCard({
+  eyebrow = 'For you',
   line,
+  yesLabel = 'Haan',
   onYes,
   onLater,
 }: {
+  eyebrow?: string;
   line: string;
+  yesLabel?: string;
   onYes: () => void;
   onLater: () => void;
 }) {
@@ -689,7 +747,7 @@ function ContextLineCard({
     <View style={styles.ctxCard}>
       <View style={styles.ctxHead}>
         <MaterialCommunityIcons name="lightning-bolt" size={13} color={fig.brand} />
-        <Text style={styles.ctxEyebrow}>For you</Text>
+        <Text style={styles.ctxEyebrow}>{eyebrow}</Text>
       </View>
       <Text style={styles.ctxLine}>{line}</Text>
       <View style={styles.ctxChips}>
@@ -702,7 +760,7 @@ function ContextLineCard({
             pressed && styles.ctxChipPressed,
           ]}
         >
-          <Text style={styles.ctxChipPrimaryText}>Haan, renew karo</Text>
+          <Text style={styles.ctxChipPrimaryText}>{yesLabel}</Text>
         </Pressable>
         <Pressable
           onPress={onLater}
@@ -784,15 +842,23 @@ function CoachTip({
   );
 }
 
-// Frosted-glass fill for the fixed chrome (header, tab strip, bottom bar): an
-// iOS blur behind a soft white tint, so the bars stay translucent yet legible
-// over busy scrolling content. Uses expo-blur (native module).
-function FrostedBar() {
+// Scrim gradient behind the fixed chrome (header, tab strip, bottom bar): a
+// vertical surface→transparent fade so scrolling content passes softly under
+// the bars instead of sitting behind an opaque fill or a native blur. Uses
+// react-native-svg (no native rebuild needed). `reversed` flips the fade for
+// the bottom bar (transparent at top → surface at bottom).
+function FrostedBar({ reversed = false }: { reversed?: boolean }) {
+  const id = reversed ? 'scrimUp' : 'scrimDown';
   return (
-    <>
-      <BlurView intensity={32} tint="light" style={StyleSheet.absoluteFill} pointerEvents="none" />
-      <View style={[StyleSheet.absoluteFill, styles.frostTint]} pointerEvents="none" />
-    </>
+    <Svg width="100%" height="100%" pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <Defs>
+        <SvgLinearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={fig.surface} stopOpacity={reversed ? 0 : 1} />
+          <Stop offset="1" stopColor={fig.surface} stopOpacity={reversed ? 1 : 0} />
+        </SvgLinearGradient>
+      </Defs>
+      <Rect x="0" y="0" width="100%" height="100%" fill={`url(#${id})`} />
+    </Svg>
   );
 }
 
@@ -1051,10 +1117,9 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    overflow: 'hidden', // clip the frosted blur to the bar
+    overflow: 'hidden', // clip the scrim gradient to the bar
     zIndex: 10,
   },
-  frostTint: { backgroundColor: 'rgba(255,255,255,0.4)' },
   bottomFrost: {
     position: 'absolute',
     left: 0,
@@ -1062,8 +1127,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     height: 84,
     overflow: 'hidden',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(12,13,16,0.06)',
     // No zIndex: paints above the content ScrollView (JSX order) but below the
     // composer / menu bar, which are rendered after it.
   },
