@@ -7,12 +7,17 @@ import {
   Animated,
   Easing,
   PanResponder,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
   View,
   useWindowDimensions,
 } from 'react-native';
+
+// react-native-web doesn't reliably apply native-driven transforms, so the
+// translateY entrance can stay stuck off-screen. Drive it on the JS thread on web.
+const NATIVE_DRIVER = Platform.OS !== 'web';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { fig } from '@/theme/figma';
@@ -35,13 +40,15 @@ export function SpacesIntroSheet({ onClose }: { onClose: () => void }) {
   const insets = useSafeAreaInsets();
   const { height: screenH } = useWindowDimensions();
 
-  const y = useRef(new Animated.Value(screenH)).current; // start below screen
+  // Native slides up from below; web starts at rest (the RNW translateY spring
+  // can stay stuck off-screen, so don't gate visibility on it) — backdrop fades.
+  const y = useRef(new Animated.Value(NATIVE_DRIVER ? screenH : 0)).current;
   const backdrop = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.spring(y, { toValue: 0, useNativeDriver: true, damping: 20, stiffness: 180, mass: 0.9 }),
-      Animated.timing(backdrop, { toValue: 1, duration: 220, useNativeDriver: true }),
+      Animated.spring(y, { toValue: 0, useNativeDriver: NATIVE_DRIVER, damping: 20, stiffness: 180, mass: 0.9 }),
+      Animated.timing(backdrop, { toValue: 1, duration: 220, useNativeDriver: NATIVE_DRIVER }),
     ]).start();
   }, [y, backdrop]);
 
@@ -51,9 +58,9 @@ export function SpacesIntroSheet({ onClose }: { onClose: () => void }) {
         toValue: screenH,
         duration: 240,
         easing: Easing.in(Easing.cubic),
-        useNativeDriver: true,
+        useNativeDriver: NATIVE_DRIVER,
       }),
-      Animated.timing(backdrop, { toValue: 0, duration: 200, useNativeDriver: true }),
+      Animated.timing(backdrop, { toValue: 0, duration: 200, useNativeDriver: NATIVE_DRIVER }),
     ]).start(() => onClose());
   };
 
@@ -67,7 +74,7 @@ export function SpacesIntroSheet({ onClose }: { onClose: () => void }) {
       },
       onPanResponderRelease: (_e, g) => {
         if (g.dy > 120) close();
-        else Animated.spring(y, { toValue: 0, useNativeDriver: true, damping: 20, stiffness: 200 }).start();
+        else Animated.spring(y, { toValue: 0, useNativeDriver: NATIVE_DRIVER, damping: 20, stiffness: 200 }).start();
       },
     }),
   ).current;
