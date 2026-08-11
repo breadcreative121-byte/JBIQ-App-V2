@@ -286,13 +286,20 @@ export function HomeScreen() {
   // Also hydrate the "seen Spaces" flag so a returning user skips the intro.
   useEffect(() => {
     let alive = true;
-    getOnboardingComplete().then((done) => {
+    Promise.all([getOnboardingComplete(), getSpacesIntroSeen()]).then(([done, spacesSeen]) => {
       if (!alive) return;
       setOnboarded(done);
-      if (!done) setShowPermit(true);
-    });
-    getSpacesIntroSeen().then((seen) => {
-      if (alive && seen) seenSpaces.current = true;
+      if (done) {
+        seenSpaces.current = spacesSeen;
+      } else {
+        // First launch (onboarding not complete) → guarantee the full first-time
+        // experience: the voice-onboarding sheet, the coach tooltips, and the
+        // Spaces intro sheet on first Spaces arrival.
+        setShowPermit(true);
+        setCoachStage('talk');
+        sawVoice.current = false;
+        seenSpaces.current = false;
+      }
     });
     return () => {
       alive = false;
@@ -313,6 +320,12 @@ export function HomeScreen() {
     setOnboardingComplete(false);
     setSpacesIntroSeen(false);
     seenSpaces.current = false;
+    sawVoice.current = false;
+    setCoachStage('talk');
+    setDemoStageIdx(null); // back to the New / auto user
+    setAstroDepthIdx(0);
+    setTaskDismissed(false);
+    setMomentDismissed(false);
     scrollToPage(HOME);
     setShowPermit(true);
   };
