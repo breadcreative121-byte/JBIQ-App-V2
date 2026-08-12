@@ -23,6 +23,13 @@ export function useConversation() {
   const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
   const messagesRef = useRef<ChatMessage[]>([]);
   const resumeRef = useRef(false);
+  // Liveness guard: async turns (chat/tts/asset) can resolve after the screen has
+  // unmounted. Without this, a late tts() would create an ownerless AudioPlayer
+  // that plays out loud with no way to stop it. Gate every post-await continuation.
+  const alive = useRef(true);
+  useEffect(() => () => {
+    alive.current = false;
+  }, []);
 
   const cue = useAudioCues();
   const player = useTtsPlayer({
@@ -53,16 +60,20 @@ export function useConversation() {
     setState('sending');
     try {
       const { text: reply } = await api.chat(messagesRef.current);
+      if (!alive.current) return;
       messagesRef.current = [...messagesRef.current, { role: 'assistant', content: reply }];
       pushItem({ id: uid(), kind: 'assistant', text: reply });
       setState('thinking');
       try {
         const { uri } = await api.tts(reply);
+        if (!alive.current) return;
         player.play(uri);
       } catch {
+        if (!alive.current) return;
         setState('idle'); // text is shown; voice is best-effort
       }
     } catch (err) {
+      if (!alive.current) return;
       setState('error');
       cue('info-warning');
       pushItem({ id: uid(), kind: 'error', text: friendlyError(err) });
@@ -92,8 +103,10 @@ export function useConversation() {
       setState('thinking');
       try {
         const { uri } = await api.tts(text);
+        if (!alive.current) return;
         await player.play(uri);
       } catch {
+        if (!alive.current) return;
         setState('idle'); // no audio; the caller proceeds regardless
       }
     },
@@ -109,8 +122,10 @@ export function useConversation() {
       try {
         const asset = Asset.fromModule(mod);
         if (!asset.downloaded) await asset.downloadAsync();
+        if (!alive.current) return;
         await player.play(asset.localUri ?? asset.uri);
       } catch {
+        if (!alive.current) return;
         setState('idle'); // no audio; the caller proceeds regardless
       }
     },

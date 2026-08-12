@@ -578,18 +578,24 @@ export function HomeScreen() {
               <Ionicons name="chevron-forward" size={20} color={fig.textLow} />
             </Pressable>
           ))}
-          <Text style={styles.section}>Recents</Text>
-          {RECENTS.map((title, i) => (
-            <Pressable
-              key={i}
-              onPress={() => ask(title)}
-              accessibilityRole="button"
-              style={({ pressed }) => [styles.recentRow, pressed && styles.pressed]}
-            >
-              <Text style={styles.recentTitle}>{title}</Text>
-              <Text style={styles.recentMeta}>Domain · 9 minutes ago</Text>
-            </Pressable>
-          ))}
+          {/* Recents are personal history — gate them behind the same trust ceiling
+             as Home's name/usuals, so a shared/untrusted device doesn't leak them. */}
+          {trusted ? (
+            <>
+              <Text style={styles.section}>Recents</Text>
+              {RECENTS.map((title, i) => (
+                <Pressable
+                  key={i}
+                  onPress={() => ask(title)}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [styles.recentRow, pressed && styles.pressed]}
+                >
+                  <Text style={styles.recentTitle}>{title}</Text>
+                  <Text style={styles.recentMeta}>Domain · 9 minutes ago</Text>
+                </Pressable>
+              ))}
+            </>
+          ) : null}
         </ScrollView>
 
         {/* Page 1 — Home */}

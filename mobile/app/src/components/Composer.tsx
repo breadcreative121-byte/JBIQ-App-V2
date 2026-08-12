@@ -76,6 +76,7 @@ export function Composer({
           onPress={onTrailing}
           accessibilityRole="button"
           accessibilityLabel={hasText ? 'Send' : 'Speak'}
+          hitSlop={8}
           style={styles.action}
         >
           {/* Voice bars — visible when empty */}

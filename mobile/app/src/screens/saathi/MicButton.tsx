@@ -66,7 +66,15 @@ export function MicButton({ cue, onStart, onResult, onError, onListeningChange, 
   };
 
   return (
-    <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} disabled={disabled}>
+    <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel="Talk to Saathi"
+      accessibilityHint="Hold to talk, release to send"
+      accessibilityState={{ disabled: !!disabled }}
+    >
       <Animated.View
         style={[
           styles.button,
