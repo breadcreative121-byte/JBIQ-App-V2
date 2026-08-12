@@ -800,7 +800,7 @@ export function HomeScreen() {
       {active === HOME && !engaged && !showPermit && !pendingVoice && coachStage ==='talk' ? (
         <CoachTip style={[styles.tipWrap, { bottom: 82 }]} delay={650} bounce="down">
           <Pressable style={styles.tipPill} onPress={() => setCoachStage('done')}>
-            <Text style={styles.tipText}>Tap to talk</Text>
+            <Text style={styles.tipText}>Tap to speak</Text>
             <View style={styles.caretDown} />
           </Pressable>
         </CoachTip>
