@@ -38,6 +38,7 @@ import {
   FESTIVE_CATEGORIES,
   FESTIVE_PHRASE_SETS,
 } from './festive';
+import { HOME_CATEGORIES } from './categories';
 import { Composer } from '@/components/Composer';
 import { JioLogo } from '@/components/JioLogo';
 import { JdsIcon } from '@/components/JdsIcon';
@@ -666,7 +667,7 @@ export function HomeScreen() {
             </Text>
             {showCategory ? (
               <View style={styles.festiveCategoryWrap}>
-                <FestiveCategoryRow items={FESTIVE_CATEGORIES} onPress={ask} />
+                <FestiveCategoryRow items={festive ? FESTIVE_CATEGORIES : HOME_CATEGORIES} onPress={ask} />
               </View>
             ) : null}
             <View style={styles.phrases}>
