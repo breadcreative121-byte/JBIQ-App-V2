@@ -430,6 +430,14 @@ export function HomeScreen() {
     outputRange: [0, 1],
     extrapolate: 'clamp',
   });
+  // Festive header: indigo only while resting on Home, fading quickly to the
+  // plain frosted (white) header as soon as you swipe toward Menu/Spaces — so no
+  // indigo bar lingers over the transition.
+  const festiveFill = scrollX.interpolate({
+    inputRange: [width * 0.85, width, width * 1.15],
+    outputRange: [0, 1, 0],
+    extrapolate: 'clamp',
+  });
   const composerOpacity = scrollX.interpolate({
     inputRange: [width * 0.5, width],
     outputRange: [0, 1],
@@ -734,24 +742,12 @@ export function HomeScreen() {
         ))}
       </Animated.ScrollView>
 
-      {/* Fade scrim below the nav — content scrolls softly underneath it. On the
-          festive Home it sits over the indigo block, so fade it out there. */}
-      <Animated.View
-        style={[
-          styles.headerFade,
-          { top: insets.top + HEADER_H, opacity: festive ? Animated.subtract(1, homeOpacity) : 1 },
-        ]}
-        pointerEvents="none"
-      >
-        <TopFade />
-      </Animated.View>
-
       {/* Fixed shared header — cross-fades Menu ⇄ Home ⇄ Spaces */}
       <View style={[styles.headerWrap, { paddingTop: insets.top, height: insets.top + HEADER_H }]} pointerEvents="box-none">
         <FrostedBar />
         {/* Festive: paint the header indigo on Home (over the frost), so Menu/Spaces stay frosted. */}
         {festive ? (
-          <Animated.View style={[styles.festiveHeaderFill, { opacity: homeOpacity }]} pointerEvents="none" />
+          <Animated.View style={[styles.festiveHeaderFill, { opacity: festiveFill }]} pointerEvents="none" />
         ) : null}
         <Animated.View
           style={[styles.headerRow, styles.headerAbs, { opacity: menuOpacity }]}
@@ -1185,22 +1181,6 @@ function FrostedBar({ reversed = false }: { reversed?: boolean }) {
         </SvgLinearGradient>
       </Defs>
       <Rect x="0" y="0" width="100%" height="100%" fill={`url(#${id})`} />
-    </Svg>
-  );
-}
-
-// A vertical surface→transparent gradient, so fixed nav can sit over scrolling
-// content with a soft edge. Uses react-native-svg (no native rebuild needed).
-function TopFade({ height = 28 }: { height?: number }) {
-  return (
-    <Svg width="100%" height={height} pointerEvents="none">
-      <Defs>
-        <SvgLinearGradient id="topFade" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={fig.surface} stopOpacity={1} />
-          <Stop offset="1" stopColor={fig.surface} stopOpacity={0} />
-        </SvgLinearGradient>
-      </Defs>
-      <Rect x="0" y="0" width="100%" height={height} fill="url(#topFade)" />
     </Svg>
   );
 }
@@ -1677,7 +1657,6 @@ const styles = StyleSheet.create({
   disclaimer: { fontSize: 10.5, color: fig.textLow, marginTop: 14, lineHeight: 15, ...font('400') },
 
   // Nav fade scrims
-  headerFade: { position: 'absolute', left: 0, right: 0, height: 28, zIndex: 8 },
 
   // Return-visit live-moment banner (Home only)
   momentWrap: { position: 'absolute', left: 16, right: 16, bottom: 82, zIndex: 9 },
