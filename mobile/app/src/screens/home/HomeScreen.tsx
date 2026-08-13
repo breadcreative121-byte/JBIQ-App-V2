@@ -29,6 +29,7 @@ import { font } from '@/theme/fonts';
 import { IconButton } from '@/components/IconButton';
 import { PhraseRow } from '@/components/PhraseRow';
 import { PromptTileRow } from '@/components/PromptTileRow';
+import { BigPromptCard } from '@/components/BigPromptCard';
 import { FestiveCategoryRow } from '@/components/FestiveCategoryRow';
 import { FestiveFlame } from '@/components/FestiveFlame';
 import { tileImageFor } from './tileImages';
@@ -79,7 +80,7 @@ type Stage = 'cold' | 'warm' | 'activated' | 'habitual' | 'power' | 'dormant' | 
 // Demo cycle (long-press the greeting). 'warm' is omitted — "Auto" already renders
 // the new (warm) user, so there's no separate Warm chip. 'cold' last = the
 // untrusted / shared-device floor, so the leak fix is demonstrable too.
-type HomeStyle = 'classic' | 'tiles' | 'festive';
+type HomeStyle = 'classic' | 'tiles' | 'festive' | 'cards';
 
 const DEMO_STAGES: Stage[] = ['activated', 'habitual', 'power', 'dormant', 'cold'];
 // Per-vertical depth demo cycle (Astrology worked example).
@@ -214,8 +215,10 @@ export function HomeScreen() {
   // Home variant: 'classic' pills/action cards · 'tiles' = the Figma "Image tile"
   // treatment (179:7263) · 'festive' = tiles + Diwali Home chrome (193:3924).
   const [homeStyle, setHomeStyle] = useState<HomeStyle>('classic');
-  const tiles = homeStyle !== 'classic'; // image-tile rows on Home + Spaces
   const festive = homeStyle === 'festive'; // Home-only festive chrome
+  const cards = homeStyle === 'cards'; // big stacked cards on Home + Spaces
+  const tiles = homeStyle === 'tiles' || festive; // image-tile rows (excludes cards)
+  const showCategory = festive || cards; // Lights/Feasts/Puja row above Home prompts
   // Return-visit "live moment" banner: appears after the app has been
   // backgrounded and reopened; dismissed for the session with "Later".
   const [returnedFromBg, setReturnedFromBg] = useState(false);
@@ -651,14 +654,14 @@ export function HomeScreen() {
           ) : null}
           <View style={[styles.homeBody, { paddingTop: insets.top + HEADER_H }]}>
             <Pressable onLongPress={cycleDemo} delayLongPress={450}>
-              <Text style={[styles.greeting, festive && styles.greetingFestive, festive && styles.textOnBold]}>
+              <Text style={[styles.greeting, (festive || cards) && styles.greetingCompact, festive && styles.textOnBold]}>
                 {festive ? `${FESTIVE_GREETING}, ${USER_NAME}` : showName ? `${greet}, ${USER_NAME}` : greet}
               </Text>
             </Pressable>
             <Text style={[styles.teach, festive && styles.textOnBoldLow]}>
               What can I do for you today?
             </Text>
-            {festive ? (
+            {showCategory ? (
               <View style={styles.festiveCategoryWrap}>
                 <FestiveCategoryRow items={FESTIVE_CATEGORIES} onPress={ask} />
               </View>
@@ -679,18 +682,28 @@ export function HomeScreen() {
                       <PromptTileRow image={p.image} text={p.text} onPress={() => ask(p.prompt)} />
                     </Animated.View>
                   ))
-                : (usualsNow ? USUALS : activeSets[phraseSet % activeSets.length]).map((p, i) => (
+                : (usualsNow ? USUALS : activeSets[phraseSet % activeSets.length])
+                    .slice(0, cards ? 3 : undefined) // big cards: 3 per set (Figma 200-7094)
+                    .map((p, i) => (
                     <Animated.View
                       key={i}
                       style={{
-                        alignSelf: tiles ? 'stretch' : 'center',
+                        alignSelf: tiles || cards ? 'stretch' : 'center',
                         opacity: anims[i],
                         transform: [
                           { translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
                         ],
                       }}
                     >
-                      {tiles ? (
+                      {cards ? (
+                        <BigPromptCard
+                          image={tileImageFor(p.text)}
+                          icon={p.icon}
+                          jds={p.jds}
+                          text={p.text}
+                          onPress={() => ask(p.text)}
+                        />
+                      ) : tiles ? (
                         <PromptTileRow
                           image={tileImageFor(p.text)}
                           icon={p.icon}
@@ -738,6 +751,7 @@ export function HomeScreen() {
             onAction={ask}
             depth={v.id === 'astrology' ? ASTRO_DEPTHS[astroDepthIdx] : undefined}
             tiles={tiles}
+            cards={cards}
           />
         ))}
       </Animated.ScrollView>
@@ -1070,6 +1084,7 @@ function DemoSheet({
           <DemoChip label="Classic" on={pStyle === 'classic'} onPress={() => setPStyle('classic')} />
           <DemoChip label="Image tile" on={pStyle === 'tiles'} onPress={() => setPStyle('tiles')} />
           <DemoChip label="Festive" on={pStyle === 'festive'} onPress={() => setPStyle('festive')} />
+          <DemoChip label="Cards" on={pStyle === 'cards'} onPress={() => setPStyle('cards')} />
         </View>
 
         <Pressable
@@ -1193,6 +1208,7 @@ function VerticalBoard({
   onAction,
   depth,
   tiles,
+  cards,
 }: {
   vertical: Vertical;
   width: number;
@@ -1200,11 +1216,16 @@ function VerticalBoard({
   onAction: (prompt: string) => void;
   depth?: VerticalDepth;
   tiles?: boolean;
+  cards?: boolean;
 }) {
   let firstHeroSeen = false;
   // Per-vertical depth override (docs …engagement-v1 §6); falls back to the
   // default content when this vertical has no depth variants or none is set.
   const content = (depth && vertical.depth?.[depth]) || vertical;
+  // Non-classic Spaces rows: image tiles (tiles/festive) or big cards (cards).
+  // Both share the same props, so pick the component and render with `rows`.
+  const rows = tiles || cards;
+  const Row = cards ? BigPromptCard : PromptTileRow;
   return (
     <ScrollView
       style={{ width }}
@@ -1221,8 +1242,8 @@ function VerticalBoard({
             if (!isFirstHero) {
               return (
                 <View key={i} style={styles.rowGap}>
-                  {tiles ? (
-                    <PromptTileRow
+                  {rows ? (
+                    <Row
                       image={tileImageFor(block.hero.title)}
                       icon={block.hero.icon}
                       jds={block.hero.jds}
@@ -1262,12 +1283,12 @@ function VerticalBoard({
             );
           }
           case 'grid':
-            // Tiles mode: the 2-col grid becomes full-width stacked rows (Figma
-            // 179:7097). Classic mode keeps the side-by-side ActionCards.
-            return tiles ? (
+            // Tiles/cards mode: the 2-col grid becomes full-width stacked rows
+            // (Figma 179:7097 / 200:6941). Classic keeps side-by-side ActionCards.
+            return rows ? (
               <View key={i} style={styles.tileList}>
                 {block.items.map((a) => (
-                  <PromptTileRow
+                  <Row
                     key={a.title}
                     image={tileImageFor(a.title)}
                     icon={a.icon}
@@ -1300,8 +1321,8 @@ function VerticalBoard({
           case 'action':
             return (
               <View key={i} style={styles.rowGap}>
-                {tiles ? (
-                  <PromptTileRow
+                {rows ? (
+                  <Row
                     image={tileImageFor(block.item.title)}
                     icon={block.item.icon}
                     jds={block.item.jds}
@@ -1415,13 +1436,13 @@ const styles = StyleSheet.create({
 
   // ── Festive Home chrome (193:3924) ──
   festiveBg: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: fig.festiveBg },
-  greetingFestive: { marginTop: 40 }, // less space above the festive title (vs classic 72)
+  greetingCompact: { marginTop: 40 }, // less space above the title (festive/cards) vs classic 72
   festiveHeaderFill: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: fig.festiveBg },
   festiveFlame: { position: 'absolute', width: 68, height: 65 },
   festiveFlameL: { left: 12 },
   festiveFlameR: { right: 12 },
   // 20px inset like the prompt rows; homeBody already pads 16 → pull out & re-pad.
-  festiveCategoryWrap: { marginHorizontal: -16, paddingHorizontal: 20, marginBottom: 28 },
+  festiveCategoryWrap: { marginHorizontal: -16, paddingHorizontal: 20, marginBottom: 20 },
   textOnBold: { color: fig.textOnBrand },
   textOnBoldLow: { color: 'rgba(255,255,255,0.85)' },
 
