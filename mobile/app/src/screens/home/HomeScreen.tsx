@@ -218,7 +218,6 @@ export function HomeScreen() {
   const festive = homeStyle === 'festive'; // Home-only festive chrome
   const cards = homeStyle === 'cards'; // big stacked cards on Home + Spaces
   const tiles = homeStyle === 'tiles' || festive; // image-tile rows (excludes cards)
-  const showCategory = festive || cards; // Lights/Feasts/Puja row above Home prompts
   // Return-visit "live moment" banner: appears after the app has been
   // backgrounded and reopened; dismissed for the session with "Later".
   const [returnedFromBg, setReturnedFromBg] = useState(false);
@@ -267,6 +266,10 @@ export function HomeScreen() {
   const setCount = festive ? FESTIVE_PHRASE_SETS.length : activeSets.length;
   // Usuals only apply to the non-festive returning-user Home.
   const usualsNow = showUsuals && !festive;
+  // Lights/Feasts/Puja category row: always for festive; for cards only in the
+  // teaching (non-usuals) state — a returning cards user gets their 4 usuals
+  // instead, with no category row (Figma 200-7017).
+  const showCategory = festive || (cards && !usualsNow);
 
   // The return-visit moment banner leads on a real reopen (auto mode); it wins
   // slot 1, so the context/jump-back card stands down when it's showing.
@@ -683,7 +686,9 @@ export function HomeScreen() {
                     </Animated.View>
                   ))
                 : (usualsNow ? USUALS : activeSets[phraseSet % activeSets.length])
-                    .slice(0, cards ? 3 : undefined) // big cards: 3 per set (Figma 200-7094)
+                    // big cards: 3 per teaching set (Figma 200-7094); keep all 4
+                    // usuals so a returning user never loses their 4th (200-7017).
+                    .slice(0, cards && !usualsNow ? 3 : undefined)
                     .map((p, i) => (
                     <Animated.View
                       key={i}

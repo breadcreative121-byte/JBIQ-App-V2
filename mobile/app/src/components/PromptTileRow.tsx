@@ -54,7 +54,7 @@ export function PromptTileRow({
       style={[styles.row, dim && styles.dim, { transform: [{ scale }] }]}
     >
       {image ? (
-        <Image source={image} style={styles.tile} resizeMode="cover" />
+        <Image source={image} style={styles.tile} resizeMode="contain" />
       ) : (
         <View style={[styles.tile, styles.tileFallback]}>
           {jds ? (

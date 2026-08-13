@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, Easing, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { fig } from '@/theme/figma';
+import { useReducedMotion } from '@/lib/useReducedMotion';
 
 export function FestiveFlame({
   style,
@@ -17,7 +18,14 @@ export function FestiveFlame({
   duration?: number;
 }) {
   const t = useRef(new Animated.Value(0)).current;
+  const reduced = useReducedMotion();
   useEffect(() => {
+    // Respect the OS "Reduce Motion" setting — hold the flame still (like the
+    // other looping animations in HomeScreen) rather than flickering forever.
+    if (reduced) {
+      t.setValue(0);
+      return;
+    }
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(t, { toValue: 1, duration, delay, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
@@ -26,7 +34,7 @@ export function FestiveFlame({
     );
     loop.start();
     return () => loop.stop();
-  }, [t, delay, duration]);
+  }, [t, delay, duration, reduced]);
 
   const scaleY = t.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1.09] });
   const scaleX = t.interpolate({ inputRange: [0, 1], outputRange: [1.03, 0.97] });

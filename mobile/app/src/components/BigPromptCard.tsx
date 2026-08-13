@@ -64,7 +64,7 @@ export function BigPromptCard({
           ) : null}
         </View>
       )}
-      <Text style={styles.text} numberOfLines={1}>
+      <Text style={styles.text} numberOfLines={2}>
         “{text}”
       </Text>
       {locked ? (
