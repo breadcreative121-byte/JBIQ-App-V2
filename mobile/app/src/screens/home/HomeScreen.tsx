@@ -28,6 +28,15 @@ import { fig } from '@/theme/figma';
 import { font } from '@/theme/fonts';
 import { IconButton } from '@/components/IconButton';
 import { PhraseRow } from '@/components/PhraseRow';
+import { PromptTileRow } from '@/components/PromptTileRow';
+import { FestiveCategoryRow } from '@/components/FestiveCategoryRow';
+import { FestiveFlame } from '@/components/FestiveFlame';
+import { tileImageFor } from './tileImages';
+import {
+  FESTIVE_GREETING,
+  FESTIVE_CATEGORIES,
+  FESTIVE_PHRASE_SETS,
+} from './festive';
 import { Composer } from '@/components/Composer';
 import { JioLogo } from '@/components/JioLogo';
 import { JdsIcon } from '@/components/JdsIcon';
@@ -70,6 +79,8 @@ type Stage = 'cold' | 'warm' | 'activated' | 'habitual' | 'power' | 'dormant' | 
 // Demo cycle (long-press the greeting). 'warm' is omitted — "Auto" already renders
 // the new (warm) user, so there's no separate Warm chip. 'cold' last = the
 // untrusted / shared-device floor, so the leak fix is demonstrable too.
+type HomeStyle = 'classic' | 'tiles' | 'festive';
+
 const DEMO_STAGES: Stage[] = ['activated', 'habitual', 'power', 'dormant', 'cold'];
 // Per-vertical depth demo cycle (Astrology worked example).
 const ASTRO_DEPTHS: VerticalDepth[] = ['new', 'casual', 'regular', 'invested'];
@@ -200,6 +211,11 @@ export function HomeScreen() {
   const [astroDepthIdx, setAstroDepthIdx] = useState<number>(0);
   // Demo control sheet (opened from the Menu gear) to pick stage / depth directly.
   const [showDemo, setShowDemo] = useState(false);
+  // Home variant: 'classic' pills/action cards · 'tiles' = the Figma "Image tile"
+  // treatment (179:7263) · 'festive' = tiles + Diwali Home chrome (193:3924).
+  const [homeStyle, setHomeStyle] = useState<HomeStyle>('classic');
+  const tiles = homeStyle !== 'classic'; // image-tile rows on Home + Spaces
+  const festive = homeStyle === 'festive'; // Home-only festive chrome
   // Return-visit "live moment" banner: appears after the app has been
   // backgrounded and reopened; dismissed for the session with "Later".
   const [returnedFromBg, setReturnedFromBg] = useState(false);
@@ -244,6 +260,10 @@ export function HomeScreen() {
   // Personalised suggestion sets from the interests picker; empty → today's
   // defaults. Same shape as PHRASE_SETS so cycling / dots stay unchanged.
   const activeSets = buildPhraseSets(prefs) ?? PHRASE_SETS;
+  // Number of suggestion sets the Home carousel cycles (festive has its own).
+  const setCount = festive ? FESTIVE_PHRASE_SETS.length : activeSets.length;
+  // Usuals only apply to the non-festive returning-user Home.
+  const usualsNow = showUsuals && !festive;
 
   // The return-visit moment banner leads on a real reopen (auto mode); it wins
   // slot 1, so the context/jump-back card stands down when it's showing.
@@ -450,7 +470,7 @@ export function HomeScreen() {
   });
 
   // Swipe up on the Home page — or tap the cue below the chips — cycles the set.
-  const cyclePhrases = () => setPhraseSet((i) => (i + 1) % activeSets.length);
+  const cyclePhrases = () => setPhraseSet((i) => (i + 1) % setCount);
 
   // Demo: long-press the greeting to cycle the engagement stages (incl. the
   // untrusted 'cold' floor), then back to auto — pitch the ladder without signals.
@@ -463,9 +483,10 @@ export function HomeScreen() {
   // fresh Home view of that state. Auto (s === null) is the new user's first
   // open, so it also brings up the voice-onboarding sheet; every other stage
   // is a returning user, so onboarding stays hidden.
-  const applyDemo = (s: number | null, d: number) => {
+  const applyDemo = (s: number | null, d: number, style: HomeStyle) => {
     setDemoStageIdx(s);
     setAstroDepthIdx(d);
+    setHomeStyle(style);
     setTaskDismissed(false);
     setMomentDismissed(false);
     // New (s === null) is a genuine first-time user: replay the whole first-run —
@@ -600,29 +621,82 @@ export function HomeScreen() {
 
         {/* Page 1 — Home */}
         <View style={{ width }} {...swipeUp.panHandlers}>
+          {/* Festive chrome (193:3924) — indigo block behind header + greeting,
+              plus the gold flames flanking the category row. Home page only. */}
+          {festive ? (
+            <>
+              <View
+                style={[styles.festiveBg, { height: insets.top + HEADER_H + 147 }]}
+                pointerEvents="none"
+              />
+              <FestiveFlame
+                style={[styles.festiveFlame, styles.festiveFlameL, { top: insets.top + HEADER_H + 50 }]}
+                delay={0}
+                duration={720}
+              />
+              <FestiveFlame
+                style={[styles.festiveFlame, styles.festiveFlameR, { top: insets.top + HEADER_H + 50 }]}
+                delay={360}
+                duration={840}
+              />
+            </>
+          ) : null}
           <View style={[styles.homeBody, { paddingTop: insets.top + HEADER_H }]}>
             <Pressable onLongPress={cycleDemo} delayLongPress={450}>
-              <Text style={styles.greeting}>
-                {showName ? `${greet}, ${USER_NAME}` : greet}
+              <Text style={[styles.greeting, festive && styles.greetingFestive, festive && styles.textOnBold]}>
+                {festive ? `${FESTIVE_GREETING}, ${USER_NAME}` : showName ? `${greet}, ${USER_NAME}` : greet}
               </Text>
             </Pressable>
-            <Text style={styles.teach}>What can I do for you today?</Text>
+            <Text style={[styles.teach, festive && styles.textOnBoldLow]}>
+              What can I do for you today?
+            </Text>
+            {festive ? (
+              <View style={styles.festiveCategoryWrap}>
+                <FestiveCategoryRow items={FESTIVE_CATEGORIES} onPress={ask} />
+              </View>
+            ) : null}
             <View style={styles.phrases}>
-              {(showUsuals ? USUALS : activeSets[phraseSet % activeSets.length]).map((p, i) => (
-                <Animated.View
-                  key={i}
-                  style={{
-                    opacity: anims[i],
-                    transform: [
-                      { translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
-                    ],
-                  }}
-                >
-                  <PhraseRow icon={p.icon} jds={p.jds} text={p.text} onPress={() => ask(p.text)} />
-                </Animated.View>
-              ))}
+              {festive
+                ? FESTIVE_PHRASE_SETS[phraseSet % FESTIVE_PHRASE_SETS.length].map((p, i) => (
+                    <Animated.View
+                      key={i}
+                      style={{
+                        alignSelf: 'stretch',
+                        opacity: anims[i],
+                        transform: [
+                          { translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+                        ],
+                      }}
+                    >
+                      <PromptTileRow image={p.image} text={p.text} onPress={() => ask(p.prompt)} />
+                    </Animated.View>
+                  ))
+                : (usualsNow ? USUALS : activeSets[phraseSet % activeSets.length]).map((p, i) => (
+                    <Animated.View
+                      key={i}
+                      style={{
+                        alignSelf: tiles ? 'stretch' : 'center',
+                        opacity: anims[i],
+                        transform: [
+                          { translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
+                        ],
+                      }}
+                    >
+                      {tiles ? (
+                        <PromptTileRow
+                          image={tileImageFor(p.text)}
+                          icon={p.icon}
+                          jds={p.jds}
+                          text={p.text}
+                          onPress={() => ask(p.text)}
+                        />
+                      ) : (
+                        <PhraseRow icon={p.icon} jds={p.jds} text={p.text} onPress={() => ask(p.text)} />
+                      )}
+                    </Animated.View>
+                  ))}
             </View>
-            {showUsuals ? null : (
+            {usualsNow ? null : (
             <Animated.View style={[styles.moreHint, { transform: [{ translateY: hintBounce }] }]}>
               <Pressable
                 onPress={cyclePhrases}
@@ -633,8 +707,11 @@ export function HomeScreen() {
               >
                 <Ionicons name="chevron-up" size={14} color={fig.textLow} />
                 <View style={styles.setDots}>
-                  {activeSets.map((_, i) => (
-                    <View key={i} style={[styles.setDot, i === phraseSet && styles.setDotActive]} />
+                  {Array.from({ length: setCount }).map((_, i) => (
+                    <View
+                      key={i}
+                      style={[styles.setDot, i === phraseSet % setCount && styles.setDotActive]}
+                    />
                   ))}
                 </View>
               </Pressable>
@@ -652,18 +729,30 @@ export function HomeScreen() {
             topPad={boardTop}
             onAction={ask}
             depth={v.id === 'astrology' ? ASTRO_DEPTHS[astroDepthIdx] : undefined}
+            tiles={tiles}
           />
         ))}
       </Animated.ScrollView>
 
-      {/* Fade scrim below the nav — content scrolls softly underneath it */}
-      <View style={[styles.headerFade, { top: insets.top + HEADER_H }]} pointerEvents="none">
+      {/* Fade scrim below the nav — content scrolls softly underneath it. On the
+          festive Home it sits over the indigo block, so fade it out there. */}
+      <Animated.View
+        style={[
+          styles.headerFade,
+          { top: insets.top + HEADER_H, opacity: festive ? Animated.subtract(1, homeOpacity) : 1 },
+        ]}
+        pointerEvents="none"
+      >
         <TopFade />
-      </View>
+      </Animated.View>
 
       {/* Fixed shared header — cross-fades Menu ⇄ Home ⇄ Spaces */}
       <View style={[styles.headerWrap, { paddingTop: insets.top, height: insets.top + HEADER_H }]} pointerEvents="box-none">
         <FrostedBar />
+        {/* Festive: paint the header indigo on Home (over the frost), so Menu/Spaces stay frosted. */}
+        {festive ? (
+          <Animated.View style={[styles.festiveHeaderFill, { opacity: homeOpacity }]} pointerEvents="none" />
+        ) : null}
         <Animated.View
           style={[styles.headerRow, styles.headerAbs, { opacity: menuOpacity }]}
           pointerEvents={active === MENU ? 'box-none' : 'none'}
@@ -679,13 +768,25 @@ export function HomeScreen() {
           pointerEvents={active === HOME ? 'box-none' : 'none'}
         >
           <View style={styles.headerStart}>
-            <IconButton icon="menu" onPress={() => scrollToPage(MENU)} accessibilityLabel="Menu" />
-            {/* Demo gesture: tap the Jio logo to reset & replay onboarding. */}
-            <Pressable onPress={replayOnboarding} accessibilityRole="button" accessibilityLabel="Replay welcome" hitSlop={8}>
-              <JioLogo size={40} />
-            </Pressable>
+            <IconButton
+              icon="menu"
+              variant={festive ? 'onBold' : 'ghost'}
+              onPress={() => scrollToPage(MENU)}
+              accessibilityLabel="Menu"
+            />
+            {/* Demo gesture: tap the Jio logo to reset & replay onboarding. Hidden on festive. */}
+            {festive ? null : (
+              <Pressable onPress={replayOnboarding} accessibilityRole="button" accessibilityLabel="Replay welcome" hitSlop={8}>
+                <JioLogo size={40} />
+              </Pressable>
+            )}
           </View>
-          <IconButton jds="ic_widgets" onPress={() => scrollToPage(SPACES)} accessibilityLabel="Spaces" />
+          <IconButton
+            jds="ic_widgets"
+            variant={festive ? 'onBold' : 'ghost'}
+            onPress={() => scrollToPage(SPACES)}
+            accessibilityLabel="Spaces"
+          />
         </Animated.View>
 
         <Animated.View
@@ -839,6 +940,7 @@ export function HomeScreen() {
         <DemoSheet
           stageIdx={demoStageIdx}
           depthIdx={astroDepthIdx}
+          styleOn={homeStyle}
           onApply={applyDemo}
           onClose={() => setShowDemo(false)}
           bottomInset={insets.bottom}
@@ -928,19 +1030,22 @@ function ContextLineCard({
 function DemoSheet({
   stageIdx,
   depthIdx,
+  styleOn,
   onApply,
   onClose,
   bottomInset,
 }: {
   stageIdx: number | null;
   depthIdx: number;
-  onApply: (stage: number | null, depth: number) => void;
+  styleOn: HomeStyle;
+  onApply: (stage: number | null, depth: number, style: HomeStyle) => void;
   onClose: () => void;
   bottomInset: number;
 }) {
   // Stage the picks locally; nothing changes until "Update" commits + restarts.
   const [pStage, setPStage] = useState<number | null>(stageIdx);
   const [pDepth, setPDepth] = useState<number>(depthIdx);
+  const [pStyle, setPStyle] = useState<HomeStyle>(styleOn);
   return (
     <View style={styles.sheetRoot}>
       <Pressable style={styles.sheetBackdrop} onPress={onClose} accessibilityLabel="Close demo controls" />
@@ -964,8 +1069,15 @@ function DemoSheet({
           ))}
         </View>
 
+        <Text style={styles.sheetLabel}>Home style</Text>
+        <View style={styles.sheetChips}>
+          <DemoChip label="Classic" on={pStyle === 'classic'} onPress={() => setPStyle('classic')} />
+          <DemoChip label="Image tile" on={pStyle === 'tiles'} onPress={() => setPStyle('tiles')} />
+          <DemoChip label="Festive" on={pStyle === 'festive'} onPress={() => setPStyle('festive')} />
+        </View>
+
         <Pressable
-          onPress={() => onApply(pStage, pDepth)}
+          onPress={() => onApply(pStage, pDepth, pStyle)}
           accessibilityRole="button"
           style={({ pressed }) => [styles.sheetUpdate, pressed && { backgroundColor: fig.brandPressed }]}
         >
@@ -1100,12 +1212,14 @@ function VerticalBoard({
   topPad,
   onAction,
   depth,
+  tiles,
 }: {
   vertical: Vertical;
   width: number;
   topPad: number;
   onAction: (prompt: string) => void;
   depth?: VerticalDepth;
+  tiles?: boolean;
 }) {
   let firstHeroSeen = false;
   // Per-vertical depth override (docs …engagement-v1 §6); falls back to the
@@ -1127,13 +1241,23 @@ function VerticalBoard({
             if (!isFirstHero) {
               return (
                 <View key={i} style={styles.rowGap}>
-                  <ActionCard
-                    icon={block.hero.icon}
-                    jds={block.hero.jds}
-                    title={block.hero.title}
-                    subtitle={block.hero.body}
-                    onPress={() => onAction(block.hero.prompt)}
-                  />
+                  {tiles ? (
+                    <PromptTileRow
+                      image={tileImageFor(block.hero.title)}
+                      icon={block.hero.icon}
+                      jds={block.hero.jds}
+                      text={block.hero.title}
+                      onPress={() => onAction(block.hero.prompt)}
+                    />
+                  ) : (
+                    <ActionCard
+                      icon={block.hero.icon}
+                      jds={block.hero.jds}
+                      title={block.hero.title}
+                      subtitle={block.hero.body}
+                      onPress={() => onAction(block.hero.prompt)}
+                    />
+                  )}
                 </View>
               );
             }
@@ -1158,7 +1282,25 @@ function VerticalBoard({
             );
           }
           case 'grid':
-            return (
+            // Tiles mode: the 2-col grid becomes full-width stacked rows (Figma
+            // 179:7097). Classic mode keeps the side-by-side ActionCards.
+            return tiles ? (
+              <View key={i} style={styles.tileList}>
+                {block.items.map((a) => (
+                  <PromptTileRow
+                    key={a.title}
+                    image={tileImageFor(a.title)}
+                    icon={a.icon}
+                    jds={a.jds}
+                    text={a.title}
+                    soon={a.soon}
+                    locked={a.locked}
+                    onPress={() => onAction(a.prompt)}
+                    onNotify={() => onAction(`${a.title} ke liye notify karo`)}
+                  />
+                ))}
+              </View>
+            ) : (
               <View key={i} style={styles.grid}>
                 {block.items.map((a) => (
                   <ActionCard
@@ -1178,16 +1320,29 @@ function VerticalBoard({
           case 'action':
             return (
               <View key={i} style={styles.rowGap}>
-                <ActionCard
-                  icon={block.item.icon}
-                  jds={block.item.jds}
-                  title={block.item.title}
-                  subtitle={block.item.subtitle}
-                  soon={block.item.soon}
-                  locked={block.item.locked}
-                  onPress={() => onAction(block.item.prompt)}
-                  onNotify={() => onAction(`${block.item.title} ke liye notify karo`)}
-                />
+                {tiles ? (
+                  <PromptTileRow
+                    image={tileImageFor(block.item.title)}
+                    icon={block.item.icon}
+                    jds={block.item.jds}
+                    text={block.item.title}
+                    soon={block.item.soon}
+                    locked={block.item.locked}
+                    onPress={() => onAction(block.item.prompt)}
+                    onNotify={() => onAction(`${block.item.title} ke liye notify karo`)}
+                  />
+                ) : (
+                  <ActionCard
+                    icon={block.item.icon}
+                    jds={block.item.jds}
+                    title={block.item.title}
+                    subtitle={block.item.subtitle}
+                    soon={block.item.soon}
+                    locked={block.item.locked}
+                    onPress={() => onAction(block.item.prompt)}
+                    onNotify={() => onAction(`${block.item.title} ke liye notify karo`)}
+                  />
+                )}
               </View>
             );
           case 'label':
@@ -1274,7 +1429,22 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     ...font('400'),
   },
-  phrases: { gap: 12, alignItems: 'center' },
+  // 20px L/R inset for the prompt rows (Figma 179:7255 — container at x=20 in the
+  // 360 frame). homeBody already pads 16, so pull out to the edge and re-pad 20.
+  phrases: { gap: 12, alignItems: 'center', marginHorizontal: -16, paddingHorizontal: 20 },
+
+  // ── Festive Home chrome (193:3924) ──
+  festiveBg: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: fig.festiveBg },
+  greetingFestive: { marginTop: 40 }, // less space above the festive title (vs classic 72)
+  festiveHeaderFill: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: fig.festiveBg },
+  festiveFlame: { position: 'absolute', width: 68, height: 65 },
+  festiveFlameL: { left: 12 },
+  festiveFlameR: { right: 12 },
+  // 20px inset like the prompt rows; homeBody already pads 16 → pull out & re-pad.
+  festiveCategoryWrap: { marginHorizontal: -16, paddingHorizontal: 20, marginBottom: 28 },
+  textOnBold: { color: fig.textOnBrand },
+  textOnBoldLow: { color: 'rgba(255,255,255,0.85)' },
+
   demoTag: {
     fontSize: 10,
     fontWeight: '700',
@@ -1472,6 +1642,7 @@ const styles = StyleSheet.create({
   blockGap: { marginTop: 12 },
   rowGap: { marginTop: 10 },
   grid: { marginTop: 10, gap: 10 },
+  tileList: { marginTop: 10, gap: 12 }, // stacked image-tile rows (tiles mode)
   sectionLabel: {
     fontSize: 11,
     fontWeight: '800',

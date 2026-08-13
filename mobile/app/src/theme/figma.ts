@@ -30,6 +30,7 @@ export const fig = {
   surface: '#ffffff',
   surfaceGhost: '#eeeeef',
   surfaceMinimal: '#f5f5f5',
+  tileSurface: '#f5f5f6', // image-tile background (colour/surface/surface) — Figma 179:7263
   heroTint: '#f3f4ff', // primary hero card background (colour/surface/surface)
 
   // Strokes
@@ -38,6 +39,10 @@ export const fig = {
 
   // Status
   live: '#fa2f40',
+
+  // Festive Home variant (Figma 193:3924 — Diwali)
+  festiveBg: '#3900ad', // festival background block (node 193:4237 fill = brand indigo)
+  marigold: '#f7ab20', // gold flame / diya accent
 } as const;
 
 export type Fig = typeof fig;
