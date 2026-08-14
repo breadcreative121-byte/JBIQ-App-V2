@@ -1,0 +1,387 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JBIQ — Wispr Flow onboarding, mapped</title>
+<script defer src="proto-nav.js"></script>
+<style>
+  @font-face{font-family:'JioType';font-weight:100 900;font-style:normal;
+    src:url('assets/fonts/JioTypeVarW05-Regular.woff2') format('woff2'),url('assets/fonts/JioTypeVarW05-Regular.woff') format('woff');}
+
+  :root{
+    --primary:#6d17ce; --primary-hover:#310064; --primary-30:#ede7ff; --primary-20:#f6f3ff; --icon-primary-light:#9c65fe;
+    --secondary:#00ad8b; --secondary-20:#ddfef2;
+    --sparkle:#0078ad; --sparkle-20:#ecf7ff;
+    --error:#fa2f40; --warning:#f06d0f; --warning-20:#ffe9d6; --success:#25ab21;
+    --surface:#ffffff; --surface-min:#f5f5f5; --surface-ghost:#eeeeef;
+    --ink:#0c0d10; --ink-65:rgba(12,13,16,.65); --ink-38:rgba(12,13,16,.38);
+    --line:rgba(12,13,16,.08); --line-strong:rgba(12,13,16,.12);
+    --warm:#fff8ee; --warm-line:#ffd9a1; --warm-ink:#b46a0d;
+    --gold:#f6b100; --gold-20:#fff5d6; --gold-line:#f4d488;
+    --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px; --r-pill:999px;
+    --ease:cubic-bezier(.2,.8,.2,1); --fast:120ms; --mid:220ms; --slow:380ms;
+    --sh-card:0 12px 30px -18px rgba(49,0,100,.4);
+    --sh-float:0 8px 24px rgba(12,13,16,.10);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--surface-min);color:var(--ink);overflow-x:hidden;
+    font-family:'JioType',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans","Noto Sans Devanagari",sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1320px;margin:0 auto;padding:40px 24px 90px}
+  .eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--primary)}
+  h1{font-size:31px;line-height:1.12;margin:8px 0 6px;letter-spacing:-.03em;font-weight:800}
+  .sub{color:var(--ink-65);font-size:15px;max-width:940px;line-height:1.5}
+  .spine{margin-top:16px;font-size:13.5px;line-height:1.55;color:var(--ink);background:var(--surface);
+    border:1px solid var(--line);border-left:3px solid var(--primary);border-radius:var(--r-sm);padding:11px 14px;max-width:940px}
+  .spine b{color:var(--primary)}
+  .cuts{margin-top:10px;font-size:13px;line-height:1.5;color:#0a6b56;background:var(--secondary-20);
+    border:1px solid #b6ecdd;border-left:3px solid var(--secondary);border-radius:var(--r-sm);padding:10px 14px;max-width:940px}
+  .cuts b{color:#0a5546}
+  .xref{margin-top:12px;font-size:13px}
+  .xref a{color:var(--sparkle);text-decoration:none;font-weight:700}
+  .xref a:hover{text-decoration:underline}
+
+  /* phase band */
+  .phase{margin-top:44px;border-top:1px solid var(--line);padding-top:24px}
+  .phase-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+  .pnum{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--primary);
+    border-radius:var(--r-pill);padding:4px 11px;flex:0 0 auto}
+  .phase.acct .pnum{background:var(--warning)}
+  .phase.win .pnum{background:var(--gold);color:#3a2a00}
+  .phase.reward .pnum{background:var(--sparkle)}
+  .phase h2{font-size:20px;margin:0;letter-spacing:-.02em;font-weight:800}
+  .phase .psub{font-size:13.5px;color:var(--ink-65);margin:4px 0 0;line-height:1.45;max-width:900px}
+
+  /* horizontal flow of steps */
+  .flow{display:flex;gap:0;align-items:stretch;overflow-x:auto;padding:20px 2px 12px;scroll-snap-type:x proximity;
+    -ms-overflow-style:none;scrollbar-width:thin}
+  .flow::-webkit-scrollbar{height:8px}
+  .flow::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:99px}
+  .step{flex:0 0 232px;scroll-snap-align:start;display:flex;flex-direction:column}
+  .arrow{flex:0 0 30px;display:flex;align-items:center;justify-content:center;color:var(--ink-38);font-size:20px;padding-top:150px}
+  .phase.win .arrow{color:var(--gold)}
+
+  .shot-phone{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--sh-card);background:#fff}
+  .shot-phone img{width:100%;display:block}
+  .stepnum{position:absolute;top:8px;left:8px;z-index:2;width:24px;height:24px;border-radius:50%;background:rgba(12,13,16,.82);
+    color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .phase.win .stepnum{background:var(--gold);color:#3a2a00}
+  .step h4{font-size:13.5px;font-weight:800;margin:11px 0 0;letter-spacing:-.01em;line-height:1.25}
+  .step .what{font-size:12px;color:var(--ink-65);line-height:1.42;margin-top:5px}
+  .step .why{font-size:12px;color:var(--ink);line-height:1.42;margin-top:6px}
+  .step .why b{color:var(--primary)}
+  .step .src{display:inline-block;font-size:11px;font-weight:700;color:var(--sparkle);text-decoration:none;margin-top:6px}
+  .step .src:hover{text-decoration:underline}
+  .jbiq{margin-top:9px;font-size:12px;line-height:1.42;color:#0a6b56;background:var(--secondary-20);
+    border:1px solid #b6ecdd;border-radius:var(--r-sm);padding:8px 10px}
+  .jbiq b{color:#0a5546}
+  .jbiq.cut{color:#a23214;background:var(--warning-20);border-color:#ffc79c}
+  .jbiq.cut b{color:#872809}
+  .jbiq .tagcut{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+    background:#a23214;color:#fff;border-radius:var(--r-pill);padding:2px 7px;margin-right:6px;vertical-align:1px}
+
+  .phase.win{background:linear-gradient(180deg,var(--gold-20),transparent 70%);border-radius:var(--r-lg);
+    padding:22px 16px 8px;border-top:0;margin-top:44px;box-shadow:inset 0 0 0 1px var(--gold-line)}
+  .winflag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.05em;
+    text-transform:uppercase;color:#7a5600;background:#fff;border:1px solid var(--gold-line);border-radius:var(--r-pill);padding:3px 10px;margin-left:8px}
+
+  /* JBIQ condensed track */
+  .jcut{margin-top:64px;border-top:2px solid var(--line-strong);padding-top:32px}
+  .jcut h2{font-size:24px;margin:0 0 6px;letter-spacing:-.02em;font-weight:800}
+  .jcut .sub{margin-bottom:6px}
+  .jcompare{display:inline-flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px}
+  .pill{font-size:12px;font-weight:800;border-radius:var(--r-pill);padding:5px 12px}
+  .pill.a{background:var(--warning-20);color:#a23214}
+  .pill.b{background:var(--secondary-20);color:#0a6b56}
+  .jflow{display:flex;gap:0;align-items:stretch;overflow-x:auto;padding:22px 2px 10px;scrollbar-width:thin}
+  .jflow::-webkit-scrollbar{height:8px}
+  .jflow::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:99px}
+  .jcard{flex:0 0 210px;border-radius:var(--r-lg);border:1px solid var(--line);background:var(--surface);
+    box-shadow:var(--sh-card);padding:16px;display:flex;flex-direction:column;gap:0}
+  .jcard.win{border-color:var(--gold-line);background:linear-gradient(180deg,var(--gold-20),#fff)}
+  .jarrow{flex:0 0 30px;display:flex;align-items:center;justify-content:center;color:var(--secondary);font-size:20px}
+  .jcard .jn{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--primary)}
+  .jcard.win .jn{color:#7a5600}
+  .jorb{width:52px;height:52px;border-radius:50%;margin:12px 0 4px;
+    background:radial-gradient(circle at 35% 30%,#d6bcff,#8a3bff 55%,var(--primary) 100%);
+    box-shadow:0 8px 20px -6px rgba(109,23,206,.5), inset 0 2px 8px rgba(255,255,255,.45);
+    display:flex;align-items:center;justify-content:center;font-size:22px}
+  .jcard h4{font-size:14.5px;font-weight:800;margin:8px 0 0;letter-spacing:-.01em}
+  .jcard .jsay{font-size:12.5px;color:var(--ink);margin-top:6px;line-height:1.4;font-style:italic}
+  .jcard .jd{font-size:11.5px;color:var(--ink-65);margin-top:7px;line-height:1.4}
+
+  /* JBIQ rendered phone track */
+  .jtrack{display:flex;gap:0;align-items:flex-start;overflow-x:auto;padding:24px 2px 12px;scrollbar-width:thin}
+  .jtrack::-webkit-scrollbar{height:8px}
+  .jtrack::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:99px}
+  .jstep{flex:0 0 216px;display:flex;flex-direction:column}
+  .jarrow2{flex:0 0 30px;display:flex;align-items:center;justify-content:center;color:var(--secondary);font-size:20px;padding-top:206px}
+  .jstep h4{font-size:13.5px;font-weight:800;margin:12px 0 0;letter-spacing:-.01em}
+  .jstep .jwhat{font-size:12px;color:var(--ink-65);line-height:1.42;margin-top:5px}
+  .jstep .rep{font-size:11px;font-weight:700;color:var(--secondary);margin-top:8px;display:inline-block;line-height:1.35}
+  .jphone{position:relative;width:216px;height:438px;border-radius:30px;border:1px solid var(--line);
+    background:var(--surface);box-shadow:var(--sh-card);overflow:hidden}
+  .jsb{height:26px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:10px;font-weight:700;color:var(--ink)}
+  .jsb .d{display:flex;gap:3px}.jsb .d i{width:11px;height:7px;border-radius:2px;background:currentColor;opacity:.85}
+  .jbody{position:absolute;top:26px;left:0;right:0;bottom:0;padding:6px 14px 0;display:flex;flex-direction:column;overflow:hidden}
+  .jhdr{display:flex;align-items:center;justify-content:space-between;flex:0 0 auto}
+  .jgreet2{font-size:12.5px;font-weight:700}
+  .javatar{width:24px;height:24px;border-radius:50%;font-size:11px;font-weight:800;color:#fff;
+    background:radial-gradient(circle at 30% 30%,#b98cff,var(--primary));display:flex;align-items:center;justify-content:center}
+  .jteach2{font-size:15px;font-weight:800;letter-spacing:-.02em;margin:12px 2px 0;line-height:1.25}
+  .jteach2 .mut{color:var(--ink-38)}
+  .jcmd2{display:flex;flex-direction:column;gap:7px;margin-top:12px}
+  .jrow{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:var(--r-pill);padding:8px 11px;font-size:11.5px;font-weight:700;color:var(--ink)}
+  .jrow .g{font-size:13px}
+  .jrow .sub{color:var(--ink-38);font-weight:600;font-size:10px;margin-left:auto}
+  .jnolog{margin-top:auto;margin-bottom:58px;font-size:10px;font-weight:700;color:var(--secondary);text-align:center}
+  .vstage{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-bottom:46px}
+  .vorb{width:74px;height:74px;border-radius:50%;flex:0 0 auto;
+    background:radial-gradient(circle at 35% 30%,#d6bcff,#8a3bff 55%,var(--primary) 100%);
+    box-shadow:0 10px 26px -6px rgba(109,23,206,.5), inset 0 2px 8px rgba(255,255,255,.45)}
+  .vhint{font-size:11px;font-weight:700;color:var(--ink-38);margin-bottom:10px}
+  .vlabel{font-size:11px;font-weight:800;color:var(--primary);margin-top:12px}
+  .vtrans{font-size:14.5px;font-weight:700;margin-top:5px;color:var(--ink);line-height:1.3;max-width:170px}
+  .vcap{font-size:12.5px;font-weight:700;color:var(--ink-65);margin-top:12px}
+  .vcap2{font-size:10.5px;color:var(--ink-38);margin-top:4px;max-width:170px}
+  .vsheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+    border-radius:18px 18px 0 0;padding:15px 15px 16px;box-shadow:0 -10px 26px rgba(12,13,16,.12)}
+  .vsheet .vorbmini{width:44px;height:44px;border-radius:50%;margin:0 auto 10px;
+    background:radial-gradient(circle at 35% 30%,#d6bcff,#8a3bff 55%,var(--primary) 100%);box-shadow:0 6px 16px -4px rgba(109,23,206,.5)}
+  .vsheet h5{margin:0;font-size:13.5px;font-weight:800;text-align:center}
+  .vsheet p{margin:6px 0 0;font-size:11px;color:var(--ink-65);line-height:1.42;text-align:center}
+  .vsheet .vbtn{margin-top:12px;width:100%;border:0;border-radius:var(--r-pill);background:var(--primary);color:#fff;font:inherit;font-size:12px;font-weight:800;padding:10px}
+  .vsheet .vlink{display:block;text-align:center;margin-top:9px;font-size:11px;color:var(--ink-38);font-weight:700}
+  .vdim{opacity:.4;filter:saturate(.7)}
+  .vanswer{border:1px solid var(--warm-line);background:var(--warm);border-radius:var(--r-md);padding:12px;margin-top:14px}
+  .vanswer .vk{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--warm-ink)}
+  .vanswer .vl{font-size:13px;font-weight:700;line-height:1.32;margin-top:6px}
+  .vanswer .vs{font-size:10.5px;color:var(--ink-65);margin-top:6px}
+  .vchips{display:flex;gap:7px;margin-top:11px}
+  .vchip{border:0;border-radius:var(--r-pill);font:inherit;font-size:11px;font-weight:700;padding:7px 11px;background:var(--surface-ghost);color:var(--ink)}
+  .vchip.p{background:var(--primary);color:#fff}
+  .vtoast{position:absolute;left:12px;right:12px;bottom:12px;background:var(--ink);color:#fff;font-size:10.5px;font-weight:600;padding:8px 11px;border-radius:var(--r-pill);text-align:center}
+  .vmic{position:absolute;left:12px;right:12px;bottom:12px;height:40px;background:var(--surface);border:1px solid var(--line-strong);
+    border-radius:var(--r-pill);display:flex;align-items:center;justify-content:space-between;padding:0 5px 0 14px;box-shadow:var(--sh-float)}
+  .vmic .vph{font-size:11px;color:var(--ink-38)}
+  .vbolo{display:inline-flex;align-items:center;gap:5px;border:0;border-radius:var(--r-pill);background:var(--primary);color:#fff;font:inherit;font-size:11px;font-weight:800;padding:7px 12px}
+  .vbolo .eq{display:inline-flex;gap:2px;align-items:flex-end;height:11px}
+  .vbolo .eq i{width:2.5px;background:#fff;border-radius:2px}
+  .vbolo .eq i:nth-child(1){height:5px}.vbolo .eq i:nth-child(2){height:10px}.vbolo .eq i:nth-child(3){height:7px}
+
+  .legend-foot{margin-top:60px;border-top:1px solid var(--line);padding-top:20px;font-size:13px;color:var(--ink-38)}
+  .legend-foot a{color:var(--sparkle)}
+
+  @media (prefers-reduced-motion: reduce){*{animation:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">JBIQ · AI Saathi · Onboarding teardown</div>
+  <h1>Wispr Flow’s onboarding, mapped — and cut for Bharat</h1>
+  <p class="sub">The full first-run flow pulled screen-by-screen from Mobbin, grouped into the six jobs it does. Under every real screen is the JBIQ Saathi translation — what we keep, and the two things we deliberately cut. The prize is the highlighted phase: the user speaks once and sees magic, in a single turn.</p>
+  <p class="spine"><b>The spine:</b> Frame the value &amp; pain → minimal-feeling account → explain-then-permit the mic → <b>speak once &amp; see magic</b> → extend to real use → reward + teach the hard gesture last.</p>
+  <p class="cuts"><b>Two cuts for JBIQ:</b> (1) <b>no account or email-verify before the win</b> — the first task runs anonymously; (2) the first utterance is a <b>real Jio task</b> (a paid bill, a live darshan), not a throwaway “say anything” demo.</p>
+  <p class="xref"><a href="/prototypes/voice-onboarding-concepts-v1.html">← Where this came from: the voice-onboarding concepts</a></p>
+
+  <div id="phases"></div>
+
+  <!-- JBIQ condensed cut -->
+  <section class="jcut" id="jbiq-cut">
+    <div class="eyebrow">The adaptation</div>
+    <h2>The JBIQ Saathi cut — five screens to a first win</h2>
+    <p class="sub">Wispr earns the win at screen 6–8 of ~12, behind a full account. Strip the account and make the first utterance real, and Saathi reaches the same aha in five — no login, no verify, a genuine outcome.</p>
+    <div class="jcompare"><span class="pill a">Wispr: ~12 screens · account + verify before win</span><span class="pill b">JBIQ: 5 screens · win before any account</span></div>
+    <div id="jflow"></div>
+  </section>
+
+  <div class="legend-foot">Reference screens © Wispr Flow, via <a href="https://mobbin.com/apps/wispr-flow" target="_blank">Mobbin</a> — <a href="https://mobbin.com/flows/8e8615c6-73d9-4b05-933e-275401ccb16a" target="_blank">Onboarding flow</a> · <a href="https://mobbin.com/flows/a743edfe-4338-4537-984b-17f173f3212d" target="_blank">keyboard-setup sub-flow</a>. JBIQ translations are indicative draft copy · JioType + JBIQ Design System.</div>
+</div>
+
+<script>
+(function(){
+  var S='assets/mobbin-wispr/';
+  var M='https://mobbin.com/screens/';
+  var PHASES=[
+    {cls:'',num:'Phase 1',title:'Frame the value & pain',
+     sub:'Sell the outcome, then let the user name their own problem — so the win to come feels personal.',
+     steps:[
+      {img:'wispr-value.webp',id:'bf901c6e-7f27-4175-b3aa-00569cc67f58',name:'Voice-first value carousel',
+        what:'Three swipeable slides — “4× faster than typing”, “100+ languages”, “Personal dictionary”.',
+        why:'<b>Why:</b> promises the payoff before asking for anything.',
+        jbiq:'“Saathi — get it all done by speaking.” One line + two taps of live proof (bill paid, darshan joined).'},
+      {img:'wispr-pain.webp',id:'b9d71f9d-0fbf-4466-8be4-445d7d5d1cbe',name:'“Which of these resonate?”',
+        what:'Multi-select pain list; the user taps what actually hurts.',
+        why:'<b>Why:</b> a self-declared problem makes the coming win land as “for me”.',
+        jbiq:'“What can I do for you?” — Recharge · Electricity bill · Live darshan · News. The pick <b>seeds the first task</b>.'}
+     ]},
+    {cls:'acct',num:'Phase 2',title:'Account — Wispr’s heavy path',
+     sub:'Wispr asks for a full account and email verification up front. This is the biggest drop-off — and exactly what JBIQ should remove.',
+     steps:[
+      {img:'wispr-email.webp',id:'1fce8944-707e-4e1f-b723-65d4352ddf9b',name:'Continue with email',
+        what:'Email → password → name → captcha, across several screens.',
+        why:'<b>Cost:</b> 4–5 screens of friction before any value is felt.',
+        cut:true,jbiq:'No login before the win — the first task runs anonymously (matches your voice-onboarding thesis).'},
+      {img:'wispr-verify.webp',id:'e9a447f0-17e1-401f-bd7b-72751e18bd30',name:'“Check your email”',
+        what:'Leave the app, click a verify link, come back and wait for auto-reload.',
+        why:'<b>Cost:</b> the heaviest abandonment point in the whole flow.',
+        cut:true,jbiq:'Ask for identity only when a task needs it — e.g. right before a payment, never at the door.'}
+     ]},
+    {cls:'',num:'Phase 3',title:'Explain, then permit',
+     sub:'Never let the OS ask cold. A warm in-app rationale sits in front of the system mic dialog.',
+     steps:[
+      {img:'wispr-setup.webp',id:'e249cc94-c18e-4fcd-914f-f4cdfd5b022e',name:'“Let’s set up Flow”',
+        what:'A single “This only takes a moment” + one Set-up button.',
+        why:'<b>Why:</b> shrinks perceived effort right before the friction.',
+        jbiq:'“Just let Saathi listen — once.”'},
+      {img:'wispr-mic.webp',id:'9ab0732f-4f26-4516-888c-8934dfe144eb',name:'Mic rationale → iOS dialog',
+        what:'An in-app “why we need the mic” screen <i>before</i> the system prompt.',
+        why:'<b>Why:</b> warming the ask lifts allow-rates vs a cold OS dialog.',
+        jbiq:'Same move — one warm line (“pay a bill, recharge — just say it”), then the iOS mic sheet.'}
+     ]},
+    {cls:'win',num:'Phase 4',title:'The first win',flag:'the part that works',
+     sub:'The heart of the flow: the user speaks once, watches their words appear, and is congratulated mid-action — all in one turn.',
+     steps:[
+      {img:'wispr-say.webp',id:'78813f92-1950-4b0a-8f48-28e3a5f46f3e',name:'“Say anything… like magic ✨”',
+        what:'Live box, waveform, “Listening · iPhone Microphone”, tap ✓ to complete.',
+        why:'<b>Why:</b> speaking once and seeing text appear <i>is</i> the aha.',
+        jbiq:'“Say it once: <i>Show me the live darshan</i>” — live Sarvam transcript streaming under the orb.'},
+      {img:'wispr-congrats.webp',id:'6f4b24a2-67a0-4af9-a1ee-9db4751e1a61',name:'“Now try dictating an email”',
+        what:'A second, harder rep; the keyboard bar flips to “Congrats on your first dictation 🎉”.',
+        why:'<b>Why:</b> celebrates <i>inside</i> the action, not on a separate screen.',
+        jbiq:'The four-beat reply is the celebration — and it opens a <b>real</b> live darshan, not a demo.'},
+      {img:'wispr-magic.webp',id:'7dcabff0-a543-4190-b9c0-afdcdc1b718f',name:'“You’ve experienced the magic”',
+        what:'An explicit win screen naming the feeling. Next.',
+        why:'<b>Why:</b> tells the user, in words, that they just succeeded.',
+        jbiq:'“Saved to your recents — just ask, any time.”'}
+     ]},
+    {cls:'',num:'Phase 5',title:'Extend to real use',
+     sub:'Move from scripted practice into genuine, unscripted value — fast, before momentum fades.',
+     steps:[
+      {img:'wispr-ready.webp',id:'76f6a263-c500-4010-8a4f-736f6da79d8c',name:'“You’re ready! Works in every app”',
+        what:'A confidence screen → Start Flowing.',
+        why:'<b>Why:</b> bridges from tutorial to real use.',
+        jbiq:'“Now ask me anything” → drop straight onto the live Home.'},
+      {img:'wispr-firstuse.webp',id:'591ad88f-907b-4e7a-ac97-d45fa22b870a',name:'“Time to Flow in Notes”',
+        what:'Nudges the first <i>real</i> message — not another tutorial.',
+        why:'<b>Why:</b> gets the user to genuine value immediately.',
+        jbiq:'First live task on Home — a Space board or a sayable command card.'}
+     ]},
+    {cls:'reward',num:'Phase 6',title:'Reward + habit',
+     sub:'Monetise on the high, seed a reason to return, and teach the one awkward gesture last.',
+     steps:[
+      {img:'wispr-reward.webp',id:'561d785b-c7cc-458d-85f8-f2a01e84bcee',name:'“Unlocked unlimited words · 2 weeks 🎉”',
+        what:'A Pro-trial upsell framed as a gift.',
+        why:'<b>Why:</b> sells on the emotional peak of the win.',
+        jbiq:'Optional — Jio’s pull is the ecosystem, not a paywall. Make it a streak, not a trial.'},
+      {img:'wispr-stats.webp',id:'08a527cf-f10d-4a73-be11-92d6813b0f8d',name:'“28 words dictated so far”',
+        what:'Progress toward unlocking personal stats.',
+        why:'<b>Why:</b> a gamified reason to come back.',
+        jbiq:'“You did 3 things by voice today” — a light streak that never nags.'},
+      {img:'wispr-swipe.webp',id:'68476694-7277-47ce-a4a7-f140a2ca258c',name:'“Swipe back to your app”',
+        what:'Teaches the one awkward mic-activation gesture — dead last.',
+        why:'<b>Why:</b> friction is taught only after the user is already hooked.',
+        jbiq:'N/A for in-app voice — but keep the principle: teach any hard gesture <i>after</i> the first win.'}
+     ]}
+  ];
+
+  function stepHtml(s,cls){
+    return '<div class="step">'
+      +'<div class="shot-phone"><span class="stepnum"></span><img src="'+S+s.img+'" alt="'+s.name+'" loading="lazy"></div>'
+      +'<h4>'+s.name+'</h4>'
+      +'<div class="what">'+s.what+'</div>'
+      +'<div class="why">'+s.why+'</div>'
+      +'<a class="src" href="'+M+s.id+'" target="_blank">Mobbin ↗</a>'
+      +'<div class="jbiq'+(s.cut?' cut':'')+'">'+(s.cut?'<span class="tagcut">Cut</span>':'<b>JBIQ:</b> ')+s.jbiq+'</div>'
+      +'</div>';
+  }
+  var out='';var stepCounter=0;
+  PHASES.forEach(function(p){
+    out+='<section class="phase '+p.cls+'">'
+      +'<div class="phase-head"><span class="pnum">'+p.num+'</span><h2>'+p.title+(p.flag?'<span class="winflag">🎯 '+p.flag+'</span>':'')+'</h2></div>'
+      +'<p class="psub">'+p.sub+'</p><div class="flow">';
+    p.steps.forEach(function(s,i){
+      out+=stepHtml(s,p.cls);
+      if(i<p.steps.length-1)out+='<div class="arrow">→</div>';
+    });
+    out+='</div></section>';
+  });
+  document.getElementById('phases').innerHTML=out;
+  // number the phone badges sequentially
+  var badges=document.querySelectorAll('#phases .stepnum');
+  badges.forEach(function(b,i){b.textContent=(i+1);});
+
+  /* ---- JBIQ condensed cut ---- */
+  function jsb(){return '<div class="jsb"><span>9:41</span><span class="d"><i></i><i></i><i style="width:16px"></i></span></div>';}
+  function jhdr(){return '<div class="jhdr"><div class="jgreet2">Hi Arjun 👋</div><div class="javatar">A</div></div>';}
+
+  var STEPS=[
+    { name:'1 · Intent — Home',
+      what:'A warm greeting and four spoken-command cards. Tapping (or saying) one seeds the first task.',
+      rep:'↩ replaces Wispr’s splash + value carousel + pain-select — folded into one screen',
+      body:jhdr()
+        +'<div class="jteach2">What can I do for you? <span class="mut">Just say it.</span></div>'
+        +'<div class="jcmd2">'
+        +'<div class="jrow"><span class="g">⚡</span>“Pay the electricity bill”</div>'
+        +'<div class="jrow"><span class="g">📱</span>“Recharge my number”</div>'
+        +'<div class="jrow"><span class="g">🛕</span>“Show the live darshan”</div>'
+        +'<div class="jrow"><span class="g">📰</span>“The news, in 3 minutes”</div>'
+        +'</div><div class="jnolog">No login · no OTP — just start talking</div>'
+    },
+    { name:'2 · Permit — the warm ask',
+      what:'One plain line on why Saathi needs the mic and what it does with your voice, then the iOS sheet.',
+      rep:'↩ replaces Wispr’s mic rationale — and skips the whole account + email-verify',
+      body:'<div class="vdim">'+jhdr()
+        +'<div class="jteach2">What can I do for you?</div>'
+        +'<div class="jcmd2"><div class="jrow"><span class="g">🛕</span>“Show the live darshan”</div>'
+        +'<div class="jrow"><span class="g">📱</span>“Recharge my number”</div></div></div>'
+        +'<div class="vsheet"><div class="vorbmini"></div>'
+        +'<h5>Let Saathi listen</h5>'
+        +'<p>So you can get things done just by speaking. I only listen when you tap to speak — and never save anything without asking.</p>'
+        +'<button class="vbtn">Okay, listen</button>'
+        +'<span class="vlink">Not now</span></div>'
+    },
+    { name:'3 · Say it once',
+      what:'The one coached utterance. The live transcript appears under the orb — instant proof it heard you.',
+      rep:'↩ replaces Wispr’s “Say anything, tap ✓, see it appear like magic”',
+      win:true,
+      body:'<div class="vstage"><div class="vhint">Say it once 👇</div>'
+        +'<div class="vorb"></div>'
+        +'<div class="vlabel">Listening…</div>'
+        +'<div class="vtrans">“Show me the live darshan”</div></div>'
+        +'<div class="vmic"><span class="vph">Listening…</span>'
+        +'<button class="vbolo"><span class="eq"><i></i><i></i><i></i></span>Stop</button></div>'
+    },
+    { name:'4 · The win',
+      what:'A live darshan opens inside Saathi’s four-beat shape — a human beat, the answer, one next step — then quietly saved.',
+      rep:'↩ replaces Wispr’s “Congrats… the magic of Flow” — but it’s a real outcome, not a demo',
+      win:true,
+      body:jhdr()
+        +'<div class="jteach2" style="font-size:13.5px">Here you go — the live darshan.</div>'
+        +'<div class="vanswer"><div class="vk">🛕 Live · Kashi Vishwanath</div>'
+        +'<div class="vl">Morning aarti is live now — 12,480 devotees watching.</div>'
+        +'<div class="vs">Aarti till 7:30 am · Devotion space</div>'
+        +'<div class="vchips"><button class="vchip p">▶ Join darshan</button><button class="vchip">Remind me</button></div></div>'
+        +'<div class="vtoast">Saved to your recents — just ask, any time ✨</div>'
+    },
+    { name:'5 · Live home',
+      what:'Straight into unscripted use. The resting orb and “Speak” stay one tap away; identity is asked only when a task needs it.',
+      rep:'↩ replaces Wispr’s “You’re ready” + Pro-trial upsell',
+      body:jhdr()
+        +'<div class="vstage"><div class="vorb"></div>'
+        +'<div class="vcap">Now, ask me anything</div>'
+        +'<div class="vcap2">Recharge, bills, or just a chat — Saathi’s right here.</div></div>'
+        +'<div class="vmic"><span class="vph">Ask anything…</span>'
+        +'<button class="vbolo"><span class="eq"><i></i><i></i><i></i></span>Speak</button></div>'
+    }
+  ];
+  var t='';
+  STEPS.forEach(function(s,i){
+    t+='<div class="jstep">'
+      +'<div class="jphone">'+jsb()+'<div class="jbody">'+s.body+'</div></div>'
+      +'<h4>'+s.name+'</h4>'
+      +'<div class="jwhat">'+s.what+'</div>'
+      +'<span class="rep">'+s.rep+'</span>'
+      +'</div>';
+    if(i<STEPS.length-1)t+='<div class="jarrow2">→</div>';
+  });
+  document.getElementById('jflow').innerHTML='<div class="jtrack">'+t+'</div>';
+})();
+</script>

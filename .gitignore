@@ -2,3 +2,11 @@ node_modules/
 .env
 .DS_Store
 .claude/
+
+# iOS app (Expo) build artifacts
+mobile/app/node_modules/
+mobile/app/.expo/
+mobile/app/ios/
+mobile/app/android/
+mobile/app/dist/
+mobile/app/.expo-shared/

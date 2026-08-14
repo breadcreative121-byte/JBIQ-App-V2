@@ -1,0 +1,76 @@
+{
+  "expo": {
+    "name": "JBIQ Saathi",
+    "slug": "jbiq-saathi",
+    "scheme": "jbiq",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.sunit.JioBharatIQ",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "JBIQ Saathi uses the microphone for voice conversation.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.sunit.jiobharatiq",
+      "adaptiveIcon": {
+        "backgroundColor": "#6d17ce",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "JBIQ Saathi",
+      "shortName": "Saathi",
+      "themeColor": "#5A2EFF",
+      "backgroundColor": "#FFFFFF",
+      "display": "standalone",
+      "description": "JBIQ Saathi — voice-led assistant prototype",
+      "meta": {
+        "apple-mobile-web-app-capable": "yes",
+        "apple-mobile-web-app-status-bar-style": "default"
+      }
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "experiments": {
+      "baseUrl": "/app",
+      "onDemandFilesystem": false
+    },
+    "extra": {
+      "apiBaseUrl": "https://jbiq-app-v2.onrender.com",
+      "eas": {
+        "projectId": "e700ae4d-6e69-45a9-a597-512e90560adb"
+      }
+    },
+    "plugins": [
+      "expo-video",
+      "expo-audio",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#170054"
+        }
+      ],
+      "expo-font",
+      "expo-asset"
+    ],
+    "owner": "matt_jarvis"
+  }
+}

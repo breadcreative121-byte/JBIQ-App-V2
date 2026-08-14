@@ -97,6 +97,42 @@ app.post('/api/tts', async (req, res) => {
   }
 });
 
+// === Sarvam STT endpoint ===
+// Added for the native iOS app (mobile/app). The phone records short WAV clips
+// and sends them base64-encoded so the Sarvam key never leaves the server. We
+// decode and forward to Sarvam STT (saarika) as multipart form-data. Additive
+// only — the existing web build does not use this route.
+app.post('/api/stt', async (req, res) => {
+  try {
+    const { audio, language_code } = req.body || {};
+    if (!audio) return res.status(400).json({ error: 'audio (base64) is required' });
+    if (!SARVAM_API_KEY) return res.status(500).json({ error: 'Sarvam API key not configured' });
+
+    const buffer = Buffer.from(audio, 'base64');
+    const form = new FormData();
+    form.append('file', new Blob([buffer], { type: 'audio/wav' }), 'speech.wav');
+    form.append('model', 'saarika:v2.5');
+    form.append('language_code', language_code || 'unknown');
+
+    const response = await fetch('https://api.sarvam.ai/speech-to-text', {
+      method: 'POST',
+      headers: { 'api-subscription-key': SARVAM_API_KEY },
+      body: form,
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Sarvam STT error: ${response.status} - ${err}`);
+    }
+
+    const data = await response.json();
+    res.json({ transcript: data.transcript || '', language_code: data.language_code });
+  } catch (error) {
+    console.error('STT error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // === Swiggy MCP partner endpoint ===
 // Internal-demo only. Calls Anthropic Messages API with the Swiggy Food MCP
 // connector and asks Claude to return a CatalogDiscoveryView-shaped JSON the
