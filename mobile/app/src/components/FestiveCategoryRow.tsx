@@ -39,7 +39,7 @@ function CategoryCard({ item, onPress }: { item: FestiveCategory; onPress: () =>
       accessibilityLabel={item.label}
     >
       <Animated.View style={[styles.tile, { transform: [{ scale }] }]}>
-        <Image source={item.image} style={styles.tileImg} resizeMode="cover" />
+        <Image source={item.image} style={styles.tileImg} resizeMode="contain" />
       </Animated.View>
       <Text style={styles.label} numberOfLines={1}>
         {item.label}
@@ -51,22 +51,19 @@ function CategoryCard({ item, onPress }: { item: FestiveCategory; onPress: () =>
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 11 },
   col: { flex: 1, alignItems: 'center' },
-  // Wrapper View owns the square sizing (Views honour width:'100%' + aspectRatio
-  // reliably; a bare Image does not) and clips the image to the rounded tile.
+  // Grey card with the 3D image inset + centred (Figma 192:11722 — 76px image in
+  // a ~99px card, ~12px padding). The image's baked #f5f5f6 backdrop matches the
+  // card so it blends; padding keeps every category the same size.
   tile: {
     width: '100%',
     aspectRatio: 1,
     borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: fig.surface,
-    // elevation1 (Figma) — soft lift off the festival background
-    shadowColor: '#0c0d10',
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    backgroundColor: fig.tileSurface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 14,
   },
-  tileImg: { width: '100%', height: '100%' },
+  tileImg: { width: '100%', height: '100%', borderRadius: 26 },
   label: {
     marginTop: 8,
     fontSize: 12,

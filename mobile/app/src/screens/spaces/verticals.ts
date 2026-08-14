@@ -141,9 +141,8 @@ export const VERTICALS: Vertical[] = [
             item: {
               icon: 'star-shooting-outline',
               title: 'Grand Kundali Reveal',
-              subtitle: 'Unlocks after you set your sign',
-              prompt: 'Set your sign first',
-              locked: true,
+              subtitle: 'Your birth chart, narrated — voice-first.',
+              prompt: 'Start the Grand Kundali Reveal',
             },
           },
           { kind: 'disclaimer', text: 'AI-generated · general guidance, not professional advice.' },
@@ -187,9 +186,8 @@ export const VERTICALS: Vertical[] = [
             item: {
               icon: 'star-shooting-outline',
               title: 'Grand Kundali Reveal',
-              subtitle: 'After you create your Kundali',
-              prompt: 'Create your Kundali first',
-              locked: true,
+              subtitle: 'Your birth chart, narrated — voice-first.',
+              prompt: 'Start the Grand Kundali Reveal',
             },
           },
           { kind: 'disclaimer', text: 'AI-generated · general guidance, not professional advice.' },

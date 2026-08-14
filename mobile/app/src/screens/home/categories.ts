@@ -5,7 +5,7 @@
 import type { FestiveCategory } from './festive';
 
 export const HOME_CATEGORIES: FestiveCategory[] = [
-  { image: require('../../../assets/tiles/kundali.png'), label: 'Astrology', prompt: 'Read my horoscope' },
+  { image: require('../../../assets/tiles/astrology.png'), label: 'Astrology', prompt: 'Read my horoscope' },
   { image: require('../../../assets/tiles/darshan.png'), label: 'Devotion', prompt: 'Join the live Darshan' },
   { image: require('../../../assets/tiles/cricket.png'), label: 'Cricket', prompt: "How did yesterday's match go?" },
 ];

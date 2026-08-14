@@ -215,7 +215,7 @@ export function HomeScreen() {
   const [showDemo, setShowDemo] = useState(false);
   // Home variant: 'classic' pills/action cards · 'tiles' = the Figma "Image tile"
   // treatment (179:7263) · 'festive' = tiles + Diwali Home chrome (193:3924).
-  const [homeStyle, setHomeStyle] = useState<HomeStyle>('classic');
+  const [homeStyle, setHomeStyle] = useState<HomeStyle>('tiles');
   const festive = homeStyle === 'festive'; // Home-only festive chrome
   const cards = homeStyle === 'cards'; // big stacked cards on Home + Spaces
   const tiles = homeStyle === 'tiles' || festive; // image-tile rows (excludes cards)
@@ -1438,7 +1438,7 @@ const styles = StyleSheet.create({
   },
   // 20px L/R inset for the prompt rows (Figma 179:7255 — container at x=20 in the
   // 360 frame). homeBody already pads 16, so pull out to the edge and re-pad 20.
-  phrases: { gap: 12, alignItems: 'center', marginHorizontal: -16, paddingHorizontal: 20 },
+  phrases: { gap: 12, alignItems: 'center', marginHorizontal: -16, paddingHorizontal: 28 },
 
   // ── Festive Home chrome (193:3924) ──
   festiveBg: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: fig.festiveBg },

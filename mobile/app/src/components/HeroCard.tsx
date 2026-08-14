@@ -3,7 +3,8 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { fig } from '@/theme/figma';
 import { font } from '@/theme/fonts';
-import { AccentIconChip, type GlyphName } from './AccentIconChip';
+import { type GlyphName } from './AccentIconChip';
+import { AgentPulse } from './AgentPulse';
 import { AppButton } from './AppButton';
 import { Ionicons } from '@expo/vector-icons';
 import type { JdsName } from '@/theme/jdsIcons';
@@ -39,9 +40,9 @@ export function HeroCard({
       <View style={styles.eyebrowRow}>
         {live ? (
           <View style={styles.liveDot} />
-        ) : jds || icon ? (
-          <AccentIconChip icon={icon} jds={jds} size={24} iconSize={16} />
-        ) : null}
+        ) : (
+          <AgentPulse size={18} />
+        )}
         <Text style={styles.eyebrow}>{eyebrow}</Text>
       </View>
       <Text style={styles.title}>{title}</Text>
