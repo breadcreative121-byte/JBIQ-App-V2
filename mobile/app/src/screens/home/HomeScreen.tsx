@@ -1089,7 +1089,7 @@ function DemoSheet({
         <View style={styles.sheetChips}>
           <DemoChip label="Classic" on={pStyle === 'classic'} onPress={() => setPStyle('classic')} />
           <DemoChip label="Image tile" on={pStyle === 'tiles'} onPress={() => setPStyle('tiles')} />
-          <DemoChip label="Festive" on={pStyle === 'festive'} onPress={() => setPStyle('festive')} />
+          <DemoChip label="Moments" on={pStyle === 'festive'} onPress={() => setPStyle('festive')} />
           <DemoChip label="Cards" on={pStyle === 'cards'} onPress={() => setPStyle('cards')} />
         </View>
 
@@ -1424,7 +1424,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: fig.textHigh,
     textAlign: 'center',
-    marginTop: 72,
+    marginTop: 40,
     ...font('800'),
   },
   teach: {
