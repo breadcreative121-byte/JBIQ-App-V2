@@ -356,10 +356,10 @@ export function HomeScreen() {
     seenSpaces.current = false;
     setOnboardingComplete(false);
     setSpacesIntroSeen(false);
-    // Prototype: launch straight into the Home (Image-tile default is active),
-    // not the interests picker — it's still replayable from the menu gear. Reset
-    // the persisted + in-memory selection so Home starts on defaults.
-    setShowPrefs(false);
+    // Interests picker is the first thing shown; reset the persisted + in-memory
+    // selection so Home starts on defaults until the user chooses. (Home style
+    // defaults to Image tile once onboarding completes.)
+    setShowPrefs(true);
     setPrefs([]);
     clearPreferences();
   }, []);
